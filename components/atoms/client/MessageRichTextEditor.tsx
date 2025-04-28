@@ -1,55 +1,29 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import 'react-quill/dist/quill.snow.css'
-
-import dynamic from 'next/dynamic'
+import { Editor } from '@tinymce/tinymce-react'
 
 import type { MyQuillComponentProps } from '@/types/models'
 
-import Loading from '@/components/admin/atoms/server/Loading'
-
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    [{ color: [] }],
-    ['bold', 'italic', 'underline'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    [{ align: [] }],
+const TINYMCE_CONFIG = {
+  height: 300,
+  menubar: false,
+  plugins: [
+    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+    'insertdatetime', 'media', 'table', 'help', 'wordcount'
   ],
+  toolbar: 'undo redo | blocks | ' +
+    'bold italic | alignleft aligncenter ' +
+    'alignright alignjustify | bullist numlist outdent indent | ' +
+    'removeformat | help',
+  content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px }'
 }
-
-const QUILL_FORMATS = [
-  'header',
-  'bold',
-  'italic',
-  'underline',
-  'strike',
-  'blockquote',
-  'list',
-  'bullet',
-  'link',
-  'image',
-  'align',
-  'color',
-]
-
-const QuillEditor = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill')
-    return RQ
-  },
-  {
-    ssr: false,
-    loading: () => <Loading name="l'éditeur de texte" />,
-  },
-)
 
 const RichTextEditor = React.memo(
   ({ value, onChange }: MyQuillComponentProps) => {
     const [editorContent, setEditorContent] = useState<string>(value || '')
 
-    // Mettre à jour l'état local uniquement si value change de l'extérieur
     useEffect(() => {
       if (value !== editorContent) {
         setEditorContent(value || '')
@@ -65,13 +39,11 @@ const RichTextEditor = React.memo(
     )
 
     return (
-      <QuillEditor
+      <Editor
+        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
         value={editorContent}
-        onChange={handleEditorChange}
-        modules={QUILL_MODULES}
-        formats={QUILL_FORMATS}
-        className="mt-2"
-        placeholder="Ecrivez votre message..."
+        onEditorChange={handleEditorChange}
+        init={TINYMCE_CONFIG}
       />
     )
   },

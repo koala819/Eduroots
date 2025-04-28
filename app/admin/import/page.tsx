@@ -1,8 +1,7 @@
 'use client'
 
 import React, { ChangeEvent, useState } from 'react'
-
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 // Définition des interfaces TypeScript
 interface ProcessedData {
@@ -96,15 +95,9 @@ const ExcelConverter: React.FC = () => {
       // Extraire et formater la date de naissance (colonne I)
       let dateOfBirth = ''
       if (row['I']) {
-        // Vérifier si c'est une date Excel (numérique)
-        let dateValue = row['I']
-
-        if (typeof dateValue === 'number') {
-          // Convertir la date Excel en date JavaScript
-          const excelDate = XLSX.SSF.parse_date_code(dateValue)
-          if (excelDate) {
-            dateOfBirth = `${excelDate.y}-${String(excelDate.m).padStart(2, '0')}-${String(excelDate.d).padStart(2, '0')}`
-          }
+        const dateValue = row['I']
+        if (dateValue instanceof Date) {
+          dateOfBirth = dateValue.toISOString().split('T')[0]
         } else if (typeof dateValue === 'string') {
           // Format probable: JJ/MM/AAAA
           const dateParts = dateValue.split(/[\/.-]/)
@@ -115,9 +108,6 @@ const ExcelConverter: React.FC = () => {
               dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
             dateOfBirth = `${year}-${month}-${day}`
           }
-        } else if (dateValue instanceof Date) {
-          // Si c'est déjà un objet Date
-          dateOfBirth = dateValue.toISOString().split('T')[0]
         }
       }
 
@@ -195,68 +185,49 @@ const ExcelConverter: React.FC = () => {
     setLoading(true)
 
     try {
-      // Lire le fichier
-      const reader = new FileReader()
+      const workbook = new ExcelJS.Workbook()
+      const buffer = await file.arrayBuffer()
+      await workbook.xlsx.load(buffer)
 
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer)
-          const workbook = XLSX.read(data, {
-            type: 'array',
-            cellDates: true,
-            cellFormula: true,
-            cellNF: true,
-            raw: false,
-          })
+      // Obtenir la première feuille
+      const worksheet = workbook.worksheets[0]
 
-          // Obtenir la première feuille
-          const sheetName = workbook.SheetNames[0]
-          const sheet = workbook.Sheets[sheetName]
+      // Convertir en JSON
+      const jsonData: ExcelRow[] = []
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return // Ignorer l'en-tête
 
-          // Convertir en JSON en utilisant 'A' comme en-tête (comme dans votre fonction compareStudentsWithExcel)
-          const jsonData = XLSX.utils.sheet_to_json<ExcelRow>(sheet, {
-            header: 'A',
-            defval: null,
-            raw: false,
-            blankrows: false,
-          })
+        const rowData: ExcelRow = {}
+        row.eachCell((cell, colNumber) => {
+          const columnLetter = String.fromCharCode(64 + colNumber) // Convertir le numéro de colonne en lettre (A, B, C, etc.)
+          rowData[columnLetter] = cell.value
+        })
+        jsonData.push(rowData)
+      })
 
-          console.log('Données brutes Excel:', jsonData)
+      console.log('Données brutes Excel:', jsonData)
 
-          // Traiter les données
-          const processedData = processExcelData(jsonData)
+      // Traiter les données
+      const processedData = processExcelData(jsonData)
 
-          // Compter les enregistrements non vides
-          const nonEmptyCount = processedData.length
+      // Compter les enregistrements non vides
+      const nonEmptyCount = processedData.length
 
-          // Convertir au format JSON
-          const formatted = JSON.stringify(processedData, null, 2)
+      // Convertir au format JSON
+      const formatted = JSON.stringify(processedData, null, 2)
 
-          setResult({
-            data: processedData,
-            formatted,
-            recordCount: jsonData.length,
-            nonEmptyCount,
-          })
-        } catch (error) {
-          console.error('Erreur lors du traitement du fichier:', error)
-          setResult({ error: 'Erreur lors du traitement du fichier Excel' })
-        }
-
-        setLoading(false)
-      }
-
-      reader.onerror = () => {
-        setResult({ error: 'Erreur lors de la lecture du fichier' })
-        setLoading(false)
-      }
-
-      reader.readAsArrayBuffer(file)
+      setResult({
+        data: processedData,
+        formatted,
+        recordCount: jsonData.length,
+        nonEmptyCount,
+      })
     } catch (error) {
-      console.error('Erreur:', error)
-      setResult({ error: "Une erreur s'est produite" })
-      setLoading(false)
+      console.error('Erreur lors du traitement du fichier:', error)
+      setResult({ error: 'Erreur lors du traitement du fichier Excel' })
     }
+
+    setLoading(false)
   }
 
   // Télécharger le résultat
