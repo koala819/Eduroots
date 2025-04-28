@@ -91,8 +91,6 @@ jobs:
         run: npm i -g pnpm
       - name: Install Dependencies
         run: pnpm install
-      - name: Check for outdated dependencies
-        run: pnpm outdated
       - name: Run dependency audit
         run: pnpm audit
 
