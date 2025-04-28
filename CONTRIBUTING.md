@@ -1,104 +1,53 @@
-# Guide de Contribution à EduRootS
+# Contributing to EduRootS
 
-Merci de votre intérêt pour contribuer à EduRootS ! Ce document fournit des directives et des informations pour vous aider à contribuer efficacement au projet.
+Thank you for your interest in contributing to EduRootS! This document provides guidelines and instructions for contributing to our project.
 
-## Table des matières
+## How to Contribute
 
-- [Code de conduite](#code-de-conduite)
-- [Comment contribuer](#comment-contribuer)
-- [Processus de développement](#processus-de-développement)
-- [Conventions de code](#conventions-de-code)
-- [Tests](#tests)
-- [Documentation](#documentation)
-- [Questions et support](#questions-et-support)
+1. **Fork the Repository**
+   - Click the "Fork" button on the top right of the GitHub page
+   - Clone your fork locally: `git clone https://github.com/your-username/EduRootS.git`
 
-## Code de conduite
+2. **Create a Branch**
+   - Create a new branch for your feature or fix: `git checkout -b feature/your-feature-name`
+   - Use clear and descriptive names for your branches
 
-En participant à ce projet, vous acceptez de respecter notre [Code de Conduite](CODE_OF_CONDUCT.md). Soyez respectueux, inclusif et collaboratif.
+3. **Development**
+   - Follow our coding standards
+   - Write clear, maintainable code
+   - Add comments where necessary
+   - Test your changes thoroughly
 
-## Comment contribuer
+4. **Commit Your Changes**
+   - Write clear commit messages following our conventions
+   - Use the present tense ("Add feature" not "Added feature")
+   - Reference issues and pull requests in your commits
 
-1. **Fork du projet** : Commencez par créer un fork du projet sur GitHub.
-2. **Clonez votre fork** : `git clone https://github.com/votre-username/eduroots.git`
-3. **Créez une branche** : `git checkout -b feature/nom-de-votre-fonctionnalite`
-4. **Apportez vos modifications** : Développez votre fonctionnalité ou corrigez le bug.
-5. **Testez vos modifications** : Assurez-vous que tous les tests passent.
-6. **Commitez vos changements** : Suivez nos conventions de commit.
-7. **Poussez vers votre fork** : `git push origin feature/nom-de-votre-fonctionnalite`
-8. **Ouvrez une Pull Request** : Créez une PR de votre fork vers notre dépôt principal.
+5. **Push and Create a Pull Request**
+   - Push your branch to your fork: `git push origin feature/your-feature-name`
+   - Create a pull request from your fork to our main repository
+   - Provide a clear description of your changes
 
-## Processus de développement
+## Code Standards
 
-- **Branches** :
-  - `master` : Branche principale, contient le code en production
-  - `dev` : Branche de développement, contient le code en cours de développement
-  - `feature/*` : Branches pour les nouvelles fonctionnalités
-  - `fix/*` : Branches pour les corrections de bugs
-  - `docs/*` : Branches pour les modifications de documentation
+- Use TypeScript for all new code
+- Follow the existing code style and formatting
+- Use meaningful variable and function names
+- Write documentation for new features
+- Include tests for new functionality
 
-- **Workflow** :
-  1. Créez votre branche à partir de `dev`
-  2. Développez et testez votre fonctionnalité
-  3. Soumettez une PR vers `dev`
-  4. Après revue et approbation, votre code sera fusionné dans `dev`
-  5. Les fusions de `dev` vers `master` sont effectuées via des PR pour les releases
+## Pull Request Process
 
-## Conventions de code
+1. Update the README.md with details of changes if needed
+2. Update the documentation if you're changing functionality
+3. The PR will be merged once you have the sign-off of at least one maintainer
+4. Address any feedback or requested changes before merging
 
-- **Style de code** : Nous utilisons ESLint et Prettier pour maintenir un style de code cohérent.
-- **TypeScript** : Utilisez des types stricts et évitez `any`.
-- **Nommage** :
-  - Composants React : PascalCase (ex: `UserProfile.tsx`)
-  - Fonctions et variables : camelCase (ex: `getUserData`)
-  - Constantes : UPPER_SNAKE_CASE (ex: `MAX_RETRY_COUNT`)
-  - Types et interfaces : PascalCase (ex: `UserData`)
+## Getting Help
 
-- **Commits** : Suivez les [Conventional Commits](https://www.conventionalcommits.org/) :
-  - `feat:` pour les nouvelles fonctionnalités
-  - `fix:` pour les corrections de bugs
-  - `docs:` pour les modifications de documentation
-  - `style:` pour les modifications de formatage
-  - `refactor:` pour les refactorisations
-  - `test:` pour les ajouts ou modifications de tests
-  - `chore:` pour les tâches de maintenance
+If you need help or have questions:
+- Open an issue
+- Join our community discussions
+- Contact the maintainers
 
-  Pour les changements majeurs, utilisez :
-  ```
-  feat: add new authentication system
-
-  BREAKING CHANGE: The authentication API has been completely redesigned.
-  ```
-
-## Tests
-
-- **Tests unitaires** : Écrivez des tests pour toutes les nouvelles fonctionnalités.
-- **Tests d'intégration** : Assurez-vous que les composants fonctionnent ensemble.
-- **Couverture de code** : Maintenez une couverture de test élevée.
-- **Exécution des tests** :
-  ```bash
-  # Tous les tests
-  pnpm test
-
-  # Tests API uniquement
-  pnpm test:api
-
-  # Tests DOM uniquement
-  pnpm test:dom
-  ```
-
-## Documentation
-
-- **Commentaires de code** : Documentez les fonctions complexes et les algorithmes.
-- **Documentation des API** : Mettez à jour la documentation des API lorsque vous modifiez des endpoints.
-- **README** : Mettez à jour le README si vous ajoutez des fonctionnalités ou modifiez le comportement existant.
-- **Documentation utilisateur** : Mettez à jour la documentation utilisateur si nécessaire.
-
-## Questions et support
-
-- **Issues** : Utilisez les issues GitHub pour signaler des bugs ou proposer des fonctionnalités.
-- **Discussions** : Utilisez la section Discussions pour poser des questions ou discuter d'idées.
-- **Pull Requests** : Pour les questions concernant une PR en cours, utilisez les commentaires de la PR.
-
----
-
-Merci de contribuer à EduRootS ! Votre aide est précieuse pour améliorer cette plateforme éducative.
+Thank you for contributing to EduRootS! Your help is valuable in improving this educational platform.

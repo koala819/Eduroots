@@ -1,62 +1,57 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Licence AGPL-3.0 - EduRootS',
-  description: 'Informations sur la licence GNU Affero General Public License v3.0 (AGPL-3.0) utilisée par EduRootS',
+  title: 'AGPL-3.0 License - EduRootS',
+  description: 'Information about the GNU Affero General Public License v3.0 (AGPL-3.0) used by EduRootS',
 }
 
 export default function LicensePage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Licence GNU Affero General Public License v3.0 (AGPL-3.0)</h1>
+      <h1 className="text-3xl font-bold mb-6">GNU Affero General Public License v3.0 (AGPL-3.0)</h1>
 
       <div className="prose max-w-none">
-        <h2 className="text-2xl font-semibold mb-4">À propos de la licence AGPL-3.0</h2>
-        <p className="mb-4">
-          EduRootS est distribué sous la licence GNU Affero General Public License v3.0 (AGPL-3.0).
-          Cette licence garantit que :
+        <h2 className="text-2xl font-semibold mb-4">About the AGPL-3.0 License</h2>
+        <p>
+          EduRootS is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+          This license ensures that:
         </p>
         <ul className="list-disc pl-6 mb-6">
-          <li>Le code source reste accessible gratuitement</li>
-          <li>Toute version modifiée doit être distribuée sous la même licence</li>
-          <li>Les modifications doivent être documentées</li>
-          <li>Les utilisateurs ont le droit d'accéder au code source des versions modifiées</li>
+          <li>The source code remains freely accessible</li>
+          <li>Any modified version must be distributed under the same license</li>
+          <li>Users have the right to modify and distribute the software</li>
+          <li>Changes must be documented and made available to the community</li>
         </ul>
 
-        <h2 className="text-2xl font-semibold mb-4">Accès au code source</h2>
-        <p className="mb-4">
-          Le code source complet d'EduRootS est disponible sur GitHub :
-        </p>
-        <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <h2 className="text-2xl font-semibold mb-4">Access to Source Code</h2>
+        <p>
+          The complete source code of EduRootS is available on our{' '}
           <a
-            href="https://github.com/votre-username/eduroots"
-            className="text-blue-600 hover:text-blue-800"
+            href="https://github.com/koala819/EduRootS"
             target="_blank"
             rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
           >
-            https://github.com/votre-username/eduroots
+            GitHub repository
           </a>
-        </div>
-
-        <h2 className="text-2xl font-semibold mb-4">Conditions d'utilisation</h2>
-        <p className="mb-4">
-          En utilisant EduRootS, vous acceptez de :
+          .
         </p>
+
+        <h2 className="text-2xl font-semibold mb-4">Terms of Use</h2>
+        <p>When using EduRootS, you agree to:</p>
         <ul className="list-disc pl-6 mb-6">
-          <li>Respecter les termes de la licence AGPL-3.0</li>
-          <li>Rendre accessible le code source de toute version modifiée</li>
-          <li>Documenter toutes les modifications apportées</li>
-          <li>Inclure les notices de copyright et de licence</li>
+          <li>Respect the terms of the AGPL-3.0 license</li>
+          <li>Provide access to the source code if you distribute a modified version</li>
+          <li>Include copyright and license notices</li>
+          <li>Document any changes made to the software</li>
         </ul>
 
         <h2 className="text-2xl font-semibold mb-4">Contact</h2>
-        <p className="mb-4">
-          Pour toute question concernant la licence ou l'accès au code source :
-        </p>
+        <p>For any questions regarding the license or access to the source code:</p>
         <ul className="list-disc pl-6">
-          <li>Email : [votre-email]</li>
-          <li>Site web : [votre-site]</li>
-          <li>GitHub : [votre-profil-github]</li>
+          <li>Email: [Your email]</li>
+          <li>Website: [Your website]</li>
+          <li>GitHub: [Your GitHub profile]</li>
         </ul>
       </div>
     </div>

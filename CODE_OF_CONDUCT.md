@@ -1,44 +1,36 @@
-# Code de Conduite
+# Code of Conduct
 
-## Notre Engagement
+## Our Pledge
 
-En tant que contributeurs et mainteneurs de ce projet, nous nous engageons à offrir une expérience sans harcèlement pour tous, indépendamment de l'âge, du corps, de l'apparence, de l'origine ethnique, des caractéristiques sexuelles, de l'identité et de l'expression de genre, du niveau d'expérience, de l'éducation, du statut socio-économique, de la nationalité, du nom personnel, de la race, de la religion ou de l'orientation sexuelle.
+As contributors and maintainers of this project, we pledge to make participation in our project and our community a harassment-free experience for everyone, regardless of level of experience, gender, gender identity and expression, sexual orientation, disability, personal appearance, body size, race, ethnicity, age, religion, or nationality.
 
-## Nos Standards
+## Our Standards
 
-Des exemples de comportements qui contribuent à créer un environnement positif :
+Examples of behavior that contributes to creating a positive environment include:
 
-* Utiliser un langage accueillant et inclusif
-* Être respectueux des différents points de vue et expériences
-* Accepter gracieusement les critiques constructives
-* Se concentrer sur ce qui est le mieux pour la communauté
-* Montrer de l'empathie envers les autres membres de la communauté
+* Using welcoming and inclusive language
+* Being respectful of differing viewpoints and experiences
+* Gracefully accepting constructive criticism
+* Focusing on what is best for the community
+* Showing empathy towards other community members
 
-Des exemples de comportements inacceptables :
+Examples of unacceptable behavior include:
 
-* L'utilisation de langage ou d'imagerie sexualisés et d'attention ou d'avances sexuelles non désirées
-* Le trolling, les commentaires insultants/dérogatoires, et les attaques personnelles ou politiques
-* Le harcèlement public ou privé
-* La publication d'informations privées d'autres personnes sans leur permission explicite
-* Toute autre conduite contraire à l'éthique ou non professionnelle
+* The use of sexualized language or imagery
+* Trolling, insulting/derogatory comments, and personal or political attacks
+* Public or private harassment
+* Publishing others' private information without explicit permission
+* Other unethical or unprofessional conduct
 
-## Nos Responsabilités
+## Our Responsibilities
 
-Les mainteneurs du projet sont responsables de clarifier les standards de comportement acceptables et sont censés prendre des mesures correctives appropriées et équitables en réponse à tout comportement inacceptable.
+Project maintainers are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to any instances of unacceptable behavior.
 
-Les mainteneurs du projet ont le droit et la responsabilité de supprimer, éditer ou rejeter les commentaires, commits, code, édits de wiki, issues et autres contributions qui ne sont pas conformes à ce Code de Conduite, ou de bannir temporairement ou définitivement tout contributeur pour des comportements qu'ils jugent inappropriés, menaçants, offensants ou nuisibles.
+## Enforcement
 
-## Portée
-
-Ce Code de Conduite s'applique à la fois dans les espaces du projet et dans les espaces publics lorsqu'un individu représente le projet ou sa communauté.
-
-## Application
-
-Les cas de comportements abusifs, harcelants ou autrement inacceptables peuvent être signalés en contactant l'équipe du projet à [EMAIL]. Toutes les plaintes seront examinées et traitées et donneront lieu à une réponse jugée nécessaire et appropriée aux circonstances. L'équipe du projet est tenue de maintenir la confidentialité à l'égard du rapporteur d'un incident.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team. All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
 
-Ce Code de Conduite est adapté du [Contributor Covenant][homepage], version 2.0, disponible à
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
-
-[homepage]: https://www.contributor-covenant.org
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 1.4,
+available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
