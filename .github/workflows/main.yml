@@ -8,6 +8,13 @@ on:
     branches:
       - master
       - dev
+
+# Définir les permissions au niveau du workflow
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
 jobs:
   Enforce-Workflow:
     runs-on: ubuntu-latest
@@ -66,12 +73,21 @@ jobs:
   Security:
     needs: Check-Branch-Status
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Run CodeQL Analysis
+        with:
+          fetch-depth: 0
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: javascript
+          queries: security-and-quality
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
       - name: Run Snyk to check for vulnerabilities
