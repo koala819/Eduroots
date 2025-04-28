@@ -1,0 +1,63 @@
+# Function to validate commit message format
+validate_commit_msg() {
+    commit_msg="$1"
+
+    # Check if the message starts with a valid type or contains BREAKING CHANGE
+    if ! echo "$commit_msg" | grep -qE "^(feat|fix|refactor|style|docs|test|chore):.+" && ! echo "$commit_msg" | grep -q "BREAKING CHANGE:"; then
+        echo "Error: Commit message must start with one of: feat:, fix:, refactor:, style:, docs:, test:, chore: or contain BREAKING CHANGE:"
+        return 1
+    fi
+
+    # # Check if the subject line is capitalized
+    # if ! echo "$commit_msg" | head -n1 | grep -q "^[A-Z]"; then
+    #     echo "Error: Subject line must be capitalized"
+    #     return 1
+    # fi
+
+    # Check if the subject line ends with a period
+    if echo "$commit_msg" | head -n1 | grep -q "\.$"; then
+        echo "Error: Subject line must not end with a period"
+        return 1
+    fi
+
+    # Check subject line length
+    # if [ $(echo "$commit_msg" | head -n1 | wc -c) -gt 51 ]; then
+    #     echo "Error: Subject line must be 50 characters or less"
+    #     return 1
+    # fi
+
+    # Check if there's a blank line between subject and body (if body exists)
+    if [ $(echo "$commit_msg" | wc -l) -gt 1 ] && [ -n "$(echo "$commit_msg" | sed -n '2p')" ]; then
+        echo "Error: There must be a blank line between the subject and body"
+        return 1
+    fi
+
+    # Check body line length
+    if echo "$commit_msg" | tail -n +3 | grep -q ".\{73\}"; then
+        echo "Error: Body lines must be 72 characters or less"
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to display .gitmessage content
+display_gitmessage() {
+    echo "\nCommit message guidelines:"
+    echo "------------------------"
+    cat .gitmessage
+    echo "------------------------"
+}
+
+# Read the commit message
+commit_msg=$(cat "$1")
+
+# Validate the commit message
+if ! validate_commit_msg "$commit_msg"; then
+    echo "Commit message does not meet the required format. Please see the guidelines below:"
+    display_gitmessage
+    exit 1
+fi
+
+# If we've made it here, the commit message is valid
+exit 0

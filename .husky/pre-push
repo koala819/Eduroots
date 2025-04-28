@@ -1,0 +1,9 @@
+protected_branch="master"
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+if [ "$protected_branch" = "$current_branch" ]
+then
+    echo "Direct push to $protected_branch branch is not allowed. Please use a pull request."
+    exit 1
+else
+    pnpm prepush
+fi

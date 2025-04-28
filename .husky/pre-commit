@@ -1,0 +1,8 @@
+# Linting
+pnpm lint
+
+# Formatage
+pnpm format
+
+# Tests unitaires
+pnpm test

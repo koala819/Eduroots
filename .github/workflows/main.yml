@@ -1,0 +1,169 @@
+name: CI & CD
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+jobs:
+  Enforce-Workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check branch and PR rules
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            if [ "${{ github.base_ref }}" == "master" ] && [ "${{ github.head_ref }}" != "dev" ]; then
+              echo "Error: PRs to master must come from the dev branch."
+              exit 1
+            fi
+            if [ "${{ github.base_ref }}" == "dev" ] && [ "${{ github.head_ref }}" == "master" ]; then
+              echo "Error: PRs to dev cannot come from master."
+              exit 1
+            fi
+            if [ "${{ github.base_ref }}" == "dev" ] && [[ "${{ github.head_ref }}" == master* ]]; then
+              echo "Error: Branches should not be created from master. Please create your branch from dev."
+              exit 1
+            fi
+          fi
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            LAST_COMMIT=$(git log -1 --pretty=format:"%s")
+            if [[ $LAST_COMMIT != "Merge pull request #"* && $LAST_COMMIT != "Merge branch 'dev'"* ]]; then
+              echo "Error: Direct pushes to master are not allowed. Please create a PR from dev."
+              exit 1
+            fi
+          fi
+
+  Check-Branch-Status:
+    needs: Enforce-Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check if branch is up to date
+        run: |
+          git fetch origin
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_BRANCH="${{ github.base_ref }}"
+            CURRENT_BRANCH="${{ github.head_ref }}"
+            if [ "$BASE_BRANCH" == "master" ] && [ "$CURRENT_BRANCH" == "dev" ]; then
+              echo "Merging dev into master, no need to check if dev is up to date with master."
+              exit 0
+            fi
+          else
+            BASE_BRANCH="dev"
+            CURRENT_BRANCH="${{ github.ref_name }}"
+          fi
+          git checkout $CURRENT_BRANCH
+          git merge-base --is-ancestor origin/$BASE_BRANCH $CURRENT_BRANCH || (echo "Branch is not up to date with $BASE_BRANCH. Please update your branch." && exit 1)
+
+  Security:
+    needs: Check-Branch-Status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  Dependencies:
+    needs: Check-Branch-Status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install PNPM
+        run: npm i -g pnpm
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Check for outdated dependencies
+        run: pnpm outdated
+      - name: Run dependency audit
+        run: pnpm audit
+
+  Build-and-Test:
+    needs: [Security, Dependencies]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install PNPM
+        run: npm i -g pnpm
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Check formatting
+        run: pnpm format:check
+      - name: Build Project
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+        run: pnpm build
+      - name: Run Tests
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+        run: pnpm test
+
+  Update-Files:
+    needs: Build-and-Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install Python dependencies
+        run: pip install GitPython
+      - name: Update README and package.json
+        id: update_files
+        run: |
+          python .github/workflows/update_readme.py
+          echo "README_UPDATED=$([ -n "$(git status --porcelain README.md)" ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          echo "PACKAGE_JSON_UPDATED=$([ -n "$(git status --porcelain package.json)" ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+        env:
+          PYTHONUNBUFFERED: 1
+      - name: Commit changes
+        if: steps.update_files.outputs.README_UPDATED == 'true' || steps.update_files.outputs.PACKAGE_JSON_UPDATED == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md package.json
+          git commit -m "chore: Update README and package.json [skip ci]" --no-verify
+      - name: Push changes
+        if: steps.update_files.outputs.README_UPDATED == 'true' || steps.update_files.outputs.PACKAGE_JSON_UPDATED == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+  Deploy:
+    needs: Update-Files
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: ${{ github.ref == 'refs/heads/master' && '--prod' || '--prebuilt' }}

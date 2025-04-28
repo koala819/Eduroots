@@ -1,0 +1,6 @@
+# Ignorer les commits de fusion
+if grep -q "^Merge branch" "$1"; then
+  exit 0
+fi
+
+pnpm commitlint --edit $1
