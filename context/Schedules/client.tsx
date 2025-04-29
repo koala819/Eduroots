@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import {useSession} from 'next-auth/react'
 import {
   ReactNode,
   createContext,
@@ -12,15 +12,12 @@ import {
   useRef,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { TimeSlotEnum } from '@/types/course'
-import { DaySchedule, Period } from '@/types/schedule'
+import {TimeSlotEnum} from '@/types/course'
+import {DaySchedule, Period} from '@/types/schedule'
 
-import {
-  getCurrentSchedule,
-  saveSchedules,
-} from '@/app/actions/context/schedules'
+import {getCurrentSchedule, saveSchedules} from '@/app/actions/context/schedules'
 
 interface ScheduleState {
   schedules: {
@@ -38,19 +35,16 @@ interface SchedulesProviderProps {
 type ScheduleAction =
   | {
       type: 'SET_SCHEDULES'
-      payload: { [key in TimeSlotEnum]?: DaySchedule }
+      payload: {[key in TimeSlotEnum]?: DaySchedule}
     }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_ERROR'; payload: string | null}
   | {
       type: 'UPDATE_DAY_SCHEDULE'
-      payload: { dayType: TimeSlotEnum; periods: Period[] }
+      payload: {dayType: TimeSlotEnum; periods: Period[]}
     }
 
-function scheduleReducer(
-  state: ScheduleState,
-  action: ScheduleAction,
-): ScheduleState {
+function scheduleReducer(state: ScheduleState, action: ScheduleAction): ScheduleState {
   switch (action.type) {
     case 'SET_SCHEDULES':
       return {
@@ -98,14 +92,14 @@ export const SchedulesProvider = ({
   children,
   initialSchedulesData = null,
 }: SchedulesProviderProps) => {
-  const { toast } = useToast()
+  const {toast} = useToast()
 
   // Convertir les données initiales en format attendu par l'état
-  const convertInitialData = (): { [key in TimeSlotEnum]?: DaySchedule } => {
+  const convertInitialData = (): {[key in TimeSlotEnum]?: DaySchedule} => {
     // console.log('Initial data received:', initialSchedulesData)
     if (!initialSchedulesData) return {}
 
-    const result: { [key in TimeSlotEnum]?: DaySchedule } = {}
+    const result: {[key in TimeSlotEnum]?: DaySchedule} = {}
 
     initialSchedulesData.forEach((schedule) => {
       console.log('Processing schedule:', schedule)
@@ -138,7 +132,7 @@ export const SchedulesProvider = ({
   }
 
   const [state, dispatch] = useReducer(scheduleReducer, initialState)
-  const { data: session } = useSession()
+  const {data: session} = useSession()
   // Utilisez une ref pour suivre si nous avons déjà fait le chargement
   const hasLoadedRef = useRef(!!initialSchedulesData)
 
@@ -146,7 +140,7 @@ export const SchedulesProvider = ({
     (error: Error, customMessage?: string) => {
       console.error('Schedule Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -161,7 +155,7 @@ export const SchedulesProvider = ({
     // Référence locale à hasLoadedRef pour éviter de dépendre du state
     if (hasLoadedRef.current) return
 
-    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({type: 'SET_LOADING', payload: true})
     try {
       if (!session || !session.user) {
         throw new Error('Non authentifié')
@@ -170,16 +164,14 @@ export const SchedulesProvider = ({
       const response = await getCurrentSchedule(session.user._id)
 
       if (!response.success) {
-        throw new Error(
-          response.message || 'Échec de la récupération des horaires',
-        )
+        throw new Error(response.message || 'Échec de la récupération des horaires')
       }
 
       // console.log('API response data:', response.data)
 
       // Convertir les données de la réponse dans le format attendu
       const data = response.data as any
-      const formattedSchedules: { [key in TimeSlotEnum]?: DaySchedule } = {}
+      const formattedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
 
       if (data && typeof data === 'object' && data.daySchedules) {
         // Parcourir les propriétés de daySchedules et les transformer
@@ -207,7 +199,7 @@ export const SchedulesProvider = ({
     } catch (error) {
       handleError(error as Error)
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError, session])
 
@@ -217,16 +209,14 @@ export const SchedulesProvider = ({
         const response = await saveSchedules(scheduleData)
 
         if (!response.success) {
-          throw new Error(
-            response.message || "Échec de l'enregistrement des horaires",
-          )
+          throw new Error(response.message || "Échec de l'enregistrement des horaires")
         }
 
         // console.log('Save response data:', response.data)
 
         // Convertir les données de la réponse dans le format attendu
         const data = response.data as any
-        const formattedSchedules: { [key in TimeSlotEnum]?: DaySchedule } = {}
+        const formattedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
 
         if (data && typeof data === 'object' && data.daySchedules) {
           // Parcourir les propriétés de daySchedules et les transformer
@@ -276,11 +266,7 @@ export const SchedulesProvider = ({
     [state, handleGetCurrentSchedule, handleSaveSchedules],
   )
 
-  return (
-    <ScheduleContext.Provider value={value}>
-      {children}
-    </ScheduleContext.Provider>
-  )
+  return <ScheduleContext.Provider value={value}>{children}</ScheduleContext.Provider>
 }
 
 export const useSchedules = () => {

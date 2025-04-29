@@ -1,8 +1,8 @@
 'use client'
 
-import { Eye, EyeOff } from 'lucide-react'
+import {Eye, EyeOff} from 'lucide-react'
 
-import { TogglePasswordVisibilityProps } from '@/types/models'
+import {TogglePasswordVisibilityProps} from '@/types/models'
 
 const TogglePasswordVisibility: React.FC<TogglePasswordVisibilityProps> = ({
   showPwd,

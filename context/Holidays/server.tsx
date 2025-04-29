@@ -1,9 +1,9 @@
 'use server'
 
-import { Holiday } from '@/types/holidays'
+import {Holiday} from '@/types/holidays'
 
-import { getCurrentHolidays } from '@/app/actions/context/holidays'
-import { HolidaysProvider } from '@/context/Holidays/client'
+import {getCurrentHolidays} from '@/app/actions/context/holidays'
+import {HolidaysProvider} from '@/context/Holidays/client'
 
 interface HolidaysServerComponentProps {
   children: React.ReactNode
@@ -29,9 +29,5 @@ export default async function HolidaysServerComponent({
     }
   }
 
-  return (
-    <HolidaysProvider initialHolidaysData={initialHolidays}>
-      {children}
-    </HolidaysProvider>
-  )
+  return <HolidaysProvider initialHolidaysData={initialHolidays}>{children}</HolidaysProvider>
 }

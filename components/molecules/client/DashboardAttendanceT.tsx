@@ -1,19 +1,19 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import React, { useEffect, useState } from 'react'
+import {useSession} from 'next-auth/react'
+import React, {useEffect, useState} from 'react'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
-import { AttendanceCreate } from '@/components/atoms/client/AttendanceCreate'
-import { AttendanceEdit } from '@/components/atoms/client/AttendanceEdit'
-import { AttendanceTable } from '@/components/atoms/client/AttendanceTable'
-import { Card, CardContent } from '@/components/ui/card'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
+import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
+import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
+import {Card, CardContent} from '@/components/ui/card'
+import {Sheet, SheetContent} from '@/components/ui/sheet'
 
-import { useAttendance } from '@/context/Attendances/client'
-import { useCourses } from '@/context/Courses/client'
-import { AnimatePresence } from 'framer-motion'
+import {useAttendance} from '@/context/Attendances/client'
+import {useCourses} from '@/context/Courses/client'
+import {AnimatePresence} from 'framer-motion'
 
 export const DashboardAttendanceT = ({
   courseId,
@@ -24,19 +24,13 @@ export const DashboardAttendanceT = ({
   students: Student[]
   courseDates: Date[]
 }) => {
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
-  const {
-    getTeacherCourses,
-    isLoading: isLoadingCourses,
-    error: errorCourses,
-  } = useCourses()
-  const { allAttendance, fetchAttendances, error } = useAttendance()
+  const {getTeacherCourses, isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {allAttendance, fetchAttendances, error} = useAttendance()
 
-  const [isCreatingAttendance, setIsCreatingAttendance] =
-    useState<boolean>(false)
-  const [isEditingAttendance, setIsEdittingAttendance] =
-    useState<boolean>(false)
+  const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
+  const [isEditingAttendance, setIsEdittingAttendance] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
@@ -47,10 +41,7 @@ export const DashboardAttendanceT = ({
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([
-          fetchAttendances({ courseId }),
-          getTeacherCourses(session.user.id),
-        ])
+        await Promise.all([fetchAttendances({courseId}), getTeacherCourses(session.user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -88,11 +79,11 @@ export const DashboardAttendanceT = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         />
       </div>
     )
@@ -103,11 +94,7 @@ export const DashboardAttendanceT = ({
   }
 
   if (!allAttendance) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Aucune présence trouvée
-      </div>
-    )
+    return <div className="text-center py-8 text-gray-500">Aucune présence trouvée</div>
   }
 
   return (
@@ -126,14 +113,8 @@ export const DashboardAttendanceT = ({
       </Card>
       <AnimatePresence>
         {isCreatingAttendance && (
-          <Sheet
-            open={isCreatingAttendance}
-            onOpenChange={setIsCreatingAttendance}
-          >
-            <SheetContent
-              side="right"
-              className="w-full sm:max-w-xl [&>button]:hidden"
-            >
+          <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
+            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
               {selectedDate && (
                 <AttendanceCreate
                   courseId={courseId}
@@ -146,14 +127,8 @@ export const DashboardAttendanceT = ({
           </Sheet>
         )}
         {isEditingAttendance && (
-          <Sheet
-            open={isEditingAttendance}
-            onOpenChange={setIsEdittingAttendance}
-          >
-            <SheetContent
-              side="right"
-              className="w-full sm:max-w-xl [&>button]:hidden"
-            >
+          <Sheet open={isEditingAttendance} onOpenChange={setIsEdittingAttendance}>
+            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
               {selectedAttendanceId && selectedDate && (
                 <AttendanceEdit
                   courseId={courseId}

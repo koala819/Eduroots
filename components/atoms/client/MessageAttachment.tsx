@@ -1,15 +1,13 @@
 'use client'
 
-import { Paperclip } from 'lucide-react'
-import { memo } from 'react'
+import {Paperclip} from 'lucide-react'
+import {memo} from 'react'
 
 type MessageAttachmentProps = {
   url: string
 }
 
-export const MessageAttachment = memo(function MessageAttachment({
-  url,
-}: MessageAttachmentProps) {
+export const MessageAttachment = memo(function MessageAttachment({url}: MessageAttachmentProps) {
   return (
     <div className="mt-4">
       <a

@@ -1,31 +1,28 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
-import { FixedSizeList as List } from 'react-window'
+import {useEffect, useMemo, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
+import {FixedSizeList as List} from 'react-window'
 
-import { Session } from 'next-auth'
+import {Session} from 'next-auth'
 
-import { TimeSlotEnum } from '@/types/course'
-import { StudentDocument } from '@/types/mongoose'
-import { FormFields, SelectionModeType } from '@/types/writeMessage'
+import {TimeSlotEnum} from '@/types/course'
+import {StudentDocument} from '@/types/mongoose'
+import {FormFields, SelectionModeType} from '@/types/writeMessage'
 
-import { CustomCheckbox } from '@/components/atoms/client/MessageCustomCheckbox'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {CustomCheckbox} from '@/components/atoms/client/MessageCustomCheckbox'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
 
-import { useCourses } from '@/context/Courses/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { formatDayOfWeek } from '@/lib/utils'
-import { calculateValidEmails, isValidStudent } from '@/lib/writeMessage'
+import {useCourses} from '@/context/Courses/client'
+import {useTeachers} from '@/context/Teachers/client'
+import {formatDayOfWeek} from '@/lib/utils'
+import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
 
 interface RecipientForTeacherProps {
   selectionMode: SelectionModeType
-  handleSelectionMode: (
-    mode: SelectionModeType,
-    students: StudentDocument[],
-  ) => void
+  handleSelectionMode: (mode: SelectionModeType, students: StudentDocument[]) => void
   onValidEmailsChange: (emails: string[]) => void
   session: Session | null
   form: UseFormReturn<FormFields>
@@ -38,13 +35,11 @@ export const RecipientForTeacher = ({
   form,
   session,
 }: RecipientForTeacherProps) => {
-  const { teacherCourses, getTeacherCourses } = useCourses()
-  const { students, getStudentsByTeacher, isLoading } = useTeachers()
+  const {teacherCourses, getTeacherCourses} = useCourses()
+  const {students, getStudentsByTeacher, isLoading} = useTeachers()
 
   // État local
-  const [recipientType, setRecipientType] = useState<
-    'bureau' | 'students' | null
-  >(null)
+  const [recipientType, setRecipientType] = useState<'bureau' | 'students' | null>(null)
   const [selectedSession, setSelectedSession] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [itemSize, setItemSize] = useState(50) // hauteur par défaut pour la virtualisation
@@ -59,12 +54,9 @@ export const RecipientForTeacher = ({
 
   // Observer les changements de formulaire pour calculer les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
+    const subscription = form.watch((value, {name}) => {
       if (name === 'recipients') {
-        const validEmails = calculateValidEmails(
-          value.recipients as string[],
-          students,
-        )
+        const validEmails = calculateValidEmails(value.recipients as string[], students)
         onValidEmailsChange(validEmails)
       }
     })
@@ -83,10 +75,7 @@ export const RecipientForTeacher = ({
   }, [])
 
   // Mémoiser les listes filtrées pour éviter des recalculs inutiles
-  const validStudents = useMemo(
-    () => students?.filter(isValidStudent) || [],
-    [students],
-  )
+  const validStudents = useMemo(() => students?.filter(isValidStudent) || [], [students])
 
   const invalidStudents = useMemo(
     () => students?.filter((student) => !isValidStudent(student)) || [],
@@ -131,32 +120,16 @@ export const RecipientForTeacher = ({
   }
 
   // Composants pour la liste virtualisée
-  const StudentItem = ({
-    index,
-    style,
-  }: {
-    index: number
-    style: React.CSSProperties
-  }) => {
+  const StudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
     const student = filteredValidStudents[index]
     return (
       <div style={style}>
-        <CustomCheckbox
-          items={[student]}
-          form={form}
-          formFieldName="recipients"
-        />
+        <CustomCheckbox items={[student]} form={form} formFieldName="recipients" />
       </div>
     )
   }
 
-  const InvalidStudentItem = ({
-    index,
-    style,
-  }: {
-    index: number
-    style: React.CSSProperties
-  }) => {
+  const InvalidStudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
     const student = filteredInvalidStudents[index]
     return (
       <div
@@ -199,9 +172,7 @@ export const RecipientForTeacher = ({
       </div>
 
       {recipientType === null && (
-        <div className="text-sm text-gray-600">
-          Veuillez sélectionner un destinataire.
-        </div>
+        <div className="text-sm text-gray-600">Veuillez sélectionner un destinataire.</div>
       )}
 
       {/* Modes de sélection - Rendu conditionnel */}
@@ -258,30 +229,19 @@ export const RecipientForTeacher = ({
                   >
                     <div className="font-medium flex justify-between items-center">
                       <span>
-                        {formatDayOfWeek(
-                          session.timeSlot.dayOfWeek as TimeSlotEnum,
-                        )}{' '}
-                        - {session.timeSlot.startTime} à{' '}
-                        {session.timeSlot.endTime}
+                        {formatDayOfWeek(session.timeSlot.dayOfWeek as TimeSlotEnum)} -{' '}
+                        {session.timeSlot.startTime} à {session.timeSlot.endTime}
                       </span>
-                      <span className="text-xs">
-                        {selectedSession === session.id ? '▼' : '▶'}
-                      </span>
+                      <span className="text-xs">{selectedSession === session.id ? '▼' : '▶'}</span>
                     </div>
                     <div className="text-gray-500 text-sm">
                       {session.subject} - Niveau {session.level} -{' '}
                       <span className="font-medium">
-                        {session.students.filter(isValidStudent).length} élèves
-                        valides
+                        {session.students.filter(isValidStudent).length} élèves valides
                       </span>
                       {session.students.some((s) => !isValidStudent(s)) && (
                         <span className="text-red-500 ml-2">
-                          (
-                          {
-                            session.students.filter((s) => !isValidStudent(s))
-                              .length
-                          }{' '}
-                          invalides)
+                          ({session.students.filter((s) => !isValidStudent(s)).length} invalides)
                         </span>
                       )}
                     </div>
@@ -304,13 +264,11 @@ export const RecipientForTeacher = ({
                       )}
 
                       {/* Étudiants invalides */}
-                      {session.students.some(
-                        (student) => !isValidStudent(student),
-                      ) && (
+                      {session.students.some((student) => !isValidStudent(student)) && (
                         <div className="mt-4">
                           <div className="text-sm font-medium text-red-500">
-                            ⚠️ Les élèves suivants ont un email invalide et ne
-                            peuvent pas être sélectionnés :
+                            ⚠️ Les élèves suivants ont un email invalide et ne peuvent pas être
+                            sélectionnés :
                           </div>
                           <div className="mt-2 space-y-2">
                             {session.students
@@ -372,8 +330,8 @@ export const RecipientForTeacher = ({
               {filteredInvalidStudents.length > 0 && (
                 <div className="mt-4">
                   <div className="text-sm font-medium text-red-500">
-                    ⚠️ Les élèves suivants ont un email invalide et ne peuvent
-                    pas être sélectionnés :
+                    ⚠️ Les élèves suivants ont un email invalide et ne peuvent pas être sélectionnés
+                    :
                   </div>
                   <div className="border rounded-md mt-2">
                     <List

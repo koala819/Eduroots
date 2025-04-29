@@ -1,12 +1,12 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
+import {ApiResponse} from '@/types/api'
 
-import { ScheduleConfig } from '@/backend/models/schedule-config.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { createDefaultSchedule } from '@/lib/utils'
+import {ScheduleConfig} from '@/backend/models/schedule-config.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {createDefaultSchedule} from '@/lib/utils'
 
 interface SaveScheduleData {
   updatedBy: string
@@ -21,16 +21,12 @@ async function getSessionServer() {
   return session
 }
 
-export async function getCurrentSchedule(
-  userId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getCurrentSchedule(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
     // Cherche la config active la plus récente
-    const currentConfig = await ScheduleConfig.findOne({ isActive: true }).sort(
-      { createdAt: -1 },
-    )
+    const currentConfig = await ScheduleConfig.findOne({isActive: true}).sort({createdAt: -1})
 
     // Si on trouve une config, on la renvoie
     if (currentConfig) {
@@ -73,7 +69,7 @@ export async function saveSchedules(scheduleData: SaveScheduleData) {
   }
 
   try {
-    const { academicYear, daySchedules, updatedBy } = payload
+    const {academicYear, daySchedules, updatedBy} = payload
 
     if (!daySchedules || !updatedBy) {
       return {
@@ -85,7 +81,7 @@ export async function saveSchedules(scheduleData: SaveScheduleData) {
 
     // Cherche et met à jour la configuration existante ou en crée une nouvelle
     const scheduleConfig = await ScheduleConfig.findOneAndUpdate(
-      { academicYear, isActive: true },
+      {academicYear, isActive: true},
       {
         daySchedules,
         updatedBy,

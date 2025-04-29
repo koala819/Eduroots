@@ -1,10 +1,10 @@
-import { Course } from '@/types/course'
+import {Course} from '@/types/course'
 
-import { TeacherStatsClient } from '@/components/admin/atoms/client/TeacherStats'
+import {TeacherStatsClient} from '@/components/admin/atoms/client/TeacherStats'
 
-import { getTeacherCourses } from '@/app/actions/context/courses'
+import {getTeacherCourses} from '@/app/actions/context/courses'
 
-export async function TeacherStatsServer({ teacherId }: { teacherId: string }) {
+export async function TeacherStatsServer({teacherId}: {teacherId: string}) {
   const response = await getTeacherCourses(teacherId)
 
   if (!response.success || !response.data) {
@@ -41,11 +41,9 @@ export async function TeacherStatsServer({ teacherId }: { teacherId: string }) {
     })
   })
 
-  const attendanceRate =
-    attendanceCount > 0 ? Math.round(totalAttendance / attendanceCount) : 0
+  const attendanceRate = attendanceCount > 0 ? Math.round(totalAttendance / attendanceCount) : 0
 
-  const averageStudentSuccess =
-    successCount > 0 ? Math.round(totalSuccess / successCount) : 0
+  const averageStudentSuccess = successCount > 0 ? Math.round(totalSuccess / successCount) : 0
 
   const stats = {
     studentCount: uniqueStudents.size,

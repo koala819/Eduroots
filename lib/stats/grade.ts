@@ -1,6 +1,6 @@
 import dbConnect from '@/backend/config/dbConnect'
-import { Course } from '@/backend/models/course.model'
-import { Grade } from '@/backend/models/grade.model'
+import {Course} from '@/backend/models/course.model'
+import {Grade} from '@/backend/models/grade.model'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -25,16 +25,14 @@ export async function statsGradesClean(): Promise<{
     // Get all unique course IDs from the Grade collection
     console.log('Fetching all sessionId from Grade collection...')
     const sessionIds = await Grade.distinct('sessionId')
-    console.log(
-      `Found ${sessionIds.length} unique sessionId in Grade collection`,
-    )
+    console.log(`Found ${sessionIds.length} unique sessionId in Grade collection`)
 
     // Check which course IDs don't exist in the Course collection
     console.log('Checking for non-existent sessionIds ...')
     const nonExistentSessionIds = []
 
     for (const sessionId of sessionIds) {
-      const courseExists = await Course.findOne({ 'sessions._id': sessionId })
+      const courseExists = await Course.findOne({'sessions._id': sessionId})
 
       if (!courseExists) {
         nonExistentSessionIds.push(sessionId)
@@ -47,7 +45,7 @@ export async function statsGradesClean(): Promise<{
     if (nonExistentSessionIds.length > 0) {
       console.log('Removing grades with non-existent sessionIds...')
       const deleteResult = await Grade.deleteMany({
-        sessionId: { $in: nonExistentSessionIds },
+        sessionId: {$in: nonExistentSessionIds},
       })
 
       console.log(`Deleted ${deleteResult.deletedCount} grade records`)
@@ -89,7 +87,7 @@ async function backupGradeCollection(): Promise<string> {
     console.log('Creating backup of Grade collection...')
 
     const backupPath = path.join(process.cwd(), 'backup')
-    await fs.mkdir(backupPath, { recursive: true })
+    await fs.mkdir(backupPath, {recursive: true})
 
     // Generate backup filename with timestamp
     const timestamp = new Date().toISOString().replace(/:/g, '-')

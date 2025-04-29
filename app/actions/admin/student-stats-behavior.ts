@@ -1,12 +1,12 @@
 'use server'
 
-import { BehaviorRecord } from '@/types/behavior'
-import { SubjectNameEnum } from '@/types/course'
-import { BehaviorDocument } from '@/types/mongoose'
+import {BehaviorRecord} from '@/types/behavior'
+import {SubjectNameEnum} from '@/types/course'
+import {BehaviorDocument} from '@/types/mongoose'
 
-import { getStudentBehaviorHistory } from '@/app/actions/context/behaviors'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import {getStudentBehaviorHistory} from '@/app/actions/context/behaviors'
+import {format} from 'date-fns'
+import {fr} from 'date-fns/locale'
 
 export interface BehaviorStats {
   averageRating: number
@@ -23,9 +23,7 @@ export interface BehaviorStats {
   subjects: SubjectNameEnum[]
 }
 
-export async function fetchStudentBehaviorStats(
-  studentId: string,
-): Promise<BehaviorStats | null> {
+export async function fetchStudentBehaviorStats(studentId: string): Promise<BehaviorStats | null> {
   try {
     const response = await getStudentBehaviorHistory(studentId)
 
@@ -63,12 +61,10 @@ export async function fetchStudentBehaviorStats(
       .map((behavior) => {
         if (!Array.isArray(behavior.records)) return null
 
-        const studentRecord = behavior.records.find(
-          (record: BehaviorDocument) => {
-            const studentObj = record.student
-            return (studentObj?.id || studentObj?._id) === studentId
-          },
-        )
+        const studentRecord = behavior.records.find((record: BehaviorDocument) => {
+          const studentObj = record.student
+          return (studentObj?.id || studentObj?._id) === studentId
+        })
 
         if (!studentRecord) return null
 
@@ -97,17 +93,13 @@ export async function fetchStudentBehaviorStats(
     // Extraire la liste unique des matières
     const subjects = Array.from(
       new Set(
-        behaviors.map(
-          (b) =>
-            b.courseDetails?.session?.subject || ('Unknown' as SubjectNameEnum),
-        ),
+        behaviors.map((b) => b.courseDetails?.session?.subject || ('Unknown' as SubjectNameEnum)),
       ),
     ).filter((subject) => subject !== 'Unknown')
 
     return {
       averageRating:
-        studentRatings.reduce((sum, rating) => sum + rating, 0) /
-        studentRatings.length,
+        studentRatings.reduce((sum, rating) => sum + rating, 0) / studentRatings.length,
       totalSessions: studentRatings.length,
       bestRating: Math.max(...studentRatings),
       worstRating: Math.min(...studentRatings),

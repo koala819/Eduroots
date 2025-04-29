@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
-import { GradeRecord } from '@/types/grade'
+import {GradeRecord} from '@/types/grade'
 
-import { Grade as GradeModel } from '@/backend/models/grade.model'
-import { User as UserModel } from '@/backend/models/user.model'
-import { validateRequest } from '@/lib/api.utils'
+import {Grade as GradeModel} from '@/backend/models/grade.model'
+import {User as UserModel} from '@/backend/models/user.model'
+import {validateRequest} from '@/lib/api.utils'
 
 // Type pour les stats
 interface StudentStats {
@@ -20,8 +20,7 @@ function calculateStudentStats(studentRecords: any[]): StudentStats {
   return {
     averageProgress: presentRecords.length
       ? +(
-          presentRecords.reduce((acc, record) => acc + record.value, 0) /
-          presentRecords.length
+          presentRecords.reduce((acc, record) => acc + record.value, 0) / presentRecords.length
         ).toFixed(2)
       : 0,
     lastThreeGrades: presentRecords.slice(0, 3).map((record) => record.value),
@@ -31,15 +30,12 @@ function calculateStudentStats(studentRecords: any[]): StudentStats {
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { studentId: string } },
-) {
+export async function GET(req: NextRequest, {params}: {params: {studentId: string}}) {
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
-    const { studentId } = params
+    const {studentId} = params
     const url = new URL(req.url)
     const fields = url.searchParams.get('fields')
 
@@ -57,15 +53,13 @@ export async function GET(
       const grades = await GradeModel.find({
         'records.student': studentId,
       })
-        .sort({ date: -1 })
+        .sort({date: -1})
         .lean()
 
       const studentRecords = grades
         .map((grade) => {
-          const record = grade.records.find(
-            (r: GradeRecord) => r.student.toString() === studentId,
-          )
-          return record ? { ...record, date: grade.date } : null
+          const record = grade.records.find((r: GradeRecord) => r.student.toString() === studentId)
+          return record ? {...record, date: grade.date} : null
         })
         .filter(Boolean) // Remove null values
 

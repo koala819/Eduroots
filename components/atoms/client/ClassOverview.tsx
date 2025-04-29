@@ -1,13 +1,13 @@
 'use client'
 
-import { ClipboardList, Star } from 'lucide-react'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {ClipboardList, Star} from 'lucide-react'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { GenderEnum } from '@/types/user'
+import {GenderEnum} from '@/types/user'
 
-import { StudentWithDetails as StudentType } from '@/components/organisms/client/ProfileCourseCard'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {StudentWithDetails as StudentType} from '@/components/organisms/client/ProfileCourseCard'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -26,20 +26,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
+import {Progress} from '@/components/ui/progress'
+import {Separator} from '@/components/ui/separator'
 
-import { cn, convertToDate, getColorClass } from '@/lib/utils'
-import { differenceInYears, parseISO } from 'date-fns'
+import {cn, convertToDate, getColorClass} from '@/lib/utils'
+import {differenceInYears, parseISO} from 'date-fns'
 
 interface DesktopClassViewProps {
   students: StudentType[]
 }
 
-export const ClassOverview = ({ students }: DesktopClassViewProps) => {
-  const sortedStudents = [...students].sort((a, b) =>
-    a.firstname.localeCompare(b.firstname),
-  )
+export const ClassOverview = ({students}: DesktopClassViewProps) => {
+  const sortedStudents = [...students].sort((a, b) => a.firstname.localeCompare(b.firstname))
   function getBorderColorClass(absences: number): string {
     if (absences === 0) {
       return 'border-l-[6px] border-or'
@@ -81,9 +79,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
           return (
             <Card
               key={student._id}
-              className={cn(
-                getBorderColorClass(student.stats?.absencesCount || 0),
-              )}
+              className={cn(getBorderColorClass(student.stats?.absencesCount || 0))}
             >
               <CardHeader>
                 <CardTitle className="flex gap-2">
@@ -100,16 +96,12 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                     {student.firstname} {student.lastname}
                   </span>
                 </CardTitle>
-                <CardDescription>
-                  {calculateAge(student.dateOfBirth || '')} ans
-                </CardDescription>
+                <CardDescription>{calculateAge(student.dateOfBirth || '')} ans</CardDescription>
               </CardHeader>
               <CardContent>
                 {/* Absences et taux de présence */}
                 <div className="flex justify-between gap-1.5 mt-1">
-                  <p className="text-gray-500">
-                    {student.stats?.absencesCount} abs.
-                  </p>
+                  <p className="text-gray-500">{student.stats?.absencesCount} abs.</p>
                   {student.stats?.absencesRate !== null && (
                     <p
                       className={`font-medium ${student.stats?.absencesRate ?? 0 >= 90 ? 'text-green-600' : student.stats?.absencesRate ?? 0 >= 75 ? 'text-amber-600' : 'text-red-600'}`}
@@ -145,11 +137,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                 <Dialog>
                   <DialogTrigger asChild>
                     <div className="w-full flex justify-center">
-                      <Button
-                        className={cn(
-                          getColorClass(student.stats?.absencesCount || 0),
-                        )}
-                      >
+                      <Button className={cn(getColorClass(student.stats?.absencesCount || 0))}>
                         Details
                       </Button>
                     </div>
@@ -158,57 +146,43 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                     <DialogHeader>
                       <DialogTitle />
                       <DialogDescription>
-                        Consultez le profil de l'étudiant. Cliquez sur Fermer
-                        quand vous avez terminé.
+                        Consultez le profil de l&apos;étudiant. Cliquez sur Fermer quand vous avez
+                        terminé.
                       </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                       {/* Section d'informations personnelles */}
                       <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">
-                          Informations personnelles
-                        </h2>
+                        <h2 className="text-xl font-semibold">Informations personnelles</h2>
                         <Card>
                           <CardContent className="pt-6">
                             <div className="space-y-3">
                               <div>
-                                <span className="text-sm text-gray-500">
-                                  Nom complet
-                                </span>
+                                <span className="text-sm text-gray-500">Nom complet</span>
                                 <p className="font-medium">
                                   {student.firstname} {student.lastname}
                                 </p>
                               </div>
 
                               <div>
-                                <span className="text-sm text-gray-500">
-                                  Âge
-                                </span>
+                                <span className="text-sm text-gray-500">Âge</span>
                                 <p className="font-medium">
                                   {calculateAge(student.dateOfBirth || '')} ans
                                 </p>
                               </div>
 
                               <div>
-                                <span className="text-sm text-gray-500">
-                                  Date de naissance
-                                </span>
+                                <span className="text-sm text-gray-500">Date de naissance</span>
                                 <p className="font-medium">
                                   {student.dateOfBirth
-                                    ? new Date(
-                                        student.dateOfBirth,
-                                      ).toLocaleDateString()
+                                    ? new Date(student.dateOfBirth).toLocaleDateString()
                                     : 'Non renseignée'}
                                 </p>
                               </div>
                               <div>
-                                <span className="text-sm text-gray-500">
-                                  Email
-                                </span>
-                                <p className="font-medium">
-                                  {student.email || 'Non renseigné'}
-                                </p>
+                                <span className="text-sm text-gray-500">Email</span>
+                                <p className="font-medium">{student.email || 'Non renseigné'}</p>
                               </div>
                             </div>
                           </CardContent>
@@ -217,15 +191,11 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
 
                       {/* Section assiduité et participation */}
                       <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">
-                          Assiduité et participation
-                        </h2>
+                        <h2 className="text-xl font-semibold">Assiduité et participation</h2>
                         <Card>
                           <CardContent className="pt-6">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-500">
-                                Absences
-                              </span>
+                              <span className="text-sm text-gray-500">Absences</span>
                               <Badge
                                 variant={
                                   student.stats?.absencesCount || 0 > 3
@@ -238,35 +208,28 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                               </Badge>
                             </div>
 
-                            {student?.stats?.absencesCount &&
-                              student.stats.absencesCount > 0 && (
-                                <div className="mt-2">
-                                  <span className="text-sm text-gray-500 block mb-1">
-                                    Date des absences
-                                  </span>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {student?.stats?.absences.map(
-                                      (absence, index) => (
-                                        <Badge key={index} variant="outline">
-                                          {absence.date
-                                            ? convertToDate(
-                                                absence.date,
-                                              ).toLocaleDateString()
-                                            : 'Date inconnue'}
-                                        </Badge>
-                                      ),
-                                    )}
-                                  </div>
+                            {student?.stats?.absencesCount && student.stats.absencesCount > 0 && (
+                              <div className="mt-2">
+                                <span className="text-sm text-gray-500 block mb-1">
+                                  Date des absences
+                                </span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {student?.stats?.absences.map((absence, index) => (
+                                    <Badge key={index} variant="outline">
+                                      {absence.date
+                                        ? convertToDate(absence.date).toLocaleDateString()
+                                        : 'Date inconnue'}
+                                    </Badge>
+                                  ))}
                                 </div>
-                              )}
+                              </div>
+                            )}
 
                             {student.stats?.absencesRate !== null &&
                               student.stats?.absencesRate !== undefined && (
                                 <div className="mt-3">
                                   <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm text-gray-500">
-                                      Taux de présence
-                                    </span>
+                                    <span className="text-sm text-gray-500">Taux de présence</span>
                                     <span className="font-medium">
                                       {student.stats?.absencesRate.toFixed(1)}%
                                     </span>
@@ -291,9 +254,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                               </span>
                               <p className="font-medium">
                                 {student.stats?.lastActivity
-                                  ? convertToDate(
-                                      student.stats?.lastActivity,
-                                    ).toLocaleDateString()
+                                  ? convertToDate(student.stats?.lastActivity).toLocaleDateString()
                                   : 'Aucune activité'}
                               </p>
                             </div>
@@ -303,9 +264,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
 
                       {/* Section comportement et résultats */}
                       <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">
-                          Comportement et résultats
-                        </h2>
+                        <h2 className="text-xl font-semibold">Comportement et résultats</h2>
                         <Card>
                           <CardContent className="pt-6">
                             {student?.stats?.behaviorAverage !== null &&
@@ -325,10 +284,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                                       <svg
                                         key={star}
                                         className={`w-5 h-5 ${
-                                          star <=
-                                          Math.round(
-                                            student.stats?.behaviorAverage || 0,
-                                          )
+                                          star <= Math.round(student.stats?.behaviorAverage || 0)
                                             ? 'text-yellow-400'
                                             : 'text-gray-300'
                                         }`}
@@ -370,39 +326,32 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                                         </span>
                                         <Badge
                                           variant={
-                                            (gradeData as { average: number })
-                                              .average >= 10
+                                            (gradeData as {average: number}).average >= 10
                                               ? 'default'
                                               : 'destructive'
                                           }
                                         >
-                                          {(
-                                            gradeData as { average: number }
-                                          ).average.toFixed(1)}
+                                          {(gradeData as {average: number}).average.toFixed(1)}
                                           /20
                                         </Badge>
                                       </div>
                                     )
                                   })}
 
-                                {student.stats?.grades.overallAverage !==
-                                  undefined && (
+                                {student.stats?.grades.overallAverage !== undefined && (
                                   <div className="flex items-center justify-between pt-2 border-t mt-2">
                                     <span className="text-sm font-medium text-black">
                                       Moyenne générale
                                     </span>
                                     <Badge
                                       variant={
-                                        student.stats?.grades.overallAverage >=
-                                        10
+                                        student.stats?.grades.overallAverage >= 10
                                           ? 'default'
                                           : 'destructive'
                                       }
                                       className="text-lg px-2 py-1"
                                     >
-                                      {student.stats?.grades.overallAverage.toFixed(
-                                        1,
-                                      )}
+                                      {student.stats?.grades.overallAverage.toFixed(1)}
                                       /20
                                     </Badge>
                                   </div>

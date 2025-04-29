@@ -1,28 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
-import { StudentStats } from '@/backend/models/student-stats.model'
-import { TeacherStats } from '@/backend/models/teacher-stats.model'
-import { validateRequest } from '@/lib/api.utils'
-import { isValidObjectId } from 'mongoose'
+import {StudentStats} from '@/backend/models/student-stats.model'
+import {TeacherStats} from '@/backend/models/teacher-stats.model'
+import {validateRequest} from '@/lib/api.utils'
+import {isValidObjectId} from 'mongoose'
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(req: NextRequest, {params}: {params: {id: string}}) {
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
     if (!isValidObjectId(params.id)) {
-      return NextResponse.json({ message: 'Invalid ID', status: 400 })
+      return NextResponse.json({message: 'Invalid ID', status: 400})
     }
 
     const body = await req.json()
-    const { entityType, statsData } = body
+    const {entityType, statsData} = body
 
     // Validation du type d'entité
     if (!['student', 'teacher'].includes(entityType)) {
-      return NextResponse.json({ message: 'Invalid entity type', status: 400 })
+      return NextResponse.json({message: 'Invalid entity type', status: 400})
     }
 
     let stats = null
@@ -30,11 +27,7 @@ export async function PATCH(
     // Mise à jour des stats selon le type
     if (entityType === 'student') {
       // Validation des statsData pour un étudiant
-      const requiredFields = [
-        'attendanceRate',
-        'totalAbsences',
-        'behaviorAverage',
-      ]
+      const requiredFields = ['attendanceRate', 'totalAbsences', 'behaviorAverage']
       if (!requiredFields.every((field) => field in statsData)) {
         return NextResponse.json({
           message: 'Missing required fields for student stats',
@@ -43,7 +36,7 @@ export async function PATCH(
       }
 
       stats = await StudentStats.findOneAndUpdate(
-        { userId: params.id },
+        {userId: params.id},
         {
           $set: {
             ...statsData,
@@ -66,7 +59,7 @@ export async function PATCH(
       }
 
       stats = await TeacherStats.findOneAndUpdate(
-        { userId: params.id },
+        {userId: params.id},
         {
           $set: {
             ...statsData,
@@ -81,15 +74,15 @@ export async function PATCH(
     }
 
     if (!stats) {
-      return NextResponse.json({ message: 'Stats not found', status: 404 })
+      return NextResponse.json({message: 'Stats not found', status: 404})
     }
 
-    return NextResponse.json({ data: stats, status: 200 })
+    return NextResponse.json({data: stats, status: 200})
   } catch (error: any) {
     console.error('[ENTITY_STATS_PATCH]', error)
     if (error.name === 'ValidationError') {
-      return NextResponse.json({ message: 'Validation Error', status: 400 })
+      return NextResponse.json({message: 'Validation Error', status: 400})
     }
-    return NextResponse.json({ message: 'Internal Error', status: 500 })
+    return NextResponse.json({message: 'Internal Error', status: 500})
   }
 }

@@ -2,21 +2,17 @@
 
 import React from 'react'
 
-import { Checkbox } from '@/components/ui/checkbox'
-import { FormControl, FormField, FormItem } from '@/components/ui/form'
-import { Label } from '@/components/ui/label'
+import {Checkbox} from '@/components/ui/checkbox'
+import {FormControl, FormField, FormItem} from '@/components/ui/form'
+import {Label} from '@/components/ui/label'
 
-interface CustomCheckboxProps<
-  T extends { _id: string; firstname: string; lastname: string },
-> {
+interface CustomCheckboxProps<T extends {_id: string; firstname: string; lastname: string}> {
   items: T[]
   form: any // useForm instance
   formFieldName: string
 }
 
-export const CustomCheckbox = <
-  T extends { _id: string; firstname: string; lastname: string },
->({
+export const CustomCheckbox = <T extends {_id: string; firstname: string; lastname: string}>({
   items,
   form,
   formFieldName,
@@ -52,10 +48,7 @@ export const CustomCheckbox = <
           onCheckedChange={handleSelectAll}
           className="data-[state=checked]:bg-green-500"
         />
-        <Label
-          htmlFor="select-all"
-          className="text-sm font-medium text-gray-800 cursor-pointer"
-        >
+        <Label htmlFor="select-all" className="text-sm font-medium text-gray-800 cursor-pointer">
           Tout sélectionner
         </Label>
       </div>

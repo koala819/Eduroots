@@ -1,8 +1,8 @@
-import { BehaviorDocument } from '@/types/mongoose'
+import {BehaviorDocument} from '@/types/mongoose'
 
-import { rootOptions, rootSchema } from './root.model'
+import {rootOptions, rootSchema} from './root.model'
 
-import { Model, Schema, model, models } from 'mongoose'
+import {Model, Schema, model, models} from 'mongoose'
 
 const behaviorNEWSchema = new Schema(
   {
@@ -12,7 +12,7 @@ const behaviorNEWSchema = new Schema(
       ref: 'courseNEW',
       required: true,
     },
-    date: { type: Date, required: true },
+    date: {type: Date, required: true},
     records: [
       {
         student: {
@@ -34,20 +34,20 @@ const behaviorNEWSchema = new Schema(
       },
     ],
     stats: {
-      behaviorRate: { type: Number, default: 0 },
-      totalStudents: { type: Number, default: 0 },
-      lastUpdate: { type: Date, default: Date.now },
+      behaviorRate: {type: Number, default: 0},
+      totalStudents: {type: Number, default: 0},
+      lastUpdate: {type: Date, default: Date.now},
     },
   },
   rootOptions,
 )
-behaviorNEWSchema.index({ student: 1, course: 1 })
-behaviorNEWSchema.index({ teacher: 1, date: 1 })
-behaviorNEWSchema.index({ course: 1, date: 1 }) // Pour la recherche de comportements par cours et date
-behaviorNEWSchema.index({ 'records.student': 1 }) // Pour la recherche par étudiant
-behaviorNEWSchema.index({ 'records.student': 1, date: 1 }) // Pour l'historique des comportements d'un étudiant
-behaviorNEWSchema.index({ date: -1 }) // Pour le tri par date
-behaviorNEWSchema.index({ deletedAt: 1 }) // Pour filtrer les éléments non supprimés
+behaviorNEWSchema.index({student: 1, course: 1})
+behaviorNEWSchema.index({teacher: 1, date: 1})
+behaviorNEWSchema.index({course: 1, date: 1}) // Pour la recherche de comportements par cours et date
+behaviorNEWSchema.index({'records.student': 1}) // Pour la recherche par étudiant
+behaviorNEWSchema.index({'records.student': 1, date: 1}) // Pour l'historique des comportements d'un étudiant
+behaviorNEWSchema.index({date: -1}) // Pour le tri par date
+behaviorNEWSchema.index({deletedAt: 1}) // Pour filtrer les éléments non supprimés
 
 behaviorNEWSchema.virtual('averageRating').get(function () {
   if (!this.records || this.records.length === 0) return 0
@@ -60,9 +60,7 @@ behaviorNEWSchema.virtual('studentCount').get(function () {
 })
 
 behaviorNEWSchema.virtual('hasComments').get(function () {
-  return this.records.some(
-    (record) => record.comment && record.comment.trim().length > 0,
-  )
+  return this.records.some((record) => record.comment && record.comment.trim().length > 0)
 })
 
 // Ajouter les virtuals lors de la transformation en JSON
@@ -76,7 +74,7 @@ behaviorNEWSchema.set('toJSON', {
   },
 })
 
-behaviorNEWSchema.set('toObject', { virtuals: true })
+behaviorNEWSchema.set('toObject', {virtuals: true})
 
 const modelName = 'behaviorNEW'
 export const Behavior = (models[modelName] ||

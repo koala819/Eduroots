@@ -1,6 +1,6 @@
-import { getToken } from 'next-auth/jwt'
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import type {NextRequest} from 'next/server'
+import {NextResponse} from 'next/server'
 
 const SU_ROLE = 'admin'
 const ADMIN_ROLES = ['admin', 'bureau']
@@ -8,12 +8,7 @@ const TEACHER_ROLE = 'teacher'
 const STUDENT_ROLE = 'student'
 
 const SU_ROUTES = ['/admin/root/logs']
-const ADMIN_ROUTES = [
-  '/admin',
-  '/admin/register',
-  '/admin/student',
-  '/admin/teacher',
-]
+const ADMIN_ROUTES = ['/admin', '/admin/register', '/admin/student', '/admin/teacher']
 const TEACHER_ROUTES = ['/teacher', '/teacher/attendance']
 const STUDENT_ROUTES = ['/student']
 
@@ -38,12 +33,12 @@ const STUDENT_MESSAGE_ROUTES = [
 ]
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token) {
     return NextResponse.redirect(new URL('/', req.url))
   }
 
-  const userRole = (token.user as { role?: string })?.role ?? ''
+  const userRole = (token.user as {role?: string})?.role ?? ''
   const pathname = req.nextUrl.pathname
 
   // Redirection pour les routes racines de messages selon le rôle
@@ -56,9 +51,7 @@ export async function middleware(req: NextRequest) {
     } else if (userRole === STUDENT_ROLE) {
       return NextResponse.redirect(new URL('/student/messages/inbox', req.url))
     } else {
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
+      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
 
@@ -76,9 +69,7 @@ export async function middleware(req: NextRequest) {
   // Vérification des routes SuperUser (SU)
   if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== SU_ROLE) {
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
+      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
 
@@ -88,9 +79,7 @@ export async function middleware(req: NextRequest) {
     ADMIN_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (!ADMIN_ROLES.includes(userRole)) {
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
+      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
 
@@ -100,9 +89,7 @@ export async function middleware(req: NextRequest) {
     TEACHER_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (userRole !== TEACHER_ROLE) {
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
+      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
 
@@ -112,17 +99,13 @@ export async function middleware(req: NextRequest) {
     STUDENT_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (userRole !== STUDENT_ROLE) {
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
+      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
 
   // Pour obtenir l'adresse IP et les autres informations requises
   const ip =
-    req.headers.get('x-forwarded-for') ||
-    req.headers.get('x-real-ip') ||
-    req.nextUrl.hostname
+    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.nextUrl.hostname
   req.headers.set('x-real-ip', ip)
 
   return NextResponse.next()

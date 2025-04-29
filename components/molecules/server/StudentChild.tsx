@@ -1,16 +1,16 @@
-import { Calendar } from 'lucide-react'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {Calendar} from 'lucide-react'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { Course } from '@/types/course'
-import { Teacher } from '@/types/user'
-import { GenderEnum, Student } from '@/types/user'
+import {Course} from '@/types/course'
+import {Teacher} from '@/types/user'
+import {GenderEnum, Student} from '@/types/user'
 
 import StudentAvatar from '@/components/atoms/server/StudentAvatar'
 
-import { getStudentCourses } from '@/app/actions/context/courses'
-import { getTeachersForStudent } from '@/app/actions/context/students'
+import {getStudentCourses} from '@/app/actions/context/courses'
+import {getTeachersForStudent} from '@/app/actions/context/students'
 
-async function StudentChild({ child }: { child: Student }) {
+async function StudentChild({child}: {child: Student}) {
   const studentId = child._id || child.id
   const teacherInfo = await getStudentInfo(studentId)
 
@@ -23,17 +23,13 @@ async function StudentChild({ child }: { child: Student }) {
       const teachers = await getTeachersForStudent(studentId)
 
       if (!teachers || !courses) {
-        return { teacherInfo: null }
+        return {teacherInfo: null}
       }
 
       // Récupérer le premier professeur
       // Vérifier si teachers.data est un tableau avant d'accéder à l'index 0
       let teacher: Teacher | null = null
-      if (
-        teachers.data &&
-        Array.isArray(teachers.data) &&
-        teachers.data.length > 0
-      ) {
+      if (teachers.data && Array.isArray(teachers.data) && teachers.data.length > 0) {
         teacher = teachers.data[0] as unknown as Teacher
       } else {
         return null
@@ -43,11 +39,7 @@ async function StudentChild({ child }: { child: Student }) {
       let studentLevel = 'Non défini'
 
       // Vérifier si courses.data est un tableau avant de le parcourir
-      if (
-        !courses.data ||
-        !Array.isArray(courses.data) ||
-        courses.data.length === 0
-      ) {
+      if (!courses.data || !Array.isArray(courses.data) || courses.data.length === 0) {
         return {
           name: teacher.firstname + ' ' + teacher.lastname,
           level: studentLevel,
@@ -79,7 +71,7 @@ async function StudentChild({ child }: { child: Student }) {
       return teacherInfo
     } catch (error: any) {
       console.error('Erreur lors de la récupération des informations:', error)
-      return { teacherInfo: null, error: error.message }
+      return {teacherInfo: null, error: error.message}
     }
   }
 
@@ -88,9 +80,7 @@ async function StudentChild({ child }: { child: Student }) {
       {/* Le reste de votre JSX reste identique, sans les états de chargement */}
       <div className="flex gap-4">
         <div className="w-14 h-14 shrink-0 rounded-full bg-indigo-50 overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-          <StudentAvatar
-            initials={child.lastname.charAt(0) + child.firstname.charAt(0)}
-          />
+          <StudentAvatar initials={child.lastname.charAt(0) + child.firstname.charAt(0)} />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -117,8 +107,7 @@ async function StudentChild({ child }: { child: Student }) {
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-indigo-300 rounded-full mr-2"></div>
                   <span className="text-indigo-700">
-                    Niveau:{' '}
-                    <span className="font-medium">{teacherInfo.level}</span>
+                    Niveau: <span className="font-medium">{teacherInfo.level}</span>
                   </span>
                 </div>
               </div>

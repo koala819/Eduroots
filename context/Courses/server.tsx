@@ -1,9 +1,9 @@
 'use server'
 
-import { PopulatedCourse } from '@/types/course'
+import {PopulatedCourse} from '@/types/course'
 
-import { getCourseById } from '@/app/actions/context/courses'
-import { CoursesProvider } from '@/context/Courses/client'
+import {getCourseById} from '@/app/actions/context/courses'
+import {CoursesProvider} from '@/context/Courses/client'
 
 interface CoursesServerComponentProps {
   children: React.ReactNode
@@ -35,9 +35,5 @@ export default async function CourseServerComponent({
     }
   }
 
-  return (
-    <CoursesProvider initialCourseData={initialCourseData}>
-      {children}
-    </CoursesProvider>
-  )
+  return <CoursesProvider initialCourseData={initialCourseData}>{children}</CoursesProvider>
 }

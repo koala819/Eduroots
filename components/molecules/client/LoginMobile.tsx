@@ -1,43 +1,29 @@
 'use client'
 
-import {
-  ArrowRight,
-  CircleArrowLeft,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  User,
-} from 'lucide-react'
-import { signIn } from 'next-auth/react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {ArrowRight, CircleArrowLeft, Eye, EyeOff, Lock, Mail, User} from 'lucide-react'
+import {signIn} from 'next-auth/react'
+import {useState} from 'react'
+import {useForm} from 'react-hook-form'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { UserRoleEnum } from '@/types/user'
+import {UserRoleEnum} from '@/types/user'
 
-import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
-import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import {PWAButtonClient} from '@/components/atoms/client/PWAButton'
+import {Button} from '@/components/ui/button'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
 
-import { loginAction } from '@/app/actions/auth'
-import { FormSchema, FormValues } from '@/lib/validation/login-schema'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
+import {loginAction} from '@/app/actions/auth'
+import {FormSchema, FormValues} from '@/lib/validation/login-schema'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {motion} from 'framer-motion'
 
 export const LoginMobileClient = () => {
-  const { toast } = useToast()
+  const {toast} = useToast()
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
@@ -64,10 +50,7 @@ export const LoginMobileClient = () => {
 
     // Ajout sécurisé de userAgent
     // Move this code out of the render cycle to avoid hydration mismatches
-    formData.append(
-      'userAgent',
-      typeof window !== 'undefined' ? navigator.userAgent : '',
-    )
+    formData.append('userAgent', typeof window !== 'undefined' ? navigator.userAgent : '')
 
     try {
       // Update userAgent before submission
@@ -91,8 +74,7 @@ export const LoginMobileClient = () => {
           toast({
             variant: 'destructive',
             title: 'Erreur de connexion',
-            description:
-              result.message || 'Identifiants incorrects. Veuillez réessayer',
+            description: result.message || 'Identifiants incorrects. Veuillez réessayer',
           })
           router.push('/unauthorized?error=CredentialsSignin')
           return
@@ -113,8 +95,7 @@ export const LoginMobileClient = () => {
           variant: 'destructive',
           title: 'Mot de passe par défaut',
           description:
-            result.message ||
-            'Veuillez changer votre mot de passe pour des raisons de sécurité',
+            result.message || 'Veuillez changer votre mot de passe pour des raisons de sécurité',
         })
         router.push(result.redirectUrl)
         return
@@ -220,9 +201,9 @@ export const LoginMobileClient = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
+      initial={{opacity: 0, scale: 0.95}}
+      animate={{opacity: 1, scale: 1}}
+      transition={{duration: 0.3}}
       className="md:hidden min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center"
     >
       <div className="w-full max-w-sm">
@@ -247,7 +228,7 @@ export const LoginMobileClient = () => {
           <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full">
             <div
               className="h-1 bg-blue-600 rounded-full transition-all duration-300"
-              style={{ width: `${((step - 1) / 2) * 100}%` }}
+              style={{width: `${((step - 1) / 2) * 100}%`}}
             />
           </div>
         </div>
@@ -271,23 +252,21 @@ export const LoginMobileClient = () => {
                   <FormField
                     control={form.control}
                     name="role"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem className="space-y-4">
                         {[
-                          { label: 'Direction', value: UserRoleEnum.Admin },
+                          {label: 'Direction', value: UserRoleEnum.Admin},
                           {
                             label: 'Enseignant(e)',
                             value: UserRoleEnum.Teacher,
                           },
-                          { label: 'Parent', value: UserRoleEnum.Student },
+                          {label: 'Parent', value: UserRoleEnum.Student},
                         ].map((role) => (
                           <button
                             key={role.value}
                             type="button"
                             className={`w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
-                              field.value === role.value
-                                ? 'ring-2 ring-blue-600'
-                                : ''
+                              field.value === role.value ? 'ring-2 ring-blue-600' : ''
                             }`}
                             onClick={() => {
                               field.onChange(role.value)
@@ -296,9 +275,7 @@ export const LoginMobileClient = () => {
                           >
                             <span className="flex items-center">
                               <User className="w-5 h-5 mr-3 text-blue-600" />
-                              <span className="text-gray-900 dark:text-white">
-                                {role.label}
-                              </span>
+                              <span className="text-gray-900 dark:text-white">{role.label}</span>
                             </span>
                             <ArrowRight className="w-5 h-5 text-gray-400" />
                           </button>
@@ -325,7 +302,7 @@ export const LoginMobileClient = () => {
                   <FormField
                     control={form.control}
                     name="mail"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
                           <div className="relative">
@@ -378,7 +355,7 @@ export const LoginMobileClient = () => {
                   <FormField
                     control={form.control}
                     name="pwd"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
                           <div className="relative">

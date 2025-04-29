@@ -10,17 +10,16 @@ import {
   useTransition,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
 import {
   Behavior,
   BehaviorRecord,
   CreateBehaviorPayload,
   DuplicateBehavior,
-  PopulatedBehavior,
   UpdateBehaviorPayload,
 } from '@/types/behavior'
-import { BehaviorDocument } from '@/types/mongoose'
+import {BehaviorDocument} from '@/types/mongoose'
 
 import {
   createBehaviorRecord,
@@ -49,29 +48,26 @@ interface BehaviorProviderProps {
 }
 
 type BehaviorAction =
-  | { type: 'CREATE_BEHAVIOR'; payload: Behavior }
-  | { type: 'DELETE_BEHAVIOR'; payload: string }
+  | {type: 'CREATE_BEHAVIOR'; payload: Behavior}
+  | {type: 'DELETE_BEHAVIOR'; payload: string}
   | {
       type: 'REFRESH_DATA'
       payload: {
         records: Behavior[]
       }
     }
-  | { type: 'SET_BEHAVIOR_RECORDS'; payload: Behavior[] }
-  | { type: 'SET_DUPLICATES'; payload: DuplicateBehavior[] }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_LOADING_BEHAVIOR'; payload: boolean }
-  | { type: 'SET_STUDENT_AVERAGES'; payload: Record<string, number> }
-  | { type: 'UPDATE_SINGLE_RECORD'; payload: Behavior }
-  | { type: 'SET_ALL_BEHAVIORS'; payload: BehaviorDocument[] }
-  | { type: 'SET_ONE_BEHAVIOR'; payload: BehaviorDocument }
-  | { type: 'SET_TODAY_BHEAVIOR'; payload: BehaviorDocument }
+  | {type: 'SET_BEHAVIOR_RECORDS'; payload: Behavior[]}
+  | {type: 'SET_DUPLICATES'; payload: DuplicateBehavior[]}
+  | {type: 'SET_ERROR'; payload: string | null}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_LOADING_BEHAVIOR'; payload: boolean}
+  | {type: 'SET_STUDENT_AVERAGES'; payload: Record<string, number>}
+  | {type: 'UPDATE_SINGLE_RECORD'; payload: Behavior}
+  | {type: 'SET_ALL_BEHAVIORS'; payload: BehaviorDocument[]}
+  | {type: 'SET_ONE_BEHAVIOR'; payload: BehaviorDocument}
+  | {type: 'SET_TODAY_BHEAVIOR'; payload: BehaviorDocument}
 
-function behaviorReducer(
-  state: BehaviorState,
-  action: BehaviorAction,
-): BehaviorState {
+function behaviorReducer(state: BehaviorState, action: BehaviorAction): BehaviorState {
   switch (action.type) {
     case 'SET_TODAY_BHEAVIOR':
       return {
@@ -131,9 +127,7 @@ function behaviorReducer(
     case 'DELETE_BEHAVIOR':
       return {
         ...state,
-        behaviorRecords: state.behaviorRecords.filter(
-          (record) => record.id !== action.payload,
-        ),
+        behaviorRecords: state.behaviorRecords.filter((record) => record.id !== action.payload),
       }
     case 'REFRESH_DATA':
       return {
@@ -151,8 +145,7 @@ function behaviorReducer(
   }
 }
 
-interface BehaviorContextType
-  extends Omit<BehaviorState, 'isLoading' | 'error'> {
+interface BehaviorContextType extends Omit<BehaviorState, 'isLoading' | 'error'> {
   calculateAverageBehavior: (studentId: string) => number
   calculateGlobalAverageBehavior: () => number
   createBehaviorRecord: (data: CreateBehaviorPayload) => Promise<void>
@@ -177,11 +170,8 @@ interface BehaviorContextType
 
 const BehaviorsContext = createContext<BehaviorContextType | null>(null)
 
-export const BehaviorProvider = ({
-  children,
-  initialBehaviorData = null,
-}: BehaviorProviderProps) => {
-  const { toast } = useToast()
+export const BehaviorProvider = ({children, initialBehaviorData = null}: BehaviorProviderProps) => {
+  const {toast} = useToast()
   const [isPending, startTransition] = useTransition()
 
   const initialState: BehaviorState = {
@@ -202,7 +192,7 @@ export const BehaviorProvider = ({
     (error: Error, customMessage?: string) => {
       console.error('Behavior Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -215,7 +205,7 @@ export const BehaviorProvider = ({
 
   const handleGetStudentBehaviorHistory = useCallback(
     async (studentId: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         const data = await getStudentBehaviorHistory(studentId)
         return data
@@ -223,7 +213,7 @@ export const BehaviorProvider = ({
         handleError(error as Error)
         return []
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
@@ -231,7 +221,7 @@ export const BehaviorProvider = ({
 
   const handleGetBehaviorById = useCallback(
     async (courseId: string, date: string) => {
-      dispatch({ type: 'SET_LOADING_BEHAVIOR', payload: true })
+      dispatch({type: 'SET_LOADING_BEHAVIOR', payload: true})
       try {
         const data = await getBehaviorByIdAndDate(courseId, date)
         return data
@@ -239,7 +229,7 @@ export const BehaviorProvider = ({
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
       } finally {
-        dispatch({ type: 'SET_LOADING_BEHAVIOR', payload: false })
+        dispatch({type: 'SET_LOADING_BEHAVIOR', payload: false})
       }
     },
     [handleError],
@@ -260,7 +250,7 @@ export const BehaviorProvider = ({
 
   const handleCreateBehaviorRecord = useCallback(
     async (data: CreateBehaviorPayload) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         startTransition(async () => {
           const result = await createBehaviorRecord(data)
@@ -274,7 +264,7 @@ export const BehaviorProvider = ({
 
           // Refresh data if needed
           if (data.course) {
-            await handleFetchBehaviors({ courseId: data.course })
+            await handleFetchBehaviors({courseId: data.course})
           }
         })
       } catch (error) {
@@ -283,12 +273,9 @@ export const BehaviorProvider = ({
           variant: 'destructive',
           description: 'No Record behavior do',
         })
-        handleError(
-          error as Error,
-          'Erreur lors de la création du comportement',
-        )
+        handleError(error as Error, 'Erreur lors de la création du comportement')
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast],
@@ -296,12 +283,12 @@ export const BehaviorProvider = ({
 
   const handleDeleteBehaviorRecord = useCallback(
     async (id: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         startTransition(async () => {
           await deleteBehaviorRecord(id)
 
-          dispatch({ type: 'DELETE_BEHAVIOR', payload: id })
+          dispatch({type: 'DELETE_BEHAVIOR', payload: id})
 
           toast({
             title: 'Succès',
@@ -310,12 +297,9 @@ export const BehaviorProvider = ({
           })
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la suppression du comportement',
-        )
+        handleError(error as Error, 'Erreur lors de la suppression du comportement')
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast],
@@ -331,7 +315,7 @@ export const BehaviorProvider = ({
       sessionId?: string
       checkToday?: boolean
     }) => {
-      dispatch({ type: 'SET_LOADING_BEHAVIOR', payload: true })
+      dispatch({type: 'SET_LOADING_BEHAVIOR', payload: true})
       try {
         // Call the server action
         const response = await fetchBehaviorsByCourse(courseId)
@@ -367,9 +351,7 @@ export const BehaviorProvider = ({
                     b &&
                     (b as BehaviorDocument).date &&
                     (b as BehaviorDocument).date &&
-                    new Date((b as BehaviorDocument).date)
-                      .toISOString()
-                      .split('T')[0] === today,
+                    new Date((b as BehaviorDocument).date).toISOString().split('T')[0] === today,
                 )
               : response.data
 
@@ -384,13 +366,10 @@ export const BehaviorProvider = ({
           })
         }
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la vérification des comportements',
-        )
+        handleError(error as Error, 'Erreur lors de la vérification des comportements')
         throw error
       } finally {
-        dispatch({ type: 'SET_LOADING_BEHAVIOR', payload: false })
+        dispatch({type: 'SET_LOADING_BEHAVIOR', payload: false})
       }
     },
     [handleError],
@@ -401,17 +380,13 @@ export const BehaviorProvider = ({
       const behaviors = state.behaviorRecords.filter((behavior) =>
         behavior.records.some(
           (record) =>
-            (typeof record.student === 'string'
-              ? record.student
-              : record.student.id) === studentId,
+            (typeof record.student === 'string' ? record.student : record.student.id) === studentId,
         ),
       )
       return behaviors.flatMap((behavior) =>
         behavior.records.filter(
           (record) =>
-            (typeof record.student === 'string'
-              ? record.student
-              : record.student.id) === studentId,
+            (typeof record.student === 'string' ? record.student : record.student.id) === studentId,
         ),
       )
     },
@@ -420,7 +395,7 @@ export const BehaviorProvider = ({
 
   const handleUpdateBehaviorRecord = useCallback(
     async (data: UpdateBehaviorPayload) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         startTransition(async () => {
           await updateBehaviorRecord(data)
@@ -434,16 +409,13 @@ export const BehaviorProvider = ({
 
           // Refresh data if needed
           if (data.courseId) {
-            await handleFetchBehaviors({ courseId: data.courseId })
+            await handleFetchBehaviors({courseId: data.courseId})
           }
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la mise à jour du comportement',
-        )
+        handleError(error as Error, 'Erreur lors de la mise à jour du comportement')
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast, handleFetchBehaviors],
@@ -478,11 +450,7 @@ export const BehaviorProvider = ({
     ],
   )
 
-  return (
-    <BehaviorsContext.Provider value={value}>
-      {children}
-    </BehaviorsContext.Provider>
-  )
+  return <BehaviorsContext.Provider value={value}>{children}</BehaviorsContext.Provider>
 }
 
 export const useBehavior = () => {

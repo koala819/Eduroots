@@ -1,11 +1,11 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Behavior } from '@/backend/models/behavior.model'
+import {Behavior} from '@/backend/models/behavior.model'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token || !token.user) {
     return NextResponse.json({
       statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const behaviors = await Behavior.find({
       teacher: teacherId,
       session: sessionId,
-    }).sort({ date: -1 })
+    }).sort({date: -1})
 
     // console.log(
     //   `\n\Found ${behaviors.length} behaviors, \nbehaviors: ${behaviors}`,

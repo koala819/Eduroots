@@ -1,14 +1,14 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
-import { GradeRecord, GradeStats } from '@/types/grade'
+import {GradeRecord, GradeStats} from '@/types/grade'
 import {
   GradeDocument, // StudentDocument,
   // TeacherDocument,
 } from '@/types/mongoose'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Grade as GradeModel } from '@/backend/models/grade.model'
+import {Grade as GradeModel} from '@/backend/models/grade.model'
 
 // import { Student, Teacher } from '@/backend/models/user.model'
 // import { Model } from 'mongoose'
@@ -48,8 +48,7 @@ export function calculateGradeStats(records: GradeRecord[]) {
   return {
     averageGrade:
       presentRecords.length > 0
-        ? presentRecords.reduce((acc, r) => acc + r.value, 0) /
-          presentRecords.length
+        ? presentRecords.reduce((acc, r) => acc + r.value, 0) / presentRecords.length
         : 0,
     highestGrade: presentValues.length > 0 ? Math.max(...presentValues) : 0,
     lowestGrade: presentValues.length > 0 ? Math.min(...presentValues) : 20,
@@ -69,10 +68,8 @@ export async function calculateAndUpdateGradeStats(grade: GradeDocument) {
     // Moyenne : total des notes / nombre d'élèves présents (ou 0 si aucun présent)
     averageGrade:
       presentRecords.length > 0
-        ? presentRecords.reduce(
-            (acc: number, r: GradeRecord) => acc + r.value,
-            0,
-          ) / presentRecords.length
+        ? presentRecords.reduce((acc: number, r: GradeRecord) => acc + r.value, 0) /
+          presentRecords.length
         : 0,
 
     // Meilleure note : maximum parmi les élèves présents (ou 0 si aucun présent)
@@ -84,11 +81,7 @@ export async function calculateAndUpdateGradeStats(grade: GradeDocument) {
     totalStudents: records.length,
   }
 
-  return await GradeModel.findByIdAndUpdate(
-    grade._id,
-    { stats },
-    { new: true },
-  ).lean()
+  return await GradeModel.findByIdAndUpdate(grade._id, {stats}, {new: true}).lean()
 }
 
 // Fonction utilitaire pour l'utilisation typée
@@ -99,11 +92,11 @@ export async function calculateAndUpdateGradeStats(grade: GradeDocument) {
 // }
 
 export async function validateRequest(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token?.user) {
     return NextResponse.json(
-      { message: "Identifiez-vous d'abord pour accéder à cette ressource" },
-      { status: 401 },
+      {message: "Identifiez-vous d'abord pour accéder à cette ressource"},
+      {status: 401},
     )
   }
   await dbConnect()

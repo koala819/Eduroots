@@ -1,13 +1,13 @@
 'use client'
 
-import { Clipboard, Home, MailOpen, Menu, Power, Settings } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import {Clipboard, Home, MailOpen, Menu, Power, Settings} from 'lucide-react'
+import {signOut, useSession} from 'next-auth/react'
+import {useEffect, useState} from 'react'
 
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {Sheet, SheetContent, SheetTrigger} from '@/components/ui/sheet'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import {AnimatePresence, motion} from 'framer-motion'
 
 export function Navbar() {
-  const { data: session, status } = useSession()
+  const {data: session, status} = useSession()
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false)
   const [isScrolled, setIsScrolled] = useState<boolean>(false)
 
@@ -47,26 +47,26 @@ export function Navbar() {
   }
 
   const navItems = [
-    { icon: Home, label: 'Accueil', href: `/${session?.user.role}` },
-    { icon: MailOpen, label: 'Messagerie', href: '/messages' },
+    {icon: Home, label: 'Accueil', href: `/${session?.user.role}`},
+    {icon: MailOpen, label: 'Messagerie', href: '/messages'},
     ...(session?.user.role === 'teacher'
-      ? [{ icon: Clipboard, label: 'Evaluations', href: '/teacher/grades' }]
+      ? [{icon: Clipboard, label: 'Evaluations', href: '/teacher/grades'}]
       : []),
   ]
 
   return (
     <motion.header
       className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      initial={{y: -100}}
+      animate={{y: 0}}
+      transition={{type: 'spring', stiffness: 300, damping: 30}}
     >
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <motion.div
             className="flex items-center"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{scale: 1.05}}
+            whileTap={{scale: 0.95}}
           >
             <Link
               href={`${process.env.NEXT_PUBLIC_CLIENT_URL}/${session?.user.role}`}
@@ -84,8 +84,7 @@ export function Navbar() {
 
               <div className="flex flex-col">
                 <p className="font-bold">
-                  <span>{session?.user.firstname}</span>{' '}
-                  <span>{session?.user.lastname}</span>
+                  <span>{session?.user.firstname}</span> <span>{session?.user.lastname}</span>
                 </p>
                 <span className="text-sm">
                   {session?.user.role === 'teacher' ? 'Professeur' : 'Élève'}
@@ -111,10 +110,10 @@ export function Navbar() {
                   {navItems.map((item, index) => (
                     <motion.div
                       key={item.label}
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 50 }}
-                      transition={{ delay: index * 0.1 }}
+                      initial={{opacity: 0, x: -50}}
+                      animate={{opacity: 1, x: 0}}
+                      exit={{opacity: 0, x: 50}}
+                      transition={{delay: index * 0.1}}
                     >
                       <Link
                         className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
@@ -127,10 +126,10 @@ export function Navbar() {
                     </motion.div>
                   ))}
                   <motion.div
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 50 }}
-                    transition={{ delay: navItems.length * 0.1 }}
+                    initial={{opacity: 0, x: -50}}
+                    animate={{opacity: 1, x: 0}}
+                    exit={{opacity: 0, x: 50}}
+                    transition={{delay: navItems.length * 0.1}}
                   >
                     <a
                       className="flex items-center gap-2 rounded-md px-3 py-2 text-red-500 hover:bg-red-500 hover:text-white transition-colors duration-200"
@@ -151,8 +150,8 @@ export function Navbar() {
               <motion.div
                 key={item.label}
                 className="relative group"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{scale: 1.1}}
+                whileTap={{scale: 0.9}}
               >
                 <Link
                   className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100 transition-colors duration-200"
@@ -168,10 +167,7 @@ export function Navbar() {
             {session?.user.role === 'teacher' && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
+                  <motion.div whileHover={{scale: 1.1}} whileTap={{scale: 0.9}}>
                     <Button variant="ghost" size="icon">
                       <Settings className="h-5 w-5" />
                     </Button>
@@ -180,10 +176,7 @@ export function Navbar() {
                 <DropdownMenuContent>
                   <DropdownMenuSeparator />
                   {navItems.map((item) => (
-                    <DropdownMenuItem
-                      key={item.label}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem key={item.label} className="cursor-pointer">
                       <Link
                         className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100 w-full transition-colors duration-200"
                         href={item.href}
@@ -209,8 +202,8 @@ export function Navbar() {
             {session?.user.role === 'student' && (
               <motion.div
                 className="relative group"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{scale: 1.1}}
+                whileTap={{scale: 0.9}}
               >
                 <a onClick={logoutHandler} className="cursor-pointer">
                   <Power className="h-5 w-5" color="red" />

@@ -1,12 +1,12 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Behavior } from '@/backend/models/behavior.model'
-import { generateWeekPeriods } from '@/lib/api.utils'
+import {Behavior} from '@/backend/models/behavior.model'
+import {generateWeekPeriods} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token || !token.user) {
     return NextResponse.json({
       statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
               branches: weekPeriods.map((period) => ({
                 case: {
                   $and: [
-                    { $gte: ['$date', period.start] },
+                    {$gte: ['$date', period.start]},
                     {
                       $lt: ['$date', new Date(period.end.getTime() + 86400000)],
                     },
@@ -63,13 +63,13 @@ export async function GET(req: NextRequest) {
             course: '$course',
             weekPeriod: '$weekPeriod',
           },
-          count: { $sum: 1 },
-          behaviors: { $push: '$$ROOT' },
+          count: {$sum: 1},
+          behaviors: {$push: '$$ROOT'},
         },
       },
       {
         $match: {
-          count: { $gt: 1 },
+          count: {$gt: 1},
         },
       },
       {
@@ -78,10 +78,10 @@ export async function GET(req: NextRequest) {
       },
       {
         // $replaceRoot remonte chaque behavior à la racine
-        $replaceRoot: { newRoot: '$behaviors' },
+        $replaceRoot: {newRoot: '$behaviors'},
       },
       {
-        $sort: { date: 1 },
+        $sort: {date: 1},
       },
     ])
 

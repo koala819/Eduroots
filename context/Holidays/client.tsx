@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import {useSession} from 'next-auth/react'
 import {
   ReactNode,
   createContext,
@@ -12,14 +12,11 @@ import {
   useRef,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { Holiday } from '@/types/holidays'
+import {Holiday} from '@/types/holidays'
 
-import {
-  getCurrentHolidays,
-  saveHolidays,
-} from '@/app/actions/context/holidays'
+import {getCurrentHolidays, saveHolidays} from '@/app/actions/context/holidays'
 
 interface HolidayState {
   holidays: Holiday[]
@@ -33,14 +30,11 @@ interface HolidaysProviderProps {
 }
 
 type HolidayAction =
-  | { type: 'SET_HOLIDAYS'; payload: Holiday[] }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
+  | {type: 'SET_HOLIDAYS'; payload: Holiday[]}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_ERROR'; payload: string | null}
 
-function holidayReducer(
-  state: HolidayState,
-  action: HolidayAction,
-): HolidayState {
+function holidayReducer(state: HolidayState, action: HolidayAction): HolidayState {
   switch (action.type) {
     case 'SET_HOLIDAYS':
       return {
@@ -74,11 +68,8 @@ interface HolidayContextType extends HolidayState {
 
 const HolidayContext = createContext<HolidayContextType | null>(null)
 
-export const HolidaysProvider = ({
-  children,
-  initialHolidaysData = null,
-}: HolidaysProviderProps) => {
-  const { toast } = useToast()
+export const HolidaysProvider = ({children, initialHolidaysData = null}: HolidaysProviderProps) => {
+  const {toast} = useToast()
 
   // Utiliser les données initiales si disponibles
   const initialState: HolidayState = {
@@ -88,13 +79,13 @@ export const HolidaysProvider = ({
   }
 
   const [state, dispatch] = useReducer(holidayReducer, initialState)
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Holiday Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -107,15 +98,11 @@ export const HolidaysProvider = ({
 
   const handleGetCurrentHolidays = useCallback(async () => {
     // Si nous avons déjà des données initiales, ne chargeons pas à nouveau
-    if (
-      initialHolidaysData &&
-      initialHolidaysData.length > 0 &&
-      !state.isLoading
-    ) {
+    if (initialHolidaysData && initialHolidaysData.length > 0 && !state.isLoading) {
       return
     }
 
-    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({type: 'SET_LOADING', payload: true})
 
     try {
       if (!session || !session.user) {
@@ -125,9 +112,7 @@ export const HolidaysProvider = ({
       const response = await getCurrentHolidays(session.user._id)
 
       if (!response.success) {
-        throw new Error(
-          response.message || 'Échec de la récupération des vacances',
-        )
+        throw new Error(response.message || 'Échec de la récupération des vacances')
       }
 
       // Extraire les vacances de la réponse
@@ -141,7 +126,7 @@ export const HolidaysProvider = ({
     } catch (error) {
       handleError(error as Error)
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError, initialHolidaysData, session, state.isLoading])
 
@@ -151,9 +136,7 @@ export const HolidaysProvider = ({
         const response = await saveHolidays(holidayData)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Échec de la mise à jour des vacances',
-          )
+          throw new Error(response.message || 'Échec de la mise à jour des vacances')
         }
 
         // Extraire les vacances de la réponse
@@ -197,9 +180,7 @@ export const HolidaysProvider = ({
     [state, handleGetCurrentHolidays, handleSaveHolidays],
   )
 
-  return (
-    <HolidayContext.Provider value={value}>{children}</HolidayContext.Provider>
-  )
+  return <HolidayContext.Provider value={value}>{children}</HolidayContext.Provider>
 }
 
 export const useHolidays = () => {

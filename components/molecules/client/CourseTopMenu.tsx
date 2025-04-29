@@ -1,16 +1,16 @@
 'use client'
 
-import { CheckCircle2, Star } from 'lucide-react'
-import { useState } from 'react'
+import {CheckCircle2, Star} from 'lucide-react'
+import {useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { CourseSession, PopulatedCourse } from '@/types/course'
+import {CourseSession, PopulatedCourse} from '@/types/course'
 
-import { CourseMenu } from '@/components/atoms/client/CourseMenu'
-import { CourseSelected } from '@/components/atoms/client/CourseTopMenuDetailedView'
+import {CourseMenu} from '@/components/atoms/client/CourseMenu'
+import {CourseSelected} from '@/components/atoms/client/CourseTopMenuDetailedView'
 
-import { motion } from 'framer-motion'
+import {motion} from 'framer-motion'
 
 const views = [
   {
@@ -65,10 +65,10 @@ export const TopMenu = ({
         />
 
         <div className="flex bg-gray-100 rounded-full p-1 space-x-1">
-          {views.map(({ id, label, Icon }) => (
+          {views.map(({id, label, Icon}) => (
             <motion.button
               key={id}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{scale: 0.95}}
               onClick={() => setActiveView(id)}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all
@@ -105,10 +105,10 @@ export const TopMenu = ({
 
         <div className="flex justify-center p-2">
           <div className="flex bg-gray-100 rounded-full p-1 space-x-1">
-            {views.map(({ id, label, Icon }) => (
+            {views.map(({id, label, Icon}) => (
               <motion.button
                 key={id}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{scale: 0.95}}
                 onClick={() => setActiveView(id)}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all

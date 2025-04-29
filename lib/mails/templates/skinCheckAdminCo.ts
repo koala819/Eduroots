@@ -3,10 +3,7 @@ export function mailCheckAdminCo(detailedBody: any) {
     time,
     mail,
     userAgent,
-    userDetails: {
-      ip = 'Non défini',
-      device: { client = {}, os = {}, device = {} } = {},
-    } = {},
+    userDetails: {ip = 'Non défini', device: {client = {}, os = {}, device = {}} = {}} = {},
   } = detailedBody
 
   const formatDate = (dateString: string) => {

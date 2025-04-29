@@ -11,9 +11,9 @@ import {
   useRef,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/grade'
+import {CreateGradeDTO, PopulatedGrade, UpdateGradeDTO} from '@/types/grade'
 
 import {
   createGradeRecord,
@@ -35,13 +35,13 @@ interface GradeProviderProps {
 }
 
 type GradeAction =
-  | { type: 'SET_GRADES'; payload: PopulatedGrade[] }
-  | { type: 'SET_TEACHER_GRADES'; payload: PopulatedGrade[] }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'UPDATE_GRADE'; payload: PopulatedGrade }
-  | { type: 'DELETE_GRADE'; payload: string }
-  | { type: 'REFRESH_DATA'; payload: PopulatedGrade[] }
+  | {type: 'SET_GRADES'; payload: PopulatedGrade[]}
+  | {type: 'SET_TEACHER_GRADES'; payload: PopulatedGrade[]}
+  | {type: 'SET_ERROR'; payload: string | null}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'UPDATE_GRADE'; payload: PopulatedGrade}
+  | {type: 'DELETE_GRADE'; payload: string}
+  | {type: 'REFRESH_DATA'; payload: PopulatedGrade[]}
 
 function gradeReducer(state: GradeState, action: GradeAction): GradeState {
   switch (action.type) {
@@ -75,8 +75,7 @@ function gradeReducer(state: GradeState, action: GradeAction): GradeState {
     case 'DELETE_GRADE':
       return {
         ...state,
-        grades:
-          state.grades.filter((grade) => grade.id !== action.payload) || [],
+        grades: state.grades.filter((grade) => grade.id !== action.payload) || [],
       }
 
     case 'REFRESH_DATA':
@@ -92,10 +91,7 @@ function gradeReducer(state: GradeState, action: GradeAction): GradeState {
 
 interface GradeContextType extends Omit<GradeState, 'isLoading' | 'error'> {
   createGradeRecord: (data: CreateGradeDTO) => Promise<boolean | number>
-  updateGradeRecord: (
-    id: string,
-    data: UpdateGradeDTO,
-  ) => Promise<boolean | number>
+  updateGradeRecord: (id: string, data: UpdateGradeDTO) => Promise<boolean | number>
   error: string | null
   isLoading: boolean
   getTeacherGrades: (teacherId: string) => Promise<PopulatedGrade[]>
@@ -104,11 +100,8 @@ interface GradeContextType extends Omit<GradeState, 'isLoading' | 'error'> {
 
 const GradeContext = createContext<GradeContextType | null>(null)
 
-export const GradesProvider = ({
-  children,
-  initialGradeData = null,
-}: GradeProviderProps) => {
-  const { toast } = useToast()
+export const GradesProvider = ({children, initialGradeData = null}: GradeProviderProps) => {
+  const {toast} = useToast()
 
   const initialState: GradeState = {
     grades: initialGradeData || [],
@@ -125,7 +118,7 @@ export const GradesProvider = ({
       console.error('Grade Error:', error)
       const errorMessage = customMessage || error.message
       console.error('Grade Error:', error)
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -138,14 +131,12 @@ export const GradesProvider = ({
 
   const handleCreateGradeRecord = useCallback(
     async (data: CreateGradeDTO) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         const response = await createGradeRecord(data)
 
         if (!response.success) {
-          throw new Error(
-            response.error || 'Erreur lors de la création de la présence',
-          )
+          throw new Error(response.error || 'Erreur lors de la création de la présence')
         }
         await refreshGradeData()
 
@@ -154,7 +145,7 @@ export const GradesProvider = ({
         handleError(error as Error, 'Erreur lors de la création de la note')
         return 0
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
@@ -167,14 +158,12 @@ export const GradesProvider = ({
         return state.teacherGrades
       }
 
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         const response = await getTeacherGrades(teacherId)
 
         if (!response.success) {
-          throw new Error(
-            response.error || 'Erreur lors de la création de la présence',
-          )
+          throw new Error(response.error || 'Erreur lors de la création de la présence')
         }
         const grades = (response.data as unknown as PopulatedGrade[]) || []
 
@@ -188,21 +177,19 @@ export const GradesProvider = ({
         handleError(error as Error, 'Erreur lors de la création de la note')
         return []
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
   )
 
   const handleRefreshGradeData = useCallback(async () => {
-    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({type: 'SET_LOADING', payload: true})
     try {
       const response = await refreshGradeData()
 
       if (!response.success) {
-        throw new Error(
-          response.error || 'Erreur lors de la création de la présence',
-        )
+        throw new Error(response.error || 'Erreur lors de la création de la présence')
       }
 
       dispatch({
@@ -212,20 +199,18 @@ export const GradesProvider = ({
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des notes')
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError])
 
   const handleUpdateGradeRecord = useCallback(
     async (id: string, data: UpdateGradeDTO) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         const response = await updateGradeRecord(id, data)
 
         if (!response.success) {
-          throw new Error(
-            response.error || 'Erreur lors de la création de la présence',
-          )
+          throw new Error(response.error || 'Erreur lors de la création de la présence')
         }
 
         await refreshGradeData()
@@ -235,7 +220,7 @@ export const GradesProvider = ({
         handleError(error as Error, 'Erreur lors de la mise à jour de la note')
         return 0
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast],

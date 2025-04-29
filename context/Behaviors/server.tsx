@@ -1,9 +1,9 @@
 'use server'
 
-import { BehaviorDocument } from '@/types/mongoose'
+import {BehaviorDocument} from '@/types/mongoose'
 
-import { fetchBehaviorsByCourse } from '@/app/actions/context/behaviors'
-import { BehaviorProvider } from '@/context/Behaviors/client'
+import {fetchBehaviorsByCourse} from '@/app/actions/context/behaviors'
+import {BehaviorProvider} from '@/context/Behaviors/client'
 
 interface BehaviorServerComponentProps {
   children: React.ReactNode
@@ -29,9 +29,5 @@ export default async function BehaviorsServerComponent({
     }
   }
 
-  return (
-    <BehaviorProvider initialBehaviorData={initialBehaviorData}>
-      {children}
-    </BehaviorProvider>
-  )
+  return <BehaviorProvider initialBehaviorData={initialBehaviorData}>{children}</BehaviorProvider>
 }

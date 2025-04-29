@@ -11,7 +11,7 @@ interface TeacherStatsClientProps {
   stats: TeacherStats
 }
 
-export function TeacherStatsClient({ stats }: TeacherStatsClientProps) {
+export function TeacherStatsClient({stats}: TeacherStatsClientProps) {
   return (
     <div className="mt-4 space-y-2">
       <h4 className="font-semibold text-sm text-gray-500">Statistiques</h4>
@@ -30,9 +30,7 @@ export function TeacherStatsClient({ stats }: TeacherStatsClientProps) {
         </div>
         <div className="p-3 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-500">Réussite moyenne</p>
-          <p className="text-lg font-semibold">
-            {stats.averageStudentSuccess}%
-          </p>
+          <p className="text-lg font-semibold">{stats.averageStudentSuccess}%</p>
         </div>
       </div>
     </div>

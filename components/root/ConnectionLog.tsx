@@ -1,14 +1,7 @@
 'use client'
 
-import {
-  GraduationCap,
-  Laptop,
-  Rocket,
-  ShieldCheck,
-  Smartphone,
-  Users,
-} from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import {GraduationCap, Laptop, Rocket, ShieldCheck, Smartphone, Users} from 'lucide-react'
+import React, {useEffect, useState} from 'react'
 
 import {
   Accordion,
@@ -17,8 +10,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import {format} from 'date-fns'
+import {fr} from 'date-fns/locale'
 
 interface IUser {
   Id: string
@@ -55,20 +48,16 @@ export const ConnectionLog: React.FC = () => {
 
   const getDeviceInfo = (userAgent: string) => {
     const ua = userAgent.toLowerCase()
-    if (
-      ua.includes('mobile') ||
-      ua.includes('android') ||
-      ua.includes('iphone')
-    ) {
+    if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
       return {
         type: 'smartphone',
         os: ua.includes('android') ? 'android' : 'ios',
       }
     }
-    if (ua.includes('win')) return { type: 'computer', os: 'windows' }
-    if (ua.includes('mac')) return { type: 'computer', os: 'macos' }
-    if (ua.includes('linux')) return { type: 'computer', os: 'linux' }
-    return { type: 'computer', os: 'unknown' }
+    if (ua.includes('win')) return {type: 'computer', os: 'windows'}
+    if (ua.includes('mac')) return {type: 'computer', os: 'macos'}
+    if (ua.includes('linux')) return {type: 'computer', os: 'linux'}
+    return {type: 'computer', os: 'unknown'}
   }
 
   const getRoleIcon = (role: string) => {
@@ -86,7 +75,7 @@ export const ConnectionLog: React.FC = () => {
     }
   }
 
-  const getDeviceIcon = (deviceInfo: { type: string; os: string }) => {
+  const getDeviceIcon = (deviceInfo: {type: string; os: string}) => {
     return deviceInfo.type === 'smartphone' ? (
       <Smartphone className="w-5 h-5 text-gray-600" />
     ) : (
@@ -94,7 +83,7 @@ export const ConnectionLog: React.FC = () => {
     )
   }
 
-  const getOSIcon = (deviceInfo: { type: string; os: string }) => {
+  const getOSIcon = (deviceInfo: {type: string; os: string}) => {
     switch (deviceInfo.os) {
       case 'windows':
         return (
@@ -149,9 +138,7 @@ export const ConnectionLog: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        Journaux de connexion
-      </h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Journaux de connexion</h1>
       <div className="mb-8 bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-700">Légende</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -195,12 +182,8 @@ export const ConnectionLog: React.FC = () => {
                   >
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-4">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formattedDate}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {formattedTime}
-                        </span>
+                        <span className="text-sm font-medium text-gray-900">{formattedDate}</span>
+                        <span className="text-sm text-gray-500">{formattedTime}</span>
                       </div>
                       <div className="flex items-center space-x-4">
                         <span className="text-sm font-medium text-gray-900">
@@ -220,33 +203,21 @@ export const ConnectionLog: React.FC = () => {
                     <div className="p-4 bg-gray-50 rounded-b-lg">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                            Utilisateur
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {log.user.email}
-                          </p>
+                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Utilisateur</h3>
+                          <p className="text-sm text-gray-600">{log.user.email}</p>
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                            Rôle
-                          </h3>
+                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Rôle</h3>
                           <div className="flex items-center space-x-2">
                             {getRoleIcon(log.user.role)}
-                            <span className="text-sm text-gray-600">
-                              {log.user.role}
-                            </span>
+                            <span className="text-sm text-gray-600">{log.user.role}</span>
                           </div>
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                            Appareil
-                          </h3>
+                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Appareil</h3>
                           <div className="flex items-center space-x-2">
                             {getDeviceIcon(deviceInfo)}
-                            <span className="text-sm text-gray-600">
-                              {deviceInfo.type}
-                            </span>
+                            <span className="text-sm text-gray-600">{deviceInfo.type}</span>
                           </div>
                         </div>
                         <div>
@@ -255,9 +226,7 @@ export const ConnectionLog: React.FC = () => {
                           </h3>
                           <div className="flex items-center space-x-2">
                             {getOSIcon(deviceInfo)}
-                            <span className="text-sm text-gray-600">
-                              {deviceInfo.os}
-                            </span>
+                            <span className="text-sm text-gray-600">{deviceInfo.os}</span>
                           </div>
                         </div>
                       </div>

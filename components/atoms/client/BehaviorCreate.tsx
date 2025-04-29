@@ -1,12 +1,12 @@
 'use client'
 
-import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {BarChart2, Clock, NotebookText, Star} from 'lucide-react'
+import {useEffect, useState} from 'react'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { AttendanceRecord } from '@/types/attendance'
-import { PopulatedCourse } from '@/types/course'
-import { GenderEnum, Student } from '@/types/user'
+import {AttendanceRecord} from '@/types/attendance'
+import {PopulatedCourse} from '@/types/course'
+import {GenderEnum, Student} from '@/types/user'
 
 import {
   AlertDialog,
@@ -19,13 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
-import { useBehavior } from '@/context/Behaviors/client'
-import { useCourses } from '@/context/Courses/client'
-import { useStudents } from '@/context/Students/client'
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import {useBehavior} from '@/context/Behaviors/client'
+import {useCourses} from '@/context/Courses/client'
+import {useStudents} from '@/context/Students/client'
+import {cn} from '@/lib/utils'
+import {motion} from 'framer-motion'
 
 interface BehaviorCreateProps {
   students: AttendanceRecord[]
@@ -40,16 +40,14 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   date,
   courseId,
 }) => {
-  const { createBehaviorRecord } = useBehavior()
-  const { getCourseById, isLoadingCourse } = useCourses()
-  const { getOneStudent } = useStudents()
+  const {createBehaviorRecord} = useBehavior()
+  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getOneStudent} = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isRecording, setIsRecording] = useState<boolean>(false)
-  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>(
-    {},
-  )
+  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>({})
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true)
 
   const [behavior, setBehavior] = useState<Record<string, number>>(() =>
@@ -58,9 +56,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
         .filter((record) => record.isPresent)
         .map((record) => [
           // Ajustement pour utiliser le bon ID selon le type
-          typeof record.student === 'string'
-            ? record.student
-            : record.student.id,
+          typeof record.student === 'string' ? record.student : record.student.id,
           5,
         ]),
     ),
@@ -77,8 +73,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
           students
             .filter((s) => s.isPresent)
             .map(async (s) => {
-              const studentId =
-                typeof s.student === 'string' ? s.student : s.student.id
+              const studentId = typeof s.student === 'string' ? s.student : s.student.id
               const studentDetail = await getOneStudent(studentId)
               if (isMounted) {
                 studentsData[studentId] = studentDetail
@@ -162,11 +157,11 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         ></div>
       </div>
     )
@@ -175,10 +170,10 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{opacity: 0, height: 0}}
+        animate={{opacity: 1, height: 'auto'}}
+        exit={{opacity: 0, height: 0}}
+        transition={{duration: 0.3}}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
@@ -205,9 +200,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        {course.sessions[0].subject}
-                      </span>
+                      <span className="text-sm text-gray-700">{course.sessions[0].subject}</span>
                     </div>
 
                     {/* Date */}
@@ -231,9 +224,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                   .map((student) => {
                     // console.log('🚀 ~ student:', student)
                     const studentId =
-                      typeof student.student === 'string'
-                        ? student.student
-                        : student.student.id
+                      typeof student.student === 'string' ? student.student : student.student.id
                     const studentDetail = studentDetails[studentId]
 
                     if (!studentDetail) return null
@@ -242,8 +233,8 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                       <motion.li
                         key={studentId}
                         className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                       >
                         <div className="flex items-center space-x-3">
                           {studentDetail.gender === GenderEnum.Masculin ? (
@@ -259,11 +250,9 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                           </span>
                         </div>
                         <motion.div
-                          className={
-                            'transition-all duration-300 p-2 rounded-full'
-                          }
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          className={'transition-all duration-300 p-2 rounded-full'}
+                          whileHover={{scale: 1.1}}
+                          whileTap={{scale: 0.9}}
                         >
                           {[1, 2, 3, 4, 5].map((rating) => (
                             <button
@@ -299,10 +288,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                 >
                   {isRecording ? 'Enregistrement en cours...' : 'Enregistrer'}
                 </Button>
-                <AlertDialog
-                  open={isConfirmOpen}
-                  onOpenChange={setIsConfirmOpen}
-                >
+                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="teacherWarning"
@@ -314,13 +300,10 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Confirmer l&apos;annulation
-                      </AlertDialogTitle>
+                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la saisie de
-                        l&apos;appel ? Les données non enregistrées seront
-                        perdues.
+                        Êtes-vous sûr de vouloir annuler la saisie de l&apos;appel ? Les données non
+                        enregistrées seront perdues.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

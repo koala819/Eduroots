@@ -1,15 +1,15 @@
 'use client'
 
-import { Book, GraduationCap } from 'lucide-react'
+import {Book, GraduationCap} from 'lucide-react'
 import 'react'
 
-import { TimeSlotEnum } from '@/types/course'
+import {TimeSlotEnum} from '@/types/course'
 
-import { GradeCard } from '@/components/atoms/client/StudentGradeCard'
-import { InfoCard } from '@/components/atoms/client/StudentInfoCard'
-import { StatCard } from '@/components/atoms/client/StudentStatCard'
+import {GradeCard} from '@/components/atoms/client/StudentGradeCard'
+import {InfoCard} from '@/components/atoms/client/StudentInfoCard'
+import {StatCard} from '@/components/atoms/client/StudentStatCard'
 
-import { formatDayOfWeek } from '@/lib/utils'
+import {formatDayOfWeek} from '@/lib/utils'
 
 type StudentStatsProps = {
   detailedGrades: any
@@ -46,8 +46,7 @@ export default function ChildStats({
           title="Absences"
           value={detailedAttendance?.absencesCount || 'N/A'}
           description={
-            detailedAttendance?.absencesCount &&
-            detailedAttendance?.absencesCount > 2
+            detailedAttendance?.absencesCount && detailedAttendance?.absencesCount > 2
               ? 'Journées cette année'
               : 'Journée cette année'
           }
@@ -76,16 +75,12 @@ export default function ChildStats({
 
             {
               label: 'Enseignant',
-              value:
-                detailedTeacher?.lastname.toUpperCase() +
-                ' ' +
-                detailedTeacher?.firstname,
+              value: detailedTeacher?.lastname.toUpperCase() + ' ' + detailedTeacher?.firstname,
             },
             {
               label: 'Jour de cours',
               value: formatDayOfWeek(
-                (detailedCourse?.sessions[0].timeSlot
-                  .dayOfWeek as TimeSlotEnum) || 'N/A',
+                (detailedCourse?.sessions[0].timeSlot.dayOfWeek as TimeSlotEnum) || 'N/A',
               ),
             },
           ]}

@@ -1,13 +1,13 @@
-import { MessageBody } from '@/types/models'
+import {MessageBody} from '@/types/models'
 
-import { EMAIL_CONFIG, EmailUsageType } from '../config'
-import { mailBugAttendance } from './skinBugAttendance'
-import { mailBugBehavior } from './skinBugBehavior'
-import { mailCheckAdminCo } from './skinCheckAdminCo'
-import { sendOTP } from './skinOTP'
-import { skinUpdateStudentEmail } from './skinUpdateStudentEmail'
+import {EMAIL_CONFIG, EmailUsageType} from '../config'
+import {mailBugAttendance} from './skinBugAttendance'
+import {mailBugBehavior} from './skinBugBehavior'
+import {mailCheckAdminCo} from './skinCheckAdminCo'
+import {sendOTP} from './skinOTP'
+import {skinUpdateStudentEmail} from './skinUpdateStudentEmail'
 
-import { mailMessage } from '@/lib/mails/templates/skin'
+import {mailMessage} from '@/lib/mails/templates/skin'
 
 interface TemplateParams {
   body?: MessageBody
@@ -28,26 +28,13 @@ interface TemplateParams {
  * Factory pattern pour les templates d'emails
  * Retourne le HTML du template en fonction du type d'usage
  */
-export function getEmailTemplate(
-  usage: EmailUsageType,
-  params: TemplateParams,
-): string {
+export function getEmailTemplate(usage: EmailUsageType, params: TemplateParams): string {
   const templateFunctions = {
     standard: () =>
-      mailMessage(
-        params.body?.subject,
-        params.sender,
-        EMAIL_CONFIG.websiteUrl || '',
-        'standard',
-      ),
+      mailMessage(params.body?.subject, params.sender, EMAIL_CONFIG.websiteUrl || '', 'standard'),
 
     bureau: () =>
-      mailMessage(
-        params.body?.subject,
-        params.sender,
-        EMAIL_CONFIG.websiteUrl || '',
-        'bureau',
-      ),
+      mailMessage(params.body?.subject, params.sender, EMAIL_CONFIG.websiteUrl || '', 'bureau'),
 
     attendanceError: () => mailBugAttendance(params.detailedBody),
 

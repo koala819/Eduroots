@@ -1,12 +1,12 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/attendance.model'
-import { generateWeekPeriods } from '@/lib/api.utils'
+import {Attendance} from '@/backend/models/attendance.model'
+import {generateWeekPeriods} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
 
   if (!token || !token.user) {
     return NextResponse.json({
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
               branches: weekPeriods.map((period) => ({
                 case: {
                   $and: [
-                    { $gte: ['$date', period.start] },
+                    {$gte: ['$date', period.start]},
                     {
                       $lt: ['$date', new Date(period.end.getTime() + 86400000)],
                     }, // Ajoute un jour pour inclure la fin de la période
@@ -65,27 +65,27 @@ export async function GET(req: NextRequest) {
           _id: {
             course: '$course',
             date: {
-              $dateToString: { format: '%Y-%m-%d', date: '$date' },
+              $dateToString: {format: '%Y-%m-%d', date: '$date'},
             },
             weekPeriod: '$weekPeriod',
           },
-          count: { $sum: 1 },
-          attendances: { $push: '$$ROOT' },
+          count: {$sum: 1},
+          attendances: {$push: '$$ROOT'},
         },
       },
       {
         $match: {
-          count: { $gt: 1 },
+          count: {$gt: 1},
         },
       },
       {
         $unwind: '$attendances',
       },
       {
-        $replaceRoot: { newRoot: '$attendances' },
+        $replaceRoot: {newRoot: '$attendances'},
       },
       {
-        $sort: { date: 1 },
+        $sort: {date: 1},
       },
     ])
 

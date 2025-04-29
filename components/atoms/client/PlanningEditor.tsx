@@ -1,49 +1,26 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {Pencil} from 'lucide-react'
+import React, {useState} from 'react'
+import {useForm} from 'react-hook-form'
 
-import { toast } from '@/hooks/use-toast'
+import {toast} from '@/hooks/use-toast'
 
-import {
-  CourseSession,
-  LevelEnum,
-  SubjectNameEnum,
-  TimeSlotEnum,
-} from '@/types/course'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import {CourseSession, LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {Period, PeriodTypeEnum} from '@/types/schedule'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent} from '@/components/ui/card'
+import {Checkbox} from '@/components/ui/checkbox'
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {ScrollArea} from '@/components/ui/scroll-area'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 
-import { useCourses } from '@/context/Courses/client'
-import { formatDayOfWeek } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useCourses} from '@/context/Courses/client'
+import {formatDayOfWeek} from '@/lib/utils'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const sessionSchema = z.object({
@@ -71,12 +48,8 @@ interface SessionsEditorProps {
   periods: Period[] | undefined
 }
 
-export const PlanningEditor: React.FC<SessionsEditorProps> = ({
-  timeSlot,
-  sessions,
-  periods,
-}) => {
-  const { updateCourse, checkTimeSlotOverlap } = useCourses()
+export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, sessions, periods}) => {
+  const {updateCourse, checkTimeSlotOverlap} = useCourses()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -99,10 +72,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
       setIsSubmitting(true)
 
       for (const session of data.sessions) {
-        const hasOverlap = await checkTimeSlotOverlap(
-          session.timeSlot,
-          session.id,
-        )
+        const hasOverlap = await checkTimeSlotOverlap(session.timeSlot, session.id)
 
         if (hasOverlap) {
           setIsSubmitting(false)
@@ -113,11 +83,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
       await Promise.all(
         data.sessions.map((session) => {
           //todo fix any
-          return updateCourse(
-            session.id,
-            session as any,
-            data.sameStudents ?? false,
-          )
+          return updateCourse(session.id, session as any, data.sameStudents ?? false)
         }),
       )
     } catch (error) {
@@ -148,21 +114,16 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-xl">
-              Planning {formatDayOfWeek(timeSlot)}
-            </DialogTitle>
+            <DialogTitle className="text-xl">Planning {formatDayOfWeek(timeSlot)}</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSave)}
-              className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
               <div className="px-4 py-2 flex items-center gap-2">
                 <FormField
                   control={form.control}
                   name="sameStudents"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
@@ -190,29 +151,21 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.subject`}
-                              render={({ field }) => (
+                              render={({field}) => (
                                 <FormItem>
                                   <FormLabel>Matière</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                       <SelectTrigger>
                                         <SelectValue placeholder="Sélectionner une matière" />
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      {Object.values(SubjectNameEnum).map(
-                                        (subject) => (
-                                          <SelectItem
-                                            key={subject}
-                                            value={subject}
-                                          >
-                                            {subject}
-                                          </SelectItem>
-                                        ),
-                                      )}
+                                      {Object.values(SubjectNameEnum).map((subject) => (
+                                        <SelectItem key={subject} value={subject}>
+                                          {subject}
+                                        </SelectItem>
+                                      ))}
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -223,13 +176,10 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.level`}
-                              render={({ field }) => (
+                              render={({field}) => (
                                 <FormItem>
                                   <FormLabel>Niveau</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                       <SelectTrigger>
                                         <SelectValue placeholder="Sélectionner un niveau" />
@@ -251,16 +201,14 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.timeSlot.classroomNumber`}
-                              render={({ field }) => (
+                              render={({field}) => (
                                 <FormItem>
                                   <FormLabel>Salle</FormLabel>
                                   <FormControl>
                                     <Input
                                       type="number"
                                       {...field}
-                                      onChange={(e) =>
-                                        field.onChange(parseInt(e.target.value))
-                                      }
+                                      onChange={(e) => field.onChange(parseInt(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -272,11 +220,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({
                       ))}
                 </div>
                 <div className="flex justify-end gap-2 sticky bottom-0 bg-white p-4 border-t">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsOpen(false)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                     Annuler
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>

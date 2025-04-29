@@ -1,42 +1,35 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Clock, TreePalm } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import {ChevronLeft, ChevronRight, Clock, TreePalm} from 'lucide-react'
+import {useSession} from 'next-auth/react'
+import {useEffect, useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { CourseSession, TimeSlotEnum } from '@/types/course'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import {CourseSession, TimeSlotEnum} from '@/types/course'
+import {Period, PeriodTypeEnum} from '@/types/schedule'
 
 import PlanningDetailsCard from '@/components/admin/atoms/client/PlanningDetailsCard'
-import { TimeSlotColumn } from '@/components/admin/molecules/client/PlanningTimeSlotColumn'
-import { HolidaysCard } from '@/components/atoms/server/HolidaysCard'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import {TimeSlotColumn} from '@/components/admin/molecules/client/PlanningTimeSlotColumn'
+import {HolidaysCard} from '@/components/atoms/server/HolidaysCard'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 
-import { useCourses } from '@/context/Courses/client'
-import { useHolidays } from '@/context/Holidays/client'
-import { useSchedules } from '@/context/Schedules/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import {useCourses} from '@/context/Courses/client'
+import {useHolidays} from '@/context/Holidays/client'
+import {useSchedules} from '@/context/Schedules/client'
+import {formatDayOfWeek} from '@/lib/utils'
 
 export default function PlanningGridClient() {
-  const { courses, isLoading, updateCourses } = useCourses()
-  const { holidays, isLoading: isLoadingHolidays } = useHolidays()
+  const {courses, isLoading, updateCourses} = useCourses()
+  const {holidays, isLoading: isLoadingHolidays} = useHolidays()
   const router = useRouter()
-  const { schedules, isLoading: loadingSchedules } = useSchedules()
-  const { data: session } = useSession()
+  const {schedules, isLoading: loadingSchedules} = useSchedules()
+  const {data: session} = useSession()
 
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0)
-  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(
-    null,
-  )
+  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null)
 
   useEffect(() => {
     updateCourses()
@@ -48,10 +41,8 @@ export default function PlanningGridClient() {
     return courses
       .flatMap((course) =>
         course.sessions.map((session) => {
-          const firstTeacher =
-            Array.isArray(course.teacher) && course.teacher[0]
-          const teacherData =
-            firstTeacher && 'firstname' in firstTeacher ? firstTeacher : null
+          const firstTeacher = Array.isArray(course.teacher) && course.teacher[0]
+          const teacherData = firstTeacher && 'firstname' in firstTeacher ? firstTeacher : null
 
           return {
             ...session,
@@ -69,13 +60,12 @@ export default function PlanningGridClient() {
       )
       .filter((session) => {
         if (!session?.timeSlot) {
-          console.error('Session invalide:', { session })
+          console.error('Session invalide:', {session})
           return false
         }
 
         return (
-          session.timeSlot.dayOfWeek === timeSlot &&
-          session.timeSlot.startTime === period.startTime
+          session.timeSlot.dayOfWeek === timeSlot && session.timeSlot.startTime === period.startTime
         )
       })
   }
@@ -100,23 +90,11 @@ export default function PlanningGridClient() {
     <>
       {/* Mobile Navigation */}
       <div className="flex items-center justify-between mb-4 md:hidden">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handlePrevDay}
-          className="shadow-sm"
-        >
+        <Button variant="outline" size="icon" onClick={handlePrevDay} className="shadow-sm">
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-lg font-semibold">
-          {formatDayOfWeek(timeSlots[currentDayIndex])}
-        </h2>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleNextDay}
-          className="shadow-sm"
-        >
+        <h2 className="text-lg font-semibold">{formatDayOfWeek(timeSlots[currentDayIndex])}</h2>
+        <Button variant="outline" size="icon" onClick={handleNextDay} className="shadow-sm">
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
@@ -130,30 +108,23 @@ export default function PlanningGridClient() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3">
-              {schedules[timeSlots[currentDayIndex]]?.periods.map(
-                (period, idx) =>
-                  period.type === PeriodTypeEnum.BREAK ? (
-                    <div
-                      key={idx}
-                      className="h-full flex items-center justify-center"
-                    >
-                      <div className="w-1 h-full bg-amber-400 rounded-full mx-auto" />
-                    </div>
-                  ) : (
-                    <TimeSlotColumn
-                      key={idx}
-                      timeSlot={{
-                        startTime: period.startTime,
-                        endTime: period.endTime,
-                        display: `${period.startTime} - ${period.endTime}`,
-                      }}
-                      sessions={getSessionsForSlot(
-                        timeSlots[currentDayIndex],
-                        period,
-                      )}
-                      onSessionClick={setSelectedSession}
-                    />
-                  ),
+              {schedules[timeSlots[currentDayIndex]]?.periods.map((period, idx) =>
+                period.type === PeriodTypeEnum.BREAK ? (
+                  <div key={idx} className="h-full flex items-center justify-center">
+                    <div className="w-1 h-full bg-amber-400 rounded-full mx-auto" />
+                  </div>
+                ) : (
+                  <TimeSlotColumn
+                    key={idx}
+                    timeSlot={{
+                      startTime: period.startTime,
+                      endTime: period.endTime,
+                      display: `${period.startTime} - ${period.endTime}`,
+                    }}
+                    sessions={getSessionsForSlot(timeSlots[currentDayIndex], period)}
+                    onSessionClick={setSelectedSession}
+                  />
+                ),
               )}
             </div>
           </CardContent>
@@ -163,9 +134,7 @@ export default function PlanningGridClient() {
         {timeSlots.map((timeSlot, idx) => (
           <Card key={idx} className="hidden md:block">
             <CardHeader className="pb-2">
-              <CardTitle className="text-center">
-                {formatDayOfWeek(timeSlot)}
-              </CardTitle>
+              <CardTitle className="text-center">{formatDayOfWeek(timeSlot)}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 -gap-x-2">
@@ -194,15 +163,11 @@ export default function PlanningGridClient() {
       </div>
 
       {/* Session Details Dialog */}
-      <Dialog
-        open={!!selectedSession}
-        onOpenChange={() => setSelectedSession(null)}
-      >
+      <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedSession?.user?.firstname &&
-              selectedSession?.user?.lastname
+              {selectedSession?.user?.firstname && selectedSession?.user?.lastname
                 ? `${selectedSession.user.firstname} ${selectedSession.user.lastname.charAt(0)}.`
                 : 'Enseignant non assigné'}
             </DialogTitle>
@@ -222,9 +187,7 @@ export default function PlanningGridClient() {
               variant="outline"
               className="flex-1 bg-white shadow-sm hover:bg-gray-50"
               onClick={() =>
-                router.push(
-                  `${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/schedule/edit`,
-                )
+                router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/schedule/edit`)
               }
             >
               <Clock className="w-4 h-4 mr-2" />
@@ -234,9 +197,7 @@ export default function PlanningGridClient() {
               variant="outline"
               className="flex-1 bg-white shadow-sm hover:bg-gray-50"
               onClick={() =>
-                router.push(
-                  `${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/schedule/holidays`,
-                )
+                router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/schedule/holidays`)
               }
             >
               <TreePalm className="w-4 h-4 mr-2" />

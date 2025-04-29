@@ -1,22 +1,22 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import {useCallback, useEffect, useState} from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { AppConfig, ButtonVariant, ThemeConfig } from '@/types/models'
+import {AppConfig, ButtonVariant, ThemeConfig} from '@/types/models'
 
-import { PasswordInput } from '@/components/root/PasswordInput'
-import { ThemeSection } from '@/components/root/ThemeSection'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {PasswordInput} from '@/components/root/PasswordInput'
+import {ThemeSection} from '@/components/root/ThemeSection'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader} from '@/components/ui/card'
+import {Input} from '@/components/ui/input'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import { generateDefaultTheme } from '@/lib/utils'
-import { format, isValid } from 'date-fns'
-import { debounce } from 'lodash'
+import {fetchWithAuth} from '@/lib/fetchWithAuth'
+import {generateDefaultTheme} from '@/lib/utils'
+import {format, isValid} from 'date-fns'
+import {debounce} from 'lodash'
 
 const initialConfig: AppConfig = {
   studentPassword: '',
@@ -30,7 +30,7 @@ const initialConfig: AppConfig = {
 }
 
 export const AppConfigManager: React.FC = () => {
-  const { toast } = useToast()
+  const {toast} = useToast()
 
   const [config, setConfig] = useState<AppConfig>(initialConfig)
   const [isDirty, setIsDirty] = useState<boolean>(false)
@@ -39,9 +39,7 @@ export const AppConfigManager: React.FC = () => {
     studentPassword: '',
     teacherPassword: '',
   })
-  const [showPwd, setShowPwd] = useState<
-    Record<'student' | 'teacher', boolean>
-  >({
+  const [showPwd, setShowPwd] = useState<Record<'student' | 'teacher', boolean>>({
     student: false,
     teacher: false,
   })
@@ -71,13 +69,9 @@ export const AppConfigManager: React.FC = () => {
               [themeSection]:
                 themeSection === 'buttonVariants'
                   ? (() => {
-                      const currentVariants =
-                        prevConfig.themes[userType].buttonVariants
+                      const currentVariants = prevConfig.themes[userType].buttonVariants
                       if (currentVariants instanceof Map) {
-                        return new Map(currentVariants).set(
-                          key as ButtonVariant,
-                          value,
-                        )
+                        return new Map(currentVariants).set(key as ButtonVariant, value)
                       } else if (
                         typeof currentVariants === 'object' &&
                         !Array.isArray(currentVariants)
@@ -87,10 +81,7 @@ export const AppConfigManager: React.FC = () => {
                           [key]: value,
                         }
                       } else {
-                        console.error(
-                          'Unexpected type for buttonVariants:',
-                          currentVariants,
-                        )
+                        console.error('Unexpected type for buttonVariants:', currentVariants)
                         return currentVariants
                       }
                     })()
@@ -110,10 +101,9 @@ export const AppConfigManager: React.FC = () => {
 
   async function fetchConfig() {
     try {
-      const response = await fetchWithAuth('/api/config', { method: 'GET' })
+      const response = await fetchWithAuth('/api/config', {method: 'GET'})
       if (response.status === 200) {
-        const { studentPassword, teacherPassword, ...restConfig } =
-          response.data
+        const {studentPassword, teacherPassword, ...restConfig} = response.data
         setConfig(restConfig)
         setOriginalConfig(restConfig)
         setPasswords({
@@ -153,15 +143,12 @@ export const AppConfigManager: React.FC = () => {
 
   function handleChange(section: keyof AppConfig, key: string, value: string) {
     if (key === 'studentPassword' || key === 'teacherPassword') {
-      setPasswords((prev) => ({ ...prev, [key]: value }))
+      setPasswords((prev) => ({...prev, [key]: value}))
       setIsDirty(true)
     } else if (config) {
       debouncedSetConfig({
         ...config,
-        [section]:
-          section === 'academicYearStart'
-            ? new Date(value).toISOString()
-            : value,
+        [section]: section === 'academicYearStart' ? new Date(value).toISOString() : value,
       })
     }
   }
@@ -173,13 +160,9 @@ export const AppConfigManager: React.FC = () => {
       const dataToSend = {
         ...config,
         studentPassword:
-          passwords.studentPassword !== '[DÉFINI]'
-            ? passwords.studentPassword
-            : undefined,
+          passwords.studentPassword !== '[DÉFINI]' ? passwords.studentPassword : undefined,
         teacherPassword:
-          passwords.teacherPassword !== '[DÉFINI]'
-            ? passwords.teacherPassword
-            : undefined,
+          passwords.teacherPassword !== '[DÉFINI]' ? passwords.teacherPassword : undefined,
       }
       // console.log('dataToSend', dataToSend)
 
@@ -240,11 +223,7 @@ export const AppConfigManager: React.FC = () => {
               <Input
                 value={formatDate(config.academicYearStart)}
                 onChange={(e) =>
-                  handleChange(
-                    'academicYearStart',
-                    'academicYearStart',
-                    e.target.value,
-                  )
+                  handleChange('academicYearStart', 'academicYearStart', e.target.value)
                 }
                 type="date"
               />
@@ -260,17 +239,10 @@ export const AppConfigManager: React.FC = () => {
             />
           </TabsContent>
           <TabsContent value="themes">
-            <ThemeSection
-              config={config}
-              handleThemeChange={handleThemeChange}
-            />
+            <ThemeSection config={config} handleThemeChange={handleThemeChange} />
           </TabsContent>
         </Tabs>
-        <Button
-          onClick={handleSave}
-          className="mt-4 w-full sm:w-auto"
-          disabled={!isDirty}
-        >
+        <Button onClick={handleSave} className="mt-4 w-full sm:w-auto" disabled={!isDirty}>
           Save config
         </Button>
       </CardContent>

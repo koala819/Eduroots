@@ -1,6 +1,6 @@
-import { Course } from './course'
-import { RootEntity } from './root'
-import { Student } from './user'
+import {Course} from './course'
+import {RootEntity} from './root'
+import {Student} from './user'
 
 export interface AttendanceStats {
   presenceRate: number
@@ -23,8 +23,7 @@ export interface Attendance extends RootEntity {
 }
 
 // Type pour les données peuplées depuis MongoDB
-export interface PopulatedAttendance
-  extends Omit<Attendance, 'records' | 'course'> {
+export interface PopulatedAttendance extends Omit<Attendance, 'records' | 'course'> {
   course: Course
   records: (Omit<AttendanceRecord, 'student'> & {
     student: Student
@@ -45,7 +44,7 @@ export interface DuplicateRecords {
   teacher: string
   session: string
   weekPeriod: string
-  attendances: { _id: string }[]
+  attendances: {_id: string}[]
 }
 
 export interface AbsenceLevelGroup {
@@ -58,12 +57,7 @@ export interface GroupedAbsences {
   [color: string]: AbsenceLevelGroup[]
 }
 
-export type OmitRootFields =
-  | 'id'
-  | 'isActive'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'deletedAt'
+export type OmitRootFields = 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'deletedAt'
 
 export interface CreateAttendancePayload {
   courseId: string

@@ -1,35 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'react-toastify'
+import {useEffect, useState} from 'react'
+import {useForm} from 'react-hook-form'
+import {toast} from 'react-toastify'
 
-import { CheckOTPProps } from '@/types/models'
+import {CheckOTPProps} from '@/types/models'
 
-import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import {Button} from '@/components/ui/button'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
 
-import { sendEmailNotification } from '@/lib/mails/emailService'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {sendEmailNotification} from '@/lib/mails/emailService'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const formSchema = z.object({
   otp: z.array(z.string().length(1)).length(4),
 })
 
-const CheckOTP: React.FC<CheckOTPProps> = ({
-  email,
-  otp,
-  onOTPVerified,
-  otpExpirationTime,
-}) => {
+const CheckOTP: React.FC<CheckOTPProps> = ({email, otp, onOTPVerified, otpExpirationTime}) => {
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true)
   const [remainingTime, setRemainingTime] = useState<number>(0)
   const [timerCount, setTimerCount] = useState<number>(300) // 5 minutes
@@ -82,9 +71,7 @@ const CheckOTP: React.FC<CheckOTPProps> = ({
   function handleInputChange(index: number, value: string) {
     form.setValue(`otp.${index}`, value)
     if (value && index < 3) {
-      const nextInput = document.querySelector(
-        `input[name="otp.${index + 1}"]`,
-      ) as HTMLInputElement
+      const nextInput = document.querySelector(`input[name="otp.${index + 1}"]`) as HTMLInputElement
       if (nextInput) {
         nextInput.focus()
       }
@@ -131,7 +118,7 @@ const CheckOTP: React.FC<CheckOTPProps> = ({
               key={index}
               control={form.control}
               name={`otp.${index}`}
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormControl>
                     <Input
@@ -152,10 +139,7 @@ const CheckOTP: React.FC<CheckOTPProps> = ({
           {remainingTime > 0 ? (
             <span>
               Temps restant : {Math.floor(remainingTime / 60000)}:
-              {String(Math.floor((remainingTime % 60000) / 1000)).padStart(
-                2,
-                '0',
-              )}
+              {String(Math.floor((remainingTime % 60000) / 1000)).padStart(2, '0')}
             </span>
           ) : (
             <span>Le code OTP a expiré</span>
@@ -166,9 +150,7 @@ const CheckOTP: React.FC<CheckOTPProps> = ({
           Vérifier
         </Button>
         <div className="text-center text-sm">
-          <span className="text-gray-500">
-            Vous n&apos;avez pas reçu le code ?{' '}
-          </span>
+          <span className="text-gray-500">Vous n&apos;avez pas reçu le code ? </span>
           <Button
             variant="link"
             className="p-0 h-auto"

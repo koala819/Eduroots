@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
-import { MenuItem } from '@/app/(protected)/teacher/profiles/page'
+import {MenuItem} from '@/app/(protected)/teacher/profiles/page'
 
 export const ProfileItem = ({
   icon,
@@ -8,7 +8,7 @@ export const ProfileItem = ({
   color,
   onClick,
   variant = 'desktop',
-}: MenuItem & { variant?: 'desktop' | 'mobile' }) => {
+}: MenuItem & {variant?: 'desktop' | 'mobile'}) => {
   // Styles conditionnels basés sur la variante
   const buttonStyle =
     variant === 'desktop'
@@ -23,9 +23,7 @@ export const ProfileItem = ({
       : `p-3 rounded-xl bg-gray-50 ${color}`
 
   const titleStyle =
-    variant === 'mobile'
-      ? 'text-xs font-medium whitespace-pre-line text-center leading-tight'
-      : ''
+    variant === 'mobile' ? 'text-xs font-medium whitespace-pre-line text-center leading-tight' : ''
 
   return (
     <Button variant={buttonVariant} className={buttonStyle} onClick={onClick}>

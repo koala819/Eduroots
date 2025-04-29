@@ -5,7 +5,7 @@ import '@testing-library/jest-dom'
 global.fetch = jest.fn()
 
 // Mise en place de TextEncoder/TextDecoder pour Node.js
-const { TextEncoder, TextDecoder } = require('util')
+const {TextEncoder, TextDecoder} = require('util')
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 

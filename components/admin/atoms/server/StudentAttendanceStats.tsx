@@ -1,19 +1,17 @@
-import { StudentStatsError } from '@/components/admin/atoms/client/StudentAttendanceStatsError'
-import { StudentAttendanceStatsClient } from '@/components/admin/molecules/client/StudentAttendanceStats'
+import {StudentStatsError} from '@/components/admin/atoms/client/StudentAttendanceStatsError'
+import {StudentAttendanceStatsClient} from '@/components/admin/molecules/client/StudentAttendanceStats'
 
-import { fetchStudentAttendanceStats } from '@/app/actions/admin/student-stats-attendances'
+import {fetchStudentAttendanceStats} from '@/app/actions/admin/student-stats-attendances'
 
 interface StudentStatsProps {
   studentId: string
 }
 
-export async function StudentAttendanceStats({ studentId }: StudentStatsProps) {
+export async function StudentAttendanceStats({studentId}: StudentStatsProps) {
   const stats = await fetchStudentAttendanceStats(studentId)
 
   if (!stats) {
-    return (
-      <StudentStatsError message="Erreur lors du chargement des statistiques" />
-    )
+    return <StudentStatsError message="Erreur lors du chargement des statistiques" />
   }
 
   if (stats.totalSessions === 0) {

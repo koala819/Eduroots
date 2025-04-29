@@ -1,45 +1,39 @@
 'use client'
 
-import { CalendarDays, Check, TrendingUp, Users, X } from 'lucide-react'
+import {CalendarDays, Check, TrendingUp, Users, X} from 'lucide-react'
 
-import { SubjectNameEnum } from '@/types/course'
+import {SubjectNameEnum} from '@/types/course'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { CalculatedStats } from '@/app/actions/admin/student-stats-attendances'
+import {CalculatedStats} from '@/app/actions/admin/student-stats-attendances'
 
 interface StudentAttendanceStatsClientProps {
   stats: CalculatedStats
 }
 
-export function StudentAttendanceStatsClient({
-  stats,
-}: StudentAttendanceStatsClientProps) {
+export function StudentAttendanceStatsClient({stats}: StudentAttendanceStatsClientProps) {
   // Calculer le statut de présence
   const attendanceStatus =
     stats.presenceRate >= 90
-      ? { color: 'text-green-500', text: 'Excellent' }
+      ? {color: 'text-green-500', text: 'Excellent'}
       : stats.presenceRate >= 75
-        ? { color: 'text-yellow-500', text: 'Satisfaisant' }
-        : { color: 'text-red-500', text: 'À améliorer' }
+        ? {color: 'text-yellow-500', text: 'Satisfaisant'}
+        : {color: 'text-red-500', text: 'À améliorer'}
 
   return (
     <div className="space-y-3">
       {/* Carte principale avec le taux de présence */}
       <Card className="w-full">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium">
-            Vue d&apos;ensemble
-          </CardTitle>
+          <CardTitle className="text-lg font-medium">Vue d&apos;ensemble</CardTitle>
         </CardHeader>
         <CardContent className="p-3">
           <div className="flex flex-col items-center justify-center p-4">
             <div className={`text-4xl font-bold ${attendanceStatus.color}`}>
               {stats.presenceRate.toFixed(1)}%
             </div>
-            <p className={`text-sm mt-2 ${attendanceStatus.color}`}>
-              {attendanceStatus.text}
-            </p>
+            <p className={`text-sm mt-2 ${attendanceStatus.color}`}>{attendanceStatus.text}</p>
           </div>
 
           {/* Période */}
@@ -69,9 +63,7 @@ export function StudentAttendanceStatsClient({
             <div className="flex flex-col items-center gap-2">
               <Check className="h-6 w-6 text-green-500" />
               <p className="text-sm text-gray-600">Présences</p>
-              <p className="text-2xl font-bold text-green-600">
-                {stats.presentCount}
-              </p>
+              <p className="text-2xl font-bold text-green-600">{stats.presentCount}</p>
             </div>
           </CardContent>
         </Card>
@@ -81,9 +73,7 @@ export function StudentAttendanceStatsClient({
             <div className="flex flex-col items-center gap-2">
               <X className="h-6 w-6 text-red-500" />
               <p className="text-sm text-gray-600">Absences</p>
-              <p className="text-2xl font-bold text-red-600">
-                {stats.absentCount}
-              </p>
+              <p className="text-2xl font-bold text-red-600">{stats.absentCount}</p>
             </div>
           </CardContent>
         </Card>
@@ -105,9 +95,7 @@ export function StudentAttendanceStatsClient({
       {stats.absenceDates.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              Historique des absences
-            </CardTitle>
+            <CardTitle className="text-lg font-medium">Historique des absences</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -144,9 +132,7 @@ export function StudentAttendanceStatsClient({
       {stats.presentDates.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              Dernières présences
-            </CardTitle>
+            <CardTitle className="text-lg font-medium">Dernières présences</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

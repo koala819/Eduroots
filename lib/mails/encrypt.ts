@@ -44,9 +44,5 @@ function deriveKey(key: string): Buffer {
 
 export function isValidEncryptedFormat(text: string): boolean {
   const parts = text.split(':')
-  return (
-    parts.length === 2 &&
-    /^[a-f0-9]+$/.test(parts[0]) &&
-    /^[a-f0-9]+$/.test(parts[1])
-  )
+  return parts.length === 2 && /^[a-f0-9]+$/.test(parts[0]) && /^[a-f0-9]+$/.test(parts[1])
 }

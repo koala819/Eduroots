@@ -1,4 +1,4 @@
-import { Document, Schema, model, models } from 'mongoose'
+import {Document, Schema, model, models} from 'mongoose'
 
 interface SessionTransferDocument extends Document {
   fromTeacher: Schema.Types.ObjectId

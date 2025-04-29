@@ -1,4 +1,4 @@
-import { getSession } from 'next-auth/react'
+import {getSession} from 'next-auth/react'
 
 export async function fetchWithAuth(
   url: string | URL,
@@ -23,12 +23,10 @@ export async function fetchWithAuth(
     }
 
     const finalUrl =
-      url instanceof URL
-        ? url
-        : new URL(`${process.env.NEXT_PUBLIC_CLIENT_URL}${url}`)
+      url instanceof URL ? url : new URL(`${process.env.NEXT_PUBLIC_CLIENT_URL}${url}`)
 
     const headers: Record<string, string> = {
-      ...(noHeader ? {} : { 'Content-Type': 'application/json' }),
+      ...(noHeader ? {} : {'Content-Type': 'application/json'}),
     }
 
     const options = {

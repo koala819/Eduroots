@@ -1,11 +1,9 @@
-import { AlertTriangle, ArrowUpDown } from 'lucide-react'
-import React, { useEffect, useMemo, useState } from 'react'
+import {AlertTriangle, ArrowUpDown} from 'lucide-react'
+import React, {useEffect, useMemo, useState} from 'react'
 
-import { EntityStats, isStudentStats } from '@/types/stats'
-
-import { StudentAbsenceCard } from '@/components/admin/atoms/StudentAbsenceCard'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {StudentAbsenceCard} from '@/components/admin/atoms/StudentAbsenceCard'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,16 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { useStats } from '@/context/Stats/client'
-import { useStudents } from '@/context/Students/client'
-import { compareDesc } from 'date-fns'
+import {useStats} from '@/context/Stats/client'
+import {useStudents} from '@/context/Students/client'
+import {compareDesc} from 'date-fns'
 
 // Types de tri disponibles
-type SortType =
-  | 'alphabetical'
-  | 'absences-desc'
-  | 'recent-activity'
-  | 'last-absence'
+type SortType = 'alphabetical' | 'absences-desc' | 'recent-activity' | 'last-absence'
 
 interface StudentStatsData {
   userId: string
@@ -37,12 +31,8 @@ interface StudentStatsData {
 }
 
 export const HighRiskAbsenceStudents = () => {
-  const { students, isLoading: isLoadingStudents } = useStudents()
-  const {
-    studentStats: stats,
-    isLoading: isLoadingStats,
-    refreshEntityStats,
-  } = useStats()
+  const {students, isLoading: isLoadingStudents} = useStudents()
+  const {studentStats: stats, isLoading: isLoadingStats, refreshEntityStats} = useStats()
 
   const [sortType, setSortType] = useState<SortType>('alphabetical')
   const [error, setError] = useState<string | null>(null)
@@ -69,9 +59,7 @@ export const HighRiskAbsenceStudents = () => {
 
   // Filtrer les statistiques pour obtenir uniquement celles avec un nombre d'absences multiple de 3
   const highRiskStats = useMemo(() => {
-    return studentStats.filter(
-      (stat) => stat.absencesCount % 3 === 0 && stat.absencesCount > 0,
-    )
+    return studentStats.filter((stat) => stat.absencesCount % 3 === 0 && stat.absencesCount > 0)
   }, [studentStats])
 
   // Créer un Map pour associer les IDs aux statistiques pour un accès plus rapide
@@ -86,9 +74,7 @@ export const HighRiskAbsenceStudents = () => {
   // Filtrer et trier les étudiants selon les statistiques et le type de tri
   const filteredAndSortedStudents = useMemo(() => {
     // Filtrer d'abord pour ne garder que les étudiants à risque
-    const filteredStudents = students.filter((student) =>
-      statsMap.has(student._id),
-    )
+    const filteredStudents = students.filter((student) => statsMap.has(student._id))
 
     // Trier ensuite selon le critère sélectionné
     return [...filteredStudents].sort((a, b) => {
@@ -115,10 +101,7 @@ export const HighRiskAbsenceStudents = () => {
           if (!statsA.lastActivity && !statsB.lastActivity) return 0
           if (!statsA.lastActivity) return 1
           if (!statsB.lastActivity) return -1
-          return compareDesc(
-            new Date(statsA.lastActivity),
-            new Date(statsB.lastActivity),
-          )
+          return compareDesc(new Date(statsA.lastActivity), new Date(statsB.lastActivity))
 
         case 'last-absence':
           // Tri par date de dernière absence (la plus récente en premier)
@@ -168,7 +151,7 @@ export const HighRiskAbsenceStudents = () => {
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
         <div className="w-full sm:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Étudiants à risque élevé d'absences
+            Étudiants à risque élevé d&apos;absences
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
@@ -188,7 +171,7 @@ export const HighRiskAbsenceStudents = () => {
                 Ordre alphabétique
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setSortType('absences-desc')}>
-                Nombre d'absences
+                Nombre d&apos;absences
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setSortType('last-absence')}>
                 Dernière absence
@@ -208,8 +191,7 @@ export const HighRiskAbsenceStudents = () => {
       {filteredAndSortedStudents.length === 0 ? (
         <div className="bg-gray-50 p-8 rounded-lg border border-gray-200 text-center">
           <p className="text-gray-700">
-            Aucun étudiant avec un nombre d'absences multiple de 3 n'a été
-            trouvé.
+            Aucun étudiant avec un nombre d&apos;absences multiple de 3 n&apos;a été trouvé.
           </p>
         </div>
       ) : (

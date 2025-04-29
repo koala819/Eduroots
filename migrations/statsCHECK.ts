@@ -1,4 +1,4 @@
-import { User as UserCollection } from '@/backend/models/user.model'
+import {User as UserCollection} from '@/backend/models/user.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
@@ -25,9 +25,7 @@ export async function checkStats(): Promise<{
     const studentStats = await Promise.all(
       students.map(async (student) => {
         try {
-          const attendanceData = await calculateStudentAttendanceRate(
-            student.id,
-          )
+          const attendanceData = await calculateStudentAttendanceRate(student.id)
           const behaviorData = await calculateStudentBehaviorRate(student.id)
           const gradeData = await calculateStudentGrade(student.id)
 
@@ -73,7 +71,7 @@ export async function checkStats(): Promise<{
 
     // Générer et sauvegarder le rapport
     const reportDir = path.join(process.cwd(), 'reports')
-    await fs.mkdir(reportDir, { recursive: true })
+    await fs.mkdir(reportDir, {recursive: true})
 
     const timestamp = new Date().toISOString().replace(/:/g, '-')
     const fileName = `Students_GRADES_stats_${timestamp}.json`

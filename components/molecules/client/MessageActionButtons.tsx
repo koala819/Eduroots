@@ -1,11 +1,11 @@
 'use client'
 
-import { Mail, Reply, Trash } from 'lucide-react'
-import { memo, useCallback } from 'react'
+import {Mail, Reply, Trash} from 'lucide-react'
+import {memo, useCallback} from 'react'
 
-import type { Message } from '@/types/message'
+import type {Message} from '@/types/message'
 
-import { MessageReplyComposer } from '@/components/molecules/client/MessageReplyComposer'
+import {MessageReplyComposer} from '@/components/molecules/client/MessageReplyComposer'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -63,16 +63,9 @@ export const MessageActionButtons = memo(function MessageActionButtons({
       {showAllButtons && !fromSendBox && (
         <>
           {senderName !== 'La Direction de la Mosquée de Colomiers' && (
-            <Dialog
-              open={isReplyDialogOpen}
-              onOpenChange={setIsReplyDialogOpen}
-            >
+            <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
               <DialogTrigger className="w-full">
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto space-x-2"
-                  aria-label="Répondre"
-                >
+                <Button size="sm" className="w-full sm:w-auto space-x-2" aria-label="Répondre">
                   <Reply className="h-4 w-4" />
                   <span className="font-bold">Répondre</span>
                 </Button>
@@ -134,15 +127,13 @@ export const MessageActionButtons = memo(function MessageActionButtons({
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible et supprimera définitivement cet
-              email de votre boîte de réception.
+              Cette action est irréversible et supprimera définitivement cet email de votre boîte de
+              réception.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
-              Confirmer
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Confirmer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

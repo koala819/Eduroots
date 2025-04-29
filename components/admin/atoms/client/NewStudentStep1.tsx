@@ -1,33 +1,27 @@
 'use client'
 
-import { UseFormReturn } from 'react-hook-form'
+import {UseFormReturn} from 'react-hook-form'
 
-import { GenderEnum } from '@/types/user'
+import {GenderEnum} from '@/types/user'
 
-import { FormData } from '@/components/admin/organisms/client/NewStudentForm'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {FormData} from '@/components/admin/organisms/client/NewStudentForm'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group'
 
 interface StepOneProps {
   form: UseFormReturn<FormData>
 }
 
-const StepOne = ({ form }: StepOneProps) => {
+const StepOne = ({form}: StepOneProps) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="firstname"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Prénom</FormLabel>
               <FormControl>
@@ -41,7 +35,7 @@ const StepOne = ({ form }: StepOneProps) => {
         <FormField
           control={form.control}
           name="lastname"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Nom</FormLabel>
               <FormControl>
@@ -56,7 +50,7 @@ const StepOne = ({ form }: StepOneProps) => {
       <FormField
         control={form.control}
         name="gender"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem className="space-y-3">
             <FormLabel>Genre</FormLabel>
             <FormControl>
@@ -81,7 +75,7 @@ const StepOne = ({ form }: StepOneProps) => {
       <FormField
         control={form.control}
         name="dateOfBirth"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Date de naissance</FormLabel>
             <FormControl>
@@ -95,7 +89,7 @@ const StepOne = ({ form }: StepOneProps) => {
       <FormField
         control={form.control}
         name="parentEmail1"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Email Parent 1</FormLabel>
             <FormControl>
@@ -109,7 +103,7 @@ const StepOne = ({ form }: StepOneProps) => {
       <FormField
         control={form.control}
         name="parentEmail2"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Email Parent 2</FormLabel>
             <FormControl>

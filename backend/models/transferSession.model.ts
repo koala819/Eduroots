@@ -1,4 +1,4 @@
-import { Document, Schema, model, models } from 'mongoose'
+import {Document, Schema, model, models} from 'mongoose'
 
 interface SessionTransferDocumentNEW extends Document {
   fromTeacher: Schema.Types.ObjectId
@@ -45,14 +45,14 @@ const sessionTransferSchemaNEW = new Schema<SessionTransferDocumentNEW>({
     default: 'pending',
   },
   duration: {
-    startDate: { type: Date },
-    endDate: { type: Date },
+    startDate: {type: Date},
+    endDate: {type: Date},
   },
 })
 
 // Indexes
-sessionTransferSchemaNEW.index({ fromTeacher: 1, toTeacher: 1 })
-sessionTransferSchemaNEW.index({ status: 1, transferDate: 1 })
+sessionTransferSchemaNEW.index({fromTeacher: 1, toTeacher: 1})
+sessionTransferSchemaNEW.index({status: 1, transferDate: 1})
 sessionTransferSchemaNEW.index({
   'duration.startDate': 1,
   'duration.endDate': 1,

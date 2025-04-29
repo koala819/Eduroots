@@ -10,7 +10,7 @@ import {
   useTransition,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
 import {
   EntityStats,
@@ -29,7 +29,7 @@ import {
   updateStudentStats,
   updateTeacherStats,
 } from '@/app/actions/context/stats'
-import { SerializedValue } from '@/lib/serialization'
+import {SerializedValue} from '@/lib/serialization'
 
 interface StatsState {
   globalStats: SerializedValue | null
@@ -39,31 +39,25 @@ interface StatsState {
 }
 
 type StatsAction =
-  | { type: 'SET_GLOBAL_STATS'; payload: SerializedValue }
-  | { type: 'SET_ENTITY_STATS'; payload: SerializedValue[] }
-  | { type: 'UPDATE_ENTITY_STATS'; payload: SerializedValue }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
+  | {type: 'SET_GLOBAL_STATS'; payload: SerializedValue}
+  | {type: 'SET_ENTITY_STATS'; payload: SerializedValue[]}
+  | {type: 'UPDATE_ENTITY_STATS'; payload: SerializedValue}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_ERROR'; payload: string | null}
 
-export function statsReducer(
-  state: StatsState,
-  action: StatsAction,
-): StatsState {
+export function statsReducer(state: StatsState, action: StatsAction): StatsState {
   switch (action.type) {
     case 'SET_GLOBAL_STATS':
-      return { ...state, globalStats: action.payload }
+      return {...state, globalStats: action.payload}
     case 'SET_ENTITY_STATS':
-      return { ...state, entityStats: action.payload }
+      return {...state, entityStats: action.payload}
     case 'UPDATE_ENTITY_STATS':
       return {
         ...state,
         entityStats: state.entityStats.map((stat) => {
           if (stat && typeof stat === 'object' && 'userId' in stat) {
-            const statWithUserId = stat as { userId: SerializedValue }
-            if (
-              statWithUserId.userId ===
-              (action.payload as { userId: SerializedValue }).userId
-            ) {
+            const statWithUserId = stat as {userId: SerializedValue}
+            if (statWithUserId.userId === (action.payload as {userId: SerializedValue}).userId) {
               return action.payload
             }
           }
@@ -71,9 +65,9 @@ export function statsReducer(
         }),
       }
     case 'SET_LOADING':
-      return { ...state, isLoading: action.payload }
+      return {...state, isLoading: action.payload}
     case 'SET_ERROR':
-      return { ...state, error: action.payload }
+      return {...state, error: action.payload}
     default:
       return state
   }
@@ -111,7 +105,7 @@ export const StatsProvider = ({
   initialEntityStats,
   initialGlobalStats,
 }: StatsProviderProps) => {
-  const { toast } = useToast()
+  const {toast} = useToast()
   const [isPending, startTransition] = useTransition()
 
   // Initialiser l'état avec les données du serveur
@@ -147,7 +141,7 @@ export const StatsProvider = ({
     (error: Error, customMessage?: string) => {
       console.error('Stats Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -160,7 +154,7 @@ export const StatsProvider = ({
 
   const handleRefreshEntityStats = useCallback(async (): Promise<void> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
 
       // Utiliser Server Action
       startTransition(async () => {
@@ -176,43 +170,35 @@ export const StatsProvider = ({
         })
       })
     } catch (error) {
-      handleError(
-        error as Error,
-        'Erreur lors de la récupération des statistiques des entités',
-      )
+      handleError(error as Error, 'Erreur lors de la récupération des statistiques des entités')
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError])
 
   const handleUpdateStudentStats = useCallback(
     async (id: string, statsData: StudentStats): Promise<void> => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({type: 'SET_LOADING', payload: true})
 
         // Utiliser Server Action avec transition UI
         startTransition(async () => {
           const response = await updateStudentStats(id, statsData)
 
           if (!response.success || !response.data) {
-            throw new Error(
-              response.message || 'Failed to fetch attendance data',
-            )
+            throw new Error(response.message || 'Failed to fetch attendance data')
           }
 
           dispatch({
             type: 'UPDATE_ENTITY_STATS',
             payload: response.data as SerializedValue,
           })
-          toast({ title: 'Succès', description: 'Statistiques mises à jour' })
+          toast({title: 'Succès', description: 'Statistiques mises à jour'})
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la mise à jour des statistiques',
-        )
+        handleError(error as Error, 'Erreur lors de la mise à jour des statistiques')
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast],
@@ -221,31 +207,26 @@ export const StatsProvider = ({
   const handleUpdateTeacherStats = useCallback(
     async (id: string, statsData: TeacherStats): Promise<void> => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({type: 'SET_LOADING', payload: true})
 
         // Utiliser Server Action avec transition UI
         startTransition(async () => {
           const response = await updateTeacherStats(id, statsData)
 
           if (!response.success || !response.data) {
-            throw new Error(
-              response.message || 'Failed to fetch attendance data',
-            )
+            throw new Error(response.message || 'Failed to fetch attendance data')
           }
 
           dispatch({
             type: 'UPDATE_ENTITY_STATS',
             payload: response.data as SerializedValue,
           })
-          toast({ title: 'Succès', description: 'Statistiques mises à jour' })
+          toast({title: 'Succès', description: 'Statistiques mises à jour'})
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la mise à jour des statistiques',
-        )
+        handleError(error as Error, 'Erreur lors de la mise à jour des statistiques')
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError, toast],
@@ -253,7 +234,7 @@ export const StatsProvider = ({
 
   const handleRefreshGlobalStats = useCallback(async (): Promise<void> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
 
       // Utiliser Server Action
       startTransition(async () => {
@@ -269,19 +250,16 @@ export const StatsProvider = ({
         })
       })
     } catch (error) {
-      handleError(
-        error as Error,
-        'Erreur lors de la récupération des statistiques globales',
-      )
+      handleError(error as Error, 'Erreur lors de la récupération des statistiques globales')
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError])
 
   const handleGetStudentAttendance = useCallback(
     async (studentId: string) => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({type: 'SET_LOADING', payload: true})
         return await getStudentAttendance(studentId)
       } catch (error) {
         handleError(
@@ -290,7 +268,7 @@ export const StatsProvider = ({
         )
         return null
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
@@ -299,7 +277,7 @@ export const StatsProvider = ({
   const handleGetStudentBehavior = useCallback(
     async (studentId: string) => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({type: 'SET_LOADING', payload: true})
         return await getStudentBehavior(studentId)
       } catch (error) {
         handleError(
@@ -308,7 +286,7 @@ export const StatsProvider = ({
         )
         return null
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
@@ -317,7 +295,7 @@ export const StatsProvider = ({
   const handleGetStudentGrade = useCallback(
     async (studentId: string) => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({type: 'SET_LOADING', payload: true})
         return await getStudentGrade(studentId)
       } catch (error) {
         handleError(
@@ -326,7 +304,7 @@ export const StatsProvider = ({
         )
         return null
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],

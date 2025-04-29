@@ -1,6 +1,6 @@
-import type { Config } from 'tailwindcss'
+import type {Config} from 'tailwindcss'
 import animatePlugin from 'tailwindcss-animate'
-import { fontFamily } from 'tailwindcss/defaultTheme'
+import {fontFamily} from 'tailwindcss/defaultTheme'
 
 const config = {
   darkMode: ['class'],
@@ -78,14 +78,10 @@ const config = {
         },
       },
       backgroundImage: {
-        'effet-metal-or':
-          'linear-gradient(to bottom right, var(--tw-gradient-stops))',
-        'effet-metal-argent':
-          'linear-gradient(to bottom right, var(--tw-gradient-stops))',
-        'effet-metal-bronze':
-          'linear-gradient(to bottom right, var(--tw-gradient-stops))',
-        'effet-inferno':
-          'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'effet-metal-or': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'effet-metal-argent': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'effet-metal-bronze': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'effet-inferno': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -94,12 +90,12 @@ const config = {
       },
       keyframes: {
         'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          from: {height: '0'},
+          to: {height: 'var(--radix-accordion-content-height)'},
         },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+          from: {height: 'var(--radix-accordion-content-height)'},
+          to: {height: '0'},
         },
       },
       animation: {
@@ -113,18 +109,15 @@ const config = {
   },
   safelist: [
     {
-      pattern:
-        /bg-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
+      pattern: /bg-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
       variants: ['hover', 'focus', 'active'],
     },
     {
-      pattern:
-        /from-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
+      pattern: /from-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
       variants: ['hover', 'focus', 'active'],
     },
     {
-      pattern:
-        /to-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
+      pattern: /to-(red|blue|green|yellow)-(100|200|300|400|500|600|700|800|900)/,
       variants: ['hover', 'focus', 'active'],
     },
     {

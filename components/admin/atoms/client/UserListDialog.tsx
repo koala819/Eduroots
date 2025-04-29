@@ -1,13 +1,13 @@
-import { ChevronRight, CircleArrowLeft, Pencil, Search } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import {ChevronRight, CircleArrowLeft, Pencil, Search} from 'lucide-react'
+import {useSession} from 'next-auth/react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/types/user'
+import {EntityType} from '@/types/stats'
+import {Student, Teacher} from '@/types/user'
 
-import { UserDetails } from '@/components/admin/organisms/server/UserDetails'
-import { Button } from '@/components/ui/button'
+import {UserDetails} from '@/components/admin/organisms/server/UserDetails'
+import {Button} from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -15,10 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import {Input} from '@/components/ui/input'
+import {ScrollArea} from '@/components/ui/scroll-area'
 
-import { motion } from 'framer-motion'
+import {motion} from 'framer-motion'
 
 type UserListDialogProps = {
   type: EntityType
@@ -40,7 +40,7 @@ export const UserListDialog = ({
   onClose,
 }: UserListDialogProps) => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
   return (
     <Dialog
@@ -62,11 +62,7 @@ export const UserListDialog = ({
           {selectedEntity ? (
             <>
               <div className="flex justify-between">
-                <Button
-                  variant="destructive"
-                  className="mb-4"
-                  onClick={() => onSelectEntity(null)}
-                >
+                <Button variant="destructive" className="mb-4" onClick={() => onSelectEntity(null)}>
                   <CircleArrowLeft className="mr-2 h-4 w-4" /> Retour à la liste
                 </Button>
                 {session?.user?.role === 'admin' && (
@@ -111,8 +107,8 @@ export const UserListDialog = ({
                   {people.map((user) => (
                     <motion.div
                       key={user.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{opacity: 0, y: 20}}
+                      animate={{opacity: 1, y: 0}}
                       className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                       onClick={() => onSelectEntity(user)}
                     >

@@ -1,4 +1,4 @@
-import { Document, Model, Schema } from 'mongoose'
+import {Document, Model, Schema} from 'mongoose'
 
 export interface AppConfig {
   studentPassword?: string
@@ -137,15 +137,15 @@ export interface DuplicateBehavior {
   teacher: string
   session: string
   weekPeriod: string
-  behaviors: { _id: string }[]
+  behaviors: {_id: string}[]
 }
 
 export interface DuplicateRecords {
   teacher: string
   session: string
   weekPeriod: string
-  attendances: { _id: string }[]
-  behaviors?: { _id: string }[]
+  attendances: {_id: string}[]
+  behaviors?: {_id: string}[]
 }
 
 export interface FormLogin {
@@ -216,7 +216,7 @@ export interface Mail {
   __v: number
   isRead: boolean
   id: string
-  isDeleted?: { [userId: string]: boolean }
+  isDeleted?: {[userId: string]: boolean}
   isSentbox: boolean
 }
 

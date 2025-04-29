@@ -5,20 +5,24 @@ Thank you for your interest in contributing to EduRootS! This document provides 
 ## How to Contribute
 
 1. **Fork the Repository**
+
    - Click the "Fork" button on the top right of the GitHub page
    - Clone your fork locally: `git clone https://github.com/your-username/EduRootS.git`
 
 2. **Create a Branch**
+
    - Create a new branch for your feature or fix: `git checkout -b feature/your-feature-name`
    - Use clear and descriptive names for your branches
 
 3. **Development**
+
    - Follow our coding standards
    - Write clear, maintainable code
    - Add comments where necessary
    - Test your changes thoroughly
 
 4. **Commit Your Changes**
+
    - Write clear commit messages following our conventions
    - Use the present tense ("Add feature" not "Added feature")
    - Reference issues and pull requests in your commits
@@ -46,6 +50,7 @@ Thank you for your interest in contributing to EduRootS! This document provides 
 ## Getting Help
 
 If you need help or have questions:
+
 - Open an issue
 - Join our community discussions
 - Contact the maintainers

@@ -1,4 +1,4 @@
-export const StepsNavigation = ({ currentStep }: { currentStep: number }) => {
+export const StepsNavigation = ({currentStep}: {currentStep: number}) => {
   const steps = ['Destinataires', 'Message']
 
   return (

@@ -1,12 +1,12 @@
 'use client'
 
-import { Calendar, MenuIcon } from 'lucide-react'
-import { CheckCircle2 } from 'lucide-react'
+import {Calendar, MenuIcon} from 'lucide-react'
+import {CheckCircle2} from 'lucide-react'
 
-import { CourseSession, PopulatedCourse } from '@/types/course'
+import {CourseSession, PopulatedCourse} from '@/types/course'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {Button} from '@/components/ui/button'
+import {Card} from '@/components/ui/card'
 import {
   Sheet,
   SheetClose,
@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 
-import { formatDayOfWeek } from '@/lib/utils'
+import {formatDayOfWeek} from '@/lib/utils'
 
 export const CourseMenu = ({
   teacherCourses,
@@ -29,9 +29,7 @@ export const CourseMenu = ({
   onCourseSelect: (id: string) => void
 }) => {
   // Find sessions that have sameStudents set to true
-  const sameStudentsCourses = teacherCourses.sessions.filter(
-    (course) => course.sameStudents,
-  )
+  const sameStudentsCourses = teacherCourses.sessions.filter((course) => course.sameStudents)
 
   return (
     <Sheet>
@@ -73,16 +71,13 @@ export const CourseMenu = ({
                     )}
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-800 truncate max-w-[180px]">
-                        {sameStudentsCourses[0].subject} -{' '}
-                        {sameStudentsCourses[1].subject}
+                        {sameStudentsCourses[0].subject} - {sameStudentsCourses[1].subject}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
                       <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
                       <span className="truncate">
-                        {formatDayOfWeek(
-                          sameStudentsCourses[0].timeSlot.dayOfWeek,
-                        )}{' '}
+                        {formatDayOfWeek(sameStudentsCourses[0].timeSlot.dayOfWeek)}{' '}
                         {sameStudentsCourses[0].timeSlot.startTime} -{' '}
                         {sameStudentsCourses[1].timeSlot.endTime}
                       </span>
@@ -122,8 +117,7 @@ export const CourseMenu = ({
                       <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
                         <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
                         <span className="truncate">
-                          {formatDayOfWeek(course.timeSlot.dayOfWeek)}{' '}
-                          {course.timeSlot.startTime} -{' '}
+                          {formatDayOfWeek(course.timeSlot.dayOfWeek)} {course.timeSlot.startTime} -{' '}
                           {course.timeSlot.endTime}
                         </span>
                       </div>

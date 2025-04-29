@@ -1,8 +1,5 @@
-// @ts-nocheck
-import { SubjectNameEnum } from '@/types/course'
-
 import dbConnect from '@/backend/config/dbConnect'
-import { Course } from '@/backend/models/course.model'
+import {Course} from '@/backend/models/course.model'
 
 interface CheckResult {
   success: boolean
@@ -71,11 +68,9 @@ async function checkRemainingFullSessions(): Promise<CheckResult> {
     const foundSessions = []
     for (const course of coursesWithFullSessions) {
       const fullSessions = course.sessions.filter(
-        (session) =>
-          (session.timeSlot.startTime === '09:00' &&
-            session.timeSlot.endTime === '12:30') ||
-          (session.timeSlot.startTime === '14:00' &&
-            session.timeSlot.endTime === '17:30'),
+        (session: any) =>
+          (session.timeSlot.startTime === '09:00' && session.timeSlot.endTime === '12:30') ||
+          (session.timeSlot.startTime === '14:00' && session.timeSlot.endTime === '17:30'),
       )
 
       for (const session of fullSessions) {
@@ -142,8 +137,7 @@ async function checkRemainingFullSessions(): Promise<CheckResult> {
       backupPath: null,
       error: {
         code: 'CHECK_ERROR',
-        details:
-          error instanceof Error ? error.message : 'Détails non disponibles',
+        details: error instanceof Error ? error.message : 'Détails non disponibles',
       },
     }
   }

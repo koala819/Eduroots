@@ -1,15 +1,15 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
-import { CourseSession } from '@/types/course'
-import { Teacher } from '@/types/user'
+import {ApiResponse} from '@/types/api'
+import {CourseSession} from '@/types/course'
+import {Teacher} from '@/types/user'
 
-import { Course } from '@/backend/models/course.model'
-import { User } from '@/backend/models/user.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { isValidObjectId } from 'mongoose'
+import {Course} from '@/backend/models/course.model'
+import {User} from '@/backend/models/user.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {isValidObjectId} from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -44,7 +44,7 @@ export async function createTeacher(
     }
     return {
       success: true,
-      data: serializeData({ id: newUser._id }),
+      data: serializeData({id: newUser._id}),
       message: 'Professeur créé avec succès',
     }
   } catch (error) {
@@ -53,9 +53,7 @@ export async function createTeacher(
   }
 }
 
-export async function deleteTeacher(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function deleteTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!teacherId || !isValidObjectId(teacherId)) {
@@ -76,7 +74,7 @@ export async function deleteTeacher(
         isActive: false,
         deletedAt: new Date(),
       },
-      { new: true },
+      {new: true},
     ).select('-password')
 
     if (!deletedUser) {
@@ -106,7 +104,7 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
       role: 'teacher',
     })
       .select('-password')
-      .sort({ firstname: 1, lastname: 1 })
+      .sort({firstname: 1, lastname: 1})
 
     if (!users) {
       return {
@@ -126,9 +124,7 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneTeacher(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getOneTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!isValidObjectId(teacherId)) {
@@ -189,34 +185,32 @@ export async function getStudentsByTeacher(
     }).populate({
       path: 'sessions.students',
       select: 'secondaryEmail email firstname lastname dateOfBirth gender',
-      match: { isActive: true },
+      match: {isActive: true},
     })
 
     // Nouvelle structure : regrouper par cours
     const coursesWithStudents = courses.map((course) => {
       // Transformer les sessions du cours
-      const sessionsWithStudents = course.sessions.map(
-        (session: CourseSession) => {
-          // Transformer les étudiants de la session
-          const students = session.students.map((student: any) => ({
-            _id: student._id,
-            firstname: student.firstname,
-            lastname: student.lastname,
-            email: student.email,
-            secondaryEmail: student.secondaryEmail,
-            gender: student.gender,
-            dateOfBirth: student.dateOfBirth,
-          }))
+      const sessionsWithStudents = course.sessions.map((session: CourseSession) => {
+        // Transformer les étudiants de la session
+        const students = session.students.map((student: any) => ({
+          _id: student._id,
+          firstname: student.firstname,
+          lastname: student.lastname,
+          email: student.email,
+          secondaryEmail: student.secondaryEmail,
+          gender: student.gender,
+          dateOfBirth: student.dateOfBirth,
+        }))
 
-          return {
-            sessionId: session.id,
-            subject: session.subject,
-            level: session.level,
-            timeSlot: session.timeSlot,
-            students,
-          }
-        },
-      )
+        return {
+          sessionId: session.id,
+          subject: session.subject,
+          level: session.level,
+          timeSlot: session.timeSlot,
+          students,
+        }
+      })
 
       return {
         courseId: course._id,
@@ -232,9 +226,7 @@ export async function getStudentsByTeacher(
     }
   } catch (error) {
     console.error('[GET_STUDENTS_BY_TEACHER]', error)
-    throw new Error(
-      'Erreur lors de la récupération des étudiants du professeur',
-    )
+    throw new Error('Erreur lors de la récupération des étudiants du professeur')
   }
 }
 
@@ -258,8 +250,8 @@ export async function updateTeacher(
         role: 'teacher',
         isActive: true,
       },
-      { $set: teacherData },
-      { new: true },
+      {$set: teacherData},
+      {new: true},
     ).select('-password')
 
     if (!updatedUser) {
@@ -281,13 +273,9 @@ export async function updateTeacher(
   }
 }
 
-function validateRequiredFields(
-  type: string,
-  data: any,
-): { isValid: boolean; message?: string } {
+function validateRequiredFields(type: string, data: any): {isValid: boolean; message?: string} {
   const baseFields = ['email', 'firstname', 'lastname', 'password']
-  const requiredFields =
-    type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
+  const requiredFields = type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
 
   const missingFields = requiredFields.filter((field) => !data[field])
 
@@ -296,5 +284,5 @@ function validateRequiredFields(
         isValid: false,
         message: `Champs manquants: ${missingFields.join(', ')}`,
       }
-    : { isValid: true }
+    : {isValid: true}
 }

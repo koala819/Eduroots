@@ -1,12 +1,12 @@
-import { AttendanceRecord } from '@/types/attendance'
-import { BehaviorRecord } from '@/types/behavior'
-import { SubjectNameEnum } from '@/types/course'
-import { GradeRecord } from '@/types/grade'
+import {AttendanceRecord} from '@/types/attendance'
+import {BehaviorRecord} from '@/types/behavior'
+import {SubjectNameEnum} from '@/types/course'
+import {GradeRecord} from '@/types/grade'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/attendance.model'
-import { Behavior } from '@/backend/models/behavior.model'
-import { Grade } from '@/backend/models/grade.model'
+import {Attendance} from '@/backend/models/attendance.model'
+import {Behavior} from '@/backend/models/behavior.model'
+import {Grade} from '@/backend/models/grade.model'
 
 export async function calculateStudentAttendanceRate(studentId: string) {
   try {
@@ -23,10 +23,10 @@ export async function calculateStudentAttendanceRate(studentId: string) {
     })
 
     // Objet pour tracker les dates uniques et leurs enregistrements
-    const uniqueAttendances: { [key: string]: any } = {}
+    const uniqueAttendances: {[key: string]: any} = {}
 
     // Tableau pour stocker les absences
-    const absences: { date: Date; course: string; reason?: string }[] = []
+    const absences: {date: Date; course: string; reason?: string}[] = []
 
     // Calculer le taux de présence
     let totalSessions = 0
@@ -76,8 +76,7 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         : null
 
     // Calculer le taux de présence en pourcentage
-    const attendanceRate =
-      totalSessions > 0 ? (presentSessions / totalSessions) * 100 : 0
+    const attendanceRate = totalSessions > 0 ? (presentSessions / totalSessions) * 100 : 0
 
     return {
       studentId,
@@ -109,7 +108,7 @@ export async function calculateStudentBehaviorRate(studentId: string) {
     })
 
     // Objet pour tracker les dates uniques et leurs enregistrements
-    const uniqueBehaviors: { [key: string]: any } = {}
+    const uniqueBehaviors: {[key: string]: any} = {}
 
     // Calculer les statistiques de comportement
     let totalSessions = 0
@@ -151,9 +150,7 @@ export async function calculateStudentBehaviorRate(studentId: string) {
 
     // Calculer la moyenne de comportement
     const behaviorAverage =
-      totalSessions > 0
-        ? Number((totalRatingSum / totalSessions).toFixed(2))
-        : 0
+      totalSessions > 0 ? Number((totalRatingSum / totalSessions).toFixed(2)) : 0
 
     return {
       studentId,
@@ -196,7 +193,7 @@ export async function calculateStudentGrade(studentId: string) {
 
   // Initialiser les matières
   Object.values(SubjectNameEnum).forEach((subject) => {
-    subjectGrades[subject] = { grades: [] }
+    subjectGrades[subject] = {grades: []}
   })
 
   const studentGrades: {
@@ -237,9 +234,7 @@ export async function calculateStudentGrade(studentId: string) {
 
         // Populate subject grades
         if (subjectGrades[subject as SubjectNameEnum]) {
-          subjectGrades[subject as SubjectNameEnum]?.grades.push(
-            studentRecord.value,
-          )
+          subjectGrades[subject as SubjectNameEnum]?.grades.push(studentRecord.value)
         }
       }
     })
@@ -249,8 +244,7 @@ export async function calculateStudentGrade(studentId: string) {
       const subjectData = subjectGrades[subject as SubjectNameEnum]
       if (subjectData && subjectData.grades.length > 0) {
         subjectData.average =
-          subjectData.grades.reduce((a, b) => a + b, 0) /
-          subjectData.grades.length
+          subjectData.grades.reduce((a, b) => a + b, 0) / subjectData.grades.length
       } else {
         // Remove subjects with no grades
         delete subjectGrades[subject as SubjectNameEnum]
@@ -259,9 +253,7 @@ export async function calculateStudentGrade(studentId: string) {
 
     // Calculate general average
     if (studentGrades.length > 0) {
-      overallAverage =
-        studentGrades.reduce((sum, g) => sum + g.grade, 0) /
-        studentGrades.length
+      overallAverage = studentGrades.reduce((sum, g) => sum + g.grade, 0) / studentGrades.length
     }
 
     // 4. Préparer le retour

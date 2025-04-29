@@ -1,11 +1,11 @@
 'use client'
 
-import { AlertCircle } from 'lucide-react'
+import {AlertCircle} from 'lucide-react'
 
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import {cn} from '@/lib/utils'
+import {motion} from 'framer-motion'
 
 interface HighRiskStudentsButtonClientProps {
   className?: string
@@ -23,11 +23,11 @@ export const HighRiskStudentsButtonClient = ({
           'flex flex-col items-center justify-center gap-2 bg-white hover:bg-red-50 rounded-xl shadow p-4 border border-gray-200 hover:border-red-200 transition-all duration-200 group h-full',
           className,
         )}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
+        whileHover={{scale: 1.02}}
+        whileTap={{scale: 0.98}}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        transition={{duration: 0.2}}
       >
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 group-hover:bg-red-200 transition-colors duration-200 mx-auto">
           <AlertCircle className="h-6 w-6" />

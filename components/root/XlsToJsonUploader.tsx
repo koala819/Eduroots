@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import {useCallback, useState} from 'react'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import {fetchWithAuth} from '@/lib/fetchWithAuth'
 import * as ExcelJS from 'exceljs'
 
 interface ExcelRow {
@@ -14,9 +14,9 @@ interface ExcelRow {
 const XlsToJsonUserUpdate: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [loadingMessage, setLoadingMessage] = useState<string>('')
-  const [processedData, setProcessedData] = useState<
-    { _id: string; dateOfBirth: string }[] | null
-  >(null)
+  const [processedData, setProcessedData] = useState<{_id: string; dateOfBirth: string}[] | null>(
+    null,
+  )
   const [error, setError] = useState<string | null>(null)
   const [backup, setBackup] = useState<Student[] | null>(null)
 
@@ -49,39 +49,32 @@ const XlsToJsonUserUpdate: React.FC = () => {
     return undefined
   }
 
-  const processExcelData = useCallback(
-    (rows: ExcelRow[]): Partial<Student>[] => {
-      return rows
-        .map((row): Partial<Student> => {
-          const [lastname, firstname] = row.Eleve
-            ? row.Eleve.split(' ')
-            : [undefined, undefined]
-          const dateOfBirth = parseDate(row['DATE DE NAISSANCE'])
+  const processExcelData = useCallback((rows: ExcelRow[]): Partial<Student>[] => {
+    return rows
+      .map((row): Partial<Student> => {
+        const [lastname, firstname] = row.Eleve ? row.Eleve.split(' ') : [undefined, undefined]
+        const dateOfBirth = parseDate(row['DATE DE NAISSANCE'])
 
-          if (dateOfBirth) {
-            // console.log(
-            //   `Date parsed for ${firstname} ${lastname}: ${dateOfBirth}`,
-            // )
-          } else {
-            console.warn(
-              `Unable to parse date for ${firstname} ${lastname}: ${row['DATE DE NAISSANCE']}`,
-            )
-          }
+        if (dateOfBirth) {
+          // console.log(
+          //   `Date parsed for ${firstname} ${lastname}: ${dateOfBirth}`,
+          // )
+        } else {
+          console.warn(
+            `Unable to parse date for ${firstname} ${lastname}: ${row['DATE DE NAISSANCE']}`,
+          )
+        }
 
-          return {
-            firstname: firstname,
-            lastname: lastname,
-            dateOfBirth: dateOfBirth,
-          }
-        })
-        .filter((user) => user.firstname && user.lastname && user.dateOfBirth)
-    },
-    [],
-  )
+        return {
+          firstname: firstname,
+          lastname: lastname,
+          dateOfBirth: dateOfBirth,
+        }
+      })
+      .filter((user) => user.firstname && user.lastname && user.dateOfBirth)
+  }, [])
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -119,9 +112,7 @@ const XlsToJsonUserUpdate: React.FC = () => {
       })
 
       if (response.status !== 200) {
-        throw new Error(
-          `Error fetching existing users: ${response.statusText}`,
-        )
+        throw new Error(`Error fetching existing users: ${response.statusText}`)
       }
 
       const existingUsers = response.data
@@ -130,8 +121,7 @@ const XlsToJsonUserUpdate: React.FC = () => {
         .map((newData) => {
           const existingUser = existingUsers.find(
             (user: Student) =>
-              user.firstname.toLowerCase() ===
-                newData.firstname?.toLowerCase() &&
+              user.firstname.toLowerCase() === newData.firstname?.toLowerCase() &&
               user.lastname.toLowerCase() === newData.lastname?.toLowerCase(),
           )
           if (
@@ -139,14 +129,11 @@ const XlsToJsonUserUpdate: React.FC = () => {
             newData.dateOfBirth &&
             existingUser.dateOfBirth !== newData.dateOfBirth
           ) {
-            return { _id: existingUser._id, dateOfBirth: newData.dateOfBirth }
+            return {_id: existingUser._id, dateOfBirth: newData.dateOfBirth}
           }
           return null
         })
-        .filter(
-          (update): update is { _id: string; dateOfBirth: string } =>
-            update !== null,
-        )
+        .filter((update): update is {_id: string; dateOfBirth: string} => update !== null)
 
       setProcessedData(updates)
       setLoadingMessage('Données prêtes pour la mise à jour !')
@@ -199,7 +186,7 @@ const XlsToJsonUserUpdate: React.FC = () => {
     try {
       const response = await fetchWithAuth('/api/XlsToJsonUserUpdate', {
         method: 'PUT',
-        body: JSON.stringify({ backup }),
+        body: JSON.stringify({backup}),
       })
 
       if (response.status !== 200) {
@@ -223,9 +210,7 @@ const XlsToJsonUserUpdate: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Mise à jour des dates de naissance via XLS
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Mise à jour des dates de naissance via XLS</h1>
       <input
         type="file"
         accept=".xls,.xlsx"
@@ -247,9 +232,7 @@ const XlsToJsonUserUpdate: React.FC = () => {
       )}
       {processedData && (
         <div>
-          <h2 className="text-xl font-semibold mb-2">
-            Données prêtes pour la mise à jour :
-          </h2>
+          <h2 className="text-xl font-semibold mb-2">Données prêtes pour la mise à jour :</h2>
           <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
             {JSON.stringify(processedData, null, 2)}
           </pre>

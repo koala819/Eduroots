@@ -1,12 +1,12 @@
 'use client'
 
-import { AlertCircle } from 'lucide-react'
+import {AlertCircle} from 'lucide-react'
 import React from 'react'
 
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import {cn} from '@/lib/utils'
+import {motion} from 'framer-motion'
 
 interface HighRiskStudentsButtonProps {
   className?: string
@@ -31,11 +31,11 @@ export const HighRiskStudentsButton = ({
           className,
         )}
         // className={cn(buttonStyles[variant], className)}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
+        whileHover={{scale: 1.02}}
+        whileTap={{scale: 0.98}}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        transition={{duration: 0.2}}
       >
         {/* {renderContent()} */}
 

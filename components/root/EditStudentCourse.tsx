@@ -1,31 +1,26 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {ChevronRight} from 'lucide-react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {useForm} from 'react-hook-form'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import {
-  PopulatedCourse,
-  SubjectNameEnum,
-  TIME_SLOT_SCHEDULE,
-  TimeSlotEnum,
-} from '@/types/course'
-import { Teacher } from '@/types/user'
+import {PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/course'
+import {Teacher} from '@/types/user'
 
-import { SessionConfig } from '@/components/root/EditStudentSessionConfig'
-import { TimeSlotCard } from '@/components/root/EditStudentTimeSlotCard'
-import { Button } from '@/components/ui/button'
-import { Form } from '@/components/ui/form'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {SessionConfig} from '@/components/root/EditStudentSessionConfig'
+import {TimeSlotCard} from '@/components/root/EditStudentTimeSlotCard'
+import {Button} from '@/components/ui/button'
+import {Form} from '@/components/ui/form'
+import {LoadingSpinner} from '@/components/ui/loading-spinner'
 
-import { useCourses } from '@/context/Courses/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useCourses} from '@/context/Courses/client'
+import {useTeachers} from '@/context/Teachers/client'
+import {fetchWithAuth} from '@/lib/fetchWithAuth'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const sessionSchema = z.object({
@@ -37,8 +32,8 @@ const sessionSchema = z.object({
       dayOfWeek: z.nativeEnum(TimeSlotEnum, {
         required_error: 'Le jour est requis',
       }),
-      startTime: z.string({ required_error: 'L heure de debut est requise' }),
-      endTime: z.string({ required_error: 'L heure de fin est requise' }),
+      startTime: z.string({required_error: 'L heure de debut est requise'}),
+      endTime: z.string({required_error: 'L heure de fin est requise'}),
       subject: z.nativeEnum(SubjectNameEnum, {
         required_error: 'La matière est requise',
       }),
@@ -49,22 +44,15 @@ const sessionSchema = z.object({
 
 type FormData = z.infer<typeof sessionSchema>
 
-export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
+export const EditCourseStudent = ({studentId}: {studentId: string}) => {
   const router = useRouter()
 
-  const { toast } = useToast()
-  const {
-    getStudentCourses,
-    addStudentToCourse,
-    removeStudentFromCourse,
-    courses,
-  } = useCourses()
-  const { teachers, getAllTeachers } = useTeachers()
+  const {toast} = useToast()
+  const {getStudentCourses, addStudentToCourse, removeStudentFromCourse, courses} = useCourses()
+  const {teachers, getAllTeachers} = useTeachers()
 
   const [existingCourses, setExistingCourses] = useState<PopulatedCourse[]>([])
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>(
-    '',
-  )
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>('')
   const [pageIsLoading, setPageIsLoading] = useState<boolean>(true)
 
   const [isSaving, setIsSaving] = useState<boolean>(false)
@@ -89,8 +77,8 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
               ? 'Samedi Après-midi'
               : 'Dimanche Matin',
         sessions: [
-          { startTime: value.START, endTime: value.PAUSE },
-          { startTime: value.PAUSE, endTime: value.FINISH },
+          {startTime: value.START, endTime: value.PAUSE},
+          {startTime: value.PAUSE, endTime: value.FINISH},
         ],
       })),
     [],
@@ -101,10 +89,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
     const loadData = async () => {
       setPageIsLoading(true)
       try {
-        const [courses] = await Promise.all([
-          getStudentCourses(studentId),
-          getAllTeachers(),
-        ])
+        const [courses] = await Promise.all([getStudentCourses(studentId), getAllTeachers()])
 
         setExistingCourses(courses)
 
@@ -115,8 +100,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
           )
 
           if (firstSession) {
-            const initialTimeSlot = firstSession.timeSlot
-              .dayOfWeek as TimeSlotEnum
+            const initialTimeSlot = firstSession.timeSlot.dayOfWeek as TimeSlotEnum
             setSelectedTimeSlot(initialTimeSlot)
             form.setValue('timeSlot', initialTimeSlot)
 
@@ -125,9 +109,8 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
                 course.sessions
                   .filter(
                     (session) =>
-                      session.students.some(
-                        (student) => student._id === studentId,
-                      ) && session.timeSlot.dayOfWeek === initialTimeSlot,
+                      session.students.some((student) => student._id === studentId) &&
+                      session.timeSlot.dayOfWeek === initialTimeSlot,
                   )
                   .map((session) => ({
                     dayOfWeek: initialTimeSlot,
@@ -221,9 +204,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
       })
 
       return teachers
-        .filter((teacher) =>
-          availableTeachers.has(normalizeTeacherId(teacher.id)),
-        )
+        .filter((teacher) => availableTeachers.has(normalizeTeacherId(teacher.id)))
         .sort((a, b) => a.firstname.localeCompare(b.firstname))
     },
     [selectedTimeSlot, courses, teachers],
@@ -307,8 +288,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
       // 1. Supprimer les inscriptions qui ne sont plus sélectionnées
       if (existingCourses.length > 0) {
         const oldTeacherId =
-          Array.isArray(existingCourses[0].teacher) &&
-          existingCourses[0].teacher[0]._id
+          Array.isArray(existingCourses[0].teacher) && existingCourses[0].teacher[0]._id
 
         const response = await fetchWithAuth(
           `api/courses/clean?oldTeacherId=${oldTeacherId}&studentId=${studentId}`,
@@ -317,9 +297,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
           },
         )
         if (response.status !== 200) {
-          throw new Error(
-            'Erreur lors de la suppression des anciennes sélections',
-          )
+          throw new Error('Erreur lors de la suppression des anciennes sélections')
         }
       }
 
@@ -340,18 +318,14 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
           // Trouver le cours du professeur
           const teacherCourse = courses.find((course) => {
             return Array.isArray(course.teacher)
-              ? course.teacher.some(
-                  (t) => t._id.toString() === selection.teacherId,
-                )
+              ? course.teacher.some((t) => t._id.toString() === selection.teacherId)
               : course.teacher._id.toString() === selection.teacherId
           })
 
           // console.log('Found teacher course:', teacherCourse)
 
           if (!teacherCourse) {
-            throw new Error(
-              `Cours non trouvé pour le professeur ${selection.teacherId}`,
-            )
+            throw new Error(`Cours non trouvé pour le professeur ${selection.teacherId}`)
           }
 
           return addStudentToCourse(teacherCourse._id.toString(), studentId, {
@@ -398,14 +372,9 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 md:space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-8">
         <div className="space-y-4 md:space-y-6">
-          <h2 className="text-base md:text-lg font-medium">
-            Sélectionnez un créneau
-          </h2>
+          <h2 className="text-base md:text-lg font-medium">Sélectionnez un créneau</h2>
           {/* Changer la grille pour être en colonne sur mobile */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {timeSlotConfigs.map((config) => (
@@ -421,9 +390,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
 
         {selectedTimeSlot && (
           <div className="space-y-4 md:space-y-6">
-            <h2 className="text-base md:text-lg font-medium">
-              Configuration des sessions
-            </h2>
+            <h2 className="text-base md:text-lg font-medium">Configuration des sessions</h2>
             <div className="space-y-3 md:space-y-4">
               {timeSlotConfigs
                 .find((c) => c.id === selectedTimeSlot)

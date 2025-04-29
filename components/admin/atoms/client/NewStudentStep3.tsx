@@ -1,24 +1,24 @@
 'use client'
 
-import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
-import { UseFormReturn } from 'react-hook-form'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {Calendar, Clock, GraduationCap, Mail, User2} from 'lucide-react'
+import {UseFormReturn} from 'react-hook-form'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { GenderEnum, User } from '@/types/user'
+import {GenderEnum, User} from '@/types/user'
 
-import { FormData } from '../../organisms/client/NewStudentForm'
+import {FormData} from '../../organisms/client/NewStudentForm'
 
-import { formatDayOfWeek } from '@/lib/utils'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { motion } from 'framer-motion'
+import {formatDayOfWeek} from '@/lib/utils'
+import {format} from 'date-fns'
+import {fr} from 'date-fns/locale'
+import {motion} from 'framer-motion'
 
 interface StepThreeProps {
   form: UseFormReturn<FormData>
   teachers: User[]
 }
 
-const StepThree = ({ form, teachers }: StepThreeProps) => {
+const StepThree = ({form, teachers}: StepThreeProps) => {
   const formValues = form.getValues()
 
   const getTeacherName = (teacherId: string) => {
@@ -27,18 +27,18 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
   }
 
   const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 },
+    initial: {opacity: 0, y: 20},
+    animate: {opacity: 1, y: 0},
+    transition: {duration: 0.5},
   }
 
   return (
     <div className="relative w-full max-w-4xl mx-auto">
       <motion.div
         className="relative bg-gradient-to-br from-background via-background/95 to-background border border-border rounded-xl shadow-lg overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={{opacity: 0, y: 20}}
+        animate={{opacity: 1, y: 0}}
+        transition={{duration: 0.6}}
       >
         {/* Header avec informations principales */}
         <div className="relative px-6 py-8 bg-gradient-to-r from-primary/5 to-primary/10">
@@ -83,9 +83,9 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
           {/* Section Contacts */}
           <motion.div
             className="space-y-6"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+            initial={{opacity: 0, x: -20}}
+            animate={{opacity: 1, x: 0}}
+            transition={{delay: 0.2}}
           >
             <div className="flex items-center gap-2 text-lg font-medium text-primary">
               <Mail className="w-5 h-5" />
@@ -94,15 +94,13 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
             <div className="space-y-4">
               <motion.div
                 className="group p-4 bg-primary/5 rounded-lg transition-all hover:bg-primary/10"
-                whileHover={{ scale: 1.02 }}
+                whileHover={{scale: 1.02}}
               >
                 <div className="flex items-start gap-4">
                   <User2 className="w-5 h-5 text-primary mt-1" />
                   <div>
                     <div className="font-medium">Parent 1</div>
-                    <div className="text-sm text-muted-foreground">
-                      {formValues.parentEmail1}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{formValues.parentEmail1}</div>
                   </div>
                 </div>
               </motion.div>
@@ -110,15 +108,13 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
               {formValues.parentEmail2 && (
                 <motion.div
                   className="group p-4 bg-primary/5 rounded-lg transition-all hover:bg-primary/10"
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{scale: 1.02}}
                 >
                   <div className="flex items-start gap-4">
                     <User2 className="w-5 h-5 text-primary mt-1" />
                     <div>
                       <div className="font-medium">Parent 2</div>
-                      <div className="text-sm text-muted-foreground">
-                        {formValues.parentEmail2}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{formValues.parentEmail2}</div>
                     </div>
                   </div>
                 </motion.div>
@@ -129,9 +125,9 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
           {/* Section Emploi du temps */}
           <motion.div
             className="space-y-6"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+            initial={{opacity: 0, x: 20}}
+            animate={{opacity: 1, x: 0}}
+            transition={{delay: 0.3}}
           >
             <div className="flex items-center gap-2 text-lg font-medium text-primary">
               <Calendar className="w-5 h-5" />
@@ -142,10 +138,10 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
                 <motion.div
                   key={index}
                   className="relative p-4 bg-primary/5 rounded-lg transition-all hover:bg-primary/10"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
+                  initial={{opacity: 0, y: 20}}
+                  animate={{opacity: 1, y: 0}}
+                  transition={{delay: 0.4 + index * 0.1}}
+                  whileHover={{scale: 1.02}}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -176,13 +172,12 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
         {/* Footer */}
         <motion.div
           className="p-6 border-t border-border bg-gradient-to-b from-background to-primary/5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          initial={{opacity: 0}}
+          animate={{opacity: 1}}
+          transition={{delay: 0.5}}
         >
           <div className="text-sm text-muted-foreground text-center">
-            Vérifiez les informations ci-dessus avant de valider
-            l&apos;inscription
+            Vérifiez les informations ci-dessus avant de valider l&apos;inscription
           </div>
         </motion.div>
       </motion.div>

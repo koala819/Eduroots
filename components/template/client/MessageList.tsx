@@ -1,6 +1,6 @@
 'use client'
 
-import { Mail } from '@/types/models'
+import {Mail} from '@/types/models'
 
 import MessageItem from '@/components/organisms/client/MessageItem'
 

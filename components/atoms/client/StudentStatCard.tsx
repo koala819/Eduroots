@@ -1,9 +1,9 @@
 'use client'
 
-import { BarChart3, Clock, Star } from 'lucide-react'
-import { ReactNode } from 'react'
+import {BarChart3, Clock, Star} from 'lucide-react'
+import {ReactNode} from 'react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
 type IconType = 'chart' | 'clock' | 'star' | string
 
@@ -65,15 +65,12 @@ export function StatCard({
   const scheme = colorSchemes[color]
 
   // Get the appropriate icon
-  const iconElement =
-    typeof icon === 'string' && icon in iconMap ? iconMap[icon] : icon
+  const iconElement = typeof icon === 'string' && icon in iconMap ? iconMap[icon] : icon
 
   return (
     <Card className="border-none shadow-lg hover:shadow-xl hover:translate-y-[-5px] transition-all duration-300 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-        <CardTitle className="text-sm font-bold text-slate-700">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-sm font-bold text-slate-700">{title}</CardTitle>
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center ${scheme.bg} ${scheme.text} shadow-sm`}
         >

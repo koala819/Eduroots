@@ -1,12 +1,12 @@
 'use server'
 
-import { UserRoleEnum } from '@/types/user'
+import {UserRoleEnum} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { ConnectionLog } from '@/backend/models/connectionLog'
-import { User } from '@/backend/models/user.model'
-import { FormSchema } from '@/lib/validation/login-schema'
-import { compare } from 'bcryptjs'
+import {ConnectionLog} from '@/backend/models/connectionLog'
+import {User} from '@/backend/models/user.model'
+import {FormSchema} from '@/lib/validation/login-schema'
+import {compare} from 'bcryptjs'
 
 export async function loginAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -43,14 +43,12 @@ export async function loginAction(formData: FormData) {
       // Si le rôle est 'admin', chercher un utilisateur avec le rôle 'admin' ou 'bureau'
       user = await User.findOne({
         email,
-        role: { $in: [UserRoleEnum.Admin, UserRoleEnum.Bureau] },
+        role: {$in: [UserRoleEnum.Admin, UserRoleEnum.Bureau]},
         isActive: true,
       }).select('+password +role')
     } else {
       // Pour tous les autres rôles, utiliser la recherche originale
-      user = await User.findOne({ email, role, isActive: true }).select(
-        '+password +role',
-      )
+      user = await User.findOne({email, role, isActive: true}).select('+password +role')
     }
 
     // Vérification du mot de passe
@@ -71,8 +69,7 @@ export async function loginAction(formData: FormData) {
         success: true,
         forcePasswordChange: true,
         redirectUrl: '/rstPwd?forceChange=true',
-        message:
-          'Veuillez changer votre mot de passe pour des raisons de sécurité',
+        message: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
       }
     }
 
@@ -87,14 +84,14 @@ export async function loginAction(formData: FormData) {
 
     // Mise à jour du log
     await ConnectionLog.findOneAndUpdate(
-      { 'user.email': user.email, isSuccessful: false },
+      {'user.email': user.email, isSuccessful: false},
       {
         $set: {
           user: userData, // Utilisez l'objet simplifié ici aussi
           isSuccessful: true,
         },
       },
-      { new: true, sort: { timestamp: -1 } },
+      {new: true, sort: {timestamp: -1}},
     )
 
     return {
@@ -113,16 +110,10 @@ export async function loginAction(formData: FormData) {
   }
 }
 
-function checkDefaultPassword(user: {
-  role: UserRoleEnum
-  password: string
-}): boolean {
+function checkDefaultPassword(user: {role: UserRoleEnum; password: string}): boolean {
   if (user.role === 'teacher' && user.password === process.env.TEACHER_PWD) {
     return true
-  } else if (
-    user.role === 'student' &&
-    user.password === process.env.STUDENT_PWD
-  ) {
+  } else if (user.role === 'student' && user.password === process.env.STUDENT_PWD) {
     return true
   }
   return false

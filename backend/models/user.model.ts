@@ -1,13 +1,13 @@
-import { SubjectNameEnum } from '@/types/course'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import {SubjectNameEnum} from '@/types/course'
+import {GenderEnum, UserRoleEnum, UserType} from '@/types/user'
 
-import { rootOptions } from './root.model'
+import {rootOptions} from './root.model'
 
-import { StudentStats } from '@/backend/models/student-stats.model'
-import { TeacherStats } from '@/backend/models/teacher-stats.model'
-import { capitalizeFirstLetter } from '@/lib/utils'
+import {StudentStats} from '@/backend/models/student-stats.model'
+import {TeacherStats} from '@/backend/models/teacher-stats.model'
+import {capitalizeFirstLetter} from '@/lib/utils'
 import bcrypt from 'bcryptjs'
-import mongoose, { Schema } from 'mongoose'
+import mongoose, {Schema} from 'mongoose'
 
 const userSchema = new Schema(
   {
@@ -17,7 +17,7 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    hasInvalidEmail: { type: Boolean, default: false },
+    hasInvalidEmail: {type: Boolean, default: false},
     secondaryEmail: String,
     firstname: {
       type: String,
@@ -25,7 +25,7 @@ const userSchema = new Schema(
       trim: true,
       set: capitalizeFirstLetter,
     },
-    lastname: { type: String, required: true, trim: true, upperCase: true },
+    lastname: {type: String, required: true, trim: true, upperCase: true},
     password: {
       type: String,
       required: true,
@@ -64,8 +64,8 @@ const userSchema = new Schema(
 
     // Champs communs
     schoolYear: String,
-    isActive: { type: Boolean, default: true },
-    deletedAt: { type: Date, default: null },
+    isActive: {type: Boolean, default: true},
+    deletedAt: {type: Date, default: null},
     stats: {
       type: Schema.Types.ObjectId,
       refPath: 'statsModel', // Référence dynamique basée sur le champ statsModel
@@ -163,10 +163,9 @@ userSchema.pre('save', async function (next) {
 })
 
 // Indexes
-userSchema.index({ email: 1 })
-userSchema.index({ role: 1, isActive: 1 })
-userSchema.index({ firstname: 1, lastname: 1 })
-userSchema.index({ role: 1, subjects: 1 }) // Index pour la recherche des profs par matière
+userSchema.index({email: 1})
+userSchema.index({role: 1, isActive: 1})
+userSchema.index({firstname: 1, lastname: 1})
+userSchema.index({role: 1, subjects: 1}) // Index pour la recherche des profs par matière
 
-export const User =
-  mongoose.models.userNEW || mongoose.model('userNEW', userSchema)
+export const User = mongoose.models.userNEW || mongoose.model('userNEW', userSchema)

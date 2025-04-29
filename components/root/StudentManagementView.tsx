@@ -1,23 +1,23 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { StudentCourses } from '@/components/admin/molecules/server/StudentCourses'
-import { AdminInfoDisplay } from '@/components/root/StudentAdministratiView'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {StudentCourses} from '@/components/admin/molecules/server/StudentCourses'
+import {AdminInfoDisplay} from '@/components/root/StudentAdministratiView'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {LoadingSpinner} from '@/components/ui/loading-spinner'
 
-import { useStudents } from '@/context/Students/client'
-import { useTeachers } from '@/context/Teachers/client'
+import {useStudents} from '@/context/Students/client'
+import {useTeachers} from '@/context/Teachers/client'
 
-export const StudentManagementView = ({ id }: { id: string }) => {
+export const StudentManagementView = ({id}: {id: string}) => {
   const [isLoading, setIsLoading] = useState(true)
   const [studentData, setStudentData] = useState<any>(null)
-  const { getOneStudent } = useStudents()
-  const { getAllTeachers } = useTeachers()
+  const {getOneStudent} = useStudents()
+  const {getAllTeachers} = useTeachers()
   const router = useRouter()
 
   const loadData = useCallback(async () => {
@@ -38,15 +38,11 @@ export const StudentManagementView = ({ id }: { id: string }) => {
 
   // Mémoriser les fonctions de navigation
   const handleEditAdmin = useCallback(() => {
-    router.push(
-      `${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/student/edit/${id}/admin`,
-    )
+    router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/student/edit/${id}/admin`)
   }, [router, id])
 
   const handleEditCourse = useCallback(() => {
-    router.push(
-      `${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/student/edit/${id}/courses`,
-    )
+    router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/student/edit/${id}/courses`)
   }, [router, id])
 
   // Mémoriser le contenu administratif

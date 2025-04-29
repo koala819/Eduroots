@@ -1,35 +1,27 @@
 'use client'
 
-import { CheckCircle, Download, InfoIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import {CheckCircle, Download, InfoIcon} from 'lucide-react'
+import {useEffect, useState} from 'react'
 
-import { IOSInstallInstructionsContent } from '@/components/atoms/server/IOSInstallInstructions'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import {IOSInstallInstructionsContent} from '@/components/atoms/server/IOSInstallInstructions'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import {AnimatePresence, motion} from 'framer-motion'
 
 type InstallPromptEvent = Event & {
-  prompt: () => Promise<{ outcome: 'accepted' | 'dismissed' }>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  prompt: () => Promise<{outcome: 'accepted' | 'dismissed'}>
+  userChoice: Promise<{outcome: 'accepted' | 'dismissed'}>
 }
 
 type Platform = 'desktop' | 'mobile' | 'ios' | 'unknown'
 type InstallStatus = 'not-installed' | 'installing' | 'installed' | 'dismissed'
 
 export const PWAButtonClient: React.FC = () => {
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(
-    null,
-  )
-  const [installStatus, setInstallStatus] =
-    useState<InstallStatus>('not-installed')
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null)
+  const [installStatus, setInstallStatus] = useState<InstallStatus>('not-installed')
   const [showInstructions, setShowInstructions] = useState(false)
   const [browser, setBrowser] = useState<string>('')
   const [platform, setPlatform] = useState<Platform>('unknown')
@@ -44,11 +36,7 @@ export const PWAButtonClient: React.FC = () => {
       if (ua.includes('android')) {
         return 'mobile'
       }
-      if (
-        ua.includes('windows') ||
-        ua.includes('macintosh') ||
-        ua.includes('linux')
-      ) {
+      if (ua.includes('windows') || ua.includes('macintosh') || ua.includes('linux')) {
         return 'desktop'
       }
       return 'unknown'
@@ -98,10 +86,7 @@ export const PWAButtonClient: React.FC = () => {
     window.addEventListener('appinstalled', handleAppInstalled)
 
     return () => {
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleBeforeInstallPrompt,
-      )
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
@@ -172,12 +157,12 @@ export const PWAButtonClient: React.FC = () => {
 
   // Animation variants
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+    hidden: {opacity: 0, y: 20},
+    visible: {opacity: 1, y: 0, transition: {duration: 0.4}},
   }
 
   const successVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
+    hidden: {opacity: 0, scale: 0.8},
     visible: {
       opacity: 1,
       scale: 1,
@@ -208,11 +193,9 @@ export const PWAButtonClient: React.FC = () => {
         >
           <CheckCircle className="h-6 w-6 text-green-500" />
           <div className="flex-1">
-            <h4 className="font-medium text-green-800">
-              Installation réussie !
-            </h4>
+            <h4 className="font-medium text-green-800">Installation réussie !</h4>
             <p className="text-sm text-green-600">
-              L'application est maintenant disponible sur votre appareil
+              L&apos;application est maintenant disponible sur votre appareil
             </p>
           </div>
         </motion.div>
@@ -229,9 +212,7 @@ export const PWAButtonClient: React.FC = () => {
     >
       {isIOS ? (
         // Pour iOS, on utilise le composant serveur
-        <IOSInstallInstructionsContent
-          isInstalled={installStatus === 'installed'}
-        />
+        <IOSInstallInstructionsContent isInstalled={installStatus === 'installed'} />
       ) : (
         // Pour les autres plateformes
         <>
@@ -241,14 +222,10 @@ export const PWAButtonClient: React.FC = () => {
               variant="default"
             >
               {isFirefoxDesktop && (
-                <AlertTitle className="text-amber-700">
-                  Compatibilité limitée
-                </AlertTitle>
+                <AlertTitle className="text-amber-700">Compatibilité limitée</AlertTitle>
               )}
               {!isFirefoxDesktop && (
-                <AlertTitle className="text-blue-700">
-                  Comment installer
-                </AlertTitle>
+                <AlertTitle className="text-blue-700">Comment installer</AlertTitle>
               )}
               <AlertDescription className="whitespace-pre-line pt-2">
                 {getInstallInstructions()}
@@ -268,8 +245,8 @@ export const PWAButtonClient: React.FC = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{scale: 1.03}}
+                  whileTap={{scale: 0.97}}
                   className="relative"
                 >
                   <Button
@@ -307,20 +284,17 @@ export const PWAButtonClient: React.FC = () => {
                   )}
                 </motion.div>
               </TooltipTrigger>
-              <TooltipContent
-                side="bottom"
-                className="bg-slate-800 text-white p-2"
-              >
-                <p>Accédez plus rapidement à l'application</p>
+              <TooltipContent side="bottom" className="bg-slate-800 text-white p-2">
+                <p>Accédez plus rapidement à l&apos;application</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
           {!showInstructions && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.3 }}
+              initial={{opacity: 0}}
+              animate={{opacity: 1}}
+              transition={{delay: 0.5, duration: 0.3}}
               className="flex justify-center mt-2"
             >
               <Button
@@ -330,7 +304,7 @@ export const PWAButtonClient: React.FC = () => {
                 onClick={() => setShowInstructions(true)}
               >
                 <InfoIcon className="h-3 w-3" />
-                <span>Plus d'informations</span>
+                <span>Plus d&apos;informations</span>
               </Button>
             </motion.div>
           )}

@@ -1,12 +1,10 @@
-//@ts-nocheck
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
-
-import { GenderEnum } from '@/types/user'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
+import {GenderEnum} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Course } from '@/backend/models/course.model'
-import { User } from '@/backend/models/user.model'
+import {Course} from '@/backend/models/course.model'
+import {User} from '@/backend/models/user.model'
 import fs from 'fs'
 import path from 'path'
 
@@ -100,10 +98,7 @@ function generateNameKey(lastName: string, firstName: string): string {
 }
 
 // Fonction pour calculer un score de correspondance entre un étudiant JSON et un étudiant DB
-function calculateMatchScore(
-  jsonStudent: StudentJsonData,
-  dbStudent: any,
-): number {
+function calculateMatchScore(jsonStudent: StudentJsonData, dbStudent: any): number {
   let score = 0
 
   // Nom et prénom correspondent déjà (c'est la base de notre clé)
@@ -120,9 +115,7 @@ function calculateMatchScore(
 
   // Date de naissance
   if (jsonStudent.dateOfBirth && dbStudent.dateOfBirth) {
-    const jsonDate = new Date(jsonStudent.dateOfBirth)
-      .toISOString()
-      .split('T')[0]
+    const jsonDate = new Date(jsonStudent.dateOfBirth).toISOString().split('T')[0]
     const dbDate = new Date(dbStudent.dateOfBirth).toISOString().split('T')[0]
     if (jsonDate === dbDate) {
       score += 3
@@ -136,11 +129,7 @@ function calculateMatchScore(
   }
 
   // Téléphone
-  if (
-    jsonStudent.phone &&
-    dbStudent.phone &&
-    jsonStudent.phone === dbStudent.phone
-  ) {
+  if (jsonStudent.phone && dbStudent.phone && jsonStudent.phone === dbStudent.phone) {
     score += 1
   }
 
@@ -151,16 +140,12 @@ function calculateMatchScore(
 function findDiscrepancies(
   jsonStudent: StudentJsonData,
   dbStudent: any,
-  teacherInfo?: { dbTeacher?: TeacherInfo; jsonTeacherName?: string },
+  teacherInfo?: {dbTeacher?: TeacherInfo; jsonTeacherName?: string},
 ) {
-  const discrepancies: { field: string; jsonValue: any; dbValue: any }[] = []
+  const discrepancies: {field: string; jsonValue: any; dbValue: any}[] = []
 
   // Email (ne pas considérer comme une divergence si le champ est vide dans la base)
-  if (
-    jsonStudent.email &&
-    dbStudent.email &&
-    jsonStudent.email !== dbStudent.email
-  ) {
+  if (jsonStudent.email && dbStudent.email && jsonStudent.email !== dbStudent.email) {
     discrepancies.push({
       field: 'email',
       jsonValue: jsonStudent.email,
@@ -169,16 +154,13 @@ function findDiscrepancies(
   }
 
   // Date de naissance
-  const jsonDate = jsonStudent.dateOfBirth
-    ? new Date(jsonStudent.dateOfBirth)
-    : null
+  const jsonDate = jsonStudent.dateOfBirth ? new Date(jsonStudent.dateOfBirth) : null
   const dbDate = dbStudent.dateOfBirth ? new Date(dbStudent.dateOfBirth) : null
 
   if (
     (jsonDate &&
       dbDate &&
-      jsonDate.toISOString().split('T')[0] !==
-        dbDate.toISOString().split('T')[0]) ||
+      jsonDate.toISOString().split('T')[0] !== dbDate.toISOString().split('T')[0]) ||
     (jsonDate && !dbDate) ||
     (!jsonDate && dbDate)
   ) {
@@ -217,12 +199,8 @@ function findDiscrepancies(
 
     // Vérifier si les noms des professeurs sont différents
     // Normaliser les noms pour la comparaison (enlever espaces, tout en minuscules)
-    const normalizedDbTeacherName = dbTeacherName
-      .toLowerCase()
-      .replace(/\s+/g, '')
-    const normalizedJsonTeacherName = jsonTeacherName
-      .toLowerCase()
-      .replace(/\s+/g, '')
+    const normalizedDbTeacherName = dbTeacherName.toLowerCase().replace(/\s+/g, '')
+    const normalizedJsonTeacherName = jsonTeacherName.toLowerCase().replace(/\s+/g, '')
 
     if (normalizedDbTeacherName !== normalizedJsonTeacherName) {
       discrepancies.push({
@@ -277,9 +255,7 @@ function normalizeGender(gender: string): string | undefined {
 }
 
 // Fonction pour récupérer les informations du professeur d'un étudiant
-async function getTeacherForStudent(
-  studentId: string,
-): Promise<TeacherInfo | null> {
+async function getTeacherForStudent(studentId: string): Promise<TeacherInfo | null> {
   try {
     // Trouver tous les cours où l'étudiant est inscrit
     const courses = await Course.find({
@@ -305,12 +281,11 @@ async function getTeacherForStudent(
     if (!teacher) {
       return null
     }
-
     return {
-      id: teacher._id.toString(),
-      firstname: teacher.firstname,
-      lastname: teacher.lastname,
-      fullname: `${teacher.firstname} ${teacher.lastname}`,
+      id: (teacher as any)._id.toString(),
+      firstname: (teacher as any).firstname,
+      lastname: (teacher as any).lastname,
+      fullname: `${(teacher as any).firstname} ${(teacher as any).lastname}`,
     }
   } catch (error) {
     console.error('Erreur lors de la récupération du professeur:', error)
@@ -320,7 +295,7 @@ async function getTeacherForStudent(
 
 export async function POST(req: NextRequest) {
   // Authentification
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token?.user) {
     return NextResponse.json({
       status: 401,
@@ -337,15 +312,13 @@ export async function POST(req: NextRequest) {
       process.cwd(),
       'app/admin/compare-students/données_pour_comparaison.json',
     )
-    const jsonData = JSON.parse(
-      fs.readFileSync(jsonFilePath, 'utf8'),
-    ) as StudentJsonData[]
+    const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8')) as StudentJsonData[]
 
     // Récupérer tous les étudiants de la base de données (en excluant ceux à ignorer)
     const dbStudents = await User.find({
       role: 'student',
       isActive: true,
-      _id: { $nin: STUDENTS_TO_IGNORE },
+      _id: {$nin: STUDENTS_TO_IGNORE},
     }).lean()
 
     // Créer les structures pour la comparaison
@@ -386,9 +359,7 @@ export async function POST(req: NextRequest) {
     })
 
     // 1. Trouver les étudiants qui existent dans les deux sources
-    for (const [nameKey, jsonStudentsArray] of Array.from(
-      jsonStudentsByNameKey.entries(),
-    )) {
+    for (const [nameKey, jsonStudentsArray] of Array.from(jsonStudentsByNameKey.entries())) {
       // Pour chaque clé nom_prénom du JSON
       if (dbStudentsByNameKey.has(nameKey)) {
         const dbStudentsArray = dbStudentsByNameKey.get(nameKey)
@@ -414,9 +385,7 @@ export async function POST(req: NextRequest) {
             // Si un match a été trouvé
             if (bestMatch) {
               // Récupérer le professeur de cet étudiant
-              const teacherInfo = await getTeacherForStudent(
-                bestMatch._id.toString(),
-              )
+              const teacherInfo = await getTeacherForStudent(bestMatch._id.toString())
 
               const discrepancies = findDiscrepancies(jsonStudent, bestMatch, {
                 dbTeacher: teacherInfo || undefined,
@@ -433,7 +402,7 @@ export async function POST(req: NextRequest) {
 
               // Ajouter l'info du professeur si disponible
               if (teacherInfo) {
-                matchingStudent.teacher = {
+                ;(matchingStudent as any).teacher = {
                   id: teacherInfo.id,
                   name: teacherInfo.fullname,
                 }
@@ -466,16 +435,16 @@ export async function POST(req: NextRequest) {
     for (const dbStudent of dbStudents) {
       if (!matchedDbStudents.has(dbStudent)) {
         const studentEntry = {
-          id: dbStudent._id.toString(),
+          id: (dbStudent as any)._id.toString(),
           firstname: dbStudent.firstname,
           lastname: dbStudent.lastname,
           email: dbStudent.email,
         }
 
         // Récupérer le professeur si possible
-        const teacherInfo = await getTeacherForStudent(dbStudent._id.toString())
+        const teacherInfo = await getTeacherForStudent((dbStudent as any)._id.toString())
         if (teacherInfo) {
-          studentEntry.teacher = {
+          ;(studentEntry as any).teacher = {
             id: teacherInfo.id,
             name: teacherInfo.fullname,
           }
@@ -510,13 +479,10 @@ export async function POST(req: NextRequest) {
     // Générer le rapport dans le dossier reports
     const reportsDir = path.join(process.cwd(), 'reports')
     if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true })
+      fs.mkdirSync(reportsDir, {recursive: true})
     }
 
-    const reportPath = path.join(
-      reportsDir,
-      `students_comparison_${Date.now()}.json`,
-    )
+    const reportPath = path.join(reportsDir, `students_comparison_${Date.now()}.json`)
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
 
     return NextResponse.json({
@@ -538,7 +504,7 @@ export async function POST(req: NextRequest) {
         message: 'Erreur lors de la comparaison',
         error: (error as Error).message,
       },
-      { status: 500 },
+      {status: 500},
     )
   }
 }
@@ -549,28 +515,19 @@ export async function GET(req: NextRequest) {
   const reportPath = url.searchParams.get('path')
 
   if (!reportPath) {
-    return NextResponse.json(
-      { message: 'Chemin du rapport manquant' },
-      { status: 400 },
-    )
+    return NextResponse.json({message: 'Chemin du rapport manquant'}, {status: 400})
   }
 
   try {
     // Vérifier si le chemin est dans le dossier reports pour des raisons de sécurité
     const fullPath = path.resolve(process.cwd(), reportPath)
     if (!fullPath.startsWith(path.resolve(process.cwd(), 'reports'))) {
-      return NextResponse.json(
-        { message: 'Chemin non autorisé' },
-        { status: 403 },
-      )
+      return NextResponse.json({message: 'Chemin non autorisé'}, {status: 403})
     }
 
     // Vérifier que le fichier existe
     if (!fs.existsSync(fullPath)) {
-      return NextResponse.json(
-        { message: 'Rapport non trouvé' },
-        { status: 404 },
-      )
+      return NextResponse.json({message: 'Rapport non trouvé'}, {status: 404})
     }
 
     // Lire le fichier
@@ -585,7 +542,7 @@ export async function GET(req: NextRequest) {
         message: 'Erreur lors de la récupération du rapport',
         error: (error as Error).message,
       },
-      { status: 500 },
+      {status: 500},
     )
   }
 }

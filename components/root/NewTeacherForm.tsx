@@ -1,23 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {useState} from 'react'
+import {useForm} from 'react-hook-form'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { CourseDocument } from '@/types/mongoose'
-import { Teacher, UserRoleEnum } from '@/types/user'
+import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {CourseDocument} from '@/types/mongoose'
+import {Teacher, UserRoleEnum} from '@/types/user'
 
 import StepOne from '@/components/root/NewTeacherStep1'
 import StepTwo from '@/components/root/NewTeacherStep2'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form } from '@/components/ui/form'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Form} from '@/components/ui/form'
 
-import { useCourses } from '@/context/Courses/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useCourses} from '@/context/Courses/client'
+import {useTeachers} from '@/context/Teachers/client'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const teacherSchema = z.object({
@@ -45,9 +45,9 @@ const teacherSchema = z.object({
 export type FormData = z.infer<typeof teacherSchema>
 
 const NewTeacherForm = () => {
-  const { createCourse } = useCourses()
-  const { createTeacher } = useTeachers()
-  const { toast } = useToast()
+  const {createCourse} = useCourses()
+  const {createTeacher} = useTeachers()
+  const {toast} = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -63,8 +63,8 @@ const NewTeacherForm = () => {
   })
 
   const steps = [
-    { number: 1, label: 'Informations personnelles' },
-    { number: 2, label: 'Matières enseignées' },
+    {number: 1, label: 'Informations personnelles'},
+    {number: 2, label: 'Matières enseignées'},
   ]
 
   const validateStep1 = () => {
@@ -119,10 +119,7 @@ const NewTeacherForm = () => {
     try {
       setIsLoading(true)
 
-      const teacherData: Omit<
-        Teacher,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      > = {
+      const teacherData: Omit<Teacher, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.email,
@@ -141,16 +138,12 @@ const NewTeacherForm = () => {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de la création du professeur',
+          description: 'Une erreur est survenue lors de la création du professeur',
         })
         throw new Error('Erreur lors de la création du professeur')
       }
 
-      const courseData: Omit<
-        CourseDocument,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      > = {
+      const courseData: Omit<CourseDocument, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
         teacher: [teacher.id],
         sessions: values.sessions.map((session) => ({
           timeSlot: {
@@ -187,8 +180,7 @@ const NewTeacherForm = () => {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description:
-          error instanceof Error ? error.message : 'Une erreur est survenue',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
       })
     }
   }
@@ -196,9 +188,7 @@ const NewTeacherForm = () => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl">
-          Nouveau Professeur
-        </CardTitle>
+        <CardTitle className="text-xl md:text-2xl">Nouveau Professeur</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-8 relative">

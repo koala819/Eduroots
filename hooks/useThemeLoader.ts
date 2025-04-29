@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import {useState} from 'react'
 
-import { ThemeConfig } from '@/types/models'
+import {ThemeConfig} from '@/types/models'
 
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import {fetchWithAuth} from '@/lib/fetchWithAuth'
 
 export function useThemeLoader() {
   const [theme, setTheme] = useState<ThemeConfig | null>(null)
@@ -13,7 +13,7 @@ export function useThemeLoader() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetchWithAuth('/api/config', { method: 'GET' })
+      const response = await fetchWithAuth('/api/config', {method: 'GET'})
 
       if (response.status === 200 && response.data) {
         const themeData = response.data.themes[userRole]
@@ -31,5 +31,5 @@ export function useThemeLoader() {
     }
   }
 
-  return { theme, loading, error, loadTheme }
+  return {theme, loading, error, loadTheme}
 }

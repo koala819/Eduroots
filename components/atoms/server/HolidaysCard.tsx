@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { cn } from '@/lib/utils'
+import {cn} from '@/lib/utils'
 
 interface Holiday {
   name: string
@@ -16,7 +16,7 @@ interface HolidaysCardProps {
   isLoading?: boolean
 }
 
-export const HolidaysCard = ({ holidays, isLoading }: HolidaysCardProps) => {
+export const HolidaysCard = ({holidays, isLoading}: HolidaysCardProps) => {
   return (
     <Card className="bg-white shadow-sm">
       <CardHeader className="pb-2">
@@ -27,9 +27,7 @@ export const HolidaysCard = ({ holidays, isLoading }: HolidaysCardProps) => {
       <CardContent>
         <div className="space-y-2">
           {isLoading ? (
-            <div className="text-sm text-gray-500 text-center py-2">
-              Chargement...
-            </div>
+            <div className="text-sm text-gray-500 text-center py-2">Chargement...</div>
           ) : (
             holidays.map((holiday, idx) => (
               <div

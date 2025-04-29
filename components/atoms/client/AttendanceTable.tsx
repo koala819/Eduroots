@@ -1,22 +1,15 @@
 'use client'
 
-import { CheckCircle, Clock, Plus, Star, XCircle } from 'lucide-react'
+import {CheckCircle, Clock, Plus, Star, XCircle} from 'lucide-react'
 import React from 'react'
 
-import { AttendanceDocument } from '@/types/mongoose'
+import {AttendanceDocument} from '@/types/mongoose'
 
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import {Button} from '@/components/ui/button'
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
 
-import { useHolidays } from '@/context/Holidays/client'
-import { isWithinInterval } from 'date-fns'
+import {useHolidays} from '@/context/Holidays/client'
+import {isWithinInterval} from 'date-fns'
 
 export const AttendanceTable = ({
   courseDates,
@@ -29,7 +22,7 @@ export const AttendanceTable = ({
   handleCreateAttendance: (date: string) => void
   handleEditAttendance: (attendanceId: string, date: string) => void
 }) => {
-  const { holidays } = useHolidays()
+  const {holidays} = useHolidays()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">
@@ -38,9 +31,7 @@ export const AttendanceTable = ({
           <TableRow>
             <TableHead className="w-1/3">Date</TableHead>
             <TableHead className="w-1/3">Statut</TableHead>
-            <TableHead className="w-1/3 text-right sm:text-left">
-              Action
-            </TableHead>
+            <TableHead className="w-1/3 text-right sm:text-left">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -57,8 +48,7 @@ export const AttendanceTable = ({
 
               const today = new Date()
               const existingAttendance = allAttendance?.find(
-                (att) =>
-                  new Date(att.date).toDateString() === date.toDateString(),
+                (att) => new Date(att.date).toDateString() === date.toDateString(),
               )
 
               // Attendances exists
@@ -76,10 +66,7 @@ export const AttendanceTable = ({
                         <Button
                           className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-gray-900 hover:bg-gray-800 text-white"
                           onClick={() =>
-                            handleEditAttendance(
-                              existingAttendance._id,
-                              date.toISOString(),
-                            )
+                            handleEditAttendance(existingAttendance._id, date.toISOString())
                           }
                         >
                           Modifier
@@ -112,9 +99,7 @@ export const AttendanceTable = ({
                           </div>
                           <div className="flex items-center space-x-2">
                             <Star className="h-4 w-4 text-yellow-400" />
-                            <span className="text-xs sm:text-sm text-blue-700">
-                              À venir
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-700">À venir</span>
                           </div>
                         </div>
                       </TableCell>
@@ -131,9 +116,7 @@ export const AttendanceTable = ({
                         <TableCell className="text-right sm:text-left flex justify-end">
                           <Button
                             className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base border-gray-800 bg-white border hover:bg-gray-800 text-gray-800 hover:text-white"
-                            onClick={() =>
-                              handleCreateAttendance(date.toISOString())
-                            }
+                            onClick={() => handleCreateAttendance(date.toISOString())}
                           >
                             <span className="hidden sm:inline">Saisir</span>
                             <Plus className="h-4 w-4" />

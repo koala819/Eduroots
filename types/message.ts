@@ -1,6 +1,6 @@
 // Dans message.ts
-import { SubjectNameEnum, TimeSlotEnum } from './course'
-import { Student, Teacher, User } from './user'
+import {SubjectNameEnum, TimeSlotEnum} from './course'
+import {Student, Teacher, User} from './user'
 
 interface SessionInfo {
   dayOfWeek: TimeSlotEnum
@@ -39,25 +39,25 @@ export interface MessageState {
 }
 
 export type MessageAction =
-  | { type: 'SET_RECIPIENT_TYPE'; payload: { type: string; email?: string } }
-  | { type: 'SET_USERS'; payload: User[] }
-  | { type: 'SET_TEACHER'; payload: Teacher }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_SESSIONS'; payload: any[] }
-  | { type: 'SET_STUDENTS_BY_SESSION'; payload: Record<string, any> }
-  | { type: 'TOGGLE_STUDENT'; payload: Student }
-  | { type: 'REMOVE_USER'; payload: string }
-  | { type: 'CLEAR_SELECTION' }
-  | { type: 'DESELECT_ALL_IN_SESSION'; payload: string }
-  | { type: 'SELECT_ALL_IN_SESSION'; payload: string }
+  | {type: 'SET_RECIPIENT_TYPE'; payload: {type: string; email?: string}}
+  | {type: 'SET_USERS'; payload: User[]}
+  | {type: 'SET_TEACHER'; payload: Teacher}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_SESSIONS'; payload: any[]}
+  | {type: 'SET_STUDENTS_BY_SESSION'; payload: Record<string, any>}
+  | {type: 'TOGGLE_STUDENT'; payload: Student}
+  | {type: 'REMOVE_USER'; payload: string}
+  | {type: 'CLEAR_SELECTION'}
+  | {type: 'DESELECT_ALL_IN_SESSION'; payload: string}
+  | {type: 'SELECT_ALL_IN_SESSION'; payload: string}
   | {
       type: 'SET_RECIPIENT_TYPE'
-      payload: { type: string; email?: string }
+      payload: {type: string; email?: string}
     }
-  | { type: 'SET_USERS'; payload: User[] }
-  | { type: 'SET_TEACHER'; payload: Teacher }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_SESSIONS'; payload: Session[] }
+  | {type: 'SET_USERS'; payload: User[]}
+  | {type: 'SET_TEACHER'; payload: Teacher}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_SESSIONS'; payload: Session[]}
   | {
       type: 'SET_STUDENTS_BY_SESSION'
       payload: Record<string, SessionData>
@@ -73,7 +73,7 @@ export interface Message {
   message: string
   isRead: boolean
   isSentbox?: boolean
-  isDeleted?: { [userId: string]: boolean } | Map<string, boolean>
+  isDeleted?: {[userId: string]: boolean} | Map<string, boolean>
   attachmentUrl?: string | null
   createdAt?: string | Date
   updatedAt?: string | Date

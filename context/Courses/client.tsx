@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import {useSession} from 'next-auth/react'
 import {
   ReactNode,
   createContext,
@@ -11,14 +11,9 @@ import {
   useReducer,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import {
-  CourseSession,
-  PopulatedCourse,
-  TimeSlot,
-  TimeSlotEnum,
-} from '@/types/course'
+import {CourseSession, PopulatedCourse, TimeSlot, TimeSlotEnum} from '@/types/course'
 
 import {
   addStudentToCourse as addStudentToCourseAction,
@@ -43,22 +38,22 @@ interface CourseState {
 }
 
 type CourseAction =
-  | { type: 'SET_LOADING_COURSE'; payload: boolean }
-  | { type: 'ADD_COURSE'; payload: PopulatedCourse }
+  | {type: 'SET_LOADING_COURSE'; payload: boolean}
+  | {type: 'ADD_COURSE'; payload: PopulatedCourse}
   | {
       type: 'ADD_STUDENT_TO_COURSE'
-      payload: { courseId: string; course: PopulatedCourse }
+      payload: {courseId: string; course: PopulatedCourse}
     }
-  | { type: 'DELETE_COURSE'; payload: string }
+  | {type: 'DELETE_COURSE'; payload: string}
   | {
       type: 'REMOVE_STUDENT_FROM_COURSE'
-      payload: { courseId: string; course: PopulatedCourse }
+      payload: {courseId: string; course: PopulatedCourse}
     }
-  | { type: 'SET_COURSES'; payload: PopulatedCourse[] }
-  | { type: 'SET_TEACHER_COURSES'; payload: PopulatedCourse }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'UPDATE_COURSE'; payload: PopulatedCourse }
+  | {type: 'SET_COURSES'; payload: PopulatedCourse[]}
+  | {type: 'SET_TEACHER_COURSES'; payload: PopulatedCourse}
+  | {type: 'SET_ERROR'; payload: string | null}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'UPDATE_COURSE'; payload: PopulatedCourse}
 
 function courseReducer(state: CourseState, action: CourseAction): CourseState {
   switch (action.type) {
@@ -103,14 +98,10 @@ function courseReducer(state: CourseState, action: CourseAction): CourseState {
       return {
         ...state,
         courses: state.courses
-          .map((course) =>
-            course?.id === action?.payload?.id ? action.payload : course,
-          )
+          .map((course) => (course?.id === action?.payload?.id ? action.payload : course))
           .filter(Boolean), // Filtrer les valeurs null/undefined
         teacherCourses:
-          state.teacherCourses?.id === action?.payload?.id
-            ? action.payload
-            : state.teacherCourses,
+          state.teacherCourses?.id === action?.payload?.id ? action.payload : state.teacherCourses,
       }
 
     case 'DELETE_COURSE':
@@ -126,9 +117,7 @@ function courseReducer(state: CourseState, action: CourseAction): CourseState {
         ...state,
         courses: state.courses
           .map((course) =>
-            course?.id === action.payload?.courseId
-              ? action.payload.course
-              : course,
+            course?.id === action.payload?.courseId ? action.payload.course : course,
           )
           .filter(Boolean),
         teacherCourses:
@@ -142,9 +131,7 @@ function courseReducer(state: CourseState, action: CourseAction): CourseState {
   }
 }
 
-const getInitialState = (
-  initialData: PopulatedCourse[] | null,
-): CourseState => ({
+const getInitialState = (initialData: PopulatedCourse[] | null): CourseState => ({
   courses: (initialData as PopulatedCourse[]) || [],
   teacherCourses: null,
   isLoading: initialData ? false : true,
@@ -177,10 +164,7 @@ interface CourseContextType extends CourseState {
   getTeacherCourses: (teacherId: string) => Promise<PopulatedCourse>
   getCourseById: (courseId: string) => Promise<PopulatedCourse | null>
   getCourseByIdForStudent: (courseId: string) => Promise<PopulatedCourse | null>
-  removeStudentFromCourse: (
-    courseId: string,
-    studentId: string,
-  ) => Promise<void>
+  removeStudentFromCourse: (courseId: string, studentId: string) => Promise<void>
   updateCourse: (
     courseId: string,
     courseData: Omit<PopulatedCourse, 'students' | 'stats'>,
@@ -203,9 +187,7 @@ function compareTimeSlots(a: CourseSession, b: CourseSession) {
     [TimeSlotEnum.SUNDAY_MORNING]: 2,
   }
 
-  return (
-    timeSlotOrder[a.timeSlot.dayOfWeek] - timeSlotOrder[b.timeSlot.dayOfWeek]
-  )
+  return timeSlotOrder[a.timeSlot.dayOfWeek] - timeSlotOrder[b.timeSlot.dayOfWeek]
 }
 
 export const CoursesProvider = ({
@@ -215,18 +197,15 @@ export const CoursesProvider = ({
   children: ReactNode
   initialCourseData?: PopulatedCourse[] | null
 }) => {
-  const { toast } = useToast()
-  const [state, dispatch] = useReducer(
-    courseReducer,
-    getInitialState(initialCourseData),
-  )
-  const { data: session, status } = useSession()
+  const {toast} = useToast()
+  const [state, dispatch] = useReducer(courseReducer, getInitialState(initialCourseData))
+  const {data: session, status} = useSession()
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Course Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -239,7 +218,7 @@ export const CoursesProvider = ({
 
   const getCourseById = useCallback(
     async (id: string): Promise<PopulatedCourse | null> => {
-      dispatch({ type: 'SET_LOADING_COURSE', payload: true })
+      dispatch({type: 'SET_LOADING_COURSE', payload: true})
       try {
         const response = await getCourseByIdAction(id)
 
@@ -252,7 +231,7 @@ export const CoursesProvider = ({
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
       } finally {
-        dispatch({ type: 'SET_LOADING_COURSE', payload: false })
+        dispatch({type: 'SET_LOADING_COURSE', payload: false})
       }
     },
     [handleError],
@@ -288,11 +267,7 @@ export const CoursesProvider = ({
       },
     ): Promise<PopulatedCourse> => {
       try {
-        const response = await addStudentToCourseAction(
-          courseId,
-          studentId,
-          timeSlot,
-        )
+        const response = await addStudentToCourseAction(courseId, studentId, timeSlot)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to add student to course')
@@ -302,7 +277,7 @@ export const CoursesProvider = ({
 
         dispatch({
           type: 'ADD_STUDENT_TO_COURSE',
-          payload: { courseId, course: courseData },
+          payload: {courseId, course: courseData},
         })
 
         return courseData
@@ -315,26 +290,16 @@ export const CoursesProvider = ({
   )
 
   const checkTimeSlotOverlap = useCallback(
-    async (
-      timeSlot: TimeSlot,
-      userId: string,
-      excludeCourseId?: string,
-    ): Promise<boolean> => {
+    async (timeSlot: TimeSlot, userId: string, excludeCourseId?: string): Promise<boolean> => {
       try {
-        const response = await checkTimeSlotOverlapAction(
-          timeSlot,
-          userId,
-          excludeCourseId,
-        )
+        const response = await checkTimeSlotOverlapAction(timeSlot, userId, excludeCourseId)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Failed to check time slot overlap',
-          )
+          throw new Error(response.message || 'Failed to check time slot overlap')
         }
 
         const hasOverlap = response.data
-          ? (response.data as { hasOverlap: boolean }).hasOverlap
+          ? (response.data as {hasOverlap: boolean}).hasOverlap
           : false
 
         return hasOverlap
@@ -357,10 +322,7 @@ export const CoursesProvider = ({
 
         return response.data as unknown as PopulatedCourse[]
       } catch (error) {
-        handleError(
-          error as Error,
-          "Erreur lors de la récupération des cours de l'étudiant",
-        )
+        handleError(error as Error, "Erreur lors de la récupération des cours de l'étudiant")
         return []
       }
     },
@@ -369,10 +331,7 @@ export const CoursesProvider = ({
 
   const createCourse = useCallback(
     async (
-      courseData: Omit<
-        PopulatedCourse,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      >,
+      courseData: Omit<PopulatedCourse, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
     ): Promise<PopulatedCourse> => {
       try {
         const response = await createCourseAction(courseData)
@@ -383,7 +342,7 @@ export const CoursesProvider = ({
 
         const newCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({ type: 'ADD_COURSE', payload: newCourse })
+        dispatch({type: 'ADD_COURSE', payload: newCourse})
 
         toast({
           title: 'Succès',
@@ -411,7 +370,7 @@ export const CoursesProvider = ({
 
         const deletedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({ type: 'DELETE_COURSE', payload: courseId })
+        dispatch({type: 'DELETE_COURSE', payload: courseId})
 
         toast({
           title: 'Succès',
@@ -451,11 +410,7 @@ export const CoursesProvider = ({
           throw new Error(response.message || 'Failed to fetch teacher courses')
         }
 
-        if (
-          !response.data ||
-          !Array.isArray(response.data) ||
-          response.data.length === 0
-        ) {
+        if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
           throw new Error('Aucun cours trouvé pour ce professeur')
         }
 
@@ -477,10 +432,7 @@ export const CoursesProvider = ({
 
         return coursesWithSortedSessions
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la récupération des cours du professeur',
-        )
+        handleError(error as Error, 'Erreur lors de la récupération des cours du professeur')
         throw error
       }
     },
@@ -490,22 +442,17 @@ export const CoursesProvider = ({
   const removeStudentFromCourse = useCallback(
     async (courseId: string, studentId: string): Promise<void> => {
       try {
-        const response = await removeStudentFromCourseAction(
-          courseId,
-          studentId,
-        )
+        const response = await removeStudentFromCourseAction(courseId, studentId)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Failed to remove student from course',
-          )
+          throw new Error(response.message || 'Failed to remove student from course')
         }
 
         const courseData = response.data as unknown as PopulatedCourse
 
         dispatch({
           type: 'REMOVE_STUDENT_FROM_COURSE',
-          payload: { courseId, course: courseData },
+          payload: {courseId, course: courseData},
         })
 
         toast({
@@ -528,11 +475,7 @@ export const CoursesProvider = ({
       sameStudents: boolean,
     ): Promise<void> => {
       try {
-        const response = await updateCourseAction(
-          courseId,
-          courseData,
-          sameStudents,
-        )
+        const response = await updateCourseAction(courseId, courseData, sameStudents)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to update course')
@@ -540,7 +483,7 @@ export const CoursesProvider = ({
 
         const updatedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({ type: 'UPDATE_COURSE', payload: updatedCourse })
+        dispatch({type: 'UPDATE_COURSE', payload: updatedCourse})
 
         toast({
           title: 'Succès',
@@ -550,9 +493,7 @@ export const CoursesProvider = ({
         })
       } catch (error) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Erreur lors de la mise à jour du cours'
+          error instanceof Error ? error.message : 'Erreur lors de la mise à jour du cours'
         handleError(new Error(errorMessage))
         throw error
       }
@@ -567,12 +508,9 @@ export const CoursesProvider = ({
       return
     }
 
-    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({type: 'SET_LOADING', payload: true})
     try {
-      const response = await updateCoursesAction(
-        session.user.role,
-        session.user._id,
-      )
+      const response = await updateCoursesAction(session.user.role, session.user._id)
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to update courses')
@@ -580,12 +518,12 @@ export const CoursesProvider = ({
 
       const courseData = response.data as unknown as PopulatedCourse[]
       // console.log('Loaded courses data:', courseData.length)
-      dispatch({ type: 'SET_COURSES', payload: courseData })
+      dispatch({type: 'SET_COURSES', payload: courseData})
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des cours')
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
-      dispatch({ type: 'SET_LOADING_COURSE', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({type: 'SET_LOADING_COURSE', payload: false})
     }
   }, [handleError, session, status])
 
@@ -615,7 +553,7 @@ export const CoursesProvider = ({
 
         const courseData = response.data as unknown as PopulatedCourse
 
-        dispatch({ type: 'UPDATE_COURSE', payload: courseData })
+        dispatch({type: 'UPDATE_COURSE', payload: courseData})
 
         toast({
           title: 'Succès',
@@ -623,10 +561,7 @@ export const CoursesProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la mise à jour de la session',
-        )
+        handleError(error as Error, 'Erreur lors de la mise à jour de la session')
       }
     },
     [handleError, toast, session, status],
@@ -643,9 +578,7 @@ export const CoursesProvider = ({
     // Only load when authentication is ready
     if (status === 'authenticated' && session?.user) {
       // console.log('Session authenticated, loading courses data')
-      updateCourses().catch((err) =>
-        console.error('Failed to load initial courses data:', err),
-      )
+      updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
     } else if (status === 'loading') {
       // console.log('Auth session is still loading')
     }
@@ -686,9 +619,7 @@ export const CoursesProvider = ({
     ],
   )
 
-  return (
-    <CoursesContext.Provider value={value}>{children}</CoursesContext.Provider>
-  )
+  return <CoursesContext.Provider value={value}>{children}</CoursesContext.Provider>
 }
 
 export const useCourses = () => {

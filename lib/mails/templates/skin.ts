@@ -4,8 +4,7 @@ export const mailMessage = (
   messageLink: string,
   usage: string,
 ) => {
-  const greeting =
-    usage === 'bureau' ? 'Salam Aleykum,' : 'Salam Aleykum cher parent,'
+  const greeting = usage === 'bureau' ? 'Salam Aleykum,' : 'Salam Aleykum cher parent,'
 
   return `
   <!DOCTYPE html>

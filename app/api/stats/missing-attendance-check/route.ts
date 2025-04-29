@@ -1,13 +1,13 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/attendance.model'
-import { User } from '@/backend/models/user.model'
-import { generateWeekPeriods } from '@/lib/api.utils'
+import {Attendance} from '@/backend/models/attendance.model'
+import {User} from '@/backend/models/user.model'
+import {generateWeekPeriods} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
 
   if (!token || !token.user) {
     return NextResponse.json({
@@ -56,29 +56,24 @@ export async function GET(req: NextRequest) {
     const missingAttendances = []
 
     for (const session of teacher.teacherSessions) {
-      const { sessionTime } = session
+      const {sessionTime} = session
       const dayOfWeek = sessionTime.includes('Samedi') ? 6 : 0
 
       const attendances = await Attendance.find({
         teacher: teacher._id,
         session: session._id,
-        date: { $gte: startDate, $lte: endDate },
+        date: {$gte: startDate, $lte: endDate},
       })
 
-      const attendanceDates = new Set(
-        attendances.map((a) => a.date.toISOString().split('T')[0]),
-      )
+      const attendanceDates = new Set(attendances.map((a) => a.date.toISOString().split('T')[0]))
 
       const missingDates = weekPeriods
         .map((period) => {
           const expectedDate = new Date(period.start)
           expectedDate.setDate(
-            expectedDate.getDate() +
-              ((dayOfWeek - expectedDate.getDay() + 7) % 7),
+            expectedDate.getDate() + ((dayOfWeek - expectedDate.getDay() + 7) % 7),
           )
-          return expectedDate <= endDate
-            ? expectedDate.toISOString().split('T')[0]
-            : null
+          return expectedDate <= endDate ? expectedDate.toISOString().split('T')[0] : null
         })
         .filter((date) => date && !attendanceDates.has(date))
 

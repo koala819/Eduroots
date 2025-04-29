@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ChangeEvent, useState } from 'react'
+import React, {ChangeEvent, useState} from 'react'
 import ExcelJS from 'exceljs'
 
 // Définition des interfaces TypeScript
@@ -75,10 +75,7 @@ const ExcelConverter: React.FC = () => {
         let lastIndex = 0
 
         for (let i = 0; i < nameParts.length; i++) {
-          if (
-            nameParts[i] === nameParts[i].toUpperCase() &&
-            nameParts[i].length > 1
-          ) {
+          if (nameParts[i] === nameParts[i].toUpperCase() && nameParts[i].length > 1) {
             lastIndex = i
           } else {
             break // Premier mot qui n'est pas en majuscules
@@ -104,8 +101,7 @@ const ExcelConverter: React.FC = () => {
           if (dateParts.length === 3) {
             const day = dateParts[0].padStart(2, '0')
             const month = dateParts[1].padStart(2, '0')
-            const year =
-              dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
+            const year = dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
             dateOfBirth = `${year}-${month}-${day}`
           }
         }
@@ -115,11 +111,7 @@ const ExcelConverter: React.FC = () => {
       let gender = ''
       if (row['G']) {
         const genderValue = String(row['G']).trim().toUpperCase()
-        if (
-          genderValue === 'F' ||
-          genderValue === 'FEMININ' ||
-          genderValue === 'FÉMININ'
-        ) {
+        if (genderValue === 'F' || genderValue === 'FEMININ' || genderValue === 'FÉMININ') {
           gender = 'female'
         } else if (genderValue === 'M' || genderValue === 'MASCULIN') {
           gender = 'male'
@@ -224,7 +216,7 @@ const ExcelConverter: React.FC = () => {
       })
     } catch (error) {
       console.error('Erreur lors du traitement du fichier:', error)
-      setResult({ error: 'Erreur lors du traitement du fichier Excel' })
+      setResult({error: 'Erreur lors du traitement du fichier Excel'})
     }
 
     setLoading(false)
@@ -255,9 +247,7 @@ const ExcelConverter: React.FC = () => {
       </h1>
 
       <div className="mb-4 space-y-2">
-        <label className="block text-gray-700 mb-2">
-          Sélectionnez votre fichier Excel:
-        </label>
+        <label className="block text-gray-700 mb-2">Sélectionnez votre fichier Excel:</label>
         <input
           type="file"
           accept=".xlsx,.xls"
@@ -270,8 +260,7 @@ const ExcelConverter: React.FC = () => {
                    hover:file:bg-blue-100"
         />
         <p className="text-sm text-gray-600">
-          Le fichier Excel doit contenir les données dans les colonnes
-          suivantes:
+          Le fichier Excel doit contenir les données dans les colonnes suivantes:
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
           <li>Colonne B: Nom complet (généralement NOM Prénom)</li>
@@ -296,8 +285,8 @@ const ExcelConverter: React.FC = () => {
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-semibold">
-              Résultat JSON ({result.nonEmptyCount} enregistrements utiles sur{' '}
-              {result.recordCount} lignes)
+              Résultat JSON ({result.nonEmptyCount} enregistrements utiles sur {result.recordCount}{' '}
+              lignes)
             </h2>
             <button
               onClick={downloadResult}
@@ -313,19 +302,16 @@ const ExcelConverter: React.FC = () => {
 
           <div className="mt-4">
             <p className="text-sm text-gray-600">
-              Le fichier JSON généré est au format requis pour la comparaison
-              avec votre base de données. Les noms complets ont été séparés en
-              prénom et nom, et toutes les données sont formatées selon les
-              exigences de votre système.
+              Le fichier JSON généré est au format requis pour la comparaison avec votre base de
+              données. Les noms complets ont été séparés en prénom et nom, et toutes les données
+              sont formatées selon les exigences de votre système.
             </p>
           </div>
         </div>
       )}
 
       {result && result.error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {result.error}
-        </div>
+        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">{result.error}</div>
       )}
     </div>
   )

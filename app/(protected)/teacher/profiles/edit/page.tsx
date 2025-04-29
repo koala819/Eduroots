@@ -1,46 +1,37 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, CircleArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import {ChevronLeft, ChevronRight, CircleArrowLeft} from 'lucide-react'
+import {useEffect, useState} from 'react'
 import React from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import {CourseSession, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {Period, PeriodTypeEnum} from '@/types/schedule'
 
-import { PlanningEditor } from '@/components/atoms/client/PlanningEditor'
-import { HolidaysCard } from '@/components/atoms/server/HolidaysCard'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import {PlanningEditor} from '@/components/atoms/client/PlanningEditor'
+import {HolidaysCard} from '@/components/atoms/server/HolidaysCard'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 
-import { useCourses } from '@/context/Courses/client'
-import { useHolidays } from '@/context/Holidays/client'
-import { useSchedules } from '@/context/Schedules/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import {useCourses} from '@/context/Courses/client'
+import {useHolidays} from '@/context/Holidays/client'
+import {useSchedules} from '@/context/Schedules/client'
+import {formatDayOfWeek} from '@/lib/utils'
 
 const PlanningViewer = () => {
-  const { toast } = useToast()
-  const { courses, isLoading, updateCourses } = useCourses()
-  const { schedules, isLoading: loadingSchedules } = useSchedules()
-  const { holidays, isLoading: isLoadingHolidays } = useHolidays()
+  const {toast} = useToast()
+  const {courses, isLoading, updateCourses} = useCourses()
+  const {schedules, isLoading: loadingSchedules} = useSchedules()
+  const {holidays, isLoading: isLoadingHolidays} = useHolidays()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0)
-  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(
-    null,
-  )
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | null>(
-    null,
-  )
+  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null)
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | null>(null)
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -119,8 +110,7 @@ const PlanningViewer = () => {
     const periodsData = schedules[timeSlot]?.periods || []
     const hasClasses = periodsData.some(
       (period) =>
-        period.type === PeriodTypeEnum.CLASS &&
-        getSessionsForSlot(timeSlot, period).length > 0,
+        period.type === PeriodTypeEnum.CLASS && getSessionsForSlot(timeSlot, period).length > 0,
     )
 
     return (
@@ -139,9 +129,7 @@ const PlanningViewer = () => {
             <PlanningEditor
               timeSlot={timeSlot}
               sessions={periodsData.flatMap((period) =>
-                period.type === PeriodTypeEnum.CLASS
-                  ? getSessionsForSlot(timeSlot, period)
-                  : [],
+                period.type === PeriodTypeEnum.CLASS ? getSessionsForSlot(timeSlot, period) : [],
               )}
               periods={periodsData}
             />
@@ -161,48 +149,42 @@ const PlanningViewer = () => {
                     {period.startTime} - {period.endTime}
                   </div>
                   <div className="space-y-3">
-                    {getSessionsForSlot(timeSlot, period).map(
-                      (session, sessionIdx) => (
-                        <div
-                          key={`session-${sessionIdx}`}
-                          className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
-                          onClick={() => setSelectedSession(session)}
-                        >
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
-                            <div className="flex items-center mb-2 sm:mb-0">
-                              <div
-                                className={`h-7 px-3 rounded-full flex items-center justify-center mr-2 ${getSubjectBadgeColor(session.subject)}`}
-                              >
-                                <span className="text-xs font-medium">
-                                  {session.subject}
-                                </span>
-                              </div>
-                              <div className="h-7 px-3 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="text-blue-600 text-xs font-medium">
-                                  Niveau {session.level}
-                                </span>
-                              </div>
+                    {getSessionsForSlot(timeSlot, period).map((session, sessionIdx) => (
+                      <div
+                        key={`session-${sessionIdx}`}
+                        className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
+                        onClick={() => setSelectedSession(session)}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <div
+                              className={`h-7 px-3 rounded-full flex items-center justify-center mr-2 ${getSubjectBadgeColor(session.subject)}`}
+                            >
+                              <span className="text-xs font-medium">{session.subject}</span>
                             </div>
-                            <div className="h-7 px-3 rounded-full bg-gray-100 flex items-center justify-center">
-                              <span className="text-gray-600 text-xs font-medium">
-                                Salle {session.timeSlot.classroomNumber}
+                            <div className="h-7 px-3 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-blue-600 text-xs font-medium">
+                                Niveau {session.level}
                               </span>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {session.students?.length || 0} élèves
+                          <div className="h-7 px-3 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-gray-600 text-xs font-medium">
+                              Salle {session.timeSlot.classroomNumber}
+                            </span>
                           </div>
                         </div>
-                      ),
-                    )}
+                        <div className="text-sm text-gray-500">
+                          {session.students?.length || 0} élèves
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ),
             )
           ) : (
-            <div className="text-center py-6 text-gray-500">
-              Aucun cours programmé
-            </div>
+            <div className="text-center py-6 text-gray-500">Aucun cours programmé</div>
           )}
         </CardContent>
       </Card>
@@ -215,11 +197,11 @@ const PlanningViewer = () => {
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         />
       </div>
     )
@@ -264,9 +246,7 @@ const PlanningViewer = () => {
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-emerald-600" />
-              <span className="text-xs sm:text-sm text-gray-700">
-                {SubjectNameEnum.Arabe}
-              </span>
+              <span className="text-xs sm:text-sm text-gray-700">{SubjectNameEnum.Arabe}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-600" />
@@ -300,9 +280,7 @@ const PlanningViewer = () => {
           <Button variant="outline" size="icon" onClick={handlePrevDay}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-base font-semibold">
-            {formatDayOfWeek(timeSlots[currentDayIndex])}
-          </h2>
+          <h2 className="text-base font-semibold">{formatDayOfWeek(timeSlots[currentDayIndex])}</h2>
           <Button variant="outline" size="icon" onClick={handleNextDay}>
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -313,22 +291,16 @@ const PlanningViewer = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mt-4">
         <div className="lg:col-span-3">
           {/* Mobile - jour actuel uniquement */}
-          <div className="sm:hidden">
-            {renderTimeSlot(timeSlots[currentDayIndex])}
-          </div>
+          <div className="sm:hidden">{renderTimeSlot(timeSlots[currentDayIndex])}</div>
 
           {/* Desktop - selon le jour sélectionné ou tous les jours */}
           <div className="hidden sm:block">
             {selectedTimeSlot ? (
-              <div className="space-y-4">
-                {renderTimeSlot(selectedTimeSlot)}
-              </div>
+              <div className="space-y-4">{renderTimeSlot(selectedTimeSlot)}</div>
             ) : (
               <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {timeSlots.map((timeSlot) => (
-                  <React.Fragment key={timeSlot}>
-                    {renderTimeSlot(timeSlot)}
-                  </React.Fragment>
+                  <React.Fragment key={timeSlot}>{renderTimeSlot(timeSlot)}</React.Fragment>
                 ))}
               </div>
             )}
@@ -342,10 +314,7 @@ const PlanningViewer = () => {
       </div>
 
       {/* Session Details Dialog */}
-      <Dialog
-        open={!!selectedSession}
-        onOpenChange={() => setSelectedSession(null)}
-      >
+      <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Détails du cours</DialogTitle>
@@ -363,15 +332,11 @@ const PlanningViewer = () => {
                 </div>
                 <div className="space-y-1">
                   <div className="text-sm text-gray-500">Salle</div>
-                  <div className="font-medium">
-                    {selectedSession?.timeSlot.classroomNumber}
-                  </div>
+                  <div className="font-medium">{selectedSession?.timeSlot.classroomNumber}</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-sm text-gray-500">Élèves</div>
-                  <div className="font-medium">
-                    {selectedSession?.students?.length || 0}
-                  </div>
+                  <div className="font-medium">{selectedSession?.students?.length || 0}</div>
                 </div>
               </div>
             </div>
@@ -379,14 +344,9 @@ const PlanningViewer = () => {
             <div className="space-y-2">
               <h3 className="font-medium">Horaire</h3>
               <div className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded">
+                <div>{formatDayOfWeek(selectedSession?.timeSlot.dayOfWeek as TimeSlotEnum)}</div>
                 <div>
-                  {formatDayOfWeek(
-                    selectedSession?.timeSlot.dayOfWeek as TimeSlotEnum,
-                  )}
-                </div>
-                <div>
-                  {selectedSession?.timeSlot.startTime} -{' '}
-                  {selectedSession?.timeSlot.endTime}
+                  {selectedSession?.timeSlot.startTime} - {selectedSession?.timeSlot.endTime}
                 </div>
               </div>
             </div>

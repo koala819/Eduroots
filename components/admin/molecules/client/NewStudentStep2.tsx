@@ -1,34 +1,22 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import {useCallback, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
 
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { TeacherStats } from '@/types/stats'
-import { GenderEnum, Teacher } from '@/types/user'
+import {SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {TeacherStats} from '@/types/stats'
+import {GenderEnum, Teacher} from '@/types/user'
 
-import { TeacherOption } from '@/components/admin/atoms/client/NewStudentTeacherOption'
-import { FormData } from '@/components/admin/organisms/client/NewStudentForm'
-import { Card } from '@/components/ui/card'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import {TeacherOption} from '@/components/admin/atoms/client/NewStudentTeacherOption'
+import {FormData} from '@/components/admin/organisms/client/NewStudentForm'
+import {Card} from '@/components/ui/card'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 
-import { useCourses } from '@/context/Courses/client'
-import { useSchedules } from '@/context/Schedules/client'
-import { useStats } from '@/context/Stats/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import {useCourses} from '@/context/Courses/client'
+import {useSchedules} from '@/context/Schedules/client'
+import {useStats} from '@/context/Stats/client'
+import {formatDayOfWeek} from '@/lib/utils'
 
 interface StepTwoProps {
   form: UseFormReturn<FormData>
@@ -43,10 +31,10 @@ export interface TimeSlotSelection {
   teacherId: string
 }
 
-const StepTwo = ({ form, teachers }: StepTwoProps) => {
-  const { courses, isLoading: isCoursesLoading } = useCourses()
-  const { schedules, isLoading: isSchedulesLoading } = useSchedules()
-  const { teacherStats } = useStats()
+const StepTwo = ({form, teachers}: StepTwoProps) => {
+  const {courses, isLoading: isCoursesLoading} = useCourses()
+  const {schedules, isLoading: isSchedulesLoading} = useSchedules()
+  const {teacherStats} = useStats()
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>(
     form.getValues('timeSlot') || '',
@@ -63,16 +51,12 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
       {},
     )
   })
-  const [selections, setSelections] = useState<TimeSlotSelection[]>(
-    form.getValues('selections'),
-  )
+  const [selections, setSelections] = useState<TimeSlotSelection[]>(form.getValues('selections'))
 
   const isLoading = isCoursesLoading || isSchedulesLoading
 
   // Récupérer les sessions uniques pour le jour sélectionné
-  const availableSessions = selectedTimeSlot
-    ? schedules[selectedTimeSlot]?.periods || []
-    : []
+  const availableSessions = selectedTimeSlot ? schedules[selectedTimeSlot]?.periods || [] : []
 
   // Obtenir les professeurs disponibles pour un créneau et une matière donnés
   // Calculer les statistiques pour chaque professeur
@@ -104,19 +88,13 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
 
       // 3. Filtrer les enseignants disponibles
       return teachers
-        .filter(
-          (teacher) =>
-            teacherIds.has(teacher.id) || teacherIds.has(teacher._id),
-        )
+        .filter((teacher) => teacherIds.has(teacher.id) || teacherIds.has(teacher._id))
         .map((teacher) => {
           // 4. Chercher les statistiques correspondantes dans le contexte Stats
           const teacherId = teacher.id || teacher._id
           const statsFromContext = teacherStats.find(
             (stat) =>
-              stat &&
-              typeof stat === 'object' &&
-              'userId' in stat &&
-              stat.userId === teacherId,
+              stat && typeof stat === 'object' && 'userId' in stat && stat.userId === teacherId,
           )
 
           // 5. Créer un objet de statistiques correctement typé
@@ -140,13 +118,12 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
           }
 
           // 6. Fusionner avec les stats disponibles, en assurant le bon typage
-          let formattedStats: TeacherStats = { ...defaultStats }
+          const formattedStats: TeacherStats = {...defaultStats}
 
           if (statsFromContext && typeof statsFromContext === 'object') {
             // Extraire les données pertinentes et les convertir au bon format
             if ('totalStudents' in statsFromContext) {
-              formattedStats.totalStudents =
-                Number(statsFromContext.totalStudents) || 0
+              formattedStats.totalStudents = Number(statsFromContext.totalStudents) || 0
             }
 
             if (
@@ -164,21 +141,13 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
                 formattedStats.genderDistribution.counts = {
                   [GenderEnum.Masculin]:
                     Number(
-                      (genderDist.counts as { [key in GenderEnum]: number })[
-                        GenderEnum.Masculin
-                      ],
+                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Masculin],
                     ) || 0,
                   [GenderEnum.Feminin]:
                     Number(
-                      (genderDist.counts as { [key in GenderEnum]: number })[
-                        GenderEnum.Feminin
-                      ],
+                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Feminin],
                     ) || 0,
-                  undefined:
-                    Number(
-                      (genderDist.counts as { [key: string]: number })
-                        ?.undefined,
-                    ) || 0,
+                  undefined: Number((genderDist.counts as {[key: string]: number})?.undefined) || 0,
                 }
               }
 
@@ -190,21 +159,14 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
                 formattedStats.genderDistribution.percentages = {
                   [GenderEnum.Masculin]:
                     String(
-                      (genderDist.counts as { [key in GenderEnum]: number })[
-                        GenderEnum.Masculin
-                      ],
+                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Masculin],
                     ) || '0',
                   [GenderEnum.Feminin]:
                     String(
-                      (genderDist.counts as { [key in GenderEnum]: number })[
-                        GenderEnum.Feminin
-                      ],
+                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Feminin],
                     ) || '0',
                   undefined:
-                    String(
-                      (genderDist.percentages as { [key: string]: string })
-                        ?.undefined,
-                    ) || '0',
+                    String((genderDist.percentages as {[key: string]: string})?.undefined) || '0',
                 }
               }
             }
@@ -218,8 +180,7 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
             }
 
             if ('averageAge' in statsFromContext) {
-              formattedStats.averageAge =
-                Number(statsFromContext.averageAge) || 0
+              formattedStats.averageAge = Number(statsFromContext.averageAge) || 0
             }
           }
 
@@ -272,9 +233,7 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
   }
 
   function getTeacherName(teacherId: string) {
-    const teacher = teachers.find(
-      (t) => t.id === teacherId || t._id === teacherId,
-    )
+    const teacher = teachers.find((t) => t.id === teacherId || t._id === teacherId)
     return teacher ? `${teacher.firstname} ${teacher.lastname}` : ''
   }
 
@@ -296,14 +255,12 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
   return (
     <div className="space-y-4 md:space-y-6">
       <Card className="p-4 md:p-6">
-        <div className="text-base md:text-lg font-semibold mb-3 md:mb-4">
-          Sélection du créneau
-        </div>
+        <div className="text-base md:text-lg font-semibold mb-3 md:mb-4">Sélection du créneau</div>
 
         <FormField
           control={form.control}
           name="timeSlot"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className="space-y-3 md:space-y-4">
               <FormLabel>Jour</FormLabel>
               <Select
@@ -343,13 +300,12 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
         </Card>
       ) : (
         selectedTimeSlot &&
-        availableSessions.map(({ startTime, endTime }, index) => {
+        availableSessions.map(({startTime, endTime}, index) => {
           const timeSlotKey = `${startTime}-${endTime}`
           const existingSelection = form
             .getValues('selections')
             .find((s) => s.startTime === startTime && s.endTime === endTime)
-          const selectedSubject =
-            existingSelection?.subject || subjectSelections[timeSlotKey]
+          const selectedSubject = existingSelection?.subject || subjectSelections[timeSlotKey]
 
           return (
             <Card key={`${startTime}-${endTime}`} className="p-4 md:p-6">
@@ -387,22 +343,15 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
                   <FormField
                     control={form.control}
                     name={`selections.${index}.teacherId`}
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormLabel>Professeur</FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value)
-                            handleTeacherSelect(
-                              startTime,
-                              endTime,
-                              selectedSubject,
-                              value,
-                            )
+                            handleTeacherSelect(startTime, endTime, selectedSubject, value)
                           }}
-                          value={form.getValues(
-                            `selections.${index}.teacherId`,
-                          )}
+                          value={form.getValues(`selections.${index}.teacherId`)}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -412,19 +361,17 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {getAvailableTeachersWithStats(
-                              startTime,
-                              endTime,
-                              selectedSubject,
-                            ).map((teacher) => (
-                              <SelectItem
-                                key={teacher.id}
-                                value={teacher.id}
-                                className="py-2 md:py-3"
-                              >
-                                <TeacherOption teacher={teacher} />
-                              </SelectItem>
-                            ))}
+                            {getAvailableTeachersWithStats(startTime, endTime, selectedSubject).map(
+                              (teacher) => (
+                                <SelectItem
+                                  key={teacher.id}
+                                  value={teacher.id}
+                                  className="py-2 md:py-3"
+                                >
+                                  <TeacherOption teacher={teacher} />
+                                </SelectItem>
+                              ),
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -439,19 +386,12 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
       )}
       {selections.length > 0 && (
         <Card className="p-4 md:p-6 bg-muted">
-          <div className="text-base md:text-lg font-semibold mb-3 md:mb-4">
-            Récapitulatif
-          </div>
+          <div className="text-base md:text-lg font-semibold mb-3 md:mb-4">Récapitulatif</div>
           <div className="space-y-3 md:space-y-4">
-            <div className="font-medium">
-              {formatDayOfWeek(selectedTimeSlot as TimeSlotEnum)}
-            </div>
+            <div className="font-medium">{formatDayOfWeek(selectedTimeSlot as TimeSlotEnum)}</div>
             <div className="grid gap-3 md:gap-4">
               {selections.map((selection, index) => (
-                <div
-                  key={index}
-                  className="pl-3 md:pl-4 border-l-2 border-primary"
-                >
+                <div key={index} className="pl-3 md:pl-4 border-l-2 border-primary">
                   <div className="font-medium text-sm md:text-base">
                     {selection.startTime} - {selection.endTime}
                   </div>
@@ -459,8 +399,7 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
                     {selection.subject}
                   </div>
                   <div className="text-xs md:text-sm">
-                    Prof :{' '}
-                    {selection.teacherId && getTeacherName(selection.teacherId)}
+                    Prof : {selection.teacherId && getTeacherName(selection.teacherId)}
                   </div>
                 </div>
               ))}

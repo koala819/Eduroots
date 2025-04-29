@@ -1,17 +1,17 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import {useCallback, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
 
-import { Session } from 'next-auth'
+import {Session} from 'next-auth'
 
-import { StudentDocument } from '@/types/mongoose'
-import { Student } from '@/types/user'
-import { FormFields, SelectionModeType } from '@/types/writeMessage'
+import {StudentDocument} from '@/types/mongoose'
+import {Student} from '@/types/user'
+import {FormFields, SelectionModeType} from '@/types/writeMessage'
 
-import { RecipientForAdmin } from '@/components/admin/molecules/client/MessageRecipientSelectionForAdmin'
-import { RecipientForStudent } from '@/components/molecules/client/MessageRecipientSelectionForStudent'
-import { RecipientForTeacher } from '@/components/molecules/client/MessageRecipientSelectionForTeacher'
+import {RecipientForAdmin} from '@/components/admin/molecules/client/MessageRecipientSelectionForAdmin'
+import {RecipientForStudent} from '@/components/molecules/client/MessageRecipientSelectionForStudent'
+import {RecipientForTeacher} from '@/components/molecules/client/MessageRecipientSelectionForTeacher'
 
 interface RecipientSelectionProps {
   form: UseFormReturn<FormFields>

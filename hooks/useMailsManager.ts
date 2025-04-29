@@ -1,16 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
-import { toast } from 'react-toastify'
+import {useCallback, useMemo, useState} from 'react'
+import {toast} from 'react-toastify'
 
-import { Session } from 'next-auth'
+import {Session} from 'next-auth'
 
-import { Mail } from '@/types/models'
+import {Mail} from '@/types/models'
 
-import {
-  deleteMail,
-  getMail,
-  getSentMails,
-  onClickMail,
-} from '@/app/actions/mails'
+import {deleteMail, getMail, getSentMails, onClickMail} from '@/app/actions/mails'
 
 export function useMailsManager(session: Session, isSentbox: boolean) {
   const [rawMessages, setRawMessages] = useState<Mail[]>([])
@@ -20,11 +15,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
   const messages = useMemo(() => {
     // console.log('useMailsManager: Filtering messages, rawMessages length:', rawMessages?.length)
 
-    if (
-      !rawMessages ||
-      !Array.isArray(rawMessages) ||
-      rawMessages.length === 0
-    ) {
+    if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
       // console.log('useMailsManager: No messages to filter')
       return []
     }
@@ -54,10 +45,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
         // console.log('useMailsManager: Message not deleted (default case)')
         return !message.isDeleted
       })
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     // console.log(
     //   'useMailsManager: Final filtered messages length:',
@@ -127,9 +115,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
 
         setRawMessages((prev) => {
           const updatedMessages = [...prev]
-          const targetMessage = updatedMessages.find(
-            (msg) => msg._id === messageToDelete._id,
-          )
+          const targetMessage = updatedMessages.find((msg) => msg._id === messageToDelete._id)
 
           if (targetMessage) {
             if (typeof targetMessage.isDeleted === 'object') {
@@ -174,9 +160,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
 
         setRawMessages((prev) => {
           const updatedMessages = [...prev]
-          const targetMessage = updatedMessages.find(
-            (msg) => msg._id === clickedMessage._id,
-          )
+          const targetMessage = updatedMessages.find((msg) => msg._id === clickedMessage._id)
 
           if (targetMessage) {
             targetMessage.isRead = !targetMessage.isRead // Inverse l'état localement aussi

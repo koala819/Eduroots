@@ -1,45 +1,40 @@
 'use client'
 
-import { CircleArrowLeft, Loader2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {CircleArrowLeft, Loader2} from 'lucide-react'
+import {useSession} from 'next-auth/react'
+import {useState} from 'react'
+import {useForm} from 'react-hook-form'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { MessageAttachmentUploader as AttachmentField } from '@/components/atoms/client/MessageAttachmentUploader '
-import { MessageEditor } from '@/components/atoms/client/MessageEditor'
-import { SubjectField } from '@/components/atoms/client/MessageSubjectField'
-import { StepsNavigation } from '@/components/atoms/server/MessageStepsNavigation'
-import { RecipientSelection } from '@/components/molecules/client/MessageRecipientSelection'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Form } from '@/components/ui/form'
+import {MessageAttachmentUploader as AttachmentField} from '@/components/atoms/client/MessageAttachmentUploader '
+import {MessageEditor} from '@/components/atoms/client/MessageEditor'
+import {SubjectField} from '@/components/atoms/client/MessageSubjectField'
+import {StepsNavigation} from '@/components/atoms/server/MessageStepsNavigation'
+import {RecipientSelection} from '@/components/molecules/client/MessageRecipientSelection'
+import {Button} from '@/components/ui/button'
+import {Card} from '@/components/ui/card'
+import {Form} from '@/components/ui/form'
 
-import { sendMail } from '@/app/actions/mails'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import {sendMail} from '@/app/actions/mails'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {z} from 'zod'
 
 const messageSchema = z.object({
-  recipients: z
-    .array(z.string())
-    .min(1, { message: 'Sélectionnez au moins un destinataire' }),
-  subject: z.string().min(1, { message: 'Le sujet est requis' }),
-  message: z.string().min(1, { message: 'Le message ne peut pas être vide' }),
+  recipients: z.array(z.string()).min(1, {message: 'Sélectionnez au moins un destinataire'}),
+  subject: z.string().min(1, {message: 'Le sujet est requis'}),
+  message: z.string().min(1, {message: 'Le message ne peut pas être vide'}),
   attachment: z.any().optional(),
 })
 
 export type MessageFormData = z.infer<typeof messageSchema>
 
 export function MessageWrite() {
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
-  if (!session || !session.user) {
-    return null
-  }
-  const { toast } = useToast()
+  const {toast} = useToast()
   const router = useRouter()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
@@ -60,12 +55,10 @@ export function MessageWrite() {
         recipients: z.array(z.string()).min(1),
       }),
     ),
-    defaultValues: { recipients: [] },
+    defaultValues: {recipients: []},
   })
 
-  const messageForm = useForm<
-    Pick<MessageFormData, 'subject' | 'message' | 'attachment'>
-  >({
+  const messageForm = useForm<Pick<MessageFormData, 'subject' | 'message' | 'attachment'>>({
     resolver: zodResolver(
       z.object({
         subject: z.string().min(1),
@@ -80,7 +73,11 @@ export function MessageWrite() {
     },
   })
 
-  const handleStep1Submit = (data: Pick<MessageFormData, 'recipients'>) => {
+  if (!session || !session.user) {
+    return null
+  }
+
+  function handleStep1Submit(data: Pick<MessageFormData, 'recipients'>) {
     const newFormState = {
       recipients: data.recipients,
       validEmails,
@@ -89,9 +86,9 @@ export function MessageWrite() {
     setCurrentStep(2)
   }
 
-  const handleStep2Submit = async (
+  async function handleStep2Submit(
     data: Pick<MessageFormData, 'subject' | 'message' | 'attachment'>,
-  ) => {
+  ) {
     if (isSending) return
 
     try {
@@ -121,10 +118,9 @@ export function MessageWrite() {
           },
         }
       })
-
       formData.append('recipientInfo', JSON.stringify(recipientInfo))
-      formData.append('recipientId', session.user.id)
-      formData.append('recipientType', session.user.role)
+      formData.append('recipientId', session?.user?.id ?? '')
+      formData.append('recipientType', session?.user?.role ?? '')
       formData.append('subject', data.subject)
       formData.append('message', data.message)
 
@@ -137,32 +133,23 @@ export function MessageWrite() {
 
       // Utilisation de l'action serveur
       const result = await sendMail(formData, {
-        firstname: session.user.firstname,
-        lastname: session.user.lastname,
+        firstname: session?.user?.firstname ?? '',
+        lastname: session?.user?.lastname ?? '',
       })
 
       if (result.success) {
         toast({
           title: 'Message envoyé !',
-          description:
-            result.message || 'Votre message a été envoyé avec succès.',
+          description: result.message || 'Votre message a été envoyé avec succès.',
         })
-
         // Rediriger vers la page des messages envoyés
-        if (session.user.role === 'bureau')
-          router.push(
-            `${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/messages/sent`,
-          )
+        if (session?.user?.role === 'bureau')
+          router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/messages/sent`)
         else
-          router.push(
-            `${process.env.NEXT_PUBLIC_CLIENT_URL}/${session.user.role}/messages/sent`,
-          )
+          router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/${session?.user?.role}/messages/sent`)
         messageForm.reset()
       } else {
-        throw new Error(
-          result.message ||
-            "Une erreur est survenue lors de l'envoi du message",
-        )
+        throw new Error(result.message || "Une erreur est survenue lors de l'envoi du message")
       }
     } catch (error) {
       toast({
@@ -186,21 +173,14 @@ export function MessageWrite() {
       <div className="p-6">
         {currentStep === 1 && (
           <Form {...recipientsForm}>
-            <form
-              onSubmit={recipientsForm.handleSubmit(handleStep1Submit)}
-              className="space-y-6"
-            >
+            <form onSubmit={recipientsForm.handleSubmit(handleStep1Submit)} className="space-y-6">
               <RecipientSelection
                 form={recipientsForm}
                 session={session}
                 onValidEmailsChange={setValidEmails}
                 userRole={session?.user.role}
               />
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={!validEmails.length}
-              >
+              <Button type="submit" className="w-full" disabled={!validEmails.length}>
                 {validEmails.length ? 'Continuer' : 'Choisir un destinataire'}
               </Button>
             </form>
@@ -209,15 +189,10 @@ export function MessageWrite() {
 
         {currentStep === 2 && (
           <Form {...messageForm}>
-            <form
-              onSubmit={messageForm.handleSubmit(handleStep2Submit)}
-              className="space-y-6"
-            >
+            <form onSubmit={messageForm.handleSubmit(handleStep2Submit)} className="space-y-6">
               <SubjectField form={messageForm} />
               <MessageEditor form={messageForm} />
-              {session?.user?.role === 'teacher' && (
-                <AttachmentField form={messageForm} />
-              )}
+              {session?.user?.role === 'teacher' && <AttachmentField form={messageForm} />}
               {loadingStatus && (
                 <div className="flex items-center justify-center text-sm text-muted-foreground">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

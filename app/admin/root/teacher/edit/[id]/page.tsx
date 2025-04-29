@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
-import { EditTeacherForm } from '@/components/root/EditTeacherForm'
+import {EditTeacherForm} from '@/components/root/EditTeacherForm'
 
 export const metadata: Metadata = {
   title: 'Modifier un Enseignant',
@@ -8,6 +8,6 @@ export const metadata: Metadata = {
     canonical: `${process.env.CLIENT_URL}/admin/root/teacher/edit`,
   },
 }
-export default function EditPage({ params }: any) {
+export default function EditPage({params}: any) {
   return <EditTeacherForm id={params.id} />
 }

@@ -1,11 +1,11 @@
-import { TimeSlotEnum } from '@/types/course'
-import { ButtonVariant, ThemeConfig } from '@/types/models'
-import { PeriodTypeEnum } from '@/types/schedule'
-import { SerializableDate } from '@/types/stats'
+import {TimeSlotEnum} from '@/types/course'
+import {ButtonVariant, ThemeConfig} from '@/types/models'
+import {PeriodTypeEnum} from '@/types/schedule'
+import {SerializableDate} from '@/types/stats'
 
-import { type ClassValue, clsx } from 'clsx'
-import { addWeeks, isAfter } from 'date-fns'
-import { twMerge } from 'tailwind-merge'
+import {type ClassValue, clsx} from 'clsx'
+import {addWeeks, isAfter} from 'date-fns'
+import {twMerge} from 'tailwind-merge'
 
 export function capitalizeFirstLetter(string: string): string {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
@@ -184,8 +184,7 @@ export function createDefaultSchedule(academicYear: string, updatedBy: string) {
 
 export function formatName(firstname: string, lastname: string) {
   return {
-    firstName:
-      firstname.charAt(0).toUpperCase() + firstname.slice(1).toLowerCase(),
+    firstName: firstname.charAt(0).toUpperCase() + firstname.slice(1).toLowerCase(),
     lastName: lastname.toUpperCase(),
   }
 }
@@ -209,15 +208,11 @@ export function formatAdminConfigTitle(title: string) {
   return title
 }
 
-export function generateDefaultTheme(
-  role: 'teacher' | 'student' | 'bureau',
-): ThemeConfig {
+export function generateDefaultTheme(role: 'teacher' | 'student' | 'bureau'): ThemeConfig {
   const buttonVariants = {} as Record<ButtonVariant, string>
-  ;(['Cancel', 'Default', 'Secondary', 'Tertiary', 'Warning'] as const).forEach(
-    (variant) => {
-      buttonVariants[`${role}${variant}` as ButtonVariant] = ''
-    },
-  )
+  ;(['Cancel', 'Default', 'Secondary', 'Tertiary', 'Warning'] as const).forEach((variant) => {
+    buttonVariants[`${role}${variant}` as ButtonVariant] = ''
+  })
 
   return {
     buttonVariants,
@@ -273,9 +268,7 @@ export function generateWeeklyDates(timeSlot: TimeSlotEnum): Date[] {
   // Ajuster endDate au prochain jour correct après les vacances
   while (
     endDate.getDay() !== dayNumber ||
-    HOLIDAYS.some(
-      (holiday) => endDate >= holiday.start && endDate <= holiday.end,
-    )
+    HOLIDAYS.some((holiday) => endDate >= holiday.start && endDate <= holiday.end)
   ) {
     endDate.setDate(endDate.getDate() + 1)
   }

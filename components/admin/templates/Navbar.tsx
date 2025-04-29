@@ -1,20 +1,20 @@
 'use client'
 
-import { Calendar, Home, MessageSquare } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
-import { useState } from 'react'
+import {Calendar, Home, MessageSquare} from 'lucide-react'
+import {signOut, useSession} from 'next-auth/react'
+import {useState} from 'react'
 
-import { usePathname } from 'next/navigation'
+import {usePathname} from 'next/navigation'
 
-import { NavbarDesktop } from '@/components/admin/atoms/NavbarDesktop'
-import { NavbarMobile } from '@/components/admin/atoms/NavbarMobile'
+import {NavbarDesktop} from '@/components/admin/atoms/NavbarDesktop'
+import {NavbarMobile} from '@/components/admin/atoms/NavbarMobile'
 
 type AdminNavbarProps = {
   handleNavClick: (href: string) => void
 }
 
-export function AdminNavbar({ handleNavClick }: AdminNavbarProps) {
-  const { data: session } = useSession()
+export function AdminNavbar({handleNavClick}: AdminNavbarProps) {
+  const {data: session} = useSession()
   const pathname = usePathname()
 
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false)

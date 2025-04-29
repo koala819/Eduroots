@@ -1,11 +1,11 @@
-import { Clock } from 'lucide-react'
+import {Clock} from 'lucide-react'
 
-import { TimeSlotEnum } from '@/types/course'
+import {TimeSlotEnum} from '@/types/course'
 
 interface TimeSlotConfig {
   id: TimeSlotEnum
   label: string
-  sessions: Array<{ startTime: string; endTime: string }>
+  sessions: Array<{startTime: string; endTime: string}>
 }
 
 interface TimeSlotCardProps {
@@ -14,11 +14,7 @@ interface TimeSlotCardProps {
   onSelect: (id: TimeSlotEnum) => void
 }
 
-export const TimeSlotCard = ({
-  config,
-  isSelected,
-  onSelect,
-}: TimeSlotCardProps) => {
+export const TimeSlotCard = ({config, isSelected, onSelect}: TimeSlotCardProps) => {
   const firstSession = config.sessions[0]
   const lastSession = config.sessions[config.sessions.length - 1]
   const timeRange = `${firstSession.startTime} - ${lastSession.endTime}`

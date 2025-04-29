@@ -1,4 +1,4 @@
-import { fetchWithAuth } from '../../../lib/fetchWithAuth'
+import {fetchWithAuth} from '../../../lib/fetchWithAuth'
 
 jest.mock('../../../lib/fetchWithAuth', () => ({
   fetchWithAuth: jest.fn(),
@@ -29,7 +29,7 @@ describe('Attendance API Endpoints', () => {
   // })
 
   it('createAttendanceRecord() : [POST] /api/attendance - should create new attendance record', async () => {
-    const mockData = { id: '1', isPresent: true }
+    const mockData = {id: '1', isPresent: true}
     const newAttendance = {
       studentId: '123',
       sessionId: '456',
@@ -59,7 +59,7 @@ describe('Attendance API Endpoints', () => {
 
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
-      data: { success: true },
+      data: {success: true},
     })
 
     const response = await fetchWithAuth(`/api/attendance/${recordId}`, {
@@ -91,22 +91,22 @@ describe('Attendance API Endpoints', () => {
 
     const response = await fetchWithAuth(
       `/api/attendance/check?teacherId=${teacherId}&sessionId=${sessionId}`,
-      { method: 'GET' },
+      {method: 'GET'},
     )
 
     expect(response.status).toBe(200)
     expect(response.data).toEqual(mockCheckData)
     expect(fetchWithAuth).toHaveBeenCalledWith(
       `/api/attendance/check?teacherId=${teacherId}&sessionId=${sessionId}`,
-      { method: 'GET' },
+      {method: 'GET'},
     )
   })
 
   it('getStudentAttendanceHistory() : [GET] /api/attendance/student/:id - should fetch student attendance history', async () => {
     const studentId = '123'
     const mockHistory = [
-      { id: '1', date: '2024-01-01', isPresent: true },
-      { id: '2', date: '2024-01-02', isPresent: false },
+      {id: '1', date: '2024-01-01', isPresent: true},
+      {id: '2', date: '2024-01-02', isPresent: false},
     ]
 
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
@@ -114,29 +114,25 @@ describe('Attendance API Endpoints', () => {
       data: mockHistory,
     })
 
-    const response = await fetchWithAuth(
-      `/api/attendance/student/${studentId}`,
-      {
-        method: 'GET',
-      },
-    )
+    const response = await fetchWithAuth(`/api/attendance/student/${studentId}`, {
+      method: 'GET',
+    })
 
     expect(response.status).toBe(200)
     expect(response.data).toEqual(mockHistory)
-    expect(fetchWithAuth).toHaveBeenCalledWith(
-      `/api/attendance/student/${studentId}`,
-      { method: 'GET' },
-    )
+    expect(fetchWithAuth).toHaveBeenCalledWith(`/api/attendance/student/${studentId}`, {
+      method: 'GET',
+    })
   })
 
   it('refreshAttendanceData() : [GET] /api/attendance - should fetch all attendance records', async () => {
-    const mockData = [{ id: '1', isPresent: true }]
+    const mockData = [{id: '1', isPresent: true}]
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
       data: mockData,
     })
 
-    const response = await fetchWithAuth('/api/attendance', { method: 'GET' })
+    const response = await fetchWithAuth('/api/attendance', {method: 'GET'})
     expect(response.status).toBe(200)
     expect(response.data).toEqual(mockData)
     expect(fetchWithAuth).toHaveBeenCalledWith('/api/attendance', {
@@ -175,21 +171,17 @@ describe('Attendance API Endpoints', () => {
 
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
-      data: { id: recordId, isActive: true },
+      data: {id: recordId, isActive: true},
     })
 
-    const response = await fetchWithAuth(
-      `/api/attendance/${recordId}/restore`,
-      {
-        method: 'PUT',
-      },
-    )
+    const response = await fetchWithAuth(`/api/attendance/${recordId}/restore`, {
+      method: 'PUT',
+    })
 
     expect(response.status).toBe(200)
-    expect(fetchWithAuth).toHaveBeenCalledWith(
-      `/api/attendance/${recordId}/restore`,
-      { method: 'PUT' },
-    )
+    expect(fetchWithAuth).toHaveBeenCalledWith(`/api/attendance/${recordId}/restore`, {
+      method: 'PUT',
+    })
   })
 
   it('softDeleteAttendance() : [PUT] /api/attendance/:id/soft-delete - should soft delete attendance', async () => {
@@ -197,30 +189,26 @@ describe('Attendance API Endpoints', () => {
 
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
-      data: { id: recordId, isActive: false },
+      data: {id: recordId, isActive: false},
     })
 
-    const response = await fetchWithAuth(
-      `/api/attendance/${recordId}/soft-delete`,
-      {
-        method: 'PUT',
-      },
-    )
+    const response = await fetchWithAuth(`/api/attendance/${recordId}/soft-delete`, {
+      method: 'PUT',
+    })
 
     expect(response.status).toBe(200)
-    expect(fetchWithAuth).toHaveBeenCalledWith(
-      `/api/attendance/${recordId}/soft-delete`,
-      { method: 'PUT' },
-    )
+    expect(fetchWithAuth).toHaveBeenCalledWith(`/api/attendance/${recordId}/soft-delete`, {
+      method: 'PUT',
+    })
   })
 
   it('updateAttendanceRecord() : [PUT] /api/attendance/:id - should update attendance record', async () => {
     const recordId = '123'
-    const updateData = { isPresent: false }
+    const updateData = {isPresent: false}
 
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
-      data: { id: recordId, ...updateData },
+      data: {id: recordId, ...updateData},
     })
 
     const response = await fetchWithAuth(`/api/attendance/${recordId}`, {
@@ -262,7 +250,7 @@ describe('Attendance API Endpoints', () => {
     ;(fetchWithAuth as jest.Mock).mockRejectedValueOnce(error)
 
     try {
-      await fetchWithAuth('/api/attendance', { method: 'GET' })
+      await fetchWithAuth('/api/attendance', {method: 'GET'})
     } catch (e) {
       expect(e).toEqual(error)
     }

@@ -3,17 +3,14 @@
 /**
  * Types pour représenter les valeurs spéciales MongoDB après sérialisation
  */
-type SerializedDate = { $date: string }
-type SerializedObjectId = { $oid: string }
-type SerializedBinary = { $binary: string }
+type SerializedDate = {$date: string}
+type SerializedObjectId = {$oid: string}
+type SerializedBinary = {$binary: string}
 
 /**
  * Type union pour les valeurs spéciales après sérialisation
  */
-type SerializedSpecialValue =
-  | SerializedDate
-  | SerializedObjectId
-  | SerializedBinary
+type SerializedSpecialValue = SerializedDate | SerializedObjectId | SerializedBinary
 
 /**
  * Type récursif pour représenter une valeur sérialisée
@@ -26,7 +23,7 @@ export type SerializedValue =
   | boolean
   | SerializedSpecialValue
   | SerializedValue[]
-  | { [key: string]: SerializedValue }
+  | {[key: string]: SerializedValue}
 
 /**
  * Méthode simple, robuste et sûre pour sérialiser des données Mongoose
@@ -46,7 +43,7 @@ export function serializeData<T>(data: T): SerializedValue {
       JSON.stringify(data, (key, value) => {
         // Gérer les dates
         if (value instanceof Date) {
-          return { $date: value.toISOString() } as SerializedDate
+          return {$date: value.toISOString()} as SerializedDate
         }
 
         // Gérer les ObjectId
@@ -57,12 +54,12 @@ export function serializeData<T>(data: T): SerializedValue {
           value._bsontype === 'ObjectID' &&
           typeof value.toString === 'function'
         ) {
-          return { $oid: value.toString() } as SerializedObjectId
+          return {$oid: value.toString()} as SerializedObjectId
         }
 
         // Gérer les Buffer (comme dans les ObjectId)
         if (Buffer.isBuffer(value)) {
-          return { $binary: value.toString('hex') } as SerializedBinary
+          return {$binary: value.toString('hex')} as SerializedBinary
         }
 
         // Par défaut, retourner la valeur telle quelle
@@ -98,12 +95,12 @@ function hasToObject(obj: unknown): obj is WithToObject {
 /**
  * Type guard pour vérifier si un objet a une méthode toString
  */
-function hasToString(obj: unknown): obj is { toString: () => string } {
+function hasToString(obj: unknown): obj is {toString: () => string} {
   return (
     obj !== null &&
     typeof obj === 'object' &&
     'toString' in obj &&
-    typeof (obj as { toString: () => string }).toString === 'function'
+    typeof (obj as {toString: () => string}).toString === 'function'
   )
 }
 
@@ -150,9 +147,7 @@ function simpleSerialization(data: unknown): SerializedValue {
       hasToString((data as Record<string, unknown>)[key])
     ) {
       // Convertir ObjectId en string
-      result[key] = (data as Record<string, { toString: () => string }>)[
-        key
-      ].toString()
+      result[key] = (data as Record<string, {toString: () => string}>)[key].toString()
     } else if (key === '__v' || key === '_doc' || key.startsWith('$')) {
       // Ignorer ces propriétés internes
       continue

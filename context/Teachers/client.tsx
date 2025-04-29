@@ -1,6 +1,5 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import {
   ReactNode,
   createContext,
@@ -11,11 +10,11 @@ import {
   useReducer,
 } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { Course, GroupedStudents } from '@/types/course'
-import { StudentDocument } from '@/types/mongoose'
-import { Student, Teacher } from '@/types/user'
+import {GroupedStudents} from '@/types/course'
+import {StudentDocument} from '@/types/mongoose'
+import {Student, Teacher} from '@/types/user'
 
 import {
   createTeacher as createTeacherAction,
@@ -41,24 +40,21 @@ interface TeachersProviderProps {
 }
 
 type TeacherAction =
-  | { type: 'SET_TEACHERS'; payload: Teacher[] }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'ADD_TEACHER'; payload: Teacher }
-  | { type: 'UPDATE_TEACHER'; payload: Teacher }
-  | { type: 'DELETE_TEACHER'; payload: string }
-  | { type: 'SET_STUDENTS'; payload: StudentDocument[] }
-  | { type: 'SET_GROUPED_STUDENTS'; payload: GroupedStudents[] }
-  | { type: 'SET_SELECTED_COURSE_ID'; payload: string }
+  | {type: 'SET_TEACHERS'; payload: Teacher[]}
+  | {type: 'SET_LOADING'; payload: boolean}
+  | {type: 'SET_ERROR'; payload: string | null}
+  | {type: 'ADD_TEACHER'; payload: Teacher}
+  | {type: 'UPDATE_TEACHER'; payload: Teacher}
+  | {type: 'DELETE_TEACHER'; payload: string}
+  | {type: 'SET_STUDENTS'; payload: StudentDocument[]}
+  | {type: 'SET_GROUPED_STUDENTS'; payload: GroupedStudents[]}
+  | {type: 'SET_SELECTED_COURSE_ID'; payload: string}
   | {
       type: 'UPDATE_TEACHER_STATS'
-      payload: { id: string; stats: Teacher['stats'] }
+      payload: {id: string; stats: Teacher['stats']}
     }
 
-function teacherReducer(
-  state: TeacherState,
-  action: TeacherAction,
-): TeacherState {
+function teacherReducer(state: TeacherState, action: TeacherAction): TeacherState {
   switch (action.type) {
     case 'SET_SELECTED_COURSE_ID':
       return {
@@ -81,7 +77,7 @@ function teacherReducer(
         isLoading: action.payload,
       }
     case 'SET_ERROR':
-      return { ...state, error: action.payload }
+      return {...state, error: action.payload}
     case 'ADD_TEACHER':
       return {
         ...state,
@@ -97,9 +93,7 @@ function teacherReducer(
     case 'DELETE_TEACHER':
       return {
         ...state,
-        teachers: state.teachers.filter(
-          (teacher) => teacher.id !== action.payload,
-        ),
+        teachers: state.teachers.filter((teacher) => teacher.id !== action.payload),
       }
     case 'SET_GROUPED_STUDENTS':
       return {
@@ -110,9 +104,7 @@ function teacherReducer(
       return {
         ...state,
         teachers: state.teachers.map((teacher) =>
-          teacher.id === action.payload.id
-            ? { ...teacher, stats: action.payload.stats }
-            : teacher,
+          teacher.id === action.payload.id ? {...teacher, stats: action.payload.stats} : teacher,
         ),
       }
     default:
@@ -134,11 +126,8 @@ interface TeacherContextType extends TeacherState {
 
 const TeacherContext = createContext<TeacherContextType | null>(null)
 
-export const TeacherProvider = ({
-  children,
-  initialTeachersData = null,
-}: TeachersProviderProps) => {
-  const { toast } = useToast()
+export const TeacherProvider = ({children, initialTeachersData = null}: TeachersProviderProps) => {
+  const {toast} = useToast()
 
   // Utiliser les données initiales si disponibles
   const initialState: TeacherState = {
@@ -156,7 +145,7 @@ export const TeacherProvider = ({
     (error: Error, customMessage?: string) => {
       console.error('Teacher Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
+      dispatch({type: 'SET_ERROR', payload: errorMessage})
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -168,19 +157,18 @@ export const TeacherProvider = ({
   )
 
   const setSelectedCourseId = useCallback((id: string) => {
-    dispatch({ type: 'SET_SELECTED_COURSE_ID', payload: id })
+    dispatch({type: 'SET_SELECTED_COURSE_ID', payload: id})
   }, [])
 
   const handleGetStudentsByTeacher = useCallback(
     async (teacherId: string): Promise<Student[]> => {
-      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({type: 'SET_LOADING', payload: true})
       try {
         const response = await getStudentsByTeacherAction(teacherId)
 
         if (!response.success) {
           throw new Error(
-            response.message ||
-              'Erreur lors de la récupération des étudiants du professeur',
+            response.message || 'Erreur lors de la récupération des étudiants du professeur',
           )
         }
 
@@ -197,22 +185,17 @@ export const TeacherProvider = ({
         })
 
         // Conversion en tableau et parsing des étudiants uniques
-        const uniqueStudents = Array.from(allStudents).map((student: string) =>
-          JSON.parse(student),
-        )
+        const uniqueStudents = Array.from(allStudents).map((student: string) => JSON.parse(student))
 
-        dispatch({ type: 'SET_GROUPED_STUDENTS', payload: coursesData })
-        dispatch({ type: 'SET_STUDENTS', payload: uniqueStudents })
+        dispatch({type: 'SET_GROUPED_STUDENTS', payload: coursesData})
+        dispatch({type: 'SET_STUDENTS', payload: uniqueStudents})
 
         return uniqueStudents
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la récupération des étudiants du professeur',
-        )
+        handleError(error as Error, 'Erreur lors de la récupération des étudiants du professeur')
         throw error
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+        dispatch({type: 'SET_LOADING', payload: false})
       }
     },
     [handleError],
@@ -224,18 +207,13 @@ export const TeacherProvider = ({
         const response = await getOneTeacher(id)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Erreur lors de la récupération du professeur',
-          )
+          throw new Error(response.message || 'Erreur lors de la récupération du professeur')
         }
 
         const teacher = response.data as unknown as Teacher
         return teacher
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la récupération du professeur',
-        )
+        handleError(error as Error, 'Erreur lors de la récupération du professeur')
         throw error
       }
     },
@@ -248,28 +226,23 @@ export const TeacherProvider = ({
       return
     }
 
-    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({type: 'SET_LOADING', payload: true})
     try {
       const response = await getAllTeachers()
 
       if (!response.success) {
-        throw new Error(
-          response.message || 'Erreur lors de la récupération des professeurs',
-        )
+        throw new Error(response.message || 'Erreur lors de la récupération des professeurs')
       }
 
       // Extraire les professeurs de la réponse
       const data = response.data as any
       const teachers = data || []
 
-      dispatch({ type: 'SET_TEACHERS', payload: teachers as Teacher[] })
+      dispatch({type: 'SET_TEACHERS', payload: teachers as Teacher[]})
     } catch (error) {
-      handleError(
-        error as Error,
-        'Erreur lors de la récupération des professeurs',
-      )
+      handleError(error as Error, 'Erreur lors de la récupération des professeurs')
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({type: 'SET_LOADING', payload: false})
     }
   }, [handleError, initialTeachersData, state.isLoading])
 
@@ -281,15 +254,13 @@ export const TeacherProvider = ({
         const response = await createTeacherAction(teacherData)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Erreur lors de la création du professeur',
-          )
+          throw new Error(response.message || 'Erreur lors de la création du professeur')
         }
 
         // Extraire le professeur de la réponse
         const newTeacher = response.data as unknown as Teacher
 
-        dispatch({ type: 'ADD_TEACHER', payload: newTeacher })
+        dispatch({type: 'ADD_TEACHER', payload: newTeacher})
 
         toast({
           title: 'Succès',
@@ -313,15 +284,13 @@ export const TeacherProvider = ({
         const response = await updateTeacherAction(id, teacherData)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Erreur lors de la mise à jour du professeur',
-          )
+          throw new Error(response.message || 'Erreur lors de la mise à jour du professeur')
         }
 
         // Extraire le professeur de la réponse
         const updatedTeacher = response.data as unknown as Teacher
 
-        dispatch({ type: 'UPDATE_TEACHER', payload: updatedTeacher })
+        dispatch({type: 'UPDATE_TEACHER', payload: updatedTeacher})
 
         toast({
           title: 'Succès',
@@ -330,10 +299,7 @@ export const TeacherProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la mise à jour du professeur',
-        )
+        handleError(error as Error, 'Erreur lors de la mise à jour du professeur')
         throw error
       }
     },
@@ -346,12 +312,10 @@ export const TeacherProvider = ({
         const response = await deleteTeacherAction(id)
 
         if (!response.success) {
-          throw new Error(
-            response.message || 'Erreur lors de la suppression du professeur',
-          )
+          throw new Error(response.message || 'Erreur lors de la suppression du professeur')
         }
 
-        dispatch({ type: 'DELETE_TEACHER', payload: id })
+        dispatch({type: 'DELETE_TEACHER', payload: id})
 
         toast({
           title: 'Succès',
@@ -359,10 +323,7 @@ export const TeacherProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(
-          error as Error,
-          'Erreur lors de la suppression du professeur',
-        )
+        handleError(error as Error, 'Erreur lors de la suppression du professeur')
         throw error
       }
     },
@@ -399,9 +360,7 @@ export const TeacherProvider = ({
     ],
   )
 
-  return (
-    <TeacherContext.Provider value={value}>{children}</TeacherContext.Provider>
-  )
+  return <TeacherContext.Provider value={value}>{children}</TeacherContext.Provider>
 }
 
 export const useTeachers = () => {

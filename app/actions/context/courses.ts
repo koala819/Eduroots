@@ -1,17 +1,17 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
-import { revalidatePath } from 'next/cache'
+import {getServerSession} from 'next-auth'
+import {revalidatePath} from 'next/cache'
 
-import { ApiResponse } from '@/types/api'
-import { CourseSession, CourseSessionModel, TimeSlot } from '@/types/course'
-import { GradeRecord } from '@/types/grade'
-import { CourseDocument, GradeDocument } from '@/types/mongoose'
+import {ApiResponse} from '@/types/api'
+import {CourseSession, CourseSessionModel, TimeSlot} from '@/types/course'
+import {GradeRecord} from '@/types/grade'
+import {CourseDocument, GradeDocument} from '@/types/mongoose'
 
-import { Course } from '@/backend/models/course.model'
-import { Grade } from '@/backend/models/grade.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { Types } from 'mongoose'
+import {Course} from '@/backend/models/course.model'
+import {Grade} from '@/backend/models/grade.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {Types} from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -34,7 +34,7 @@ export async function addStudentToCourse(
   await getSessionServer()
 
   try {
-    const { dayOfWeek, startTime, endTime, subject } = timeSlot
+    const {dayOfWeek, startTime, endTime, subject} = timeSlot
 
     // Utiliser findOneAndUpdate au lieu de findById + save
     const updatedCourse = await Course.findOneAndUpdate(
@@ -91,23 +91,21 @@ export async function checkTimeSlotOverlap(
   try {
     // 1. Trouvons tous les cours du prof pour ce jour
     const teacherCoursesQuery = {
-      _id: { $ne: excludeCourseId },
+      _id: {$ne: excludeCourseId},
       isActive: true,
-      teacher: { $in: [userId] },
+      teacher: {$in: [userId]},
       'sessions.timeSlot.dayOfWeek': timeSlot.dayOfWeek,
     }
 
     const teacherCourses = await Course.find(teacherCoursesQuery)
 
     // 2. Vérifions les chevauchements
-    let hasOverlap = false
+    const hasOverlap = false
     const newStartTime = timeToMinutes(timeSlot.startTime)
     const newEndTime = timeToMinutes(timeSlot.endTime)
 
     for (const course of teacherCourses) {
-      const existingStartTime = timeToMinutes(
-        course.sessions[0].timeSlot.startTime,
-      )
+      const existingStartTime = timeToMinutes(course.sessions[0].timeSlot.startTime)
       const existingEndTime = timeToMinutes(course.sessions[0].timeSlot.endTime)
 
       // Il y a chevauchement si :
@@ -122,7 +120,7 @@ export async function checkTimeSlotOverlap(
         return {
           success: false,
           message: 'Ce crédneau horaire est déjà occupé',
-          data: { hasOverlap: true },
+          data: {hasOverlap: true},
         }
       }
     }
@@ -159,9 +157,7 @@ export async function createCourse(
   }
 }
 
-export async function deleteCourse(
-  courseId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function deleteCourse(courseId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -193,7 +189,7 @@ export async function getCourseById(
   await getSessionServer()
 
   try {
-    const course = await Course.findOne({ 'sessions._id': id })
+    const course = await Course.findOne({'sessions._id': id})
       .select({
         teacher: 1,
         'sessions.$': 1,
@@ -236,9 +232,7 @@ export async function getCourseById(
   }
 }
 
-export async function getStudentCourses(
-  studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getStudentCourses(studentId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -279,9 +273,7 @@ export async function getStudentCourses(
   }
 }
 
-export async function getTeacherCourses(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -326,9 +318,7 @@ export async function removeStudentFromCourse(
 
     // Retirer l'étudiant de toutes les sessions
     course.sessions.forEach((session: CourseSessionModel) => {
-      const studentIndex = session.students.findIndex((sid) =>
-        sid.equals(studentObjectId),
-      )
+      const studentIndex = session.students.findIndex((sid) => sid.equals(studentObjectId))
       if (studentIndex !== -1) {
         session.students.splice(studentIndex, 1)
       }
@@ -355,9 +345,7 @@ export async function updateCourse(
   await getSessionServer()
 
   try {
-    const sessionIds = courseData.sessions.map(
-      (session: CourseSession) => session.id,
-    )
+    const sessionIds = courseData.sessions.map((session: CourseSession) => session.id)
     // console.log('🚀 ~ sessionIds:', sessionIds)
     // console.log(
     //   '🚀 ~ classroom Number:',
@@ -401,24 +389,20 @@ export async function updateCourse(
     // }
 
     // Mise à jour des sessions existantes
-    existingCourse.sessions = existingCourse.sessions.map(
-      (session: CourseSession) => {
-        if (sessionIds.includes(session.id)) {
-          const newSessionData = courseData.sessions.find(
-            (s: CourseSession) => s.id === session.id,
-          )
-          return {
-            ...session,
-            timeSlot: { ...session.timeSlot, ...newSessionData.timeSlot },
-            subject: newSessionData.subject,
-            level: newSessionData.level,
-            sameStudents: sameStudents,
-            stats: { ...session.stats, lastUpdated: new Date() },
-          }
+    existingCourse.sessions = existingCourse.sessions.map((session: CourseSession) => {
+      if (sessionIds.includes(session.id)) {
+        const newSessionData = courseData.sessions.find((s: CourseSession) => s.id === session.id)
+        return {
+          ...session,
+          timeSlot: {...session.timeSlot, ...newSessionData.timeSlot},
+          subject: newSessionData.subject,
+          level: newSessionData.level,
+          sameStudents: sameStudents,
+          stats: {...session.stats, lastUpdated: new Date()},
         }
-        return session
-      },
-    )
+      }
+      return session
+    })
 
     // // Met à jour la session spécifique avec les nouvelles données
     // existingCourse.sessions[sessionIndex] = {
@@ -473,12 +457,10 @@ export async function updateCourses(
         model: 'userNEW',
       })
     } else {
-      courses = await Course.find({ teacher: userId, isActive: true })
-        .populate('teacher')
-        .populate({
-          path: 'sessions.students',
-          model: 'userNEW',
-        })
+      courses = await Course.find({teacher: userId, isActive: true}).populate('teacher').populate({
+        path: 'sessions.students',
+        model: 'userNEW',
+      })
       // return {
       //   success: false,
       //   message: "Vous n'avez pas les droits nécessaires",
@@ -546,12 +528,10 @@ export async function updateCourseSession(
     Object.assign(course.sessions[sessionIndex], sessionData)
     await course.save()
 
-    const updatedCourse = await Course.findById(courseId)
-      .populate('teacher')
-      .populate({
-        path: 'sessions.students',
-        model: 'userNEW',
-      })
+    const updatedCourse = await Course.findById(courseId).populate('teacher').populate({
+      path: 'sessions.students',
+      model: 'userNEW',
+    })
 
     return {
       success: true,
@@ -566,9 +546,7 @@ export async function updateCourseSession(
 
 async function calculateCourseStats(courseId: string) {
   // Fetch all grades associated with this course
-  const grades = await Grade.find({ course: courseId })
-    .populate('records')
-    .lean()
+  const grades = await Grade.find({course: courseId}).populate('records').lean()
 
   if (!grades || grades.length === 0) {
     return {
@@ -599,8 +577,7 @@ async function calculateCourseStats(courseId: string) {
   return {
     averageGrade: totalParticipation > 0 ? totalGrades / totalParticipation : 0,
     totalAbsences,
-    participationRate:
-      totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
+    participationRate: totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
   }
 }
 

@@ -10,11 +10,11 @@ import {
   X,
 } from 'lucide-react'
 
-import { StudentStats } from '@/types/stats'
-import { Student } from '@/types/user'
+import {StudentStats} from '@/types/stats'
+import {Student} from '@/types/user'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardFooter, CardHeader} from '@/components/ui/card'
 import {
   Dialog,
   DialogClose,
@@ -25,23 +25,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {Progress} from '@/components/ui/progress'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
-import { convertToDate } from '@/lib/utils'
-import { compareDesc, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { motion } from 'framer-motion'
+import {convertToDate} from '@/lib/utils'
+import {compareDesc, format} from 'date-fns'
+import {fr} from 'date-fns/locale'
+import {motion} from 'framer-motion'
 
 interface StudentAbsenceCardProps {
   student: Student
   stats: StudentStats
 }
 
-export const StudentAbsenceCard = ({
-  student,
-  stats,
-}: StudentAbsenceCardProps) => {
+export const StudentAbsenceCard = ({student, stats}: StudentAbsenceCardProps) => {
   // Fonction pour formater la distance par rapport à maintenant
   function formatTimeToNow(date: Date | string | null): string {
     if (!date) return 'Jamais'
@@ -72,9 +69,9 @@ export const StudentAbsenceCard = ({
       <CardHeader className="pt-6 px-6 relative">
         <div className="flex justify-between items-start mb-4">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            initial={{scale: 0.9, opacity: 0}}
+            animate={{scale: 1, opacity: 1}}
+            transition={{duration: 0.3}}
             className="flex items-center space-x-4"
           >
             <div>
@@ -112,9 +109,7 @@ export const StudentAbsenceCard = ({
               <span>Comportement</span>
             </div>
             <div className="flex items-center">
-              <span className="text-2xl font-bold mr-2">
-                {stats.behaviorAverage}
-              </span>
+              <span className="text-2xl font-bold mr-2">{stats.behaviorAverage}</span>
               <div className="flex-1">
                 <Progress value={stats.behaviorAverage * 20} className="h-2" />
               </div>
@@ -131,13 +126,11 @@ export const StudentAbsenceCard = ({
             </div>
             <motion.span
               className="font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              initial={{opacity: 0}}
+              animate={{opacity: 1}}
+              transition={{delay: 0.2}}
             >
-              {getLastAbsence()
-                ? format(getLastAbsence()!, 'dd MMM yyyy', { locale: fr })
-                : 'Aucune'}
+              {getLastAbsence() ? format(getLastAbsence()!, 'dd MMM yyyy', {locale: fr}) : 'Aucune'}
             </motion.span>
           </div>
 
@@ -147,9 +140,7 @@ export const StudentAbsenceCard = ({
               <span>Dernière activité</span>
             </div>
             <span className="font-medium">
-              {stats.lastActivity
-                ? formatTimeToNow(convertToDate(stats.lastActivity))
-                : 'Jamais'}
+              {stats.lastActivity ? formatTimeToNow(convertToDate(stats.lastActivity)) : 'Jamais'}
             </span>
           </div>
         </div>
@@ -190,12 +181,7 @@ export const StudentAbsenceCard = ({
                 <div className="max-h-80 overflow-y-auto pr-2 space-y-px">
                   {stats.absences.length > 0 ? (
                     [...stats.absences]
-                      .sort((a, b) =>
-                        compareDesc(
-                          convertToDate(a.date),
-                          convertToDate(b.date),
-                        ),
-                      )
+                      .sort((a, b) => compareDesc(convertToDate(a.date), convertToDate(b.date)))
                       .map((absence, index) => (
                         <div
                           key={index}
@@ -204,13 +190,9 @@ export const StudentAbsenceCard = ({
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-3 text-primary" />
                             <span>
-                              {format(
-                                convertToDate(absence.date),
-                                'EEEE dd MMMM yyyy',
-                                {
-                                  locale: fr,
-                                },
-                              )}
+                              {format(convertToDate(absence.date), 'EEEE dd MMMM yyyy', {
+                                locale: fr,
+                              })}
                             </span>
                           </div>
                         </div>
@@ -230,29 +212,19 @@ export const StudentAbsenceCard = ({
                     <h3 className="text-sm font-medium mb-3">Résumé</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Taux d'absence
-                        </p>
+                        <p className="text-xs text-muted-foreground mb-1">Taux d&apos;absence</p>
                         <div className="flex items-baseline">
                           <span className="text-2xl font-bold">
                             {stats.absencesRate.toFixed(1)}%
                           </span>
-                          <span className="text-xs ml-2 text-muted-foreground">
-                            sur 100 jours
-                          </span>
+                          <span className="text-xs ml-2 text-muted-foreground">sur 100 jours</span>
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Comportement
-                        </p>
+                        <p className="text-xs text-muted-foreground mb-1">Comportement</p>
                         <div className="flex items-baseline">
-                          <span className="text-2xl font-bold">
-                            {stats.behaviorAverage}/5
-                          </span>
-                          <span className="text-xs ml-2 text-muted-foreground">
-                            moyenne
-                          </span>
+                          <span className="text-2xl font-bold">{stats.behaviorAverage}/5</span>
+                          <span className="text-xs ml-2 text-muted-foreground">moyenne</span>
                         </div>
                       </div>
                     </div>
@@ -260,7 +232,7 @@ export const StudentAbsenceCard = ({
 
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
                     <h3 className="text-sm font-medium mb-4">
-                      Tendance d'absences (6 derniers mois)
+                      Tendance d&apos;absences (6 derniers mois)
                     </h3>
                     <div className="h-24 flex items-end justify-between px-2">
                       {(() => {
@@ -293,9 +265,7 @@ export const StudentAbsenceCard = ({
                           if (absenceDate < sixMonthsAgo) return
 
                           // Calculer l'index du mois (0 = il y a 5 mois, 5 = mois actuel)
-                          const monthDiff =
-                            (today.getMonth() - absenceDate.getMonth() + 12) %
-                            12
+                          const monthDiff = (today.getMonth() - absenceDate.getMonth() + 12) % 12
 
                           // Vérifier si cette absence est dans les 6 derniers mois
                           if (monthDiff < 6) {
@@ -329,18 +299,10 @@ export const StudentAbsenceCard = ({
 
                           // Calculer la hauteur proportionnelle (entre 0px minimum et hauteur maximale)
                           const height =
-                            count > 0
-                              ? Math.max(
-                                  4,
-                                  Math.min(70, (count / maxAbsences) * 70),
-                                )
-                              : 0
+                            count > 0 ? Math.max(4, Math.min(70, (count / maxAbsences) * 70)) : 0
 
                           return (
-                            <div
-                              key={index}
-                              className="flex flex-col items-center space-y-1 group"
-                            >
+                            <div key={index} className="flex flex-col items-center space-y-1 group">
                               <div className="relative">
                                 <div
                                   className="bg-primary/80 group-hover:bg-primary transition-colors rounded-t"
@@ -355,9 +317,7 @@ export const StudentAbsenceCard = ({
                                   </span>
                                 )}
                               </div>
-                              <span className="text-xs text-muted-foreground">
-                                {month}
-                              </span>
+                              <span className="text-xs text-muted-foreground">{month}</span>
                             </div>
                           )
                         })
@@ -372,7 +332,7 @@ export const StudentAbsenceCard = ({
               <div className="w-full flex justify-between items-center">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Info className="h-4 w-4 mr-2" />
-                  <span>Dernière mise à jour: aujourd'hui</span>
+                  <span>Dernière mise à jour: aujourd&apos;hui</span>
                 </div>
                 <DialogClose asChild>
                   <Button variant="destructive">Fermer</Button>

@@ -1,13 +1,13 @@
 'use client'
 
-import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {BarChart2, Clock, NotebookText, Star} from 'lucide-react'
+import {useEffect, useMemo, useState} from 'react'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { AttendanceRecord } from '@/types/attendance'
-import { Behavior } from '@/types/behavior'
-import { PopulatedCourse } from '@/types/course'
-import { GenderEnum, Student } from '@/types/user'
+import {AttendanceRecord} from '@/types/attendance'
+import {Behavior} from '@/types/behavior'
+import {PopulatedCourse} from '@/types/course'
+import {GenderEnum, Student} from '@/types/user'
 
 import {
   AlertDialog,
@@ -20,13 +20,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
-import { useBehavior } from '@/context/Behaviors/client'
-import { useCourses } from '@/context/Courses/client'
-import { useStudents } from '@/context/Students/client'
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import {useBehavior} from '@/context/Behaviors/client'
+import {useCourses} from '@/context/Courses/client'
+import {useStudents} from '@/context/Students/client'
+import {cn} from '@/lib/utils'
+import {motion} from 'framer-motion'
 
 interface BehaviorEditProps {
   students: AttendanceRecord[]
@@ -43,18 +43,15 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   courseId,
   behaviorId,
 }) => {
-  const { updateBehaviorRecord, isLoadingBehavior, getBehaviorById } =
-    useBehavior()
-  const { getCourseById, isLoadingCourse } = useCourses()
-  const { getOneStudent } = useStudents()
+  const {updateBehaviorRecord, isLoadingBehavior, getBehaviorById} = useBehavior()
+  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getOneStudent} = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true)
-  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>(
-    {},
-  )
+  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>({})
   const [behavior, setBehavior] = useState<Record<string, number>>({})
 
   const presentStudents = useMemo(() => {
@@ -87,8 +84,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         await Promise.all(
           presentStudents.map(async (s: AttendanceRecord) => {
             try {
-              const studentId =
-                typeof s.student === 'string' ? s.student : s.student.id
+              const studentId = typeof s.student === 'string' ? s.student : s.student.id
 
               const studentDetail = await getOneStudent(studentId)
 
@@ -99,9 +95,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                 if (behaviorData && behaviorData.records) {
                   const existingRecord = behaviorData.records.find((record) => {
                     const recordStudentId =
-                      typeof record.student === 'string'
-                        ? record.student
-                        : record.student.id
+                      typeof record.student === 'string' ? record.student : record.student.id
                     return recordStudentId === studentId
                   })
 
@@ -134,14 +128,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
     return () => {
       isMounted = false
     }
-  }, [
-    courseId,
-    date,
-    getOneStudent,
-    getBehaviorById,
-    getCourseById,
-    presentStudents,
-  ])
+  }, [courseId, date, getOneStudent, getBehaviorById, getCourseById, presentStudents])
   async function handleSave() {
     setIsUpdating(true)
     if (!course?.sessions?.[0]?.id) {
@@ -194,11 +181,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         ></div>
       </div>
     )
@@ -207,10 +194,10 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{opacity: 0, height: 0}}
+        animate={{opacity: 1, height: 'auto'}}
+        exit={{opacity: 0, height: 0}}
+        transition={{duration: 0.3}}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
@@ -237,9 +224,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        {course.sessions[0].subject}
-                      </span>
+                      <span className="text-sm text-gray-700">{course.sessions[0].subject}</span>
                     </div>
 
                     {/* Date */}
@@ -260,9 +245,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
               <ul className="space-y-3">
                 {presentStudents.map((student) => {
                   const studentId =
-                    typeof student.student === 'string'
-                      ? student.student
-                      : student.student.id
+                    typeof student.student === 'string' ? student.student : student.student.id
 
                   const studentDetail = studentDetails[studentId]
                   if (!studentDetail) return null
@@ -271,8 +254,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                     <motion.li
                       key={student.id}
                       className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{scale: 1.02}}
+                      whileTap={{scale: 0.98}}
                     >
                       <div className="flex items-center space-x-3">
                         {studentDetail.gender === GenderEnum.Masculin ? (
@@ -289,8 +272,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                       </div>
                       <motion.div
                         className="transition-all duration-300 p-2 rounded-full"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{scale: 1.1}}
+                        whileTap={{scale: 0.9}}
                       >
                         {[1, 2, 3, 4, 5].map((rating) => (
                           <button
@@ -327,10 +310,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                 >
                   {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
                 </Button>
-                <AlertDialog
-                  open={isConfirmOpen}
-                  onOpenChange={setIsConfirmOpen}
-                >
+                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="teacherWarning"
@@ -342,12 +322,10 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Confirmer l&apos;annulation
-                      </AlertDialogTitle>
+                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la modification ? Les
-                        changements non enregistrés seront perdus.
+                        Êtes-vous sûr de vouloir annuler la modification ? Les changements non
+                        enregistrés seront perdus.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

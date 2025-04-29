@@ -1,23 +1,16 @@
 'use client'
 
-import { RefreshCw } from 'lucide-react'
+import {GlobalStats} from '@/types/stats'
 
-import { useRouter } from 'next/navigation'
+import {Progress} from '@/components/ui/progress'
 
-import { GlobalStats } from '@/types/stats'
-
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-
-import { convertToDate } from '@/lib/utils'
+import {convertToDate} from '@/lib/utils'
 
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats
 }
 
-export const AttendanceStatsClient = ({
-  globalStats,
-}: AttendanceStatsClientProps) => {
+export const AttendanceStatsClient = ({globalStats}: AttendanceStatsClientProps) => {
   // Fonction pour déterminer la couleur basée sur le taux de présence
   function getPresenceColor(rate: number) {
     if (rate >= 90) return 'text-green-600'
@@ -56,9 +49,7 @@ export const AttendanceStatsClient = ({
           </div>
         </div> */}
       <div className="border rounded-lg p-3 sm:p-4">
-        <div className="text-xs sm:text-sm text-gray-500">
-          Dernière mise à jour
-        </div>
+        <div className="text-xs sm:text-sm text-gray-500">Dernière mise à jour</div>
         <div className="text-xs sm:text-sm mt-1">
           {lastUpdateDate.toLocaleDateString('fr-FR', {
             hour: '2-digit',
@@ -70,13 +61,9 @@ export const AttendanceStatsClient = ({
 
       {/* Légende */}
       <div className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
+        <p>Ces statistiques sont calculées à partir de toutes les sessions actives.</p>
         <p>
-          Ces statistiques sont calculées à partir de toutes les sessions
-          actives.
-        </p>
-        <p>
-          Le taux de présence représente la moyenne des présences sur
-          l&apos;ensemble des sessions.
+          Le taux de présence représente la moyenne des présences sur l&apos;ensemble des sessions.
         </p>
       </div>
     </>

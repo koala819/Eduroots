@@ -1,12 +1,12 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
+import {getServerSession} from 'next-auth'
+import {redirect} from 'next/navigation'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
 import StudentDashboard from '@/components/organisms/client/StudentDashboard'
 
-import { getAllStudents } from '@/app/actions/context/students'
-import { authOptions } from '@/lib/authOptions'
+import {getAllStudents} from '@/app/actions/context/students'
+import {authOptions} from '@/lib/authOptions'
 
 export const metadata = {
   title: 'Dashboard Étudiant | École',
@@ -32,10 +32,7 @@ export default async function StudentPage() {
         studentsArray = studentsResponse
       } else if (studentsResponse && typeof studentsResponse === 'object') {
         // Cas où c'est un objet de réponse API comme { success: true, data: [...] }
-        if (
-          'data' in studentsResponse &&
-          Array.isArray(studentsResponse.data)
-        ) {
+        if ('data' in studentsResponse && Array.isArray(studentsResponse.data)) {
           studentsArray = studentsResponse.data as unknown as Student[]
         } else {
           // Peut-être un autre format - à adapter selon votre API
@@ -46,9 +43,7 @@ export default async function StudentPage() {
 
       return studentsArray.filter(
         (student) =>
-          student.email === email &&
-          student.role === 'student' &&
-          student.isActive === true,
+          student.email === email && student.role === 'student' && student.isActive === true,
       )
     } catch (error) {
       console.error('Erreur lors de la récupération des étudiants:', error)

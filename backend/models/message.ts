@@ -1,20 +1,20 @@
-import { IMessage, MessageModel } from '@/types/models'
+import {IMessage, MessageModel} from '@/types/models'
 
-import { decrypt, encrypt, isValidEncryptedFormat } from '@/lib/mails/encrypt'
-import { Schema, model, models } from 'mongoose'
+import {decrypt, encrypt, isValidEncryptedFormat} from '@/lib/mails/encrypt'
+import {Schema, model, models} from 'mongoose'
 
 const messageSchema = new Schema<IMessage>({
-  senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  senderType: { type: String, required: true },
-  recipientId: [{ type: String, required: true }],
-  recipientType: [{ type: String, required: true }],
-  subject: { type: String, required: true },
-  message: { type: String, required: true },
-  isRead: { type: Boolean, default: false },
-  isDeleted: { type: Map, of: Boolean, default: {} },
-  isSentbox: { type: Boolean, default: false },
-  attachmentUrl: { type: String, default: null },
-  createdAt: { type: Date, default: Date.now },
+  senderId: {type: Schema.Types.ObjectId, ref: 'User', required: true},
+  senderType: {type: String, required: true},
+  recipientId: [{type: String, required: true}],
+  recipientType: [{type: String, required: true}],
+  subject: {type: String, required: true},
+  message: {type: String, required: true},
+  isRead: {type: Boolean, default: false},
+  isDeleted: {type: Map, of: Boolean, default: {}},
+  isSentbox: {type: Boolean, default: false},
+  attachmentUrl: {type: String, default: null},
+  createdAt: {type: Date, default: Date.now},
   parentMessageId: {
     type: Schema.Types.ObjectId,
     ref: 'Message',
@@ -83,7 +83,7 @@ messageSchema.post('findOne', function (doc: IMessage | null) {
   if (doc) {
     try {
       Message.decryptFields(doc)
-    } catch (error:any) {
+    } catch (error: any) {
       console.error('Error decrypting document:', error.message)
       doc.subject = 'Erreur de déchiffrement'
       doc.message = "Le contenu n'a pas pu être déchiffré"

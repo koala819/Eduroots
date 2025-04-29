@@ -1,9 +1,9 @@
-import { CourseDocument, StudentDocument } from '@/types/mongoose'
+import {CourseDocument, StudentDocument} from '@/types/mongoose'
 
-import { RootEntity } from './root'
-import { Student, Teacher } from './user'
+import {RootEntity} from './root'
+import {Student, Teacher} from './user'
 
-import { Types } from 'mongoose'
+import {Types} from 'mongoose'
 
 export enum SubjectNameEnum {
   Arabe = 'Arabe',
@@ -102,7 +102,7 @@ export interface CourseVirtuals {
 }
 
 export interface Course extends RootEntity {
-  teacher: Teacher[] | string[]
+  teacher: Array<Types.ObjectId | {_id: Types.ObjectId} | string>
   sessions: CourseSession[]
   academicYear: string
   stats: CourseStats

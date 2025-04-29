@@ -1,18 +1,16 @@
 'use server'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
-import { getAllStudents } from '@/app/actions/context/students'
-import { StudentProvider } from '@/context/Students/client'
+import {getAllStudents} from '@/app/actions/context/students'
+import {StudentProvider} from '@/context/Students/client'
 
 interface StudentsServerComponentProps {
   children: React.ReactNode
   userId?: string
 }
 
-export default async function StudentsServerComponent({
-  children,
-}: StudentsServerComponentProps) {
+export default async function StudentsServerComponent({children}: StudentsServerComponentProps) {
   let initialStudents: Student[] | null = null
 
   const response = await getAllStudents()
@@ -25,9 +23,5 @@ export default async function StudentsServerComponent({
     }
   }
 
-  return (
-    <StudentProvider initialStudentsData={initialStudents}>
-      {children}
-    </StudentProvider>
-  )
+  return <StudentProvider initialStudentsData={initialStudents}>{children}</StudentProvider>
 }

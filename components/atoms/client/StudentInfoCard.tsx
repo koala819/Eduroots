@@ -1,15 +1,15 @@
 'use client'
 
-import { ReactNode } from 'react'
+import {ReactNode} from 'react'
 
 interface InfoCardProps {
   title: string
   icon: ReactNode
-  items: { label: string; value: string }[]
+  items: {label: string; value: string}[]
   color?: 'indigo' | 'rose' | 'emerald' | 'orange' | 'slate'
 }
 
-export const InfoCard = ({ title, icon, items, color }: InfoCardProps) => {
+export const InfoCard = ({title, icon, items, color}: InfoCardProps) => {
   const colorSchemes = {
     indigo: {
       bg: 'bg-gradient-to-br from-indigo-50 to-blue-50',
@@ -68,9 +68,7 @@ export const InfoCard = ({ title, icon, items, color }: InfoCardProps) => {
               } last:pb-0 group hover:bg-slate-50 -mx-2 px-2 py-1 rounded-md transition-colors duration-200`}
             >
               <span className="text-slate-500 text-sm">{item.label}</span>
-              <span className={`font-semibold ${scheme.text}`}>
-                {item.value}
-              </span>
+              <span className={`font-semibold ${scheme.text}`}>{item.value}</span>
             </li>
           ))}
         </ul>

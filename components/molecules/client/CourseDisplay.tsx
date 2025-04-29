@@ -1,19 +1,19 @@
 'use client'
 
-import { BookOpenCheck, Menu } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import {BookOpenCheck, Menu} from 'lucide-react'
+import {useSession} from 'next-auth/react'
+import {useEffect, useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { CourseMenu } from '@/components/atoms/client/CourseMenu'
+import {CourseMenu} from '@/components/atoms/client/CourseMenu'
 
-import { useCourses } from '@/context/Courses/client'
+import {useCourses} from '@/context/Courses/client'
 
 export const CourseDisplay = () => {
   const router = useRouter()
-  const { data: session } = useSession()
-  const { getTeacherCourses, isLoading, teacherCourses } = useCourses()
+  const {data: session} = useSession()
+  const {getTeacherCourses, isLoading, teacherCourses} = useCourses()
 
   const [currentCourseId, setCurrentCourseId] = useState<string>('')
   const [isMenuVisible, setIsMenuVisible] = useState(false)
@@ -45,16 +45,14 @@ export const CourseDisplay = () => {
           <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping"></div>
           <div
             className="w-3 h-3 bg-blue-500 rounded-full animate-ping"
-            style={{ animationDelay: '0.2s' }}
+            style={{animationDelay: '0.2s'}}
           ></div>
           <div
             className="w-3 h-3 bg-blue-500 rounded-full animate-ping"
-            style={{ animationDelay: '0.4s' }}
+            style={{animationDelay: '0.4s'}}
           ></div>
         </div>
-        <p className="text-sm text-gray-500 animate-pulse">
-          Chargement des cours...
-        </p>
+        <p className="text-sm text-gray-500 animate-pulse">Chargement des cours...</p>
       </div>
     )
   }
@@ -65,16 +63,12 @@ export const CourseDisplay = () => {
         <div className="mb-6">
           <BookOpenCheck className="w-12 h-12 mx-auto text-blue-500/80" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Sélectionnez un cours
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Sélectionnez un cours</h3>
         <p className="text-sm text-gray-500 mb-4 text-center leading-relaxed">
           Cliquez sur le bouton
-          <strong className="hidden sm:inline">
-            &ldquo;Ouvrir le menu&ldquo;
-          </strong>
-          <Menu className="inline sm:hidden w-5 h-5" /> pour voir la liste des
-          cours et gérer vos élèves.
+          <strong className="hidden sm:inline">&ldquo;Ouvrir le menu&ldquo;</strong>
+          <Menu className="inline sm:hidden w-5 h-5" /> pour voir la liste des cours et gérer vos
+          élèves.
         </p>
 
         <div className="flex items-center justify-center gap-2 text-sm text-blue-500">

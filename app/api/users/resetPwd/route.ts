@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
+import {User} from '@/backend/models/user.model'
 import bcrypt from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
-  const { email, newPassword } = await req.json()
+  const {email, newPassword} = await req.json()
   // console.log('email', email)
   // console.log('newPassword', newPassword)
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const users = await User.find({ email })
+    const users = await User.find({email})
     // console.log('users', users)
 
     if (!users) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
     // Mettre à jour le mot de passe pour tous les comptes associés à cet email
-    await User.updateMany({ email }, { password: hashedPassword })
+    await User.updateMany({email}, {password: hashedPassword})
 
     return NextResponse.json({
       status: 200,

@@ -1,21 +1,15 @@
 'use client'
 
-import { Paperclip } from 'lucide-react'
+import {Paperclip} from 'lucide-react'
 
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
 
-export const MessageAttachmentUploader = ({ form }: { form: any }) => {
+export const MessageAttachmentUploader = ({form}: {form: any}) => {
   return (
     <FormField
       control={form.control}
       name="attachment"
-      render={({ field: { onChange, value, ...field } }) => (
+      render={({field: {onChange, value, ...field}}) => (
         <FormItem>
           <FormLabel htmlFor="attachment">Pièce jointe</FormLabel>
           <FormControl>

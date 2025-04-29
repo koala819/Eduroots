@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import {useState} from 'react'
 
-import { CourseSession, PopulatedCourse } from '@/types/course'
-import { Student } from '@/types/user'
+import {CourseSession, PopulatedCourse} from '@/types/course'
+import {Student} from '@/types/user'
 
-import { TopMenu } from '@/components/molecules/client/CourseTopMenu'
-import { DashboardAttendanceT } from '@/components/molecules/client/DashboardAttendanceT'
-import { DashboardBehaviorT } from '@/components/molecules/client/DashboardBehaviorT'
+import {TopMenu} from '@/components/molecules/client/CourseTopMenu'
+import {DashboardAttendanceT} from '@/components/molecules/client/DashboardAttendanceT'
+import {DashboardBehaviorT} from '@/components/molecules/client/DashboardBehaviorT'
 
 interface CourseDetailsProps {
   courseId: string

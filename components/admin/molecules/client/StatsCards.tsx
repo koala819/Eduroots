@@ -1,13 +1,13 @@
-import { ChevronRight, GraduationCap, Users } from 'lucide-react'
-import { useState } from 'react'
+import {ChevronRight, GraduationCap, Users} from 'lucide-react'
+import {useState} from 'react'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/types/user'
+import {EntityType} from '@/types/stats'
+import {Student, Teacher} from '@/types/user'
 
-import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
-import { Card, CardContent } from '@/components/ui/card'
+import {UserListDialog} from '@/components/admin/atoms/client/UserListDialog'
+import {Card, CardContent} from '@/components/ui/card'
 
-import { motion } from 'framer-motion'
+import {motion} from 'framer-motion'
 
 type StatItem = {
   title: string
@@ -25,21 +25,13 @@ type StatsCardProps = {
   onSelectType: (type: EntityType | null) => void
 }
 
-export const StatsCards = ({
-  people,
-  selectedType,
-  onSelectType,
-}: StatsCardProps) => {
+export const StatsCards = ({people, selectedType, onSelectType}: StatsCardProps) => {
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [selectedEntity, setSelectedEntity] = useState<
-    Student | Teacher | null
-  >(null)
+  const [selectedEntity, setSelectedEntity] = useState<Student | Teacher | null>(null)
 
   const filteredData = selectedType
     ? (people.find((s) => s.type === selectedType)?.data || []).filter((item) =>
-        `${item.firstname} ${item.lastname}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()),
+        `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : []
 
@@ -49,8 +41,8 @@ export const StatsCards = ({
         {people.map((item) => (
           <motion.div
             key={item.type}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{scale: 1.02}}
+            whileTap={{scale: 0.98}}
             onClick={() => onSelectType(item.type)}
           >
             <Card className="cursor-pointer group">
@@ -61,12 +53,8 @@ export const StatsCards = ({
                   <item.icon className={`h-8 w-8 ${item.color}`} />
                 </div>
                 <div className="ml-4 flex-grow">
-                  <p className="text-sm font-medium text-gray-500">
-                    {item.title}
-                  </p>
-                  <p className={`text-2xl font-semibold ${item.color}`}>
-                    {item.value}
-                  </p>
+                  <p className="text-sm font-medium text-gray-500">{item.title}</p>
+                  <p className={`text-2xl font-semibold ${item.color}`}>{item.value}</p>
                 </div>
                 <ChevronRight
                   className={`h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1`}

@@ -1,8 +1,5 @@
-// @ts-nocheck
-import { GradeDocument } from '@/types/mongoose'
-
 import dbConnect from '@/backend/config/dbConnect'
-import { Grade } from '@/backend/models/grade.model'
+import {Grade} from '@/backend/models/grade.model'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -45,9 +42,7 @@ export async function statsGradesUpdate(): Promise<{
     // Connexion à la base de données
     await dbConnect()
     console.log('✅ Connecté à la base de données')
-    console.log(
-      `\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DE GRADES =====\n`,
-    )
+    console.log(`\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DE GRADES =====\n`)
 
     // Récupérer tous les grades
     console.log('1️⃣ Récupération des grades...')
@@ -83,19 +78,17 @@ export async function statsGradesUpdate(): Promise<{
       const totalStudents = records.length
 
       // Compter les absents
-      const absentRecords = records.filter((r) => r.isAbsent)
+      const absentRecords = records.filter((r: any) => r.isAbsent)
       const absentCount = absentRecords.length
 
       // Filtrer les notes valides (non absents et avec une valeur)
       const validGrades = records
-        .filter((r) => !r.isAbsent && r.value !== null && r.value !== undefined)
-        .map((r) => r.value)
+        .filter((r: any) => !r.isAbsent && r.value !== null && r.value !== undefined)
+        .map((r: any) => r.value)
 
       // Si aucune note valide, définir des valeurs par défaut
       if (validGrades.length === 0) {
-        console.log(
-          `  ⚠️ Aucune note valide trouvée, valeurs par défaut utilisées`,
-        )
+        console.log(`  ⚠️ Aucune note valide trouvée, valeurs par défaut utilisées`)
 
         const newStats = {
           averageGrade: 0,
@@ -118,10 +111,7 @@ export async function statsGradesUpdate(): Promise<{
 
         if (differences.length > 0) {
           // Mettre à jour le grade
-          await Grade.updateOne(
-            { _id: grade._id },
-            { $set: { stats: newStats } },
-          )
+          await Grade.updateOne({_id: grade._id}, {$set: {stats: newStats}})
 
           stats.statsChanges.push({
             gradeId,
@@ -131,9 +121,7 @@ export async function statsGradesUpdate(): Promise<{
           })
 
           stats.updatedGrades++
-          console.log(
-            `  ✅ Statistiques mises à jour avec des valeurs par défaut`,
-          )
+          console.log(`  ✅ Statistiques mises à jour avec des valeurs par défaut`)
         } else {
           stats.skippedGrades++
           console.log(`  ℹ️ Aucun changement nécessaire`)
@@ -145,7 +133,7 @@ export async function statsGradesUpdate(): Promise<{
       // Calculer les statistiques
       const averageGrade = Number(
         (
-          validGrades.reduce((sum, val) => sum + val, 0) / validGrades.length
+          validGrades.reduce((sum: number, val: number) => sum + val, 0) / validGrades.length
         ).toFixed(2),
       )
       const highestGrade = Math.max(...validGrades)
@@ -172,7 +160,7 @@ export async function statsGradesUpdate(): Promise<{
 
       if (differences.length > 0) {
         // Mettre à jour le grade
-        await Grade.updateOne({ _id: grade._id }, { $set: { stats: newStats } })
+        await Grade.updateOne({_id: grade._id}, {$set: {stats: newStats}})
 
         stats.statsChanges.push({
           gradeId,
@@ -198,7 +186,7 @@ export async function statsGradesUpdate(): Promise<{
     }
 
     const reportPath = path.join(process.cwd(), 'reports')
-    await fs.mkdir(reportPath, { recursive: true })
+    await fs.mkdir(reportPath, {recursive: true})
     const timestamp = new Date().toISOString().replace(/:/g, '-')
     const fileName = `grade_stats_update_${timestamp}.json`
     const filePath = path.join(reportPath, fileName)
@@ -219,9 +207,7 @@ export async function statsGradesUpdate(): Promise<{
     const isSuccessful = true // La mise à jour est toujours considérée comme réussie si elle s'exécute sans erreur
 
     if (isSuccessful) {
-      console.log(
-        '\n✅ MISE À JOUR RÉUSSIE: Statistiques recalculées avec succès',
-      )
+      console.log('\n✅ MISE À JOUR RÉUSSIE: Statistiques recalculées avec succès')
     }
 
     console.log(`\n===== FIN DE LA MISE À JOUR =====`)
@@ -233,8 +219,9 @@ export async function statsGradesUpdate(): Promise<{
         : 'Erreur lors de la mise à jour des statistiques',
       stats,
       reportPath: filePath,
+      backupPath: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur fatale lors de la mise à jour:', error)
 
     return {
@@ -248,6 +235,7 @@ export async function statsGradesUpdate(): Promise<{
         statsChanges: [],
       },
       reportPath: null,
+      backupPath: null,
     }
   }
 }
@@ -255,7 +243,7 @@ export async function statsGradesUpdate(): Promise<{
 /**
  * Compare deux objets de statistiques et renvoie un tableau des différences
  */
-function compareStats(oldStats, newStats) {
+function compareStats(oldStats: any, newStats: any) {
   const differences = []
 
   // Créer un objet avec les descriptions des champs
@@ -275,9 +263,7 @@ function compareStats(oldStats, newStats) {
     // Pour les valeurs numériques, utiliser une tolérance pour les erreurs d'arrondi
     if (typeof newValue === 'number' && typeof oldValue === 'number') {
       if (Math.abs(newValue - oldValue) > 0.01) {
-        differences.push(
-          `${description}: ${oldValue.toFixed(2)} → ${newValue.toFixed(2)}`,
-        )
+        differences.push(`${description}: ${oldValue.toFixed(2)} → ${newValue.toFixed(2)}`)
       }
     } else if (newValue !== oldValue) {
       differences.push(`${description}: ${oldValue} → ${newValue}`)
@@ -293,7 +279,7 @@ function compareStats(oldStats, newStats) {
 export async function updateGradeStats(): Promise<void> {
   console.log('🔄 Démarrage de la mise à jour des statistiques des grades...')
 
-  const result = await updateAllGradeStats()
+  const result = await statsGradesUpdate()
 
   if (result.success) {
     console.log('✅ Mise à jour terminée avec succès')

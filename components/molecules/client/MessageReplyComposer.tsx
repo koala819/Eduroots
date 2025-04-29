@@ -1,25 +1,19 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'react-toastify'
+import {useSession} from 'next-auth/react'
+import {useCallback, useState} from 'react'
+import {useForm} from 'react-hook-form'
+import {toast} from 'react-toastify'
 
 import dynamic from 'next/dynamic'
 
 import Loading from '@/components/admin/atoms/server/Loading'
-import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form'
+import {Button} from '@/components/ui/button'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
 
-import { sendMail } from '@/app/actions/mails'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import {sendMail} from '@/app/actions/mails'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {z} from 'zod'
 
 interface MessageReplyComposerProps {
   recipientId: string
@@ -30,16 +24,13 @@ interface MessageReplyComposerProps {
   onSendSuccess: () => void
 }
 
-const RichTextEditor = dynamic(
-  () => import('@/components/atoms/client/MessageRichTextEditor'),
-  {
-    ssr: false,
-    loading: () => <Loading name="l'éditeur de texte" />,
-  },
-)
+const RichTextEditor = dynamic(() => import('@/components/atoms/client/MessageRichTextEditor'), {
+  ssr: false,
+  loading: () => <Loading name="l'éditeur de texte" />,
+})
 
 const FormSchema = z.object({
-  message: z.string().min(1, { message: 'Le message ne peut pas être vide.' }),
+  message: z.string().min(1, {message: 'Le message ne peut pas être vide.'}),
 })
 
 export function MessageReplyComposer({
@@ -50,7 +41,7 @@ export function MessageReplyComposer({
   onCancel,
   onSendSuccess,
 }: MessageReplyComposerProps) {
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -112,25 +103,17 @@ export function MessageReplyComposer({
         <FormField
           control={form.control}
           name="message"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormControl>
-                <RichTextEditor
-                  value={field.value}
-                  onChange={handleEditorChange}
-                />
+                <RichTextEditor value={field.value} onChange={handleEditorChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="flex justify-end space-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Annuler
           </Button>
           <Button type="submit" disabled={isLoading || !form.formState.isDirty}>

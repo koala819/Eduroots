@@ -1,20 +1,20 @@
 'use client'
 
-import { Menu, Search, X } from 'lucide-react'
-import { useState } from 'react'
+import {Menu, Search, X} from 'lucide-react'
+import {useState} from 'react'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
 
 export const DashBoardNavbar = () => {
   const [currentView, setCurrentView] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { name: 'Tableau de bord', view: 'dashboard' },
-    { name: 'Élèves', view: 'students' },
-    { name: 'Classes', view: 'classes' },
-    { name: 'Enseignants', view: 'teachers' },
+    {name: 'Tableau de bord', view: 'dashboard'},
+    {name: 'Élèves', view: 'students'},
+    {name: 'Classes', view: 'classes'},
+    {name: 'Enseignants', view: 'teachers'},
   ]
   return (
     <div>
@@ -23,9 +23,7 @@ export const DashBoardNavbar = () => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-2xl font-bold text-gray-900">
-                  École Dashboard
-                </span>
+                <span className="text-2xl font-bold text-gray-900">École Dashboard</span>
               </div>
               <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navItems.map((item) => (

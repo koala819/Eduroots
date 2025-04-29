@@ -1,15 +1,13 @@
-import { StudentBehaviorError } from '@/components/admin/atoms/client/StudentBehaviorError'
-import { StudentBehaviorStatsClient } from '@/components/admin/atoms/client/StudentBehaviorStats'
+import {StudentBehaviorError} from '@/components/admin/atoms/client/StudentBehaviorError'
+import {StudentBehaviorStatsClient} from '@/components/admin/atoms/client/StudentBehaviorStats'
 
-import { fetchStudentBehaviorStats } from '@/app/actions/admin/student-stats-behavior'
+import {fetchStudentBehaviorStats} from '@/app/actions/admin/student-stats-behavior'
 
 interface StudentBehaviorStatsProps {
   studentId: string
 }
 
-export async function StudentBehaviorStats({
-  studentId,
-}: StudentBehaviorStatsProps) {
+export async function StudentBehaviorStats({studentId}: StudentBehaviorStatsProps) {
   const stats = await fetchStudentBehaviorStats(studentId)
 
   if (!stats) {

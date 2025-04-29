@@ -1,12 +1,12 @@
-// @ts-nocheck
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/course'
+import {SubjectNameEnum} from '@/types/course'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/attendance.model'
-import { Course } from '@/backend/models/course.model'
-import { User } from '@/backend/models/user.model'
+import {Attendance} from '@/backend/models/attendance.model'
+import {Course} from '@/backend/models/course.model'
+import {User} from '@/backend/models/user.model'
 import fs from 'fs/promises'
 import path from 'path'
+import {Types} from 'mongoose'
 
 interface MorningCourseStats {
   arabe_9_10_45: number
@@ -49,19 +49,11 @@ export async function checkAttendances(): Promise<{
       console.log(
         '\n⚙️ Des sessions invalides ont été détectées, analyse des corrections possibles...\n',
       )
-      repairData = await analyzeAndSuggestRepairs(
-        verificationResult.invalidAttendances,
-      )
+      repairData = await analyzeAndSuggestRepairs(verificationResult.invalidAttendances)
 
       // Générer le fichier de correction si nous avons des correspondances à haute confiance
-      if (
-        repairData &&
-        repairData.highConfidence &&
-        repairData.highConfidence.length > 0
-      ) {
-        correctionScriptPath = await generateCorrectionScriptFile(
-          repairData.highConfidence,
-        )
+      if (repairData && repairData.highConfidence && repairData.highConfidence.length > 0) {
+        correctionScriptPath = await generateCorrectionScriptFile(repairData.highConfidence)
       }
     }
 
@@ -83,7 +75,7 @@ export async function checkAttendances(): Promise<{
         correctionScriptPath,
       },
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur lors de la vérification:', error)
     return {
       success: false,
@@ -116,19 +108,14 @@ async function verifyAttendanceSessions() {
   }
 
   // Collecter tous les IDs de session uniques
-  const uniqueSessionIds = new Set(
-    attendances.map((attendance) => attendance.course.toString()),
-  )
-  console.log(
-    `🔢 Nombre de sessions uniques référencées: ${uniqueSessionIds.size}`,
-  )
+  const uniqueSessionIds = new Set(attendances.map((attendance) => attendance.course.toString()))
+  console.log(`🔢 Nombre de sessions uniques référencées: ${uniqueSessionIds.size}`)
 
   // Vérifier l'existence de chaque session dans les courses
   console.log('🔍 Vérification des références de session dans les courses...')
-
   const sessionStatus = await Promise.all(
-    [...uniqueSessionIds].map(async (sessionId) => {
-      const course = await Course.findOne({ 'sessions._id': sessionId }).lean()
+    Array.from(uniqueSessionIds).map(async (sessionId) => {
+      const course = await Course.findOne({'sessions._id': sessionId}).lean()
 
       return {
         sessionId,
@@ -143,9 +130,7 @@ async function verifyAttendanceSessions() {
   const missingSessions = sessionStatus.filter((s) => !s.found)
 
   // Créer un mapping pour une recherche efficace
-  const sessionMap = new Map(
-    sessionStatus.map((session) => [session.sessionId, session.found]),
-  )
+  const sessionMap = new Map(sessionStatus.map((session) => [session.sessionId, session.found]))
 
   // Identifier les attendances avec des sessions invalides
   const invalidAttendances = []
@@ -206,9 +191,7 @@ async function verifyAttendanceSessions() {
     }
 
     if (invalidAttendances.length > displayLimit) {
-      console.log(
-        `... et ${invalidAttendances.length - displayLimit} autres erreurs`,
-      )
+      console.log(`... et ${invalidAttendances.length - displayLimit} autres erreurs`)
     }
   }
 
@@ -229,21 +212,30 @@ async function verifyAttendanceSessions() {
 /**
  * Analyse les attendances invalides et suggère des corrections intelligentes
  */
-async function analyzeAndSuggestRepairs(invalidAttendances) {
+async function analyzeAndSuggestRepairs(
+  invalidAttendances: {
+    attendanceId: string
+    sessionId: string
+    date: string
+    records: Array<{
+      student: string | {toString(): string}
+    }>
+  }[],
+) {
   console.log(
     '\n🔬 Analyse des attendances avec sessions invalides pour proposer des corrections...',
   )
 
   // Récupérer toutes les sessions valides
   const validCourses = await Course.find().lean()
-  const teachersData = await User.find({ role: 'teacher' }).lean()
+  const teachersData = await User.find({role: 'teacher'}).lean()
 
   // Créer un map des enseignants pour un accès rapide
   const teachersMap = new Map()
   teachersData.forEach((teacher) => {
-    teachersMap.set(teacher._id.toString(), {
-      id: teacher._id.toString(),
-      name: `${teacher.firstname} ${teacher.lastname}`,
+    teachersMap.set((teacher as any)._id.toString(), {
+      id: (teacher as any)._id.toString(),
+      name: `${(teacher as any).firstname} ${(teacher as any).lastname}`,
     })
   })
 
@@ -253,9 +245,7 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
   for (const invalidAttendance of invalidAttendances) {
     // Récupérer les IDs des étudiants
     const studentIds = invalidAttendance.records.map((record) =>
-      typeof record.student === 'string'
-        ? record.student
-        : record.student.toString(),
+      typeof record.student === 'string' ? record.student : record.student.toString(),
     )
 
     // Trouver les cours qui contiennent ces étudiants
@@ -263,32 +253,27 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
 
     for (const course of validCourses) {
       const teacherIds = Array.isArray(course.teacher)
-        ? course.teacher.map((t) =>
-            typeof t === 'object' ? t._id.toString() : t.toString(),
-          )
+        ? course.teacher.map((t: any) => (typeof t === 'object' ? t._id.toString() : t.toString()))
         : [
-            typeof course.teacher === 'object'
-              ? course.teacher._id.toString()
-              : course.teacher.toString(),
+            typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
+              ? (course.teacher as {_id: Types.ObjectId})._id.toString()
+              : (course.teacher as Types.ObjectId | string).toString(),
           ]
 
       // Récupérer les noms des enseignants
-      const teacherNames = teacherIds.map((id) => {
+      const teacherNames = teacherIds.map((id: string) => {
         const teacher = teachersMap.get(id)
         return teacher ? teacher.name : `Enseignant (${id})`
       })
 
       for (const session of course.sessions) {
-        const sessionStudentIds = session.students.map((sid) =>
+        const sessionStudentIds = session.students.map((sid: any) =>
           typeof sid === 'string' ? sid : sid.toString(),
         )
 
         // Calculer les étudiants communs avec cette attendance
-        const commonStudents = studentIds.filter((id) =>
-          sessionStudentIds.includes(id),
-        )
-        const matchRatio =
-          studentIds.length > 0 ? commonStudents.length / studentIds.length : 0
+        const commonStudents = studentIds.filter((id) => sessionStudentIds.includes(id))
+        const matchRatio = studentIds.length > 0 ? commonStudents.length / studentIds.length : 0
 
         // Ajouter seulement les sessions avec au moins un étudiant en commun
         if (commonStudents.length > 0) {
@@ -319,8 +304,8 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
     // Calculer les sessions les plus fréquentes pour ces étudiants
     const sessionFrequency = new Map() // sessionId -> { count, details }
 
-    studentCoursesMap.forEach((sessions, studentId) => {
-      sessions.forEach((session) => {
+    studentCoursesMap.forEach((sessions: any) => {
+      sessions.forEach((session: any) => {
         const key = session.sessionId
         if (!sessionFrequency.has(key)) {
           sessionFrequency.set(key, {
@@ -349,10 +334,11 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
       attendanceData.push({
         attendanceId: invalidAttendance.attendanceId,
         originalSessionId: invalidAttendance.sessionId,
+
         date: invalidAttendance.date,
         studentCount: studentIds.length,
         potentialSessionMatch: {
-          ...bestSessionDetails,
+          ...(bestSessionDetails as object),
           matchRatio: highestFrequency / studentIds.length,
         },
         matchRatio: highestFrequency / studentIds.length,
@@ -364,26 +350,16 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
   attendanceData.sort((a, b) => b.matchRatio - a.matchRatio)
 
   // Diviser en groupes selon le niveau de confiance
-  const highConfidenceMatches = attendanceData.filter(
-    (data) => data.matchRatio >= 0.7,
-  )
+  const highConfidenceMatches = attendanceData.filter((data) => data.matchRatio >= 0.7)
   const mediumConfidenceMatches = attendanceData.filter(
     (data) => data.matchRatio >= 0.4 && data.matchRatio < 0.7,
   )
-  const lowConfidenceMatches = attendanceData.filter(
-    (data) => data.matchRatio < 0.4,
-  )
+  const lowConfidenceMatches = attendanceData.filter((data) => data.matchRatio < 0.4)
 
   console.log('\n🔄 Statistiques des correspondances:')
-  console.log(
-    `- Correspondances à haute confiance (≥70%): ${highConfidenceMatches.length}`,
-  )
-  console.log(
-    `- Correspondances à confiance moyenne (40-70%): ${mediumConfidenceMatches.length}`,
-  )
-  console.log(
-    `- Correspondances à faible confiance (<40%): ${lowConfidenceMatches.length}`,
-  )
+  console.log(`- Correspondances à haute confiance (≥70%): ${highConfidenceMatches.length}`)
+  console.log(`- Correspondances à confiance moyenne (40-70%): ${mediumConfidenceMatches.length}`)
+  console.log(`- Correspondances à faible confiance (<40%): ${lowConfidenceMatches.length}`)
 
   // Afficher les exemples de corrections proposées
   if (highConfidenceMatches.length > 0) {
@@ -394,22 +370,18 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
       const correction = topCorrections[i]
       console.log(`${i + 1}. Attendance ID: ${correction.attendanceId}`)
       console.log(`   Session originale: ${correction.originalSessionId}`)
+      console.log(`   Session proposée: ${(correction.potentialSessionMatch as any).sessionId}`)
       console.log(
-        `   Session proposée: ${correction.potentialSessionMatch.sessionId}`,
+        `   Enseignant(s): ${(correction.potentialSessionMatch as any).teacherNames.join(', ')}`,
+      )
+      console.log(`   Sujet: ${(correction.potentialSessionMatch as any).subject}`)
+      console.log(
+        `   Jour/Heure: ${(correction.potentialSessionMatch as any).weekday} ${(correction.potentialSessionMatch as any).time}`,
       )
       console.log(
-        `   Enseignant(s): ${correction.potentialSessionMatch.teacherNames.join(', ')}`,
+        `   Étudiants en commun: ${(correction.potentialSessionMatch as any).commonStudentsCount}/${(correction.potentialSessionMatch as any).totalStudents}`,
       )
-      console.log(`   Sujet: ${correction.potentialSessionMatch.subject}`)
-      console.log(
-        `   Jour/Heure: ${correction.potentialSessionMatch.weekday} ${correction.potentialSessionMatch.time}`,
-      )
-      console.log(
-        `   Étudiants en commun: ${correction.potentialSessionMatch.commonStudentsCount}/${correction.potentialSessionMatch.totalStudents}`,
-      )
-      console.log(
-        `   Taux de correspondance: ${(correction.matchRatio * 100).toFixed(1)}%\n`,
-      )
+      console.log(`   Taux de correspondance: ${(correction.matchRatio * 100).toFixed(1)}%\n`)
     }
 
     console.log(
@@ -428,7 +400,7 @@ async function analyzeAndSuggestRepairs(invalidAttendances) {
 /**
  * Génère un fichier avec le script de correction MongoDB
  */
-async function generateCorrectionScriptFile(highConfidenceMatches) {
+async function generateCorrectionScriptFile(highConfidenceMatches: any[]) {
   try {
     // Créer le contenu du script
     let scriptContent = `// Script de correction des attendances avec sessions invalides\n`
@@ -437,10 +409,7 @@ async function generateCorrectionScriptFile(highConfidenceMatches) {
 
     // Ajouter chaque commande de mise à jour
     for (const match of highConfidenceMatches) {
-      if (
-        match.potentialSessionMatch &&
-        match.potentialSessionMatch.sessionId
-      ) {
+      if (match.potentialSessionMatch && match.potentialSessionMatch.sessionId) {
         scriptContent += `// Attendance du ${new Date(match.date).toLocaleDateString()} - ${match.potentialSessionMatch.subject}\n`
         scriptContent += `// Jour/Heure: ${match.potentialSessionMatch.weekday} ${match.potentialSessionMatch.time}\n`
         scriptContent += `// Enseignant(s): ${match.potentialSessionMatch.teacherNames.join(', ')}\n`
@@ -458,7 +427,7 @@ async function generateCorrectionScriptFile(highConfidenceMatches) {
 
     // Assurer que le répertoire de scripts existe
     const scriptsDir = path.join(process.cwd(), 'scripts')
-    await fs.mkdir(scriptsDir, { recursive: true })
+    await fs.mkdir(scriptsDir, {recursive: true})
 
     const filePath = path.join(scriptsDir, fileName)
 
@@ -469,10 +438,7 @@ async function generateCorrectionScriptFile(highConfidenceMatches) {
 
     return filePath
   } catch (error) {
-    console.error(
-      `❌ Erreur lors de la génération du script de correction:`,
-      error,
-    )
+    console.error(`❌ Erreur lors de la génération du script de correction:`, error)
     return null
   }
 }
@@ -507,7 +473,7 @@ async function analyzeMorningCourses() {
 
   const teachersMap = new Map()
   teachersData.forEach((teacher) => {
-    teachersMap.set(teacher._id.toString(), {
+    teachersMap.set((teacher as any)._id.toString(), {
       firstname: teacher.firstname || '',
       lastname: teacher.lastname || '',
     })
@@ -518,23 +484,19 @@ async function analyzeMorningCourses() {
   // Analyser chaque cours
   for (const course of courses) {
     const teacherIds = Array.isArray(course.teacher)
-      ? course.teacher.map((t) =>
-          typeof t === 'object' ? t._id.toString() : t.toString(),
-        )
+      ? course.teacher.map((t: any) => (typeof t === 'object' ? t._id.toString() : t.toString()))
       : [
-          typeof course.teacher === 'object'
-            ? course.teacher._id.toString()
-            : course.teacher.toString(),
+          typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
+            ? (course.teacher as {_id: Types.ObjectId})._id.toString()
+            : (course.teacher as Types.ObjectId | string).toString(),
         ]
 
     // Analyser les sessions du matin (9h-12h30)
-    const morningSessions = course.sessions.filter((session) => {
+    const morningSessions = course.sessions.filter((session: any) => {
       return (
         (session.timeSlot.startTime === '09:00' &&
-          (session.timeSlot.endTime === '10:45' ||
-            session.timeSlot.endTime === '12:30')) ||
-        (session.timeSlot.startTime === '10:45' &&
-          session.timeSlot.endTime === '12:30')
+          (session.timeSlot.endTime === '10:45' || session.timeSlot.endTime === '12:30')) ||
+        (session.timeSlot.startTime === '10:45' && session.timeSlot.endTime === '12:30')
       )
     })
 
@@ -544,27 +506,15 @@ async function analyzeMorningCourses() {
     for (const session of morningSessions) {
       // Compter les types de cours
       if (session.subject === SubjectNameEnum.Arabe) {
-        if (
-          session.timeSlot.startTime === '09:00' &&
-          session.timeSlot.endTime === '10:45'
-        ) {
+        if (session.timeSlot.startTime === '09:00' && session.timeSlot.endTime === '10:45') {
           stats.arabe_9_10_45++
-        } else if (
-          session.timeSlot.startTime === '10:45' &&
-          session.timeSlot.endTime === '12:30'
-        ) {
+        } else if (session.timeSlot.startTime === '10:45' && session.timeSlot.endTime === '12:30') {
           stats.arabe_10_45_12_30++
         }
       } else if (session.subject === SubjectNameEnum.EducationCulturelle) {
-        if (
-          session.timeSlot.startTime === '09:00' &&
-          session.timeSlot.endTime === '10:45'
-        ) {
+        if (session.timeSlot.startTime === '09:00' && session.timeSlot.endTime === '10:45') {
           stats.educationCulturelle_9_10_45++
-        } else if (
-          session.timeSlot.startTime === '10:45' &&
-          session.timeSlot.endTime === '12:30'
-        ) {
+        } else if (session.timeSlot.startTime === '10:45' && session.timeSlot.endTime === '12:30') {
           stats.educationCulturelle_10_45_12_30++
         }
       }

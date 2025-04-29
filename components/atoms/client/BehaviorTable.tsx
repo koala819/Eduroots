@@ -1,33 +1,14 @@
 'use client'
 
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Plus,
-  Star,
-  XCircle,
-} from 'lucide-react'
+import {AlertCircle, CheckCircle, Clock, Plus, Star, XCircle} from 'lucide-react'
 import React from 'react'
 
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import {Button} from '@/components/ui/button'
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip'
 
-import { useHolidays } from '@/context/Holidays/client'
-import { isWithinInterval } from 'date-fns'
+import {useHolidays} from '@/context/Holidays/client'
+import {isWithinInterval} from 'date-fns'
 
 interface TableProps<T> {
   courseDates: Date[]
@@ -37,14 +18,14 @@ interface TableProps<T> {
   getRecordForDate: (date: Date) => T | undefined
 }
 
-export const BehaviorTable = <T extends { _id: string; warning?: boolean }>({
+export const BehaviorTable = <T extends {_id: string; warning?: boolean}>({
   courseDates,
   handleCreate,
   handleEdit,
   recordExists,
   getRecordForDate,
 }: TableProps<T>) => {
-  const { holidays } = useHolidays()
+  const {holidays} = useHolidays()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">
@@ -53,9 +34,7 @@ export const BehaviorTable = <T extends { _id: string; warning?: boolean }>({
           <TableRow>
             <TableHead className="w-1/3">Date</TableHead>
             <TableHead className="w-1/3">Statut</TableHead>
-            <TableHead className="w-1/3 text-right sm:text-left">
-              Action
-            </TableHead>
+            <TableHead className="w-1/3 text-right sm:text-left">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,9 +65,7 @@ export const BehaviorTable = <T extends { _id: string; warning?: boolean }>({
                       {!record.warning && (
                         <Button
                           className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-gray-900 hover:bg-gray-800 text-white"
-                          onClick={() =>
-                            handleEdit(record._id, date.toISOString())
-                          }
+                          onClick={() => handleEdit(record._id, date.toISOString())}
                         >
                           Modifier
                         </Button>
@@ -119,9 +96,7 @@ export const BehaviorTable = <T extends { _id: string; warning?: boolean }>({
                           </div>
                           <div className="flex items-center space-x-2">
                             <Star className="h-4 w-4 text-yellow-400" />
-                            <span className="text-xs sm:text-sm text-blue-700">
-                              À venir
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-700">À venir</span>
                           </div>
                         </div>
                       </TableCell>
@@ -153,10 +128,7 @@ export const BehaviorTable = <T extends { _id: string; warning?: boolean }>({
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>
-                                    Veuillez d&apos;abord saisir la présence
-                                    pour cette date
-                                  </p>
+                                  <p>Veuillez d&apos;abord saisir la présence pour cette date</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

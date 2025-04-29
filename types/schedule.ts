@@ -1,4 +1,4 @@
-import { Document, Model, Types } from 'mongoose'
+import {Document, Model, Types} from 'mongoose'
 
 export enum PeriodTypeEnum {
   CLASS = 'CLASS',
@@ -28,6 +28,3 @@ export interface ScheduleConfig {
 
 // Interface pour le document Mongoose
 export interface ScheduleConfigDocument extends Document, ScheduleConfig {}
-
-// Interface pour le model Mongoose
-export interface ScheduleConfigModel extends Model<ScheduleConfigDocument> {}

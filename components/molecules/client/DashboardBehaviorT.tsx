@@ -1,20 +1,20 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import React, { useEffect, useState } from 'react'
+import {useSession} from 'next-auth/react'
+import React, {useEffect, useState} from 'react'
 
-import { AttendanceRecord } from '@/types/attendance'
+import {AttendanceRecord} from '@/types/attendance'
 
-import { BehaviorCreate } from '@/components/atoms/client/BehaviorCreate'
-import { BehaviorEdit } from '@/components/atoms/client/BehaviorEdit'
-import { BehaviorTable } from '@/components/atoms/client/BehaviorTable'
-import { Card, CardContent } from '@/components/ui/card'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import {BehaviorCreate} from '@/components/atoms/client/BehaviorCreate'
+import {BehaviorEdit} from '@/components/atoms/client/BehaviorEdit'
+import {BehaviorTable} from '@/components/atoms/client/BehaviorTable'
+import {Card, CardContent} from '@/components/ui/card'
+import {Sheet, SheetContent} from '@/components/ui/sheet'
 
-import { useAttendance } from '@/context/Attendances/client'
-import { useBehavior } from '@/context/Behaviors/client'
-import { useCourses } from '@/context/Courses/client'
-import { AnimatePresence } from 'framer-motion'
+import {useAttendance} from '@/context/Attendances/client'
+import {useBehavior} from '@/context/Behaviors/client'
+import {useCourses} from '@/context/Courses/client'
+import {AnimatePresence} from 'framer-motion'
 
 export const DashboardBehaviorT = ({
   courseId,
@@ -23,28 +23,21 @@ export const DashboardBehaviorT = ({
   courseId: string
   courseDates: Date[]
 }) => {
-  const { data: session } = useSession()
-  const {
-    allAttendance,
-    fetchAttendances,
-    isLoadingAttendance,
-    getAttendanceById,
-  } = useAttendance()
+  const {data: session} = useSession()
+  const {allAttendance, fetchAttendances, isLoadingAttendance, getAttendanceById} = useAttendance()
   const {
     getTeacherCourses,
     teacherCourses,
     isLoading: isLoadingCourses,
     error: errorCourses,
   } = useCourses()
-  const { allBehaviors, fetchBehaviors, error } = useBehavior()
+  const {allBehaviors, fetchBehaviors, error} = useBehavior()
 
   const [isCreatingBehavior, setIsCreatingBehavior] = useState<boolean>(false)
   const [isEditingBehavior, setIsEditingBehavior] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedBehaviorId, setSelectedBehaviorId] = useState<string>('')
-  const [attendanceStudents, setAttendanceStudents] = useState<
-    AttendanceRecord[]
-  >([])
+  const [attendanceStudents, setAttendanceStudents] = useState<AttendanceRecord[]>([])
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,8 +47,8 @@ export const DashboardBehaviorT = ({
         // Chargement parallèle des présences et comportements
         await Promise.all([
           getTeacherCourses(session.user.id),
-          fetchAttendances({ courseId }),
-          fetchBehaviors({ courseId }),
+          fetchAttendances({courseId}),
+          fetchBehaviors({courseId}),
         ])
       } catch (err) {
         console.error('Error loading behavior:', err)
@@ -63,13 +56,7 @@ export const DashboardBehaviorT = ({
     }
 
     loadData()
-  }, [
-    courseId,
-    fetchAttendances,
-    fetchBehaviors,
-    getTeacherCourses,
-    session?.user?.id,
-  ])
+  }, [courseId, fetchAttendances, fetchBehaviors, getTeacherCourses, session?.user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -122,12 +109,7 @@ export const DashboardBehaviorT = ({
     setSelectedDate(null)
   }
 
-  if (
-    isLoadingAttendance ||
-    !teacherCourses ||
-    allBehaviors === null ||
-    isLoadingCourses
-  ) {
+  if (isLoadingAttendance || !teacherCourses || allBehaviors === null || isLoadingCourses) {
     return (
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">
@@ -135,11 +117,11 @@ export const DashboardBehaviorT = ({
             <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
             <div
               className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-              style={{ animationDelay: '0.2s' }}
+              style={{animationDelay: '0.2s'}}
             ></div>
             <div
               className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-              style={{ animationDelay: '0.4s' }}
+              style={{animationDelay: '0.4s'}}
             ></div>
           </div>
         </CardContent>
@@ -152,11 +134,7 @@ export const DashboardBehaviorT = ({
   }
 
   if (!allBehaviors) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Aucun comportement trouvé
-      </div>
-    )
+    return <div className="text-center py-8 text-gray-500">Aucun comportement trouvé</div>
   }
 
   return (
@@ -169,10 +147,7 @@ export const DashboardBehaviorT = ({
             handleEdit={handleEditBehavior}
             recordExists={isAttendanceExistsForDate}
             getRecordForDate={(date) =>
-              allBehaviors.find(
-                (beh) =>
-                  new Date(beh.date).toDateString() === date.toDateString(),
-              )
+              allBehaviors.find((beh) => new Date(beh.date).toDateString() === date.toDateString())
             }
           />
         </CardContent>

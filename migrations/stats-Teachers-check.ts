@@ -1,6 +1,6 @@
-import { TimeSlotEnum } from '@/types/course'
-import { TeacherStats } from '@/types/stats'
-import { GenderEnum } from '@/types/user'
+import {TimeSlotEnum} from '@/types/course'
+import {TeacherStats} from '@/types/stats'
+import {GenderEnum} from '@/types/user'
 
 import {
   TeacherSession,
@@ -29,9 +29,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
     // Afficher les professeurs remplaçants
     if (analytics.substituteTeachers.length > 0) {
       console.log('\n🔍 Professeurs remplaçants:')
-      console.log(
-        `Total de professeurs remplaçants: ${analytics.substituteTeachers.length}`,
-      )
+      console.log(`Total de professeurs remplaçants: ${analytics.substituteTeachers.length}`)
       analytics.substituteTeachers.forEach((teacher) => {
         console.log(`  ID: ${teacher.id} - Nom: ${teacher.name}`)
       })
@@ -53,9 +51,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
     }
 
     // Parcourir et afficher les catégories de professeurs
-    for (const [category, teachers] of Object.entries(
-      analytics.teacherCategories,
-    )) {
+    for (const [category, teachers] of Object.entries(analytics.teacherCategories)) {
       if (teachers.length > 0) {
         const categoryKey = category as keyof typeof categoryNames
         console.log(
@@ -63,8 +59,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
         )
         await Promise.all(
           teachers.map(async (teacher) => {
-            const teacherName =
-              analytics.teacherMap.get(teacher.teacherId) || 'Nom inconnu'
+            const teacherName = analytics.teacherMap.get(teacher.teacherId) || 'Nom inconnu'
             const courseInfo = getTeacherCourseCount(teacher)
 
             let teacherStudents: TeacherStats = {
@@ -126,10 +121,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
 }
 
 // Fonction pour détecter les anomalies
-function detectAnomalies(
-  teacher: TeacherSessionInfo,
-  teacherMap: Map<string, string>,
-) {
+function detectAnomalies(teacher: TeacherSessionInfo, teacherMap: Map<string, string>) {
   const workDays = new Set(teacher.workDays)
   const expectedMaxCourses = workDays.size
   const realCourses = getTeacherCourseCount(teacher).courseCount
@@ -152,9 +144,7 @@ function detectAnomalies(
     const daysWithUniqueStudents = Object.entries(sessionsByDay).filter(
       ([day, sessions]) =>
         sessions.length > 1 &&
-        new Set(
-          sessions.map((s) => JSON.stringify(s.students?.map((st) => st.id))),
-        ).size > 1,
+        new Set(sessions.map((s) => JSON.stringify(s.students?.map((st) => st.id)))).size > 1,
     )
 
     // Afficher uniquement les jours avec des sessions différentes

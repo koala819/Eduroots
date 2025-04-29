@@ -1,14 +1,14 @@
 'use client'
 
-import { Mail as MailIcon, Paperclip } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import {Mail as MailIcon, Paperclip} from 'lucide-react'
+import {useEffect, useState} from 'react'
 
-import { Mail } from '@/types/models'
+import {Mail} from '@/types/models'
 
-import { MessageViewer } from '@/components/organisms/client/MessageViewer'
+import {MessageViewer} from '@/components/organisms/client/MessageViewer'
 
-import { fetchReceiver } from '@/app/actions/mails'
-import { getReceiverName } from '@/lib/mails/utils'
+import {fetchReceiver} from '@/app/actions/mails'
+import {getReceiverName} from '@/lib/mails/utils'
 
 interface MessageItemProps {
   message: Mail
@@ -42,10 +42,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
       }
 
       try {
-        const result = await fetchReceiver(
-          message.recipientType,
-          message.recipientId[0],
-        )
+        const result = await fetchReceiver(message.recipientType, message.recipientId[0])
         if (result) {
           setReceiverName(`${result.firstname} ${result.lastname}`)
         } else {
@@ -75,9 +72,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             <div
               className={`flex items-center ${message.isRead || fromSendBox ? 'text-gray-700' : 'text-blue-700'}`}
             >
-              {!message.isRead && !fromSendBox && (
-                <MailIcon className="mr-2 h-4 w-4" />
-              )}
+              {!message.isRead && !fromSendBox && <MailIcon className="mr-2 h-4 w-4" />}
               <span>{message.senderName}</span>
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">

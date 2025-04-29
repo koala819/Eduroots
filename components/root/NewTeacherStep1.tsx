@@ -1,27 +1,21 @@
-import { UseFormReturn } from 'react-hook-form'
+import {UseFormReturn} from 'react-hook-form'
 
-import { FormData } from '@/components/root/NewTeacherForm'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import {FormData} from '@/components/root/NewTeacherForm'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
 
 interface StepOneProps {
   form: UseFormReturn<FormData>
 }
 
-const StepOne = ({ form }: StepOneProps) => {
+const StepOne = ({form}: StepOneProps) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="firstname"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Prénom</FormLabel>
               <FormControl>
@@ -34,7 +28,7 @@ const StepOne = ({ form }: StepOneProps) => {
         <FormField
           control={form.control}
           name="lastname"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Nom</FormLabel>
               <FormControl>
@@ -48,7 +42,7 @@ const StepOne = ({ form }: StepOneProps) => {
       <FormField
         control={form.control}
         name="email"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>

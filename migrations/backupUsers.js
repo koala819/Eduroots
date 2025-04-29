@@ -1,5 +1,5 @@
 import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
+import {User} from '@/backend/models/user.model'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -10,7 +10,7 @@ export async function backupUsers() {
     const users = await User.find({}).lean()
 
     const backupPath = path.join(process.cwd(), 'backup')
-    await fs.mkdir(backupPath, { recursive: true })
+    await fs.mkdir(backupPath, {recursive: true})
 
     const timestamp = new Date().toISOString().replace(/:/g, '-')
     const fileName = `users_backup_${timestamp}.json`

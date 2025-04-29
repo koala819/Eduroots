@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import {useState} from 'react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -13,17 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {Separator} from '@/components/ui/separator'
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
 interface Discrepancy {
   field: string
@@ -121,17 +113,12 @@ export default function CompareStudentsPage() {
         <CardHeader>
           <CardTitle>Lancer la comparaison</CardTitle>
           <CardDescription>
-            Compare les étudiants du fichier JSON avec ceux de la base de
-            données et génère un rapport détaillé.
+            Compare les étudiants du fichier JSON avec ceux de la base de données et génère un
+            rapport détaillé.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={runComparison}
-            disabled={loading}
-            size="lg"
-            className="w-full"
-          >
+          <Button onClick={runComparison} disabled={loading} size="lg" className="w-full">
             {loading ? 'Comparaison en cours...' : 'Lancer la comparaison'}
           </Button>
         </CardContent>
@@ -164,8 +151,7 @@ export default function CompareStudentsPage() {
               <CardHeader>
                 <CardTitle>Résumé de la comparaison</CardTitle>
                 <CardDescription>
-                  Rapport généré le{' '}
-                  {new Date(report.dateGenerated).toLocaleString()}
+                  Rapport généré le {new Date(report.dateGenerated).toLocaleString()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -175,9 +161,7 @@ export default function CompareStudentsPage() {
                       <CardTitle className="text-xl">Base de données</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-4xl font-bold">
-                        {report.studentsInDatabase}
-                      </p>
+                      <p className="text-4xl font-bold">{report.studentsInDatabase}</p>
                       <p className="text-muted-foreground">étudiants</p>
                     </CardContent>
                   </Card>
@@ -187,9 +171,7 @@ export default function CompareStudentsPage() {
                       <CardTitle className="text-xl">Fichier JSON</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-4xl font-bold">
-                        {report.studentsInJson}
-                      </p>
+                      <p className="text-4xl font-bold">{report.studentsInJson}</p>
                       <p className="text-muted-foreground">étudiants</p>
                     </CardContent>
                   </Card>
@@ -203,9 +185,7 @@ export default function CompareStudentsPage() {
                       <CardTitle className="text-lg">Correspondances</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold">
-                        {report.matchingStudents.length}
-                      </p>
+                      <p className="text-3xl font-bold">{report.matchingStudents.length}</p>
                       <p className="text-sm text-muted-foreground">
                         étudiants présents dans les deux sources
                       </p>
@@ -214,41 +194,32 @@ export default function CompareStudentsPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">
-                        Uniquement en base
-                      </CardTitle>
+                      <CardTitle className="text-lg">Uniquement en base</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-3xl font-bold text-amber-600">
                         {report.onlyInDatabase.length}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        à supprimer potentiellement
-                      </p>
+                      <p className="text-sm text-muted-foreground">à supprimer potentiellement</p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">
-                        Uniquement dans JSON
-                      </CardTitle>
+                      <CardTitle className="text-lg">Uniquement dans JSON</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-3xl font-bold text-emerald-600">
                         {report.onlyInJson.length}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        à ajouter potentiellement
-                      </p>
+                      <p className="text-sm text-muted-foreground">à ajouter potentiellement</p>
                     </CardContent>
                   </Card>
                 </div>
               </CardContent>
               <CardFooter>
                 <p className="text-muted-foreground text-sm">
-                  Le rapport complet est enregistré dans le dossier{' '}
-                  <code>reports</code> sous le nom{' '}
+                  Le rapport complet est enregistré dans le dossier <code>reports</code> sous le nom{' '}
                   <code>{reportPath?.split('/').pop()}</code>
                 </p>
               </CardFooter>
@@ -258,12 +229,9 @@ export default function CompareStudentsPage() {
           <TabsContent value="matching">
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Étudiants correspondants ({report.matchingStudents.length})
-                </CardTitle>
+                <CardTitle>Étudiants correspondants ({report.matchingStudents.length})</CardTitle>
                 <CardDescription>
-                  Étudiants présents à la fois dans la base de données et dans
-                  le fichier JSON
+                  Étudiants présents à la fois dans la base de données et dans le fichier JSON
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -282,22 +250,14 @@ export default function CompareStudentsPage() {
                   <TableBody>
                     {report.matchingStudents.map((student) => (
                       <TableRow key={student.id}>
-                        <TableCell className="font-mono text-xs">
-                          {student.id}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{student.id}</TableCell>
                         <TableCell>{student.lastname}</TableCell>
                         <TableCell>{student.firstname}</TableCell>
                         <TableCell>{student.email}</TableCell>
-                        <TableCell>
-                          {student.teacher?.name || 'Non assigné'}
-                        </TableCell>
+                        <TableCell>{student.teacher?.name || 'Non assigné'}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={
-                              student.discrepancies.length > 0
-                                ? 'destructive'
-                                : 'default'
-                            }
+                            variant={student.discrepancies.length > 0 ? 'destructive' : 'default'}
                           >
                             {student.discrepancies.length}
                           </Badge>
@@ -305,25 +265,19 @@ export default function CompareStudentsPage() {
                         <TableCell>
                           {student.discrepancies.length > 0 && (
                             <details className="text-xs">
-                              <summary className="cursor-pointer">
-                                Voir les divergences
-                              </summary>
+                              <summary className="cursor-pointer">Voir les divergences</summary>
                               <ul className="list-disc pl-5 mt-2">
-                                {student.discrepancies.map(
-                                  (discrepancy, idx) => (
-                                    <li key={idx} className="mb-1">
-                                      <span className="font-semibold">
-                                        {discrepancy.field}:
-                                      </span>
-                                      <span className="text-red-500 line-through ml-1">
-                                        {discrepancy.dbValue || '(vide)'}
-                                      </span>
-                                      <span className="text-green-500 ml-1">
-                                        → {discrepancy.jsonValue || '(vide)'}
-                                      </span>
-                                    </li>
-                                  ),
-                                )}
+                                {student.discrepancies.map((discrepancy, idx) => (
+                                  <li key={idx} className="mb-1">
+                                    <span className="font-semibold">{discrepancy.field}:</span>
+                                    <span className="text-red-500 line-through ml-1">
+                                      {discrepancy.dbValue || '(vide)'}
+                                    </span>
+                                    <span className="text-green-500 ml-1">
+                                      → {discrepancy.jsonValue || '(vide)'}
+                                    </span>
+                                  </li>
+                                ))}
                               </ul>
                             </details>
                           )}
@@ -340,12 +294,11 @@ export default function CompareStudentsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Étudiants uniquement en base de données (
-                  {report.onlyInDatabase.length})
+                  Étudiants uniquement en base de données ({report.onlyInDatabase.length})
                 </CardTitle>
                 <CardDescription>
-                  Ces étudiants existent en base mais pas dans le fichier JSON
-                  (à supprimer potentiellement)
+                  Ces étudiants existent en base mais pas dans le fichier JSON (à supprimer
+                  potentiellement)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -362,15 +315,11 @@ export default function CompareStudentsPage() {
                   <TableBody>
                     {report.onlyInDatabase.map((student) => (
                       <TableRow key={student.id}>
-                        <TableCell className="font-mono text-xs">
-                          {student.id}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{student.id}</TableCell>
                         <TableCell>{student.lastname}</TableCell>
                         <TableCell>{student.firstname}</TableCell>
                         <TableCell>{student.email}</TableCell>
-                        <TableCell>
-                          {student.teacher?.name || 'Non assigné'}
-                        </TableCell>
+                        <TableCell>{student.teacher?.name || 'Non assigné'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -383,12 +332,11 @@ export default function CompareStudentsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Étudiants uniquement dans le fichier JSON (
-                  {report.onlyInJson.length})
+                  Étudiants uniquement dans le fichier JSON ({report.onlyInJson.length})
                 </CardTitle>
                 <CardDescription>
-                  Ces étudiants existent dans le fichier JSON mais pas en base
-                  (à ajouter potentiellement)
+                  Ces étudiants existent dans le fichier JSON mais pas en base (à ajouter
+                  potentiellement)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -407,9 +355,7 @@ export default function CompareStudentsPage() {
                         <TableCell>{student.lastname}</TableCell>
                         <TableCell>{student.firstname}</TableCell>
                         <TableCell>{student.email}</TableCell>
-                        <TableCell>
-                          {student.teacher || 'Non spécifié'}
-                        </TableCell>
+                        <TableCell>{student.teacher || 'Non spécifié'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

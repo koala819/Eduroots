@@ -1,11 +1,8 @@
 'use server'
 
-import {
-  refreshEntityStats,
-  refreshGlobalStats,
-} from '@/app/actions/context/stats'
-import { StatsProvider } from '@/context/Stats/client'
-import { SerializedValue } from '@/lib/serialization'
+import {refreshEntityStats, refreshGlobalStats} from '@/app/actions/context/stats'
+import {StatsProvider} from '@/context/Stats/client'
+import {SerializedValue} from '@/lib/serialization'
 
 // Fallback stats when DB is unavailable
 const fallbackGlobalStats = {
@@ -15,11 +12,7 @@ const fallbackGlobalStats = {
   lastUpdate: new Date(),
 }
 
-export default async function StatsServerComponent({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function StatsServerComponent({children}: {children: React.ReactNode}) {
   let initialEntityStats: SerializedValue[] = []
   let initialGlobalStats = fallbackGlobalStats as unknown as SerializedValue
 
@@ -49,10 +42,7 @@ export default async function StatsServerComponent({
   }
 
   return (
-    <StatsProvider
-      initialEntityStats={initialEntityStats}
-      initialGlobalStats={initialGlobalStats}
-    >
+    <StatsProvider initialEntityStats={initialEntityStats} initialGlobalStats={initialGlobalStats}>
       {children}
     </StatsProvider>
   )

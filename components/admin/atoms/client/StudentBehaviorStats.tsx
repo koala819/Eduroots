@@ -1,27 +1,17 @@
 'use client'
 
-import { SubjectNameEnum } from '@/types/course'
+import {SubjectNameEnum} from '@/types/course'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { BehaviorStats } from '@/app/actions/admin/student-stats-behavior'
-import {
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import {BehaviorStats} from '@/app/actions/admin/student-stats-behavior'
+import {Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts'
 
 interface StudentBehaviorStatsClientProps {
   stats: BehaviorStats
 }
 
-export function StudentBehaviorStatsClient({
-  stats,
-}: StudentBehaviorStatsClientProps) {
+export function StudentBehaviorStatsClient({stats}: StudentBehaviorStatsClientProps) {
   const subjectColors: Record<SubjectNameEnum, string> = {
     [SubjectNameEnum.Arabe]: '#2563eb',
     [SubjectNameEnum.EducationCulturelle]: '#16a34a',
@@ -42,21 +32,15 @@ export function StudentBehaviorStatsClient({
           </div>
           <div className="text-center p-4 bg-slate-100 rounded-lg">
             <div className="text-sm text-slate-600">Sessions totales</div>
-            <div className="text-2xl font-bold text-slate-900">
-              {stats.totalSessions}
-            </div>
+            <div className="text-2xl font-bold text-slate-900">{stats.totalSessions}</div>
           </div>
           <div className="text-center p-4 bg-green-100 rounded-lg">
             <div className="text-sm text-green-600">Meilleure note</div>
-            <div className="text-2xl font-bold text-green-700">
-              {stats.bestRating}/5
-            </div>
+            <div className="text-2xl font-bold text-green-700">{stats.bestRating}/5</div>
           </div>
           <div className="text-center p-4 bg-red-100 rounded-lg">
             <div className="text-sm text-red-600">Note la plus basse</div>
-            <div className="text-2xl font-bold text-red-700">
-              {stats.worstRating}/5
-            </div>
+            <div className="text-2xl font-bold text-red-700">{stats.worstRating}/5</div>
           </div>
         </CardContent>
       </Card>
@@ -68,18 +52,11 @@ export function StudentBehaviorStatsClient({
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={stats.chartData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis
-                  domain={[0, 5]}
-                  ticks={[0, 1, 2, 3, 4, 5]}
-                  tick={{ fontSize: 12 }}
-                />
+              <LineChart data={stats.chartData} margin={{top: 5, right: 30, left: 20, bottom: 5}}>
+                <XAxis dataKey="date" tick={{fontSize: 12}} />
+                <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{fontSize: 12}} />
                 <Tooltip
-                  content={({ active, payload, label }) => {
+                  content={({active, payload, label}) => {
                     if (active && payload && payload.length) {
                       const dataPoint = payload[0].payload
                       return (
@@ -88,9 +65,7 @@ export function StudentBehaviorStatsClient({
                           <p className="text-sm">
                             {dataPoint.subject} (Niveau {dataPoint.level})
                           </p>
-                          <p className="text-sm font-bold">
-                            Note: {payload[0].value}/5
-                          </p>
+                          <p className="text-sm font-bold">Note: {payload[0].value}/5</p>
                         </div>
                       )
                     }

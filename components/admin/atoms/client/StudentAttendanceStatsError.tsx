@@ -1,8 +1,8 @@
 'use client'
 
-import { AlertCircle } from 'lucide-react'
+import {AlertCircle} from 'lucide-react'
 
-import { Card, CardContent } from '@/components/ui/card'
+import {Card, CardContent} from '@/components/ui/card'
 
 interface StudentStatsErrorProps {
   message: string
@@ -16,8 +16,7 @@ export function StudentStatsError({
   variant = 'error',
 }: StudentStatsErrorProps) {
   const bgColor = variant === 'error' ? 'bg-red-50' : 'bg-yellow-50'
-  const borderColor =
-    variant === 'error' ? 'border-red-200' : 'border-yellow-200'
+  const borderColor = variant === 'error' ? 'border-red-200' : 'border-yellow-200'
   const textColor = variant === 'error' ? 'text-red-700' : 'text-gray-600'
   const iconColor = variant === 'error' ? 'text-red-500' : 'text-yellow-500'
 
@@ -33,9 +32,7 @@ export function StudentStatsError({
           ) : (
             <>
               <p className="font-medium">{message}</p>
-              {description && (
-                <p className="text-sm text-gray-600">{description}</p>
-              )}
+              {description && <p className="text-sm text-gray-600">{description}</p>}
             </>
           )}
         </div>

@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import {useState} from 'react'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
-import { useStats } from '@/context/Stats/client'
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import {useStats} from '@/context/Stats/client'
+import {fetchWithAuth} from '@/lib/fetchWithAuth'
 
 export default function StatsPage() {
   const [isCalculating, setIsCalculating] = useState(false)
-  const { toast } = useToast()
-  const { refreshEntityStats } = useStats()
+  const {toast} = useToast()
+  const {refreshEntityStats} = useStats()
 
   const calculateStats = async () => {
     setIsCalculating(true)

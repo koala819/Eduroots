@@ -1,6 +1,6 @@
 'use client'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
 interface StudentSelectorProps {
   familyStudents: Student[]
@@ -29,14 +29,11 @@ export default function StudentSelector({
                   : 'bg-slate-200 text-slate-500 border-transparent'
               }`}
             >
-              {child.firstname.charAt(0).toUpperCase()}{' '}
-              {child.lastname.charAt(0).toUpperCase()}
+              {child.firstname.charAt(0).toUpperCase()} {child.lastname.charAt(0).toUpperCase()}
             </div>
             <span
               className={`text-sm font-semibold ${
-                selectedChildId === child._id
-                  ? 'text-sky-500'
-                  : 'text-slate-500'
+                selectedChildId === child._id ? 'text-sky-500' : 'text-slate-500'
               }`}
             >
               {child.firstname} {child.lastname}

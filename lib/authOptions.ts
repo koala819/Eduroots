@@ -1,11 +1,11 @@
-import { type NextAuthOptions } from 'next-auth'
+import {type NextAuthOptions} from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-import { Credentials } from '@/types/models'
-import { BaseUser, Student, Teacher, UserRoleEnum } from '@/types/user'
+import {Credentials} from '@/types/models'
+import {BaseUser, Student, Teacher, UserRoleEnum} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
+import {User} from '@/backend/models/user.model'
 import bcrypt from 'bcryptjs'
 
 // (Copie tout le contenu de authOptions ici)
@@ -17,13 +17,13 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'text', placeholder: 'email' },
-        password: { label: 'Password', type: 'password' },
-        role: { label: 'Role', type: 'text' },
+        email: {label: 'Email', type: 'text', placeholder: 'email'},
+        password: {label: 'Password', type: 'password'},
+        role: {label: 'Role', type: 'text'},
       },
       async authorize(credentials) {
         await dbConnect()
-        const { email, password, role } = credentials as Credentials
+        const {email, password, role} = credentials as Credentials
         // console.log('email', email, 'password', password, 'role', role)
         let user
 
@@ -31,14 +31,12 @@ export const authOptions: NextAuthOptions = {
           // Si le rôle est 'admin', chercher un utilisateur avec le rôle 'admin' ou 'bureau'
           user = await User.findOne({
             email,
-            role: { $in: [UserRoleEnum.Admin, UserRoleEnum.Bureau] },
+            role: {$in: [UserRoleEnum.Admin, UserRoleEnum.Bureau]},
             isActive: true,
           }).select('-password')
         } else {
           // Pour tous les autres rôles, utiliser la recherche originale
-          user = await User.findOne({ email, role, isActive: true }).select(
-            '-password',
-          )
+          user = await User.findOne({email, role, isActive: true}).select('-password')
         }
 
         // console.log('\n\n\nuser in authorize', user)
@@ -47,7 +45,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Requête séparée pour vérifier le password
-        const passwordCheck = (await User.findOne({ _id: user._id })
+        const passwordCheck = (await User.findOne({_id: user._id})
           .select('+password') // Le + force l'inclusion du champ password
           .lean()) as BaseUser | null
 
@@ -55,10 +53,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Erreur d'authentification.")
         }
 
-        const isPasswordMatched = await bcrypt.compare(
-          password,
-          passwordCheck.password,
-        )
+        const isPasswordMatched = await bcrypt.compare(password, passwordCheck.password)
 
         if (!isPasswordMatched) {
           throw new Error('Mot de passe incorrect.')
@@ -69,13 +64,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ user, token }) {
+    async jwt({user, token}) {
       if (user) {
-        token.user = { ...user }
+        token.user = {...user}
       }
       return token
     },
-    async session({ session, token }) {
+    async session({session, token}) {
       if (token?.user) {
         session.user = token.user as BaseUser | Student | Teacher
       }

@@ -1,24 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
-import { FixedSizeList as List } from 'react-window'
+import {useEffect, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
+import {FixedSizeList as List} from 'react-window'
 
-import { Student } from '@/types/user'
-import {
-  FormFields,
-  RecipientType,
-  SelectionModeType,
-} from '@/types/writeMessage'
+import {Student} from '@/types/user'
+import {FormFields, RecipientType, SelectionModeType} from '@/types/writeMessage'
 
-import { CustomCheckbox } from '@/components/atoms/client/MessageCustomCheckbox'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {CustomCheckbox} from '@/components/atoms/client/MessageCustomCheckbox'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
 
-import { useStudents } from '@/context/Students/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { calculateValidEmails, isValidStudent } from '@/lib/writeMessage'
+import {useStudents} from '@/context/Students/client'
+import {useTeachers} from '@/context/Teachers/client'
+import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
 
 interface RecipientForAdminProps {
   selectionMode: SelectionModeType
@@ -34,8 +30,8 @@ export const RecipientForAdmin = ({
   form,
 }: RecipientForAdminProps) => {
   // Hooks pour récupérer les données
-  const { students, isLoading } = useStudents()
-  const { getStudentsByTeacher, teachers } = useTeachers()
+  const {students, isLoading} = useStudents()
+  const {getStudentsByTeacher, teachers} = useTeachers()
 
   // États locaux pour l'UI
   const [recipientType, setRecipientType] = useState<RecipientType>(null)
@@ -55,9 +51,8 @@ export const RecipientForAdmin = ({
 
   // Filtrer les enseignants valides
   const validTeachers =
-    teachers?.filter(
-      (teacher) => teacher.email && teacher.email !== process.env.INVALID_EMAIL,
-    ) || []
+    teachers?.filter((teacher) => teacher.email && teacher.email !== process.env.INVALID_EMAIL) ||
+    []
 
   // Calculer les étudiants filtrés (pour la recherche)
   const filteredStudents = students
@@ -65,9 +60,7 @@ export const RecipientForAdmin = ({
         (student) =>
           isValidStudent(student) &&
           (!searchQuery ||
-            `${student.firstname} ${student.lastname}`
-              .toLowerCase()
-              .includes(searchQuery)),
+            `${student.firstname} ${student.lastname}`.toLowerCase().includes(searchQuery)),
       )
     : []
 
@@ -76,15 +69,13 @@ export const RecipientForAdmin = ({
         (student) =>
           !isValidStudent(student) &&
           (!searchQuery ||
-            `${student.firstname} ${student.lastname}`
-              .toLowerCase()
-              .includes(searchQuery)),
+            `${student.firstname} ${student.lastname}`.toLowerCase().includes(searchQuery)),
       )
     : []
 
   // Observer pour les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
+    const subscription = form.watch((value, {name}) => {
       if (name === 'recipients') {
         const validEmails = calculateValidEmails(value.recipients as string[], [
           ...students,
@@ -122,13 +113,11 @@ export const RecipientForAdmin = ({
       if (!studentsByTeacher) return
 
       const validStudents = studentsByTeacher.filter(isValidStudent)
-      const invalidStudents = studentsByTeacher.filter(
-        (s) => !isValidStudent(s),
-      )
+      const invalidStudents = studentsByTeacher.filter((s) => !isValidStudent(s))
 
       setTeacherStudents((prev) => ({
         ...prev,
-        [teacherId]: { valid: validStudents, invalid: invalidStudents },
+        [teacherId]: {valid: validStudents, invalid: invalidStudents},
       }))
     } catch (error) {
       console.error('Erreur lors du chargement des étudiants :', error)
@@ -150,32 +139,16 @@ export const RecipientForAdmin = ({
   }
 
   // Rendu des éléments virtualisés
-  const StudentItem = ({
-    index,
-    style,
-  }: {
-    index: number
-    style: React.CSSProperties
-  }) => {
+  const StudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
     const student = filteredStudents[index]
     return (
       <div style={style}>
-        <CustomCheckbox
-          items={[student]}
-          form={form}
-          formFieldName="recipients"
-        />
+        <CustomCheckbox items={[student]} form={form} formFieldName="recipients" />
       </div>
     )
   }
 
-  const InvalidStudentItem = ({
-    index,
-    style,
-  }: {
-    index: number
-    style: React.CSSProperties
-  }) => {
+  const InvalidStudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
     const student = filteredInvalidStudents[index]
     return (
       <div
@@ -198,9 +171,7 @@ export const RecipientForAdmin = ({
       {/* Sélection du type de destinataire */}
       <div className="flex gap-2">
         <Badge
-          variant={
-            recipientType === 'teachersForBureau' ? 'default' : 'outline'
-          }
+          variant={recipientType === 'teachersForBureau' ? 'default' : 'outline'}
           className="cursor-pointer text-sm sm:text-lg"
           onClick={() => setRecipientType('teachersForBureau')}
         >
@@ -217,23 +188,15 @@ export const RecipientForAdmin = ({
       </div>
 
       {selectionMode === null && recipientType === null && (
-        <div className="text-sm text-gray-600">
-          Veuillez sélectionner un destinataire.
-        </div>
+        <div className="text-sm text-gray-600">Veuillez sélectionner un destinataire.</div>
       )}
 
       {/* Enseignants - Rendu conditionnel */}
       {recipientType === 'teachersForBureau' && (
         <div className="space-y-2 sm:space-y-4">
           <div className="rounded-md border p-2 sm:p-4 space-y-2">
-            <div className="font-medium text-xs sm:text-sm text-gray-700 mb-2">
-              Enseignants
-            </div>
-            <CustomCheckbox
-              items={validTeachers}
-              form={form}
-              formFieldName="recipients"
-            />
+            <div className="font-medium text-xs sm:text-sm text-gray-700 mb-2">Enseignants</div>
+            <CustomCheckbox items={validTeachers} form={form} formFieldName="recipients" />
           </div>
         </div>
       )}
@@ -292,9 +255,7 @@ export const RecipientForAdmin = ({
                       <span>
                         {teacher.firstname} {teacher.lastname}
                       </span>
-                      <span className="text-xs">
-                        {expandedTeacher === teacher.id ? '▼' : '▶'}
-                      </span>
+                      <span className="text-xs">{expandedTeacher === teacher.id ? '▼' : '▶'}</span>
                     </div>
                     <div className="text-sm text-gray-500">
                       {loadingTeacher === teacher.id
@@ -306,41 +267,38 @@ export const RecipientForAdmin = ({
                   </div>
 
                   {/* Liste des étudiants - Rendu conditionnel */}
-                  {expandedTeacher === teacher.id &&
-                    teacherStudents[teacher.id] && (
-                      <div className="mt-4 space-y-2">
-                        {/* Étudiants valides */}
-                        <CustomCheckbox
-                          items={teacherStudents[teacher.id].valid}
-                          form={form}
-                          formFieldName="recipients"
-                        />
+                  {expandedTeacher === teacher.id && teacherStudents[teacher.id] && (
+                    <div className="mt-4 space-y-2">
+                      {/* Étudiants valides */}
+                      <CustomCheckbox
+                        items={teacherStudents[teacher.id].valid}
+                        form={form}
+                        formFieldName="recipients"
+                      />
 
-                        {/* Étudiants avec email invalide */}
-                        {teacherStudents[teacher.id].invalid.length > 0 && (
-                          <div className="mt-4">
-                            <div className="text-sm font-medium text-red-500">
-                              ⚠️ Les élèves suivants ont un email invalide et ne
-                              peuvent pas être sélectionnés :
-                            </div>
-                            <div className="mt-2 space-y-2">
-                              {teacherStudents[teacher.id].invalid.map(
-                                (student) => (
-                                  <div
-                                    key={student._id}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-gray-50 border-l-4 border-red-500"
-                                  >
-                                    <span className="line-through text-red-500">
-                                      {student.firstname} {student.lastname}
-                                    </span>
-                                  </div>
-                                ),
-                              )}
-                            </div>
+                      {/* Étudiants avec email invalide */}
+                      {teacherStudents[teacher.id].invalid.length > 0 && (
+                        <div className="mt-4">
+                          <div className="text-sm font-medium text-red-500">
+                            ⚠️ Les élèves suivants ont un email invalide et ne peuvent pas être
+                            sélectionnés :
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div className="mt-2 space-y-2">
+                            {teacherStudents[teacher.id].invalid.map((student) => (
+                              <div
+                                key={student._id}
+                                className="flex items-center space-x-2 px-4 py-2 bg-gray-50 border-l-4 border-red-500"
+                              >
+                                <span className="line-through text-red-500">
+                                  {student.firstname} {student.lastname}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -375,8 +333,8 @@ export const RecipientForAdmin = ({
               {filteredInvalidStudents.length > 0 && (
                 <div className="mt-4">
                   <div className="text-sm font-medium text-red-500">
-                    ⚠️ Les élèves suivants ont un email invalide et ne peuvent
-                    pas être sélectionnés :
+                    ⚠️ Les élèves suivants ont un email invalide et ne peuvent pas être sélectionnés
+                    :
                   </div>
                   <div className="border rounded-md mt-2">
                     <List

@@ -1,25 +1,18 @@
 'use client'
 
-import { Eye, EyeOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'react-toastify'
+import {Eye, EyeOff} from 'lucide-react'
+import {useEffect, useState} from 'react'
+import {useForm} from 'react-hook-form'
+import {toast} from 'react-toastify'
 
-import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {Button} from '@/components/ui/button'
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {LoadingSpinner} from '@/components/ui/loading-spinner'
 
-import { verifyEmailAndPassword } from '@/app/actions/mails'
-import { sendEmailNotification } from '@/lib/mails/emailService'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {verifyEmailAndPassword} from '@/app/actions/mails'
+import {sendEmailNotification} from '@/lib/mails/emailService'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 interface CheckMailProps {
@@ -27,15 +20,13 @@ interface CheckMailProps {
 }
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Adresse e-mail invalide' }),
+  email: z.string().email({message: 'Adresse e-mail invalide'}),
   currentPassword: z.string().min(1, 'Le mot de passe actuel est requis'),
 })
 
-const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
+const CheckMail: React.FC<CheckMailProps> = ({onEmailSent}) => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [otp, setOTP] = useState<number>(
-    Math.floor(Math.random() * 9000 + 1000),
-  )
+  const [otp, setOTP] = useState<number>(Math.floor(Math.random() * 9000 + 1000))
   const [showPassword, setShowPassword] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -57,8 +48,7 @@ const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
         toast.error('email introuvable')
 
         form.setError('email', {
-          message:
-            "Cette adresse e-mail n'existe pas dans notre base de données",
+          message: "Cette adresse e-mail n'existe pas dans notre base de données",
         })
       }
       //   console.log('userExist', userExist)
@@ -76,9 +66,7 @@ const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
 
       if (!response.success) toast.error('error to send email with')
 
-      toast.success(
-        'Un email avec un code temporaire vient de vous être envoyé !',
-      )
+      toast.success('Un email avec un code temporaire vient de vous être envoyé !')
       onEmailSent(values.email.toLowerCase(), otp)
     } catch (error) {
       console.error("Erreur lors de la vérification de l'e-mail:", error)
@@ -104,7 +92,7 @@ const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
         <FormField
           control={form.control}
           name="email"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
@@ -117,7 +105,7 @@ const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
         <FormField
           control={form.control}
           name="currentPassword"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Mot de passe actuel</FormLabel>
               <FormControl>
@@ -128,9 +116,7 @@ const CheckMail: React.FC<CheckMailProps> = ({ onEmailSent }) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     aria-label={
-                      showPassword
-                        ? 'Masquer le mot de passe'
-                        : 'Afficher le mot de passe'
+                      showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
                     }
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

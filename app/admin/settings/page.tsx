@@ -19,27 +19,21 @@ import {
   UserRoundPlus,
   Users,
 } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
-import { useState } from 'react'
+import {signOut, useSession} from 'next-auth/react'
+import {useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/types/user'
+import {EntityType} from '@/types/stats'
+import {Student, Teacher} from '@/types/user'
 
-import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import {UserListDialog} from '@/components/admin/atoms/client/UserListDialog'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { useStudents } from '@/context/Students/client'
-import { useTeachers } from '@/context/Teachers/client'
+import {useStudents} from '@/context/Students/client'
+import {useTeachers} from '@/context/Teachers/client'
 
 // Définition des types pour les actions
 type ActionVariant =
@@ -83,17 +77,15 @@ interface ActionGroup {
 }
 
 export default function SettingsPage() {
-  const { students } = useStudents()
-  const { teachers } = useTeachers()
+  const {students} = useStudents()
+  const {teachers} = useTeachers()
   const router = useRouter()
-  const { data: session } = useSession()
+  const {data: session} = useSession()
   const isAdmin = session?.user?.role === 'admin'
 
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedEntity, setSelectedEntity] = useState<
-    Student | Teacher | null
-  >(null)
+  const [selectedEntity, setSelectedEntity] = useState<Student | Teacher | null>(null)
 
   // Groupes d'actions
   const actionGroups: ActionGroup[] = [
@@ -179,8 +171,7 @@ export default function SettingsPage() {
               {
                 icon: Squirrel,
                 label: 'Migration',
-                description:
-                  "Migrer les data de l'ancienne db vers la nouvelle",
+                description: "Migrer les data de l'ancienne db vers la nouvelle",
                 href: '/admin/root/migration',
                 variant: 'secondary',
                 isAdmin: true,
@@ -188,8 +179,7 @@ export default function SettingsPage() {
               {
                 icon: History,
                 label: 'Voir les logs de connexion',
-                description:
-                  "Affichage de toutes les connexions depuis le début de l'application",
+                description: "Affichage de toutes les connexions depuis le début de l'application",
                 href: '/admin/root/logs',
                 variant: 'secondary',
                 isAdmin: true,
@@ -243,9 +233,7 @@ export default function SettingsPage() {
 
   const filteredData = selectedType
     ? (selectedType === 'students' ? students : teachers).filter((item) =>
-        `${item.firstname} ${item.lastname}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()),
+        `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : []
 
@@ -304,9 +292,7 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-2 text-base font-medium">
                       <Icon
                         className={`h-5 w-5 transition-transform group-hover:scale-110 ${
-                          isAdminAction
-                            ? 'text-rose-600 dark:text-rose-400'
-                            : ''
+                          isAdminAction ? 'text-rose-600 dark:text-rose-400' : ''
                         }`}
                       />
                       {action.label}

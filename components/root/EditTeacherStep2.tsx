@@ -1,41 +1,24 @@
-import { useEffect, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import {useEffect, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
 
-import {
-  LevelEnum,
-  SubjectNameEnum,
-  TIME_SLOT_SCHEDULE,
-  TimeSlotEnum,
-} from '@/types/course'
+import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/course'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Checkbox} from '@/components/ui/checkbox'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 
-import { TeacherFormData } from './EditTeacherForm'
+import {TeacherFormData} from './EditTeacherForm'
 
-import { formatDayOfWeek } from '@/lib/utils'
+import {formatDayOfWeek} from '@/lib/utils'
 
 interface EditTeacherStep2Props {
   form: UseFormReturn<TeacherFormData>
 }
 
-const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
+const EditTeacherStep2 = ({form}: EditTeacherStep2Props) => {
   const [selectedDays, setSelectedDays] = useState<TimeSlotEnum[]>([])
 
   useEffect(() => {
@@ -44,9 +27,7 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
     // console.log('Initial sessions:', sessions.length)
 
     if (sessions.length > 0) {
-      const uniqueDays = Array.from(
-        new Set(sessions.map((session) => session.dayOfWeek)),
-      )
+      const uniqueDays = Array.from(new Set(sessions.map((session) => session.dayOfWeek)))
       // console.log('Unique days:', uniqueDays)
       setSelectedDays(uniqueDays)
     }
@@ -89,22 +70,18 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
     } else {
       updatedDays = selectedDays.filter((d) => d !== day)
       // Supprimer les sessions du jour désélectionné
-      updatedSessions = updatedSessions.filter(
-        (session) => session.dayOfWeek !== day,
-      )
+      updatedSessions = updatedSessions.filter((session) => session.dayOfWeek !== day)
       // console.log('Sessions after unchecking:', updatedSessions.length)
     }
 
     setSelectedDays(updatedDays)
-    form.setValue('sessions', updatedSessions, { shouldValidate: true })
+    form.setValue('sessions', updatedSessions, {shouldValidate: true})
   }
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <Label className="text-base font-semibold block mb-4">
-          Jours d&apos;enseignement
-        </Label>
+        <Label className="text-base font-semibold block mb-4">Jours d&apos;enseignement</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.values(TimeSlotEnum).map((day) => (
             <div
@@ -113,14 +90,10 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
             >
               <Checkbox
                 checked={selectedDays.includes(day)}
-                onCheckedChange={(checked) =>
-                  handleDayChange(day, checked as boolean)
-                }
+                onCheckedChange={(checked) => handleDayChange(day, checked as boolean)}
                 className="h-5 w-5"
               />
-              <Label className="text-sm font-medium">
-                {formatDayOfWeek(day)}
-              </Label>
+              <Label className="text-sm font-medium">{formatDayOfWeek(day)}</Label>
             </div>
           ))}
         </div>
@@ -135,17 +108,13 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
               <Card key={day} className="border-2 bg-white shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">
-                      {formatDayOfWeek(day)}
-                    </span>
+                    <span className="text-lg font-semibold">{formatDayOfWeek(day)}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {[0, 1].map((sessionIndex) => {
                     const sessions = form.getValues('sessions')
-                    const daySessionsStart = sessions.findIndex(
-                      (s) => s.dayOfWeek === day,
-                    )
+                    const daySessionsStart = sessions.findIndex((s) => s.dayOfWeek === day)
                     const formIndex = daySessionsStart + sessionIndex
 
                     const timeRange =
@@ -171,11 +140,9 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.subject`}
-                            render={({ field, fieldState }) => (
+                            render={({field, fieldState}) => (
                               <FormItem>
-                                <FormLabel className="text-sm">
-                                  Matière
-                                </FormLabel>
+                                <FormLabel className="text-sm">Matière</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
                                   value={field.value || undefined}
@@ -188,16 +155,11 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {Object.values(SubjectNameEnum).map(
-                                      (subject) => (
-                                        <SelectItem
-                                          key={subject}
-                                          value={subject}
-                                        >
-                                          {subject}
-                                        </SelectItem>
-                                      ),
-                                    )}
+                                    {Object.values(SubjectNameEnum).map((subject) => (
+                                      <SelectItem key={subject} value={subject}>
+                                        {subject}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -208,11 +170,9 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.level`}
-                            render={({ field, fieldState }) => (
+                            render={({field, fieldState}) => (
                               <FormItem>
-                                <FormLabel className="text-sm">
-                                  Niveau
-                                </FormLabel>
+                                <FormLabel className="text-sm">Niveau</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
                                   value={field.value || undefined}
@@ -240,7 +200,7 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.timeSlot.classroomNumber`}
-                            render={({ field, fieldState }) => (
+                            render={({field, fieldState}) => (
                               <FormItem>
                                 <FormLabel className="text-sm">Salle</FormLabel>
                                 <FormControl>
@@ -252,9 +212,7 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
                                     value={field.value || ''}
                                     onChange={(e) =>
                                       field.onChange(
-                                        e.target.value
-                                          ? parseInt(e.target.value)
-                                          : null,
+                                        e.target.value ? parseInt(e.target.value) : null,
                                       )
                                     }
                                   />

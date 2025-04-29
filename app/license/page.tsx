@@ -1,8 +1,9 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
 export const metadata: Metadata = {
   title: 'AGPL-3.0 License - EduRootS',
-  description: 'Information about the GNU Affero General Public License v3.0 (AGPL-3.0) used by EduRootS',
+  description:
+    'Information about the GNU Affero General Public License v3.0 (AGPL-3.0) used by EduRootS',
 }
 
 export default function LicensePage() {
@@ -13,8 +14,8 @@ export default function LicensePage() {
       <div className="prose max-w-none">
         <h2 className="text-2xl font-semibold mb-4">About the AGPL-3.0 License</h2>
         <p>
-          EduRootS is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
-          This license ensures that:
+          EduRootS is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0). This
+          license ensures that:
         </p>
         <ul className="list-disc pl-6 mb-6">
           <li>The source code remains freely accessible</li>

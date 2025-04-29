@@ -1,8 +1,8 @@
 'use client'
 
-import { CourseSession } from '@/types/course'
+import {CourseSession} from '@/types/course'
 
-import { TeacherCard } from '@/components/admin/atoms/client/PlanningTeacherCard'
+import {TeacherCard} from '@/components/admin/atoms/client/PlanningTeacherCard'
 
 type FixedTimeSlot = {
   startTime: string
@@ -27,16 +27,10 @@ export const TimeSlotColumn = ({
 
   return (
     <div className="space-y-1">
-      <div className="text-sm text-gray-600 text-center font-medium">
-        {timeSlot.display}
-      </div>
+      <div className="text-sm text-gray-600 text-center font-medium">{timeSlot.display}</div>
       <div className="space-y-1">
         {sortedSessions.map((session, idx) => (
-          <TeacherCard
-            key={idx}
-            session={session}
-            onClick={() => onSessionClick(session)}
-          />
+          <TeacherCard key={idx} session={session} onClick={() => onSessionClick(session)} />
         ))}
       </div>
     </div>

@@ -1,16 +1,16 @@
 'use client'
 
-import { getSession, signIn } from 'next-auth/react'
-import { useState } from 'react'
+import {getSession, signIn} from 'next-auth/react'
+import {useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
-import { useThemeLoader } from '@/hooks/useThemeLoader'
+import {useToast} from '@/hooks/use-toast'
+import {useThemeLoader} from '@/hooks/useThemeLoader'
 
-import { UserRoleEnum } from '@/types/user'
+import {UserRoleEnum} from '@/types/user'
 
-import { z } from 'zod'
+import {z} from 'zod'
 
 export const FormSchema = z.object({
   mail: z.string().email("Le format de l'email est invalide"),
@@ -18,27 +18,23 @@ export const FormSchema = z.object({
     message: 'Le mot de passe doit contenir 8 caractères minimum.',
   }),
   role: z.nativeEnum(UserRoleEnum, {
-    errorMap: () => ({ message: 'Veuillez faire un choix svp.' }),
+    errorMap: () => ({message: 'Veuillez faire un choix svp.'}),
   }),
 })
 
 export type FormValues = z.infer<typeof FormSchema>
 
 export function useLogin() {
-  const { loadTheme } = useThemeLoader()
-  const { toast } = useToast()
+  const {loadTheme} = useThemeLoader()
+  const {toast} = useToast()
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  async function checkDefaultPassword(
-    email: string,
-    password: string,
-    role: UserRoleEnum,
-  ) {
+  async function checkDefaultPassword(email: string, password: string, role: UserRoleEnum) {
     const response = await fetch('/api/checkDefaultPwd', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password, role}),
     })
     return response.json()
   }
@@ -123,11 +119,7 @@ export function useLogin() {
 
         case UserRoleEnum.Teacher:
           // Vérification du mot de passe par défaut
-          const authResult = await checkDefaultPassword(
-            values.mail,
-            values.pwd,
-            values.role,
-          )
+          const authResult = await checkDefaultPassword(values.mail, values.pwd, values.role)
 
           if (!authResult.isMatch) {
             toast({
@@ -140,8 +132,7 @@ export function useLogin() {
           if (authResult.isDefault) {
             toast({
               variant: 'destructive',
-              title:
-                'Veuillez changer votre mot de passe pour des raisons de sécurité',
+              title: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
             })
             router.push('/rstPwd?forceChange=true')
             break

@@ -1,12 +1,12 @@
-import { TeacherStats } from '@/types/stats'
-import { GenderEnum } from '@/types/user'
+import {TeacherStats} from '@/types/stats'
+import {GenderEnum} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { TeacherStats as TeacherStatsCollection } from '@/backend/models/teacher-stats.model'
-import { User } from '@/backend/models/user.model'
-import { calculateTeacherStats } from '@/lib/stats/teacher'
+import {TeacherStats as TeacherStatsCollection} from '@/backend/models/teacher-stats.model'
+import {User} from '@/backend/models/user.model'
+import {calculateTeacherStats} from '@/lib/stats/teacher'
 import fs from 'fs/promises'
-import { ObjectId } from 'mongoose'
+import {ObjectId} from 'mongoose'
 import path from 'path'
 
 interface UpdateStats {
@@ -36,13 +36,11 @@ export async function statsTeacherUpdate(): Promise<{
     // Connexion à la base de données
     await dbConnect()
     console.log('✅ Connecté à la base de données')
-    console.log(
-      `\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES PROFESSEURS =====\n`,
-    )
+    console.log(`\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES PROFESSEURS =====\n`)
 
     // Récupérer tous les professeurs actifs
     console.log('1️⃣ Récupération des professeurs...')
-    const teachers = await User.find({ role: 'teacher', isActive: true })
+    const teachers = await User.find({role: 'teacher', isActive: true})
     console.log(`- Total des professeurs trouvés: ${teachers.length}`)
 
     // Initialiser les statistiques
@@ -64,8 +62,7 @@ export async function statsTeacherUpdate(): Promise<{
 
       try {
         // Récupérer les statistiques du professeur
-        const teacherStats: TeacherStats =
-          await calculateTeacherStats(teacherId)
+        const teacherStats: TeacherStats = await calculateTeacherStats(teacherId)
 
         // Vérifier si le professeur a des étudiants
         if (teacherStats.totalStudents === 0) {
@@ -76,7 +73,7 @@ export async function statsTeacherUpdate(): Promise<{
         }
 
         // Trouver ou créer l'entrée de statistiques pour ce professeur
-        let statsDoc = await TeacherStatsCollection.findOne({
+        const statsDoc = await TeacherStatsCollection.findOne({
           userId: teacherId,
         }).lean()
 
@@ -92,23 +89,16 @@ export async function statsTeacherUpdate(): Promise<{
             totalStudents: teacherStats.totalStudents,
             genderDistribution: {
               counts: {
-                [GenderEnum.Masculin]:
-                  teacherStats.genderDistribution.counts[GenderEnum.Masculin],
-                [GenderEnum.Feminin]:
-                  teacherStats.genderDistribution.counts[GenderEnum.Feminin],
+                [GenderEnum.Masculin]: teacherStats.genderDistribution.counts[GenderEnum.Masculin],
+                [GenderEnum.Feminin]: teacherStats.genderDistribution.counts[GenderEnum.Feminin],
                 undefined: teacherStats.genderDistribution.counts.undefined,
               },
               percentages: {
                 [GenderEnum.Masculin]:
-                  teacherStats.genderDistribution.percentages[
-                    GenderEnum.Masculin
-                  ],
+                  teacherStats.genderDistribution.percentages[GenderEnum.Masculin],
                 [GenderEnum.Feminin]:
-                  teacherStats.genderDistribution.percentages[
-                    GenderEnum.Feminin
-                  ],
-                undefined:
-                  teacherStats.genderDistribution.percentages.undefined,
+                  teacherStats.genderDistribution.percentages[GenderEnum.Feminin],
+                undefined: teacherStats.genderDistribution.percentages.undefined,
               },
             },
             minAge: teacherStats.minAge,
@@ -119,7 +109,7 @@ export async function statsTeacherUpdate(): Promise<{
           // Mise à jour du document existant
           if (statsDoc) {
             await TeacherStatsCollection.updateOne(
-              { _id: (statsDoc as any)._id },
+              {_id: (statsDoc as any)._id},
               {
                 $set: {
                   ...newTeacherStats,
@@ -152,18 +142,13 @@ export async function statsTeacherUpdate(): Promise<{
           })
 
           stats.updatedTeachers++
-          console.log(
-            `  ✅ Statistiques mises à jour: ${differences.join(', ')}`,
-          )
+          console.log(`  ✅ Statistiques mises à jour: ${differences.join(', ')}`)
         } else {
           stats.skippedTeachers++
           console.log(`  ℹ️ Aucun changement nécessaire`)
         }
       } catch (error) {
-        console.error(
-          `  ❌ Erreur lors du traitement du professeur ${teacherId}:`,
-          error,
-        )
+        console.error(`  ❌ Erreur lors du traitement du professeur ${teacherId}:`, error)
         stats.skippedTeachers++
       }
     }
@@ -179,7 +164,7 @@ export async function statsTeacherUpdate(): Promise<{
       }
 
       const reportDir = path.join(process.cwd(), 'reports')
-      await fs.mkdir(reportDir, { recursive: true })
+      await fs.mkdir(reportDir, {recursive: true})
       const timestamp = new Date().toISOString().replace(/:/g, '-')
       const fileName = `teacher_stats_update_${timestamp}.json`
       reportPath = path.join(reportDir, fileName)
@@ -198,14 +183,10 @@ export async function statsTeacherUpdate(): Promise<{
       `- Professeurs mis à jour: ${stats.updatedTeachers} (${((stats.updatedTeachers / stats.totalTeachers) * 100 || 0).toFixed(1)}%)`,
     )
     console.log(`- Professeurs ignorés: ${stats.skippedTeachers}`)
-    console.log(
-      `- Professeurs sans étudiants: ${stats.teachersWithoutStudents}`,
-    )
+    console.log(`- Professeurs sans étudiants: ${stats.teachersWithoutStudents}`)
     console.log(`- Changements de statistiques: ${stats.statsChanges.length}`)
 
-    console.log(
-      '\n✅ MISE À JOUR RÉUSSIE: Statistiques des professeurs recalculées avec succès',
-    )
+    console.log('\n✅ MISE À JOUR RÉUSSIE: Statistiques des professeurs recalculées avec succès')
 
     console.log(`\n===== FIN DE LA MISE À JOUR =====`)
 
@@ -229,10 +210,7 @@ export async function statsTeacherUpdate(): Promise<{
 /**
  * Compare les anciennes et nouvelles statistiques d'un professeur
  */
-function compareTeacherStats(
-  oldStats: Partial<TeacherStats>,
-  newStats: TeacherStats,
-): string[] {
+function compareTeacherStats(oldStats: Partial<TeacherStats>, newStats: TeacherStats): string[] {
   const differences = []
 
   // Vérifier le nombre total d'étudiants
@@ -244,40 +222,29 @@ function compareTeacherStats(
 
   // Vérifier les statistiques d'âge
   if (Math.abs((oldStats.minAge || 0) - newStats.minAge) > 0.01) {
-    differences.push(
-      `âge minimum: ${oldStats.minAge || 0} → ${newStats.minAge}`,
-    )
+    differences.push(`âge minimum: ${oldStats.minAge || 0} → ${newStats.minAge}`)
   }
 
   if (Math.abs((oldStats.maxAge || 0) - newStats.maxAge) > 0.01) {
-    differences.push(
-      `âge maximum: ${oldStats.maxAge || 0} → ${newStats.maxAge}`,
-    )
+    differences.push(`âge maximum: ${oldStats.maxAge || 0} → ${newStats.maxAge}`)
   }
 
   if (Math.abs((oldStats.averageAge || 0) - newStats.averageAge) > 0.01) {
-    differences.push(
-      `âge moyen: ${oldStats.averageAge || 0} → ${newStats.averageAge}`,
-    )
+    differences.push(`âge moyen: ${oldStats.averageAge || 0} → ${newStats.averageAge}`)
   }
 
   // Vérifier la distribution des genres
-  const oldDistribution: { [key in GenderEnum]?: string } =
+  const oldDistribution: {[key in GenderEnum]?: string} =
     oldStats.genderDistribution?.percentages || {}
   const newDistribution = newStats.genderDistribution.percentages
 
-  if (
-    oldDistribution[GenderEnum.Masculin] !==
-    newDistribution[GenderEnum.Masculin]
-  ) {
+  if (oldDistribution[GenderEnum.Masculin] !== newDistribution[GenderEnum.Masculin]) {
     differences.push(
       `pourcentage garçons: ${oldDistribution[GenderEnum.Masculin] || '0'} → ${newDistribution[GenderEnum.Masculin]}`,
     )
   }
 
-  if (
-    oldDistribution[GenderEnum.Feminin] !== newDistribution[GenderEnum.Feminin]
-  ) {
+  if (oldDistribution[GenderEnum.Feminin] !== newDistribution[GenderEnum.Feminin]) {
     differences.push(
       `pourcentage filles: ${oldDistribution[GenderEnum.Feminin] || '0'} → ${newDistribution[GenderEnum.Feminin]}`,
     )
@@ -291,7 +258,7 @@ async function safeUpdateUserStats(teacherId: string, statsDocId: ObjectId) {
   try {
     // Tentative de mise à jour directe
     const updateResult = await User.updateOne(
-      { _id: teacherId },
+      {_id: teacherId},
       {
         $set: {
           stats: statsDocId,
@@ -317,9 +284,7 @@ async function safeUpdateUserStats(teacherId: string, statsDocId: ObjectId) {
       if (user) {
         // Vérifier si le champ stats existe déjà
         if (!user.stats) {
-          console.log(
-            `Ajout du champ stats pour ${user.firstname} ${user.lastname}`,
-          )
+          console.log(`Ajout du champ stats pour ${user.firstname} ${user.lastname}`)
 
           // Ajouter explicitement le champ stats
           user.stats = statsDocId
@@ -335,9 +300,7 @@ async function safeUpdateUserStats(teacherId: string, statsDocId: ObjectId) {
             stats: savedUser.stats,
           })
         } else {
-          console.log(
-            `Champ stats existe déjà pour ${user.firstname} ${user.lastname}`,
-          )
+          console.log(`Champ stats existe déjà pour ${user.firstname} ${user.lastname}`)
         }
       } else {
         console.error(`Utilisateur non trouvé avec l'ID: ${teacherId}`)

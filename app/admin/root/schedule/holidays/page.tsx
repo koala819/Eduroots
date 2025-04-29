@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
-import { HolidayScheduleEditor } from '@/components/root/HolidayScheduleEditor'
+import {HolidayScheduleEditor} from '@/components/root/HolidayScheduleEditor'
 
 export const metadata: Metadata = {
   title: 'Modification Vacances',

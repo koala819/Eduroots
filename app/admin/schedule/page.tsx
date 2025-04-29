@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
 import PlanningGrid from '@/components/admin/organisms/server/PlanningGrid'
 

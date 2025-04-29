@@ -1,22 +1,14 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
-import {
-  CreateGradeDTO,
-  PopulatedGrade,
-  PopulatedGradeRecord,
-  UpdateGradeDTO,
-} from '@/types/grade'
-import { GradeDocument } from '@/types/mongoose'
+import {ApiResponse} from '@/types/api'
+import {CreateGradeDTO, PopulatedGrade, PopulatedGradeRecord, UpdateGradeDTO} from '@/types/grade'
+import {GradeDocument} from '@/types/mongoose'
 
-import { Grade as GradeModel } from '@/backend/models/grade.model'
-import {
-  calculateAndUpdateGradeStats,
-  calculateGradeStats,
-} from '@/lib/api.utils'
-import { SerializedValue, serializeData } from '@/lib/serialization'
+import {Grade as GradeModel} from '@/backend/models/grade.model'
+import {calculateAndUpdateGradeStats, calculateGradeStats} from '@/lib/api.utils'
+import {SerializedValue, serializeData} from '@/lib/serialization'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -26,15 +18,13 @@ async function getSessionServer() {
   return session
 }
 
-export async function getTeacherGrades(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     const grades = await GradeModel.find<GradeDocument>({})
       .populate({
         path: 'course',
-        match: { teacher: teacherId },
+        match: {teacher: teacherId},
         model: 'courseNEW',
       })
       .populate('records.student')

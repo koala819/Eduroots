@@ -1,21 +1,21 @@
 'use client'
 
-import { CircleArrowLeft } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import {CircleArrowLeft} from 'lucide-react'
+import {useSession} from 'next-auth/react'
+import {useEffect, useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { SubjectNameEnum, TimeEnum, TimeSlotEnum } from '@/types/course'
+import {SubjectNameEnum, TimeEnum, TimeSlotEnum} from '@/types/course'
 
-import { ProfileCourseCard } from '@/components/organisms/client/ProfileCourseCard'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {ProfileCourseCard} from '@/components/organisms/client/ProfileCourseCard'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { useTeachers } from '@/context/Teachers/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import {useTeachers} from '@/context/Teachers/client'
+import {formatDayOfWeek} from '@/lib/utils'
 
 interface TimeSlot {
   id: string
@@ -28,11 +28,11 @@ interface TimeSlot {
 }
 
 const ClassRoomPage = () => {
-  const { toast } = useToast()
+  const {toast} = useToast()
   const router = useRouter()
-  const { groupedStudents, getStudentsByTeacher, isLoading } = useTeachers()
+  const {groupedStudents, getStudentsByTeacher, isLoading} = useTeachers()
 
-  const { data: session } = useSession()
+  const {data: session} = useSession()
   const [error, setError] = useState<string | null>(null)
   const [selectedSession, setSelectedSession] = useState<string | null>(null)
 
@@ -111,11 +111,11 @@ const ClassRoomPage = () => {
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         />
       </div>
     )
@@ -137,11 +137,7 @@ const ClassRoomPage = () => {
           <Button
             variant="link"
             className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
-            onClick={() =>
-              router.push(
-                `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles`,
-              )
-            }
+            onClick={() => router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles`)}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Retour</span>
@@ -149,9 +145,7 @@ const ClassRoomPage = () => {
 
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <span className="text-xs font-medium">
-                {sortedTimeSlots.length}
-              </span>
+              <span className="text-xs font-medium">{sortedTimeSlots.length}</span>
             </div>
             <span className="text-sm text-gray-500">Créneaux</span>
           </div>
@@ -169,8 +163,8 @@ const ClassRoomPage = () => {
               className="rounded-full text-sm whitespace-nowrap w-full"
               onClick={() => setSelectedSession(timeSlot.id)}
             >
-              {formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)}{' '}
-              {timeSlot.startTime}-{timeSlot.endTime}
+              {formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)} {timeSlot.startTime}-
+              {timeSlot.endTime}
             </Button>
           ))}
         </div>
@@ -180,9 +174,7 @@ const ClassRoomPage = () => {
         {groupedStudents.map((course) =>
           Object.values(SubjectNameEnum).map((subject) => {
             const subjectSessions = course.sessions.filter(
-              (session) =>
-                session.subject === subject &&
-                session.sessionId === selectedSession,
+              (session) => session.subject === subject && session.sessionId === selectedSession,
             )
 
             if (subjectSessions.length > 0) {
@@ -213,10 +205,7 @@ const ClassRoomPage = () => {
                             </div>
                           </div>
                         </div>
-                        <ProfileCourseCard
-                          key={session.id}
-                          students={session.students}
-                        />
+                        <ProfileCourseCard key={session.id} students={session.students} />
                       </div>
                     ))}
                   </CardContent>

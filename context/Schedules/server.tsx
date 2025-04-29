@@ -1,9 +1,9 @@
 'use server'
 
-import { DaySchedule } from '@/types/schedule'
+import {DaySchedule} from '@/types/schedule'
 
-import { getCurrentSchedule } from '@/app/actions/context/schedules'
-import { SchedulesProvider } from '@/context/Schedules/client'
+import {getCurrentSchedule} from '@/app/actions/context/schedules'
+import {SchedulesProvider} from '@/context/Schedules/client'
 
 interface SchedulesServerComponentProps {
   children: React.ReactNode
@@ -25,19 +25,13 @@ export default async function SchedulesServerComponent({
 
       // Convertir daySchedules en format attendu par le client
       if (data.daySchedules && typeof data.daySchedules === 'object') {
-        initialSchedules = Object.entries(data.daySchedules).map(
-          ([dayType, scheduleData]) => ({
-            dayType,
-            periods: (scheduleData as any).periods || [],
-          }),
-        ) as DaySchedule[]
+        initialSchedules = Object.entries(data.daySchedules).map(([dayType, scheduleData]) => ({
+          dayType,
+          periods: (scheduleData as any).periods || [],
+        })) as DaySchedule[]
       }
     }
   }
 
-  return (
-    <SchedulesProvider initialSchedulesData={initialSchedules}>
-      {children}
-    </SchedulesProvider>
-  )
+  return <SchedulesProvider initialSchedulesData={initialSchedules}>{children}</SchedulesProvider>
 }

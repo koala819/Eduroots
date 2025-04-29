@@ -29,22 +29,26 @@ EduRootS is an open-source educational platform designed to facilitate course ma
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/koala819/EduRootS.git
 cd EduRootS
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env.local
 ```
 
 4. Start the development server:
+
 ```bash
 pnpm dev
 ```
@@ -60,5 +64,6 @@ This project is licensed under the [GNU Affero General Public License v3.0](LICE
 ## Contact
 
 For any questions or suggestions, feel free to:
+
 - Open an issue on GitHub
 - Contact me on LinkedIn: [Your LinkedIn profile]

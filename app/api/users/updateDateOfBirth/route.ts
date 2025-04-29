@@ -1,8 +1,8 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
+import {User} from '@/backend/models/user.model'
 import readline from 'readline'
 
 const rl = readline.createInterface({
@@ -19,7 +19,7 @@ function waitForUserInput(prompt: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
   if (!token || !token.user) {
     return NextResponse.json({
       statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   await dbConnect()
   try {
     // Backup current students
-    const currentStudents = await User.find({ role: 'student' })
+    const currentStudents = await User.find({role: 'student'})
     const backup = JSON.parse(JSON.stringify(currentStudents))
 
     // Update students
@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
 
     for (const update of updates) {
       const updatedStudent = await User.findOneAndUpdate(
-        { _id: update._id, role: 'student' },
-        { dateOfBirth: update.dateOfBirth },
-        { new: true },
+        {_id: update._id, role: 'student'},
+        {dateOfBirth: update.dateOfBirth},
+        {new: true},
       )
       console.log('updatedStudent', updatedStudent)
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
 
   if (!token || !token.user) {
     return NextResponse.json({
@@ -77,10 +77,10 @@ export async function PUT(req: NextRequest) {
   await dbConnect()
 
   try {
-    const { backup } = await req.json()
+    const {backup} = await req.json()
 
     // Delete all current students
-    await User.deleteMany({ role: 'student' })
+    await User.deleteMany({role: 'student'})
 
     // Restore from backup
     await User.insertMany(backup)

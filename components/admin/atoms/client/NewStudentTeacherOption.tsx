@@ -1,8 +1,8 @@
 'use client'
 
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { GenderEnum, Teacher } from '@/types/user'
+import {GenderEnum, Teacher} from '@/types/user'
 
 interface TeacherStats {
   totalStudents: number
@@ -26,7 +26,7 @@ interface TeacherStats {
 export const TeacherOption = ({
   teacher,
 }: {
-  teacher: Omit<Teacher, 'stats'> & { stats: TeacherStats }
+  teacher: Omit<Teacher, 'stats'> & {stats: TeacherStats}
 }) => {
   return (
     <div className="flex flex-col space-y-1">
@@ -38,18 +38,10 @@ export const TeacherOption = ({
           <span>{teacher.stats.totalStudents} élèves</span>
           <div className="flex space-x-2 items-center">
             <span>(</span>
-            <span>
-              {teacher.stats.genderDistribution.percentages[GenderEnum.Feminin]}
-            </span>
+            <span>{teacher.stats.genderDistribution.percentages[GenderEnum.Feminin]}</span>
             <BiFemale className="text-pink-500 h-6 w-6 md:h-4 md:w-4" />
             <span>/</span>
-            <span>
-              {
-                teacher.stats.genderDistribution.percentages[
-                  GenderEnum.Masculin
-                ]
-              }
-            </span>
+            <span>{teacher.stats.genderDistribution.percentages[GenderEnum.Masculin]}</span>
             <BiMale className="text-blue-500 h-6 w-6 md:h-4 md:w-4" />
             <span>)</span>
           </div>

@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
-import { CourseDisplay } from '@/components/molecules/client/CourseDisplay'
+import {CourseDisplay} from '@/components/molecules/client/CourseDisplay'
 
 export const metadata: Metadata = {
   title: 'Gestion des cours',

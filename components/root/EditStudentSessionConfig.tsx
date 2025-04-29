@@ -1,24 +1,12 @@
-import { Clock } from 'lucide-react'
-import { UseFormReturn } from 'react-hook-form'
+import {Clock} from 'lucide-react'
+import {UseFormReturn} from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/types/course'
-import { Teacher } from '@/types/user'
+import {SubjectNameEnum} from '@/types/course'
+import {Teacher} from '@/types/user'
 
-import { Card } from '@/components/ui/card'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import {Card} from '@/components/ui/card'
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 
 interface SessionConfigProps {
   startTime: string
@@ -62,7 +50,7 @@ export const SessionConfig = ({
         <FormField
           control={form.control}
           name={`selections.${index}.subject`}
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className="space-y-1.5 md:space-y-2">
               <FormLabel className="text-sm md:text-base">Matière</FormLabel>
               <FormControl>
@@ -78,11 +66,7 @@ export const SessionConfig = ({
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(SubjectNameEnum).map((subject) => (
-                      <SelectItem
-                        key={subject}
-                        value={subject}
-                        className="text-xs md:text-sm"
-                      >
+                      <SelectItem key={subject} value={subject} className="text-xs md:text-sm">
                         {subject}
                       </SelectItem>
                     ))}
@@ -98,22 +82,14 @@ export const SessionConfig = ({
           <FormField
             control={form.control}
             name={`selections.${index}.teacherId`}
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="space-y-1.5 md:space-y-2">
-                <FormLabel className="text-sm md:text-base">
-                  Professeur
-                </FormLabel>
+                <FormLabel className="text-sm md:text-base">Professeur</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value)
-                      onTeacherSelect(
-                        startTime,
-                        endTime,
-                        currentSelection.subject,
-                        value,
-                        index,
-                      )
+                      onTeacherSelect(startTime, endTime, currentSelection.subject, value, index)
                     }}
                     value={field.value}
                     disabled={availableTeachers.length === 0}

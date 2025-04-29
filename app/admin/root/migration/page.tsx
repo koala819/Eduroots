@@ -1,21 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import {useState} from 'react'
 
 export default function MigrationPage() {
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null)
   const [migrationSecret, setMigrationSecret] = useState<string>('')
   const [migrationType, setMigrationType] = useState<string>('')
 
-  const explainMigration: { [key: string]: string } = {
-    checkGradesDuplicates:
-      'Verifie si il y a des doublons dans la collection GRADE',
+  const explainMigration: {[key: string]: string} = {
+    checkGradesDuplicates: 'Verifie si il y a des doublons dans la collection GRADE',
     checkRemainingFullSessions:
       "Simple outil de vérification pour COURSES qui permet de voir s'il reste des sessions longues (ex 9h-12h30) à diviser (ex 9h-10h45 et 10h45-12h30) dans votre collection",
     statsGradesClean:
       'Script pour verifier si id course de chaque enregistrement Grade existe bien dans la collection Course si NON alors on supprime le grade',
-    statsGradesUpdate:
-      'Script pour mettre à jour le champ stats de chaque enregistrement Grade',
+    statsGradesUpdate: 'Script pour mettre à jour le champ stats de chaque enregistrement Grade',
     statsStudentCheck:
       'Script pourpréparer la mise à jour du champ stats de chaque Student avec ces data :: { absencesRate: number;  absencesCount: number;behaviorAverage: number; absencesCount: number; absences: { date: Date; course: string; reason?: string;}[] grades: { [SubjectNameEnum.Arabe]: { average: number; }; [SubjectNameEnum.EducationCulturelle]: { average: number; }; overallAverage: number; }; lastActivity: Date; } Le résulatat est affiché dans un fichier Students_GRADES_stats.json dans le dossier Reports',
     statsStudentUpdate:
@@ -57,7 +55,7 @@ export default function MigrationPage() {
           'Content-Type': 'application/json',
           'X-Migration-Secret': migrationSecret,
         },
-        body: JSON.stringify({ type: migrationType }),
+        body: JSON.stringify({type: migrationType}),
       })
 
       const data = await response.json()
@@ -82,8 +80,8 @@ export default function MigrationPage() {
       >
         <p className="text-center text-2xl font-bold mb-2">ATTENTION</p>
         <p className="mb-2">
-          Avez-vous bien vérifié que le nom de la base de données est défini
-          avec NEW dans les modèles avant de lancer la migration ?
+          Avez-vous bien vérifié que le nom de la base de données est défini avec NEW dans les
+          modèles avant de lancer la migration ?
         </p>
 
         <p className="text-red-500 font-bold mb-2">Incorrect :</p>
@@ -124,12 +122,8 @@ export default function MigrationPage() {
         className="border p-2 mb-4 w-full"
       >
         <optgroup label="CHECK">
-          <option value="checkRemainingFullSessions">
-            Remaining-Full-Sessions
-          </option>
-          <option value="checkGradesDuplicates">
-            GRADES--01.check-duplicates
-          </option>
+          <option value="checkRemainingFullSessions">Remaining-Full-Sessions</option>
+          <option value="checkGradesDuplicates">GRADES--01.check-duplicates</option>
         </optgroup>
         <optgroup label="STATS">
           <option value="statsGradesClean">GRADES--01.clean</option>
@@ -175,9 +169,7 @@ export default function MigrationPage() {
       >
         Run
       </button>
-      {migrationStatus && (
-        <p className="mt-4 p-2 border rounded">Statut: {migrationStatus}</p>
-      )}
+      {migrationStatus && <p className="mt-4 p-2 border rounded">Statut: {migrationStatus}</p>}
     </div>
   )
 }

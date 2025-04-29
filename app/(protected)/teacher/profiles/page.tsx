@@ -1,14 +1,14 @@
 'use client'
 
-import { Calendar, LogOut, PenSquare, Users } from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
+import {Calendar, LogOut, PenSquare, Users} from 'lucide-react'
+import {signOut} from 'next-auth/react'
+import {useSession} from 'next-auth/react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { ProfileSection } from '@/components/molecules/server/ProfileSection'
+import {ProfileSection} from '@/components/molecules/server/ProfileSection'
 
 export type MenuItem = {
   icon: React.ReactNode
@@ -19,9 +19,9 @@ export type MenuItem = {
 
 const ProfilePage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
-  const { toast } = useToast()
+  const {toast} = useToast()
 
   function logoutHandler() {
     signOut({
@@ -36,9 +36,7 @@ const ProfilePage = () => {
       title: 'Détail des élèves',
       // color: 'text-green-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/classroom`,
-        )
+        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/classroom`)
         // console.log('Détail élèves')
       },
     },
@@ -47,9 +45,7 @@ const ProfilePage = () => {
       title: 'Devoirs & Contrôles',
       // color: 'text-orange-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`,
-        )
+        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`)
         // console.log('Gérer notes')
       },
     },
@@ -58,9 +54,7 @@ const ProfilePage = () => {
       title: 'Emploi du temps',
       // color: 'text-purple-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/edit`,
-        )
+        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/edit`)
         // console.log('Gérer matières')
       },
     },
@@ -96,11 +90,11 @@ const ProfilePage = () => {
           <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping"></div>
           <div
             className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-            style={{ animationDelay: '0.2s' }}
+            style={{animationDelay: '0.2s'}}
           ></div>
           <div
             className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-            style={{ animationDelay: '0.4s' }}
+            style={{animationDelay: '0.4s'}}
           ></div>
         </div>
       </div>

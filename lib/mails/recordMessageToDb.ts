@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import {NextResponse} from 'next/server'
 
-import { MessageBody } from '@/types/models'
+import {MessageBody} from '@/types/models'
 
-import { Message } from '@/backend/models/message'
+import {Message} from '@/backend/models/message'
 
 export async function recordMessageToDb(
   body: MessageBody,

@@ -1,15 +1,15 @@
-import { AlertCircle } from 'lucide-react'
+import {AlertCircle} from 'lucide-react'
 
-import { TimeSlotEnum } from '@/types/course'
+import {TimeSlotEnum} from '@/types/course'
 
-import { CoursesTable } from '@/components/admin/atoms/client/StudentCoursesTable'
-import { StudentCourseMobile } from '@/components/admin/atoms/server/StudentCourseMobile'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import {CoursesTable} from '@/components/admin/atoms/client/StudentCoursesTable'
+import {StudentCourseMobile} from '@/components/admin/atoms/server/StudentCourseMobile'
+import {Alert, AlertDescription} from '@/components/ui/alert'
 
-import { getStudentCourses } from '@/app/actions/context/courses'
-import { formatDayOfWeek } from '@/lib/utils'
+import {getStudentCourses} from '@/app/actions/context/courses'
+import {formatDayOfWeek} from '@/lib/utils'
 
-export async function StudentCourses({ studentId }: { studentId: string }) {
+export async function StudentCourses({studentId}: {studentId: string}) {
   try {
     const response = await getStudentCourses(studentId)
 
@@ -64,19 +64,14 @@ export async function StudentCourses({ studentId }: { studentId: string }) {
         return hours * 60 + minutes
       }
 
-      return (
-        getMinutes(a.session.timeSlot.startTime) -
-        getMinutes(b.session.timeSlot.startTime)
-      )
+      return getMinutes(a.session.timeSlot.startTime) - getMinutes(b.session.timeSlot.startTime)
     })
 
     if (sortedStudentSessions.length === 0) {
       return (
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Aucun cours trouvé pour cet étudiant.
-          </AlertDescription>
+          <AlertDescription>Aucun cours trouvé pour cet étudiant.</AlertDescription>
         </Alert>
       )
     }
@@ -90,10 +85,7 @@ export async function StudentCourses({ studentId }: { studentId: string }) {
 
         {/* Version desktop */}
         <div className="hidden md:block overflow-x-auto">
-          <CoursesTable
-            sessions={sortedStudentSessions}
-            formatDayOfWeek={formatDayOfWeek}
-          />
+          <CoursesTable sessions={sortedStudentSessions} formatDayOfWeek={formatDayOfWeek} />
         </div>
       </>
     )
@@ -102,9 +94,7 @@ export async function StudentCourses({ studentId }: { studentId: string }) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Erreur lors de la récupération des cours
-        </AlertDescription>
+        <AlertDescription>Erreur lors de la récupération des cours</AlertDescription>
       </Alert>
     )
   }

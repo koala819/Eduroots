@@ -1,4 +1,4 @@
-import { SubjectNameEnum } from '@/types/course'
+import {SubjectNameEnum} from '@/types/course'
 
 import PlanningGridClient from '@/components/admin/organisms/client/PlanningGrid'
 
@@ -13,9 +13,7 @@ export default function PlanningGrid() {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-blue-600" />
-          <span className="text-sm font-medium">
-            {SubjectNameEnum.EducationCulturelle}
-          </span>
+          <span className="text-sm font-medium">{SubjectNameEnum.EducationCulturelle}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-1 rounded-full bg-amber-400" />

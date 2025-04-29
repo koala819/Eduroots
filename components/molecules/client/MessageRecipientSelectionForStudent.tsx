@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import {useEffect, useState} from 'react'
+import {UseFormReturn} from 'react-hook-form'
 
-import { Session } from 'next-auth'
+import {Session} from 'next-auth'
 
-import { Teacher } from '@/types/user'
-import { FormFields } from '@/types/writeMessage'
+import {Teacher} from '@/types/user'
+import {FormFields} from '@/types/writeMessage'
 
-import { Badge } from '@/components/ui/badge'
+import {Badge} from '@/components/ui/badge'
 
-import { useStudents } from '@/context/Students/client'
-import { calculateValidEmails } from '@/lib/writeMessage'
+import {useStudents} from '@/context/Students/client'
+import {calculateValidEmails} from '@/lib/writeMessage'
 
 interface RecipientForStudentProps {
   onValidEmailsChange: (emails: string[]) => void
@@ -25,14 +25,12 @@ export const RecipientForStudent = ({
   form,
 }: RecipientForStudentProps) => {
   // État local
-  const [recipientType, setRecipientType] = useState<
-    'bureau' | 'teachers' | null
-  >(null)
+  const [recipientType, setRecipientType] = useState<'bureau' | 'teachers' | null>(null)
   const [teachersList, setTeachersList] = useState<Teacher[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   // Hooks
-  const { getTeachersForStudent } = useStudents()
+  const {getTeachersForStudent} = useStudents()
 
   // Trouver les professeurs de l'étudiant
   useEffect(() => {
@@ -55,12 +53,9 @@ export const RecipientForStudent = ({
 
   // Observer pour les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
+    const subscription = form.watch((value, {name}) => {
       if (name === 'recipients') {
-        const validEmails = calculateValidEmails(
-          value.recipients as string[],
-          teachersList,
-        )
+        const validEmails = calculateValidEmails(value.recipients as string[], teachersList)
         onValidEmailsChange(validEmails)
       }
     })
@@ -97,9 +92,7 @@ export const RecipientForStudent = ({
       </div>
 
       {recipientType === null && (
-        <div className="text-sm text-gray-600">
-          Veuillez sélectionner un destinataire.
-        </div>
+        <div className="text-sm text-gray-600">Veuillez sélectionner un destinataire.</div>
       )}
 
       {/* Liste des professeurs - Rendu conditionnel */}
@@ -115,18 +108,13 @@ export const RecipientForStudent = ({
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded text-primary focus:ring-primary"
-                    checked={form
-                      .watch('recipients')
-                      ?.includes(teacher._id || teacher.id)}
+                    checked={form.watch('recipients')?.includes(teacher._id || teacher.id)}
                     onChange={(e) => {
                       const currentRecipients = form.watch('recipients') || []
                       const teacherId = teacher._id || teacher.id
 
                       if (e.target.checked) {
-                        form.setValue('recipients', [
-                          ...currentRecipients,
-                          teacherId,
-                        ])
+                        form.setValue('recipients', [...currentRecipients, teacherId])
                       } else {
                         form.setValue(
                           'recipients',
@@ -148,7 +136,7 @@ export const RecipientForStudent = ({
             ))
           ) : (
             <div className="text-center py-4 text-gray-500">
-              Aucun professeur trouvé. Veuillez contacter l'administration.
+              Aucun professeur trouvé. Veuillez contacter l&apos;administration.
             </div>
           )}
         </div>

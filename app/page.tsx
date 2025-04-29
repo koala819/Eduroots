@@ -1,7 +1,7 @@
-import type { Metadata, Viewport } from 'next'
+import type {Metadata, Viewport} from 'next'
 
-import { LoginClient } from '@/components/molecules/client/Login'
-import { LoginMobileClient } from '@/components/molecules/client/LoginMobile'
+import {LoginClient} from '@/components/molecules/client/Login'
+import {LoginMobileClient} from '@/components/molecules/client/LoginMobile'
 
 export const metadata: Metadata = {
   title: 'EduRootS',
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: [
-      { url: '/icons/touch-icon-iphone.png' },
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      {url: '/icons/touch-icon-iphone.png'},
+      {url: '/icon-192x192.png', sizes: '192x192', type: 'image/png'},
+      {url: '/icon-512x512.png', sizes: '512x512', type: 'image/png'},
       {
         url: '/icons/touch-icon-ipad-retina.png',
         sizes: '167x167',

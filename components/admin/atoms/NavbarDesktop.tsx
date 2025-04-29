@@ -1,9 +1,9 @@
-import { LucideIcon, Settings } from 'lucide-react'
+import {LucideIcon, Settings} from 'lucide-react'
 
-import { Session } from 'next-auth'
+import {Session} from 'next-auth'
 import Image from 'next/image'
 
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
 type NavItem = {
   href: string
@@ -43,18 +43,11 @@ export const NavbarDesktop = ({
           className={`flex items-center gap-x-2 ${isAdmin ? 'text-white' : ''} ${pathname === '/admin' ? 'cursor-auto' : ''}`}
         >
           <div className="relative h-12 w-16 shrink-0">
-            <Image
-              src="/Logo.jpg"
-              alt="Logo"
-              fill
-              className="object-cover rounded-md"
-            />
+            <Image src="/Logo.jpg" alt="Logo" fill className="object-cover rounded-md" />
           </div>
           <div className="hidden md:flex flex-col text-left">
             <span className="text-sm font-semibold">Administration</span>
-            <span
-              className={`text-xs ${isAdmin ? 'text-red-100' : 'text-muted-foreground'}`}
-            >
+            <span className={`text-xs ${isAdmin ? 'text-red-100' : 'text-muted-foreground'}`}>
               {session?.user?.firstname} {session?.user?.lastname}
             </span>
           </div>

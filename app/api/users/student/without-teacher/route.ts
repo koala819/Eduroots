@@ -1,11 +1,11 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {getToken} from 'next-auth/jwt'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
+import {User} from '@/backend/models/user.model'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
 
   if (!token || !token.user) {
     return NextResponse.json({
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     await dbConnect()
 
     // Récupérer tous les étudiants
-    const allStudents = await User.find({ role: 'student' })
+    const allStudents = await User.find({role: 'student'})
 
     // Filtrer les étudiants
     const studentsWithoutValidTeacher = await Promise.all(
@@ -29,12 +29,10 @@ export async function GET(req: NextRequest) {
     )
 
     // Supprimer les valeurs null du tableau
-    const filteredStudents = studentsWithoutValidTeacher.filter(
-      (student) => student !== null,
-    )
+    const filteredStudents = studentsWithoutValidTeacher.filter((student) => student !== null)
 
     if (filteredStudents.length > 0) {
-      return NextResponse.json({ status: 200, data: filteredStudents })
+      return NextResponse.json({status: 200, data: filteredStudents})
     } else {
       return NextResponse.json({
         status: 200,

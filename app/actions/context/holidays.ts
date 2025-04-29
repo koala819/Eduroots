@@ -1,13 +1,13 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
-import { Holiday } from '@/types/holidays'
+import {ApiResponse} from '@/types/api'
+import {Holiday} from '@/types/holidays'
 
-import { Holidays } from '@/backend/models/holidays.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { createDefaultHolidays } from '@/lib/utils'
+import {Holidays} from '@/backend/models/holidays.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {createDefaultHolidays} from '@/lib/utils'
 
 interface SaveHolidayData {
   updatedBy: string
@@ -22,9 +22,7 @@ async function getSessionServer() {
   return session
 }
 
-export async function getCurrentHolidays(
-  userId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getCurrentHolidays(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -74,7 +72,7 @@ export async function saveHolidays(
   }
 
   try {
-    const { holidays, updatedBy } = payload
+    const {holidays, updatedBy} = payload
 
     if (!holidays || !updatedBy) {
       return {
@@ -86,7 +84,7 @@ export async function saveHolidays(
 
     // Cherche et met à jour la configuration existante ou en crée une nouvelle
     const holidaySchedule = await Holidays.findOneAndUpdate(
-      { academicYear, isActive: true },
+      {academicYear, isActive: true},
       {
         holidays,
         updatedBy,

@@ -1,9 +1,9 @@
 'use server'
 
-import { Attendance } from '@/types/attendance'
-import { SubjectNameEnum } from '@/types/course'
+import {Attendance} from '@/types/attendance'
+import {SubjectNameEnum} from '@/types/course'
 
-import { getStudentAttendanceHistory } from '@/app/actions/context/attendances'
+import {getStudentAttendanceHistory} from '@/app/actions/context/attendances'
 
 export interface CalculatedStats {
   totalSessions: number
@@ -13,8 +13,8 @@ export interface CalculatedStats {
   totalStudents: number
   lastUpdate: Date
   dates: string[]
-  absenceDates: { date: string; subject: SubjectNameEnum }[]
-  presentDates: { date: string; subject: SubjectNameEnum }[]
+  absenceDates: {date: string; subject: SubjectNameEnum}[]
+  presentDates: {date: string; subject: SubjectNameEnum}[]
 }
 
 export async function fetchStudentAttendanceStats(
@@ -40,74 +40,64 @@ export async function fetchStudentAttendanceStats(
       absenceDates: [],
       presentDates: [],
     }
+    if (attendanceHistory) {
+      ;(attendanceHistory as unknown as Attendance[]).forEach((attendance: Attendance) => {
+        const studentRecord = attendance.records.find((record) => {
+          if (!record.student) return false
+          const recordStudentId =
+            typeof record.student === 'string' ? record.student : record.student.id
+          return recordStudentId === studentId
+        })
 
-    // Le même code de calcul que dans votre composant initial
-    attendanceHistory &&
-      (attendanceHistory as unknown as Attendance[])?.forEach(
-        (attendance: Attendance) => {
-          const studentRecord = attendance.records.find((record) => {
-            if (!record.student) return false
-            const recordStudentId =
-              typeof record.student === 'string'
-                ? record.student
-                : record.student.id
-            return recordStudentId === studentId
+        if (
+          studentRecord &&
+          typeof studentRecord.student !== 'string' &&
+          studentRecord.student.subjects
+        ) {
+          const formattedDate = new Date(attendance.date).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+          stats.totalSessions++
+          stats.dates.push(formattedDate)
+
+          // On ajoute une seule entrée par date et par matière
+          const subjects = studentRecord.student.subjects as SubjectNameEnum[]
+          subjects.forEach((subject) => {
+            // Vérifier si cette combinaison date/matière existe déjà
+            const existingAbsenceEntry = stats.absenceDates.find(
+              (item) => item.date === formattedDate && item.subject === subject,
+            )
+            const existingPresenceEntry = stats.presentDates.find(
+              (item) => item.date === formattedDate && item.subject === subject,
+            )
+
+            if (!existingAbsenceEntry && !existingPresenceEntry) {
+              if (studentRecord.isPresent) {
+                stats.presentDates.push({
+                  date: formattedDate,
+                  subject: subject,
+                })
+              } else {
+                stats.absenceDates.push({
+                  date: formattedDate,
+                  subject: subject,
+                })
+              }
+            }
           })
 
-          if (
-            studentRecord &&
-            typeof studentRecord.student !== 'string' &&
-            studentRecord.student.subjects
-          ) {
-            const formattedDate = new Date(attendance.date).toLocaleDateString(
-              'fr-FR',
-              {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              },
-            )
-            stats.totalSessions++
-            stats.dates.push(formattedDate)
-
-            // On ajoute une seule entrée par date et par matière
-            const subjects = studentRecord.student.subjects as SubjectNameEnum[]
-            subjects.forEach((subject) => {
-              // Vérifier si cette combinaison date/matière existe déjà
-              const existingAbsenceEntry = stats.absenceDates.find(
-                (item) =>
-                  item.date === formattedDate && item.subject === subject,
-              )
-              const existingPresenceEntry = stats.presentDates.find(
-                (item) =>
-                  item.date === formattedDate && item.subject === subject,
-              )
-
-              if (!existingAbsenceEntry && !existingPresenceEntry) {
-                if (studentRecord.isPresent) {
-                  stats.presentDates.push({
-                    date: formattedDate,
-                    subject: subject,
-                  })
-                } else {
-                  stats.absenceDates.push({
-                    date: formattedDate,
-                    subject: subject,
-                  })
-                }
-              }
-            })
-
-            // On ne compte qu'une fois pour les stats globales
-            if (studentRecord.isPresent) {
-              stats.presentCount++
-            } else {
-              stats.absentCount++
-            }
+          // On ne compte qu'une fois pour les stats globales
+          if (studentRecord.isPresent) {
+            stats.presentCount++
+          } else {
+            stats.absentCount++
           }
-        },
-      )
+        }
+      })
+    }
 
     if (stats.totalSessions > 0) {
       stats.presenceRate = (stats.presentCount / stats.totalSessions) * 100
@@ -115,12 +105,8 @@ export async function fetchStudentAttendanceStats(
 
     // Trier les dates
     stats.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    stats.absenceDates.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    )
-    stats.presentDates.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    )
+    stats.absenceDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    stats.presentDates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     return stats
   } catch (error) {

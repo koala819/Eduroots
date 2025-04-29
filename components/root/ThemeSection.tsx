@@ -1,12 +1,12 @@
-import { memo, useCallback, useEffect, useState } from 'react'
+import {memo, useCallback, useEffect, useState} from 'react'
 
-import { AppConfig, ThemeConfig } from '@/types/models'
+import {AppConfig, ThemeConfig} from '@/types/models'
 
-import { ButtonPreview } from '@/components/root/ButtonPreview'
+import {ButtonPreview} from '@/components/root/ButtonPreview'
 import ThemeInput from '@/components/root/ThemeInput'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {Card, CardContent, CardHeader} from '@/components/ui/card'
+import {Input} from '@/components/ui/input'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
 type UserType = 'teacher' | 'student' | 'bureau'
 
@@ -25,12 +25,7 @@ const ButtonVariantInput: React.FC<{
   buttonKey: string
   value: string
   onChange: (value: string) => void
-}> = memo(function ButtonVariantInput({
-  userType,
-  buttonKey,
-  value,
-  onChange,
-}) {
+}> = memo(function ButtonVariantInput({userType, buttonKey, value, onChange}) {
   return (
     <div className="space-y-2">
       <div className="flex items-center space-x-4">
@@ -45,10 +40,7 @@ const ButtonVariantInput: React.FC<{
   )
 })
 
-export const ThemeSection: React.FC<ThemeSectionProps> = ({
-  config,
-  handleThemeChange,
-}) => {
+export const ThemeSection: React.FC<ThemeSectionProps> = ({config, handleThemeChange}) => {
   const userTypes: UserType[] = ['teacher', 'student', 'bureau']
   const [localConfig, setLocalConfig] = useState(config)
 
@@ -57,12 +49,7 @@ export const ThemeSection: React.FC<ThemeSectionProps> = ({
   }, [config])
 
   const handleLocalChange = useCallback(
-    (
-      userType: UserType,
-      themeSection: keyof ThemeConfig,
-      key: string,
-      value: string,
-    ) => {
+    (userType: UserType, themeSection: keyof ThemeConfig, key: string, value: string) => {
       setLocalConfig((prevConfig) => {
         const newConfig = {
           ...prevConfig,
@@ -97,9 +84,7 @@ export const ThemeSection: React.FC<ThemeSectionProps> = ({
             userType={userType}
             themeKey="Loader"
             value={localConfig.themes[userType].loader || ''}
-            onChange={(value) =>
-              handleLocalChange(userType, 'loader', `${userType}Loader`, value)
-            }
+            onChange={(value) => handleLocalChange(userType, 'loader', `${userType}Loader`, value)}
             label="Loader Background"
             placeholder="e.g. bg-blue-500"
           />
@@ -110,12 +95,7 @@ export const ThemeSection: React.FC<ThemeSectionProps> = ({
             themeKey="CardHeader"
             value={localConfig.themes[userType].cardHeader || ''}
             onChange={(value) =>
-              handleLocalChange(
-                userType,
-                'cardHeader',
-                `${userType}CardHeader`,
-                value,
-              )
+              handleLocalChange(userType, 'cardHeader', `${userType}CardHeader`, value)
             }
             label="Card Header"
             placeholder="e.g. bg-gradient-to-r from-blue-500 to-purple-600"
@@ -123,19 +103,17 @@ export const ThemeSection: React.FC<ThemeSectionProps> = ({
 
           <div className="space-y-4">
             <h4 className="font-medium">BUTTONS</h4>
-            {Object.entries(localConfig.themes[userType].buttonVariants).map(
-              ([key, value]) => (
-                <ButtonVariantInput
-                  key={key}
-                  userType={userType}
-                  buttonKey={key}
-                  value={value}
-                  onChange={(newValue) =>
-                    handleLocalChange(userType, 'buttonVariants', key, newValue)
-                  }
-                />
-              ),
-            )}
+            {Object.entries(localConfig.themes[userType].buttonVariants).map(([key, value]) => (
+              <ButtonVariantInput
+                key={key}
+                userType={userType}
+                buttonKey={key}
+                value={value}
+                onChange={(newValue) =>
+                  handleLocalChange(userType, 'buttonVariants', key, newValue)
+                }
+              />
+            ))}
           </div>
         </CardContent>
       </Card>

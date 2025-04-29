@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
-import { calculateStudentAttendanceRate } from '@/lib/stats/student'
+import {calculateStudentAttendanceRate} from '@/lib/stats/student'
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
+  const {searchParams} = new URL(req.url)
   const studentId = searchParams.get('studentId')
 
   if (!studentId) {
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
         success: false,
         error: `Erreur lors de la récupération des données: ${error instanceof Error ? error.message : String(error)}`,
       },
-      { status: 500 },
+      {status: 500},
     )
   }
 }

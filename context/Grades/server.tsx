@@ -1,9 +1,9 @@
 'use server'
 
-import { PopulatedGrade } from '@/types/grade'
+import {PopulatedGrade} from '@/types/grade'
 
-import { getTeacherGrades } from '@/app/actions/context/grades'
-import { GradesProvider } from '@/context/Grades/client'
+import {getTeacherGrades} from '@/app/actions/context/grades'
+import {GradesProvider} from '@/context/Grades/client'
 
 interface CoursesServerComponentProps {
   children: React.ReactNode
@@ -32,7 +32,5 @@ export default async function CourseServerComponent({
     }
   }
 
-  return (
-    <GradesProvider initialGradeData={initialGrades}>{children}</GradesProvider>
-  )
+  return <GradesProvider initialGradeData={initialGrades}>{children}</GradesProvider>
 }

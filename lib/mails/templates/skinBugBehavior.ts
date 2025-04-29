@@ -1,4 +1,4 @@
-export function mailBugBehavior({ _id, teacher, session, date }: any) {
+export function mailBugBehavior({_id, teacher, session, date}: any) {
   return `
       <!DOCTYPE html>
       <html lang="fr">

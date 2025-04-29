@@ -1,11 +1,11 @@
 'use client'
 
-import { Suspense } from 'react'
+import {Suspense} from 'react'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import {useSearchParams} from 'next/navigation'
 
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
 const ErrorContent = () => {
   const searchParams = useSearchParams()
@@ -30,7 +30,7 @@ const ErrorContent = () => {
   )
 }
 
-const ErrorMessage = ({ error }: { error: string | null }) => {
+const ErrorMessage = ({error}: {error: string | null}) => {
   function getErrorMessage(error: string | null) {
     switch (error) {
       case 'CredentialsSignin':

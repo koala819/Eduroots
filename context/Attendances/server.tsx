@@ -1,9 +1,9 @@
 'use server'
 
-import { AttendanceDocument } from '@/types/mongoose'
+import {AttendanceDocument} from '@/types/mongoose'
 
-import { getAttendanceById } from '@/app/actions/context/attendances'
-import { AttendancesProvider } from '@/context/Attendances/client'
+import {getAttendanceById} from '@/app/actions/context/attendances'
+import {AttendancesProvider} from '@/context/Attendances/client'
 
 interface AttendanceServerComponentProps {
   children: React.ReactNode

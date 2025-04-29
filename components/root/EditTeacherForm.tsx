@@ -1,25 +1,25 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {useEffect, useMemo, useState} from 'react'
+import {useForm} from 'react-hook-form'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { CourseDocument } from '@/types/mongoose'
-import { Teacher } from '@/types/user'
+import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {CourseDocument} from '@/types/mongoose'
+import {Teacher} from '@/types/user'
 
 import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
 import EditTeacherStep2 from '@/components/root/EditTeacherStep2'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form } from '@/components/ui/form'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Form} from '@/components/ui/form'
 
-import { useCourses } from '@/context/Courses/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useCourses} from '@/context/Courses/client'
+import {useTeachers} from '@/context/Teachers/client'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const teacherSchema = z.object({
@@ -73,19 +73,11 @@ export interface TeacherFormData {
   }[]
 }
 
-export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
-  const {
-    getTeacherCourses,
-    updateCourse,
-    isLoading: isLoadingCourse,
-  } = useCourses()
+export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
+  const {getTeacherCourses, updateCourse, isLoading: isLoadingCourse} = useCourses()
   const router = useRouter()
-  const {
-    getOneTeacher,
-    updateTeacher,
-    isLoading: isLoadingTeacher,
-  } = useTeachers()
-  const { toast } = useToast()
+  const {getOneTeacher, updateTeacher, isLoading: isLoadingTeacher} = useTeachers()
+  const {toast} = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true)
@@ -125,10 +117,7 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
     const loadData = async () => {
       try {
         setIsDataLoading(true)
-        const [teacher, course] = await Promise.all([
-          getOneTeacher(id),
-          getTeacherCourses(id),
-        ])
+        const [teacher, course] = await Promise.all([getOneTeacher(id), getTeacherCourses(id)])
 
         if (!isMounted) return
 
@@ -168,8 +157,8 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
   const isLoading = isLoadingTeacher || isLoadingCourse || isDataLoading
 
   const steps = [
-    { number: 1, label: 'Informations personnelles' },
-    { number: 2, label: 'Matières enseignées' },
+    {number: 1, label: 'Informations personnelles'},
+    {number: 2, label: 'Matières enseignées'},
   ]
 
   const validateStep1 = () => {
@@ -202,9 +191,7 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
     if (currentStep === 2) {
       const isValid = await validateStep2()
       if (isValid) {
-        const validationResult = await teacherSchema.safeParseAsync(
-          form.getValues(),
-        )
+        const validationResult = await teacherSchema.safeParseAsync(form.getValues())
         if (!validationResult.success) {
           // Affichez les erreurs
           const errors = validationResult.error.errors
@@ -287,8 +274,7 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
       if (!teacherChanged) {
         toast({
           title: 'Info',
-          description:
-            'Aucune modification des informations du professeur détectée',
+          description: 'Aucune modification des informations du professeur détectée',
         })
         setIsDataLoading(false)
         return
@@ -379,9 +365,7 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl">
-          Modifier le Professeur
-        </CardTitle>
+        <CardTitle className="text-xl md:text-2xl">Modifier le Professeur</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-8 relative">

@@ -1,9 +1,9 @@
 'use server'
 
-import { MessageBody } from '@/types/models'
+import {MessageBody} from '@/types/models'
 
-import { EMAIL_CONFIG, EmailUsageType } from './config'
-import { getEmailTemplate } from './templates'
+import {EMAIL_CONFIG, EmailUsageType} from './config'
+import {getEmailTemplate} from './templates'
 
 import nodemailer from 'nodemailer'
 
@@ -81,7 +81,7 @@ export async function sendEmailNotification(params: EmailSendParams) {
  * Génère les options d'email en fonction du type d'utilisation
  */
 function getMailOptions(params: EmailSendParams, defaultSender: string) {
-  const { usage, sender, receiver, body, detailedBody, otp } = params
+  const {usage, sender, receiver, body, detailedBody, otp} = params
   const template = getEmailTemplate(usage, params)
 
   switch (usage) {

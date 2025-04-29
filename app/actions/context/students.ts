@@ -1,14 +1,14 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
-import { Student } from '@/types/user'
+import {ApiResponse} from '@/types/api'
+import {Student} from '@/types/user'
 
-import { Course } from '@/backend/models/course.model'
-import { User } from '@/backend/models/user.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { isValidObjectId } from 'mongoose'
+import {Course} from '@/backend/models/course.model'
+import {User} from '@/backend/models/user.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {isValidObjectId} from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -44,7 +44,7 @@ export async function createStudent(
     }
     return {
       success: true,
-      data: serializeData({ id: newUser._id }),
+      data: serializeData({id: newUser._id}),
       message: 'Etudiant créé avec succès',
     }
   } catch (error) {
@@ -53,9 +53,7 @@ export async function createStudent(
   }
 }
 
-export async function deleteStudent(
-  studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function deleteStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!studentId || !isValidObjectId(studentId)) {
@@ -76,7 +74,7 @@ export async function deleteStudent(
         isActive: false,
         deletedAt: new Date(),
       },
-      { new: true },
+      {new: true},
     ).select('-password')
 
     if (!deletedUser) {
@@ -106,7 +104,7 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
       role: 'student',
     })
       .select('-password')
-      .sort({ firstname: 1, lastname: 1 })
+      .sort({firstname: 1, lastname: 1})
 
     if (!users) {
       return {
@@ -126,9 +124,7 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneStudent(
-  studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getOneStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!isValidObjectId(studentId)) {
@@ -192,7 +188,7 @@ export async function getTeachersForStudent(
     }
 
     const teachers = await User.find({
-      _id: { $in: teacherIds },
+      _id: {$in: teacherIds},
       role: 'teacher',
       isActive: true,
     }).select('-password')
@@ -240,8 +236,8 @@ export async function updateStudent(
         role: 'student',
         isActive: true,
       },
-      { $set: studentData },
-      { new: true },
+      {$set: studentData},
+      {new: true},
     ).select('-password')
 
     if (!updatedUser) {
@@ -263,13 +259,9 @@ export async function updateStudent(
   }
 }
 
-function validateRequiredFields(
-  type: string,
-  data: any,
-): { isValid: boolean; message?: string } {
+function validateRequiredFields(type: string, data: any): {isValid: boolean; message?: string} {
   const baseFields = ['email', 'firstname', 'lastname', 'password']
-  const requiredFields =
-    type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
+  const requiredFields = type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
 
   const missingFields = requiredFields.filter((field) => !data[field])
 
@@ -278,5 +270,5 @@ function validateRequiredFields(
         isValid: false,
         message: `Champs manquants: ${missingFields.join(', ')}`,
       }
-    : { isValid: true }
+    : {isValid: true}
 }

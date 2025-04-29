@@ -1,15 +1,15 @@
 'use client'
 
-import { ChevronRight, CircleArrowLeft, Plus, Trophy } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useEffect, useMemo, useState } from 'react'
+import {ChevronRight, CircleArrowLeft, Plus, Trophy} from 'lucide-react'
+import {useSession} from 'next-auth/react'
+import {useEffect, useMemo, useState} from 'react'
 
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import {useToast} from '@/hooks/use-toast'
 
-import { SubjectNameEnum } from '@/types/course'
-import { GradeTypeEnum, PopulatedGrade } from '@/types/grade'
+import {SubjectNameEnum} from '@/types/course'
+import {GradeTypeEnum, PopulatedGrade} from '@/types/grade'
 
 import {
   Accordion,
@@ -17,18 +17,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
-import { useGrades } from '@/context/Grades/client'
-import { compareDesc, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import {useGrades} from '@/context/Grades/client'
+import {compareDesc, format} from 'date-fns'
+import {fr} from 'date-fns/locale'
 
 const GradesPage = () => {
-  const { toast } = useToast()
-  const { data: session } = useSession()
-  const { getTeacherGrades, isLoading, teacherGrades } = useGrades()
+  const {toast} = useToast()
+  const {data: session} = useSession()
+  const {getTeacherGrades, isLoading, teacherGrades} = useGrades()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
@@ -64,7 +64,7 @@ const GradesPage = () => {
         formattedDate: format(new Date(grade.date), 'dd MMM yyyy', {
           locale: fr,
         }),
-        month: format(new Date(grade.date), 'MMMM yyyy', { locale: fr }),
+        month: format(new Date(grade.date), 'MMMM yyyy', {locale: fr}),
         subject: matchingSession?.subject || 'Inconnu',
       }
     })
@@ -76,27 +76,21 @@ const GradesPage = () => {
         : processedGrades.filter((grade) => grade.subject === selectedSubject)
 
     // Trier par date (plus récente d'abord)
-    return filteredGrades.sort((a, b) =>
-      compareDesc(new Date(a.date), new Date(b.date)),
-    )
+    return filteredGrades.sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)))
   }, [teacherGrades, selectedSubject])
 
   // Regrouper par mois pour l'affichage
   const groupedByMonth = useMemo(() => {
-    if (!filteredAndSortedGrades.length)
-      return {} as Record<string, PopulatedGrade[]>
+    if (!filteredAndSortedGrades.length) return {} as Record<string, PopulatedGrade[]>
 
-    return filteredAndSortedGrades.reduce(
-      (acc: Record<string, PopulatedGrade[]>, grade) => {
-        const month = grade.month
-        if (!acc[month]) {
-          acc[month] = []
-        }
-        acc[month].push(grade)
-        return acc
-      },
-      {},
-    )
+    return filteredAndSortedGrades.reduce((acc: Record<string, PopulatedGrade[]>, grade) => {
+      const month = grade.month
+      if (!acc[month]) {
+        acc[month] = []
+      }
+      acc[month].push(grade)
+      return acc
+    }, {})
   }, [filteredAndSortedGrades])
 
   // Compter les matières pour les filtres
@@ -109,12 +103,11 @@ const GradesPage = () => {
         const matchingSession = grade.course.sessions.find(
           (session) => session._id === grade.sessionId,
         )
-        const subject: SubjectNameEnum | 'Inconnu' =
-          matchingSession?.subject || 'Inconnu'
+        const subject: SubjectNameEnum | 'Inconnu' = matchingSession?.subject || 'Inconnu'
         acc[subject] = (acc[subject] || 0) + 1
         return acc
       },
-      { Inconnu: 0 } as Record<SubjectNameEnum | 'Inconnu', number>,
+      {Inconnu: 0} as Record<SubjectNameEnum | 'Inconnu', number>,
     )
   }, [teacherGrades])
 
@@ -124,11 +117,11 @@ const GradesPage = () => {
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         />
       </div>
     )
@@ -185,11 +178,7 @@ const GradesPage = () => {
           <Button
             variant="link"
             className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
-            onClick={() =>
-              router.push(
-                `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles`,
-              )
-            }
+            onClick={() => router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles`)}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Retour</span>
@@ -197,9 +186,7 @@ const GradesPage = () => {
 
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <span className="text-xs font-medium">
-                {teacherGrades?.length || 0}
-              </span>
+              <span className="text-xs font-medium">{teacherGrades?.length || 0}</span>
             </div>
             <span className="text-sm text-gray-500">Évaluations</span>
           </div>
@@ -226,10 +213,7 @@ const GradesPage = () => {
               className={`rounded-full text-sm whitespace-nowrap w-full ${
                 selectedSubject === subject
                   ? ''
-                  : getSubjectBackgroundColor(subject).replace(
-                      'text-',
-                      'hover:text-',
-                    )
+                  : getSubjectBackgroundColor(subject).replace('text-', 'hover:text-')
               }`}
               onClick={() => setSelectedSubject(subject)}
             >
@@ -241,9 +225,7 @@ const GradesPage = () => {
             variant="outline"
             className="rounded-full text-sm whitespace-nowrap bg-blue-50 hover:bg-blue-100 border-blue-200 ml-auto w-full"
             onClick={() => {
-              router.push(
-                `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades/create`,
-              )
+              router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades/create`)
             }}
           >
             <Plus className="h-4 w-4 mr-1" />
@@ -312,27 +294,21 @@ const GradesPage = () => {
                           {/* Informations principales - affichées en grille responsive */}
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             <div className="space-y-1">
-                              <span className="text-xs text-gray-500">
-                                Moyenne
-                              </span>
+                              <span className="text-xs text-gray-500">Moyenne</span>
                               <div className="font-medium text-gray-900">
                                 {grade.stats.averageGrade.toFixed(1)}/20
                               </div>
                             </div>
 
                             <div className="space-y-1">
-                              <span className="text-xs text-gray-500">
-                                Élèves notés
-                              </span>
+                              <span className="text-xs text-gray-500">Élèves notés</span>
                               <div className="font-medium text-gray-900">
                                 {`${grade.stats.totalStudents - grade.stats.absentCount}/${grade.stats.totalStudents}`}
                               </div>
                             </div>
 
                             <div className="space-y-1">
-                              <span className="text-xs text-gray-500">
-                                Absents
-                              </span>
+                              <span className="text-xs text-gray-500">Absents</span>
                               <div className="font-medium text-gray-900">
                                 {grade.stats.absentCount}
                               </div>
@@ -363,15 +339,10 @@ const GradesPage = () => {
                                 className="w-full"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <AccordionItem
-                                  value={`detail-${grade.id}`}
-                                  className="border-0"
-                                >
+                                <AccordionItem value={`detail-${grade.id}`} className="border-0">
                                   <div className="flex justify-end">
                                     <AccordionTrigger className="py-0 px-2 hover:no-underline text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md">
-                                      <span className="text-sm font-medium">
-                                        Voir détails
-                                      </span>
+                                      <span className="text-sm font-medium">Voir détails</span>
                                     </AccordionTrigger>
                                   </div>
                                   <AccordionContent>
@@ -399,11 +370,9 @@ const GradesPage = () => {
                                             Créée le
                                           </span>
                                           <span className="font-medium">
-                                            {format(
-                                              new Date(grade.createdAt),
-                                              'dd/MM/yyyy',
-                                              { locale: fr },
-                                            )}
+                                            {format(new Date(grade.createdAt), 'dd/MM/yyyy', {
+                                              locale: fr,
+                                            })}
                                           </span>
                                         </div>
                                       </div>
@@ -414,37 +383,32 @@ const GradesPage = () => {
                                           Notes des élèves
                                         </h4>
                                         <div className="max-h-60 overflow-y-auto rounded-md border border-gray-200">
-                                          {grade.records.map(
-                                            (record, index) => (
-                                              <div
-                                                key={record.student.id}
-                                                className={`p-2 text-sm flex justify-between items-center ${
-                                                  index % 2 === 0
-                                                    ? 'bg-gray-50'
-                                                    : 'bg-white'
-                                                }`}
-                                              >
-                                                <div className="font-medium">
-                                                  {record.student.firstname}{' '}
-                                                  {record.student.lastname}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                  {record.isAbsent ? (
-                                                    <Badge
-                                                      variant="outline"
-                                                      className="bg-red-100 text-red-600"
-                                                    >
-                                                      Absent
-                                                    </Badge>
-                                                  ) : (
-                                                    <span className="font-bold">
-                                                      {record.value}/20
-                                                    </span>
-                                                  )}
-                                                </div>
+                                          {grade.records.map((record, index) => (
+                                            <div
+                                              key={record.student.id}
+                                              className={`p-2 text-sm flex justify-between items-center ${
+                                                index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                                              }`}
+                                            >
+                                              <div className="font-medium">
+                                                {record.student.firstname} {record.student.lastname}
                                               </div>
-                                            ),
-                                          )}
+                                              <div className="flex items-center gap-2">
+                                                {record.isAbsent ? (
+                                                  <Badge
+                                                    variant="outline"
+                                                    className="bg-red-100 text-red-600"
+                                                  >
+                                                    Absent
+                                                  </Badge>
+                                                ) : (
+                                                  <span className="font-bold">
+                                                    {record.value}/20
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
                                         </div>
                                       </div>
                                     </div>
@@ -468,9 +432,7 @@ const GradesPage = () => {
             <div className="text-gray-400 mb-3">
               <Trophy className="w-12 h-12 mx-auto opacity-50" />
             </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
-              Aucune évaluation trouvée
-            </h3>
+            <h3 className="text-lg font-medium text-gray-700 mb-1">Aucune évaluation trouvée</h3>
             <p className="text-gray-500 text-center mb-4">
               {selectedSubject === 'all'
                 ? "Vous n'avez pas encore créé d'évaluations."
@@ -478,9 +440,7 @@ const GradesPage = () => {
             </p>
             <Button
               onClick={() => {
-                router.push(
-                  `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades/create`,
-                )
+                router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades/create`)
               }}
             >
               <Plus className="h-4 w-4 mr-1" />

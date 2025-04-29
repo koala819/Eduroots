@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
-import { EditCourseStudent } from '@/components/root/EditStudentCourse'
+import {EditCourseStudent} from '@/components/root/EditStudentCourse'
 
 export const metadata: Metadata = {
   title: "Modifier info Cours pour l'Elève",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   },
 }
 
-const Page = ({ params }: any) => {
+const Page = ({params}: any) => {
   return <EditCourseStudent studentId={params.id} />
 }
 

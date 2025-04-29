@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import {Metadata} from 'next'
 
 import NewTeacherForm from '@/components/root/NewTeacherForm'
 

@@ -1,22 +1,19 @@
 'use client'
 
-import { GraduationCap, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {GraduationCap, Users} from 'lucide-react'
+import {useMemo, useState} from 'react'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/types/user'
+import {EntityType} from '@/types/stats'
+import {Student, Teacher} from '@/types/user'
 
-import { StatsCards } from '@/components/admin/molecules/client/StatsCards'
+import {StatsCards} from '@/components/admin/molecules/client/StatsCards'
 
 interface SchoolPeopleClientProps {
   students: Student[]
   teachers: Teacher[]
 }
 
-export function SchoolPeopleClient({
-  students,
-  teachers,
-}: SchoolPeopleClientProps) {
+export function SchoolPeopleClient({students, teachers}: SchoolPeopleClientProps) {
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
 
   const people = useMemo(() => {
@@ -42,11 +39,5 @@ export function SchoolPeopleClient({
     ]
   }, [students, teachers, selectedType])
 
-  return (
-    <StatsCards
-      people={people}
-      selectedType={selectedType}
-      onSelectType={setSelectedType}
-    />
-  )
+  return <StatsCards people={people} selectedType={selectedType} onSelectType={setSelectedType} />
 }

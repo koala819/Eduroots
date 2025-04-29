@@ -1,16 +1,14 @@
-import { getToken } from 'next-auth/jwt'
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
-import dbConnect from '@/backend/config/dbConnect'
-import { User } from '@/backend/models/user.model'
-import { validateRequest } from '@/lib/api.utils'
+import {User} from '@/backend/models/user.model'
+import {validateRequest} from '@/lib/api.utils'
 
 export async function DELETE(req: NextRequest) {
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
-    const { id } = await req.json()
+    const {id} = await req.json()
 
     const deletedTeacher = await User.findOneAndDelete({
       _id: id,
@@ -26,8 +24,8 @@ export async function DELETE(req: NextRequest) {
 
     // Mettre à jour les étudiants qui ont ce professeur en supprimant l'ID du professeur
     await User.updateMany(
-      { teacher: id, role: 'student' },
-      { $unset: { teacher: '' } }, // Enlève l'ID du professeur
+      {teacher: id, role: 'student'},
+      {$unset: {teacher: ''}}, // Enlève l'ID du professeur
     )
 
     return NextResponse.json({
@@ -50,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // console.log('\n\n\nin GET /user/teacher')
-    const { searchParams } = new URL(req.url)
+    const {searchParams} = new URL(req.url)
     // console.log('searchParams', searchParams)
     const id = searchParams.get('id')
     // console.log('id', id)
@@ -59,12 +57,12 @@ export async function GET(req: NextRequest) {
       return getTeacherById(id)
     }
 
-    const teachers = await User.find({ role: 'teacher' })
+    const teachers = await User.find({role: 'teacher'})
 
     if (teachers.length > 0) {
-      return NextResponse.json({ status: 200, data: teachers })
+      return NextResponse.json({status: 200, data: teachers})
     } else {
-      return NextResponse.json({ status: 404, message: 'No teachers found' })
+      return NextResponse.json({status: 404, message: 'No teachers found'})
     }
   } catch (error: any) {
     return NextResponse.json({
@@ -79,7 +77,7 @@ export async function PATCH(req: NextRequest) {
   if (authError) return authError
 
   try {
-    const { id } = await req.json()
+    const {id} = await req.json()
 
     if (!id) {
       return NextResponse.json({
@@ -97,9 +95,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     const updatedTeacher = await User.findOneAndUpdate(
-      { _id: id, role: 'teacher' },
-      { password },
-      { new: true },
+      {_id: id, role: 'teacher'},
+      {password},
+      {new: true},
     )
 
     if (!updatedTeacher) {
@@ -128,10 +126,9 @@ export async function POST(req: NextRequest) {
   if (authError) return authError
 
   try {
-    const { email, firstname, lastname, password, teacherSessions } =
-      await req.json()
+    const {email, firstname, lastname, password, teacherSessions} = await req.json()
 
-    const existingUser = await User.findOne({ email, role: 'teacher' })
+    const existingUser = await User.findOne({email, role: 'teacher'})
 
     if (existingUser) {
       return NextResponse.json({
@@ -146,12 +143,10 @@ export async function POST(req: NextRequest) {
       lastname,
       password,
       role: 'teacher',
-      teacherSessions: teacherSessions.map(
-        (session: { level: string; sessionTime: string }) => ({
-          level: session.level,
-          sessionTime: session.sessionTime,
-        }),
-      ),
+      teacherSessions: teacherSessions.map((session: {level: string; sessionTime: string}) => ({
+        level: session.level,
+        sessionTime: session.sessionTime,
+      })),
     })
 
     await newTeacher.save()
@@ -175,23 +170,23 @@ export async function PUT(req: NextRequest) {
   if (authError) return authError
 
   try {
-    const { id, email, firstname, lastname, teacherSessions } = await req.json()
+    const {id, email, firstname, lastname, teacherSessions} = await req.json()
 
     const updatedTeacher = await User.findOneAndUpdate(
-      { _id: id, role: 'teacher' },
+      {_id: id, role: 'teacher'},
       {
         email,
         firstname,
         lastname,
         teacherSessions: teacherSessions.map(
-          (session: { level: string; sessionTime: string; id: string }) => ({
+          (session: {level: string; sessionTime: string; id: string}) => ({
             _id: session.id,
             level: session.level,
             sessionTime: session.sessionTime,
           }),
         ),
       },
-      { new: true },
+      {new: true},
     )
 
     // console.log('update Teacher is', updatedTeacher)
@@ -219,7 +214,7 @@ export async function PUT(req: NextRequest) {
 
 async function getTeacherById(id: string) {
   try {
-    const teacher = await User.findOne({ _id: id, role: 'teacher' })
+    const teacher = await User.findOne({_id: id, role: 'teacher'})
     if (!teacher) {
       return NextResponse.json({
         status: 404,

@@ -16,18 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ToastContainer } from 'react-toastify'
+import {ToastContainer} from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-import type { Metadata, Viewport } from 'next'
-import { Inter as FontSans } from 'next/font/google'
+import type {Metadata, Viewport} from 'next'
+import {Inter as FontSans} from 'next/font/google'
 
 import RootProvider from '@/components/utils/RootProvider'
 
-import { ClearServiceWorkerCache } from '@/components/atoms/client/ClearServiceWorkerCache'
-import { Toaster } from '@/components/ui/toaster'
+import {ClearServiceWorkerCache} from '@/components/atoms/client/ClearServiceWorkerCache'
+import {Toaster} from '@/components/ui/toaster'
 
-import { cn } from '@/lib/utils'
+import {cn} from '@/lib/utils'
 import '@/styles/globals.css'
 
 export const dynamic = 'force-dynamic'
@@ -65,8 +65,8 @@ export const metadata: Metadata = {
         sizes: '180x180',
         type: 'image/png',
       },
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      {url: '/icon-192x192.png', sizes: '192x192', type: 'image/png'},
+      {url: '/icon-512x512.png', sizes: '512x512', type: 'image/png'},
       {
         url: '/touch-icon-ipad-retina.png',
         sizes: '167x167',
@@ -83,16 +83,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#1E293B' },
-    { media: '(prefers-color-scheme: light)', color: '#60A5FA' },
+    {media: '(prefers-color-scheme: dark)', color: '#1E293B'},
+    {media: '(prefers-color-scheme: light)', color: '#60A5FA'},
   ],
 }
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="fr" dir="ltr" suppressHydrationWarning>
       <head>
@@ -102,12 +98,7 @@ export default async function DashboardLayout({
         <meta name="apple-mobile-web-app-title" content="EduRootS" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body
-        className={cn(
-          'min-h-screen bg-background font-sans antialiased',
-          fontSans.variable,
-        )}
-      >
+      <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <ClearServiceWorkerCache />
         <RootProvider>{children}</RootProvider>
 

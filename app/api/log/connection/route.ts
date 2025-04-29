@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { ConnectionLog } from '@/backend/models/connectionLog'
-import { Document, Types } from 'mongoose'
+import {ConnectionLog} from '@/backend/models/connectionLog'
+import {Document, Types} from 'mongoose'
 
 interface IConnectionLog extends Document {
   _id: Types.ObjectId
@@ -22,7 +22,7 @@ export async function GET() {
   try {
     await dbConnect()
     const logs = await ConnectionLog.find()
-      .sort({ timestamp: -1 })
+      .sort({timestamp: -1})
       .limit(100) // Limit to the last 100 logs for performance
       .lean<IConnectionLog[]>() // Use lean() for better performance when you don't need Mongoose document methods
       .exec()
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect()
     const body = await req.json()
-    const { user, isSuccessful, userAgent } = body
+    const {user, isSuccessful, userAgent} = body
 
     const logData = {
       user: {

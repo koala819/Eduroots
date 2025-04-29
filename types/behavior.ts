@@ -1,6 +1,6 @@
-import { Course } from './course'
-import { RootEntity } from './root'
-import { Student } from './user'
+import {Course} from './course'
+import {RootEntity} from './root'
+import {Student} from './user'
 
 export interface BehaviorRecord extends RootEntity {
   id: string
@@ -18,7 +18,7 @@ export interface Behavior extends RootEntity {
 export interface DuplicateBehavior {
   course: string
   date: string
-  records: { _id: string }[]
+  records: {_id: string}[]
 }
 
 export interface PopulatedBehavior extends Omit<Behavior, 'records'> {

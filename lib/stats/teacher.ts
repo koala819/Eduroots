@@ -1,17 +1,17 @@
-import { CourseSession, TimeSlotEnum } from '@/types/course'
-import { GenderEnum, User } from '@/types/user'
+import {CourseSession, TimeSlotEnum} from '@/types/course'
+import {GenderEnum, User} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import { Course as CourseCollection } from '@/backend/models/course.model'
-import { User as UserCollection } from '@/backend/models/user.model'
-import { formatDayOfWeek } from '@/lib/utils'
-import { differenceInYears } from 'date-fns'
+import {Course as CourseCollection} from '@/backend/models/course.model'
+import {User as UserCollection} from '@/backend/models/user.model'
+import {formatDayOfWeek} from '@/lib/utils'
+import {differenceInYears} from 'date-fns'
 
 const CURRENT_ACADEMIC_YEAR = '2024'
 
 export interface TeacherSession {
   dayOfWeek: string
-  students?: { id: string; firstname: string; lastname: string }[]
+  students?: {id: string; firstname: string; lastname: string}[]
   sameStudents: boolean
 }
 
@@ -29,7 +29,7 @@ export interface TeacherSessionInfo {
 }
 
 export interface TeacherAnalytics {
-  substituteTeachers: { id: string; name: string }[]
+  substituteTeachers: {id: string; name: string}[]
   teacherCategories: Record<string, TeacherSessionInfo[]>
   teacherMap: Map<string, string>
   //   teacherStats: Record<string, any>
@@ -42,7 +42,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
     await dbConnect()
 
     // Récupérer tous les professeurs
-    const teachers = await UserCollection.find({ role: 'teacher' })
+    const teachers = await UserCollection.find({role: 'teacher'})
 
     // Récupérer tous les cours actifs pour l'année académique
     const courses = await CourseCollection.find({
@@ -68,8 +68,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
       [TimeSlotEnum.SATURDAY_MORNING]: [],
       [TimeSlotEnum.SATURDAY_AFTERNOON]: [],
       [TimeSlotEnum.SUNDAY_MORNING]: [],
-      [`${TimeSlotEnum.SATURDAY_MORNING}+${TimeSlotEnum.SATURDAY_AFTERNOON}`]:
-        [],
+      [`${TimeSlotEnum.SATURDAY_MORNING}+${TimeSlotEnum.SATURDAY_AFTERNOON}`]: [],
       [`${TimeSlotEnum.SATURDAY_MORNING}+${TimeSlotEnum.SUNDAY_MORNING}`]: [],
       [`${TimeSlotEnum.SATURDAY_AFTERNOON}+${TimeSlotEnum.SUNDAY_MORNING}`]: [],
       [`${TimeSlotEnum.SATURDAY_MORNING}+${TimeSlotEnum.SATURDAY_AFTERNOON}+${TimeSlotEnum.SUNDAY_MORNING}`]:
@@ -82,9 +81,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
     // Analyser chaque cours
     for (const course of courses) {
       // Récupérer tous les IDs des professeurs pour ce cours
-      const teacherIds = course.teacher.map((id: { toString(): string }) =>
-        id.toString(),
-      )
+      const teacherIds = course.teacher.map((id: {toString(): string}) => id.toString())
 
       for (const teacherId of teacherIds) {
         // Initialiser l'info du professeur s'il n'existe pas encore
@@ -169,9 +166,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
   }
 }
 
-export async function calculateStudentAgeStatistics(
-  studentIds: string[],
-): Promise<{
+export async function calculateStudentAgeStatistics(studentIds: string[]): Promise<{
   minAge: number
   maxAge: number
   averageAge: number
@@ -184,7 +179,7 @@ export async function calculateStudentAgeStatistics(
     const students = await UserCollection.find({
       _id: studentIds,
       role: 'student',
-      dateOfBirth: { $ne: null },
+      dateOfBirth: {$ne: null},
     }).select('dateOfBirth')
 
     // Calculate ages
@@ -260,17 +255,11 @@ export async function calculateGenderDistribution(studentIds: string[]) {
         percentages: {
           [GenderEnum.Masculin]:
             totalStudents > 0
-              ? (
-                  (genderCounts[GenderEnum.Masculin] / totalStudents) *
-                  100
-                ).toFixed(2)
+              ? ((genderCounts[GenderEnum.Masculin] / totalStudents) * 100).toFixed(2)
               : '0',
           [GenderEnum.Feminin]:
             totalStudents > 0
-              ? (
-                  (genderCounts[GenderEnum.Feminin] / totalStudents) *
-                  100
-                ).toFixed(2)
+              ? ((genderCounts[GenderEnum.Feminin] / totalStudents) * 100).toFixed(2)
               : '0',
           undefined:
             totalStudents > 0
@@ -303,18 +292,13 @@ export async function calculateTeacherStats(teacherId: string) {
 
     return stats
   } catch (error) {
-    console.error(
-      `Erreur lors du calcul des statistiques pour le professeur ${teacherId}:`,
-      error,
-    )
+    console.error(`Erreur lors du calcul des statistiques pour le professeur ${teacherId}:`, error)
     throw error
   }
 }
 
 // Collect all students for a specific teacher
-export async function collectStudentsFromTeacher(
-  teacherId: string,
-): Promise<string[]> {
+export async function collectStudentsFromTeacher(teacherId: string): Promise<string[]> {
   try {
     // Find the teacher record
     const teacherRecord = await CourseCollection.find({
@@ -393,9 +377,7 @@ function countCoursesBySessionGroups(course: TeacherCourse): number {
       // Si les deux ensembles d'étudiants sont identiques, compter comme 1 cours
       if (
         session1Students.size === session2Students.size &&
-        Array.from(session1Students).every((student) =>
-          session2Students.has(student),
-        )
+        Array.from(session1Students).every((student) => session2Students.has(student))
       ) {
         totalCourses += 1
       } else {
@@ -430,12 +412,10 @@ function countTeacherCourses(courses: TeacherCourse[]): number {
 async function findSubstituteTeachers(
   teachers: User[],
   courses: any[],
-): Promise<{ id: string; name: string }[]> {
+): Promise<{id: string; name: string}[]> {
   // Créer un ensemble des IDs de professeurs dans les cours
   const teacherIdsInCourses = new Set(
-    courses.flatMap((course) =>
-      course.teacher.map((id: { toString(): string }) => id.toString()),
-    ),
+    courses.flatMap((course) => course.teacher.map((id: {toString(): string}) => id.toString())),
   )
 
   // Trouver les professeurs remplaçants (professeurs non présents dans les cours)

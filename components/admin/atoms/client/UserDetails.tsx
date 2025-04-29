@@ -1,18 +1,15 @@
 'use client'
 
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { GenderEnum } from '@/types/user'
+import {GenderEnum} from '@/types/user'
 
 interface UserDetailsClientProps {
   gender: GenderEnum
   dateOfBirth?: string | Date
 }
 
-export function UserDetailsClient({
-  gender,
-  dateOfBirth,
-}: UserDetailsClientProps) {
+export function UserDetailsClient({gender, dateOfBirth}: UserDetailsClientProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -26,14 +23,8 @@ export function UserDetailsClient({
         </p>
       </div>
       <div>
-        <h4 className="font-semibold text-sm text-gray-500">
-          Date de naissance
-        </h4>
-        <p>
-          {dateOfBirth
-            ? new Date(dateOfBirth).toLocaleDateString()
-            : 'Non spécifiée'}
-        </p>
+        <h4 className="font-semibold text-sm text-gray-500">Date de naissance</h4>
+        <p>{dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : 'Non spécifiée'}</p>
       </div>
     </div>
   )

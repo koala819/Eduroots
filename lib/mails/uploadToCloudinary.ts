@@ -1,11 +1,8 @@
-import { bufferToStream } from './bufferToStream'
+import {bufferToStream} from './bufferToStream'
 
 import cloudinary from '@/lib/cloudinary'
 
-export async function uploadToCloudinary(
-  file: Blob,
-  fileName: string,
-): Promise<string> {
+export async function uploadToCloudinary(file: Blob, fileName: string): Promise<string> {
   const currentYear = new Date().getFullYear()
   const buffer = Buffer.from(await file.arrayBuffer())
   const stream = bufferToStream(buffer)
@@ -13,10 +10,7 @@ export async function uploadToCloudinary(
   const fileBaseName = fileName.substring(0, fileName.lastIndexOf('.'))
   const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1)
   const resourceType =
-    fileExtension.toLowerCase() === 'pdf' ||
-    fileExtension.toLowerCase() === 'doc'
-      ? 'raw'
-      : 'auto'
+    fileExtension.toLowerCase() === 'pdf' || fileExtension.toLowerCase() === 'doc' ? 'raw' : 'auto'
 
   try {
     return new Promise((resolve, reject) => {
@@ -33,10 +27,7 @@ export async function uploadToCloudinary(
             if (result) {
               let secureUrl = result.secure_url
               if (fileExtension.toLowerCase() === 'pdf') {
-                secureUrl = secureUrl.replace(
-                  '/upload/',
-                  '/upload/f_auto,q_auto/',
-                )
+                secureUrl = secureUrl.replace('/upload/', '/upload/f_auto,q_auto/')
               }
               resolve(secureUrl)
             }

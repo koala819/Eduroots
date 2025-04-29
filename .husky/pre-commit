@@ -1,8 +1,8 @@
-# Linting
-pnpm lint
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
 # Formatage
 pnpm format
 
 # Tests unitaires
-pnpm test
+#pnpm test

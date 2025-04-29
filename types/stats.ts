@@ -1,7 +1,5 @@
-import { SubjectNameEnum } from '@/types/course'
-import { GenderEnum } from '@/types/user'
-
-import { SerializedValue } from '@/lib/serialization'
+import {SubjectNameEnum} from '@/types/course'
+import {GenderEnum} from '@/types/user'
 
 export interface AbsenceLevelGroup {
   id: string
@@ -35,7 +33,7 @@ export interface CourseStats {
 // Représentation d'une date soit comme un objet Date natif, soit comme une date sérialisée
 export type SerializableDate =
   | Date
-  | { $date: string }
+  | {$date: string}
   | string // Pour les dates sous forme de chaîne ISO
   | number // Pour les timestamps Unix
 

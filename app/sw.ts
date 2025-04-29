@@ -1,6 +1,6 @@
-import { defaultCache } from '@serwist/next/worker'
-import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { NetworkFirst, Serwist, StaleWhileRevalidate } from 'serwist'
+import {defaultCache} from '@serwist/next/worker'
+import type {PrecacheEntry, SerwistGlobalConfig} from 'serwist'
+import {NetworkFirst, Serwist, StaleWhileRevalidate} from 'serwist'
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -23,7 +23,7 @@ const serwist = new Serwist({
   runtimeCaching: [
     ...defaultCache,
     {
-      matcher: ({ request }) => {
+      matcher: ({request}) => {
         const imageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif']
         return (
           request.destination === 'image' &&
@@ -35,7 +35,7 @@ const serwist = new Serwist({
       }),
     },
     {
-      matcher: ({ url }) => url.pathname === '/manifest.json',
+      matcher: ({url}) => url.pathname === '/manifest.json',
       handler: new NetworkFirst({
         cacheName: 'manifest',
       }),
@@ -72,7 +72,7 @@ self.addEventListener('activate', (event) => {
           self.clients.matchAll().then((clients) => {
             clients.forEach((client) => {
               if (client.type === 'window') {
-                client.postMessage({ type: 'SW_UPDATED' })
+                client.postMessage({type: 'SW_UPDATED'})
               }
             })
           })

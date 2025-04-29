@@ -1,21 +1,18 @@
-import { Student, Teacher } from '@/types/user'
+import {Student, Teacher} from '@/types/user'
 
-import { getOneStudent } from '@/app/actions/context/students'
-import { getOneTeacher } from '@/app/actions/context/teachers'
+import {getOneStudent} from '@/app/actions/context/students'
+import {getOneTeacher} from '@/app/actions/context/teachers'
 
 export async function getBasicUserInfo(
   type: 'teacher' | 'student',
   id: string,
-): Promise<{ firstname: string; lastname: string; email: string } | null> {
+): Promise<{firstname: string; lastname: string; email: string} | null> {
   try {
     // Utiliser vos server actions existantes
-    const response =
-      type === 'teacher' ? await getOneTeacher(id) : await getOneStudent(id)
+    const response = type === 'teacher' ? await getOneTeacher(id) : await getOneStudent(id)
 
     if (response.success && response.data) {
-      const formattedData = response.data as unknown as
-        | Teacher
-        | unknown as Student
+      const formattedData = response.data as unknown as Teacher | unknown as Student
 
       return {
         firstname: formattedData.firstname,

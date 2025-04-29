@@ -1,7 +1,4 @@
-import { ReceiverName } from '@/types/models'
-
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import { getBasicUserInfo } from '@/lib/getBasicUserInfo'
+import {ReceiverName} from '@/types/models'
 
 export function formatDate(isoDate: string): string {
   const date = new Date(isoDate)

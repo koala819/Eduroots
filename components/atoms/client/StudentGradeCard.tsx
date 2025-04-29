@@ -1,8 +1,8 @@
 'use client'
 
-import { ReactNode } from 'react'
+import {ReactNode} from 'react'
 
-import { SubjectNameEnum } from '@/types/course'
+import {SubjectNameEnum} from '@/types/course'
 
 interface SubjectGrade {
   subject: string
@@ -34,7 +34,7 @@ const getSubjectColor = (subject: string) => {
   }
 }
 
-export const GradeCard = ({ title, icon, subjectGrades }: GradeCardProps) => {
+export const GradeCard = ({title, icon, subjectGrades}: GradeCardProps) => {
   return (
     <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white">
       <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-green-400"></div>
@@ -58,12 +58,8 @@ export const GradeCard = ({ title, icon, subjectGrades }: GradeCardProps) => {
                 className={`pb-4 ${index !== subjectGrades.length - 1 ? 'border-b border-slate-200' : ''}`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-700 font-medium">
-                    {subjectData.subject}
-                  </span>
-                  <span
-                    className={`font-semibold ${subjectColor.split(' ')[1]}`}
-                  >
+                  <span className="text-slate-700 font-medium">{subjectData.subject}</span>
+                  <span className={`font-semibold ${subjectColor.split(' ')[1]}`}>
                     {typeof subjectData.average === 'number'
                       ? `${subjectData.average.toFixed(1)}/20`
                       : subjectData.average}

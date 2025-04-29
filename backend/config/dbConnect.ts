@@ -1,4 +1,4 @@
-import { initializeModels } from './init-models'
+import {initializeModels} from './init-models'
 
 import mongoose from 'mongoose'
 
@@ -30,9 +30,7 @@ const connectWithRetry = async (
     return await mongoose.connect(uri, options)
   } catch (err) {
     if (retries <= 0) throw err
-    console.log(
-      `Connexion échouée, nouvelle tentative dans 5s... (${retries} restantes)`,
-    )
+    console.log(`Connexion échouée, nouvelle tentative dans 5s... (${retries} restantes)`)
     await new Promise((resolve) => setTimeout(resolve, 5000))
     return connectWithRetry(uri, options, retries - 1)
   }
@@ -51,9 +49,7 @@ const dbConnect = async () => {
 
   // Special handling for Vercel
   if (process.env.VERCEL) {
-    console.log(
-      'Running in Vercel environment, using special connection settings',
-    )
+    console.log('Running in Vercel environment, using special connection settings')
 
     // Clear any existing connection
     if (mongoose.connection.readyState !== 0) {
@@ -68,8 +64,7 @@ const dbConnect = async () => {
 
   try {
     if (typedGlobalThis.mongooseCache.promise) {
-      typedGlobalThis.mongooseCache.conn =
-        await typedGlobalThis.mongooseCache.promise
+      typedGlobalThis.mongooseCache.conn = await typedGlobalThis.mongooseCache.promise
       return typedGlobalThis.mongooseCache.conn
     }
 
@@ -85,8 +80,7 @@ const dbConnect = async () => {
       minPoolSize: 0,
     })
 
-    typedGlobalThis.mongooseCache.conn =
-      await typedGlobalThis.mongooseCache.promise
+    typedGlobalThis.mongooseCache.conn = await typedGlobalThis.mongooseCache.promise
     initializeModels()
 
     // Add a double-check that connection was successful

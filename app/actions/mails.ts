@@ -1,18 +1,18 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import {getServerSession} from 'next-auth'
 
-import { ApiResponse } from '@/types/api'
-import { MessageBody } from '@/types/models'
+import {ApiResponse} from '@/types/api'
+import {MessageBody} from '@/types/models'
 
-import { Message } from '@/backend/models/message'
-import { User } from '@/backend/models/user.model'
-import { getBasicUserInfo } from '@/lib/getBasicUserInfo'
-import { EMAIL_CONFIG } from '@/lib/mails/config'
-import { sendEmailNotification } from '@/lib/mails/emailService'
-import { recordMessageToDb } from '@/lib/mails/recordMessageToDb'
-import { uploadToCloudinary } from '@/lib/mails/uploadToCloudinary'
-import { SerializedValue, serializeData } from '@/lib/serialization'
+import {Message} from '@/backend/models/message'
+import {User} from '@/backend/models/user.model'
+import {getBasicUserInfo} from '@/lib/getBasicUserInfo'
+import {EMAIL_CONFIG} from '@/lib/mails/config'
+import {sendEmailNotification} from '@/lib/mails/emailService'
+import {recordMessageToDb} from '@/lib/mails/recordMessageToDb'
+import {uploadToCloudinary} from '@/lib/mails/uploadToCloudinary'
+import {SerializedValue, serializeData} from '@/lib/serialization'
 import bcrypt from 'bcryptjs'
 
 type ReceiverInfo = {
@@ -31,9 +31,9 @@ export async function deleteMail(
 
   try {
     const updatedMessage = await Message.findOneAndUpdate(
-      { _id: messageId },
-      { $set: { [`isDeleted.${userId}`]: true } },
-      { new: true },
+      {_id: messageId},
+      {$set: {[`isDeleted.${userId}`]: true}},
+      {new: true},
     )
 
     if (!updatedMessage) {
@@ -58,9 +58,7 @@ export async function deleteMail(
 /**
  * Réception des emails
  */
-export async function getMail(
-  userId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getMail(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -68,8 +66,7 @@ export async function getMail(
     // console.log('\n\ncheck recipientId user_id', userId)
 
     const user =
-      (await getBasicUserInfo('teacher', userId)) ||
-      (await getBasicUserInfo('student', userId))
+      (await getBasicUserInfo('teacher', userId)) || (await getBasicUserInfo('student', userId))
 
     if (userId !== process.env.ADMIN_ID_USER) {
       // Rechercher par ID ou email
@@ -78,7 +75,7 @@ export async function getMail(
           $in: [userId, user?.email || ''],
         },
       })
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .lean()
 
       // console.log(
@@ -88,7 +85,7 @@ export async function getMail(
       mails = await Message.find({
         recipientId: 'mosqueecolomiers@gmail.com',
       })
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .lean()
     }
     if (!mails) {
@@ -102,15 +99,9 @@ export async function getMail(
     mails = await Promise.all(
       mails.map(async (message) => {
         // console.log('check sender type', message.senderType)
-        if (
-          message.senderType === 'teacher' ||
-          message.senderType === 'student'
-        ) {
+        if (message.senderType === 'teacher' || message.senderType === 'student') {
           // console.log('check sender type', message.senderType)
-          const senderData = await getBasicUserInfo(
-            message.senderType,
-            String(message.senderId),
-          )
+          const senderData = await getBasicUserInfo(message.senderType, String(message.senderId))
 
           if (!senderData) {
             throw new Error(
@@ -124,10 +115,7 @@ export async function getMail(
           }
         }
         // ADMIN
-        else if (
-          message.senderType === 'admin' ||
-          message.senderType === 'bureau'
-        ) {
+        else if (message.senderType === 'admin' || message.senderType === 'bureau') {
           return {
             ...message,
             senderName: 'La Direction de la Mosquée de Colomiers',
@@ -172,9 +160,7 @@ export async function getMail(
 /**
  * Réception des emails envoyés
  */
-export async function getSentMails(
-  userId: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function getSentMails(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -192,7 +178,7 @@ export async function getSentMails(
       mails = await Message.find({
         senderId: userId,
       })
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .lean()
 
       // console.log(
@@ -201,9 +187,9 @@ export async function getSentMails(
     } else {
       // Recherche par type d'expéditeur pour l'admin
       mails = await Message.find({
-        senderType: { $in: ['admin', 'bureau'] },
+        senderType: {$in: ['admin', 'bureau']},
       })
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .lean()
     }
     if (!mails) {
@@ -217,15 +203,9 @@ export async function getSentMails(
     mails = await Promise.all(
       mails.map(async (message) => {
         // console.log('check sender type', message.senderType)
-        if (
-          message.senderType === 'teacher' ||
-          message.senderType === 'student'
-        ) {
+        if (message.senderType === 'teacher' || message.senderType === 'student') {
           // console.log('check sender type', message.senderType)
-          const senderData = await getBasicUserInfo(
-            message.senderType,
-            String(message.senderId),
-          )
+          const senderData = await getBasicUserInfo(message.senderType, String(message.senderId))
 
           if (!senderData) {
             throw new Error(
@@ -239,10 +219,7 @@ export async function getSentMails(
           }
         }
         // ADMIN
-        else if (
-          message.senderType === 'admin' ||
-          message.senderType === 'bureau'
-        ) {
+        else if (message.senderType === 'admin' || message.senderType === 'bureau') {
           return {
             ...message,
             senderName: 'La Direction de la Mosquée de Colomiers',
@@ -276,9 +253,7 @@ export async function getSentMails(
     //   'getSentMails: Filtered messages length:',
     //   filteredMessages?.length,
     // )
-    const serializedData = filteredMessages
-      ? serializeData(filteredMessages)
-      : null
+    const serializedData = filteredMessages ? serializeData(filteredMessages) : null
 
     return {
       success: true,
@@ -287,9 +262,7 @@ export async function getSentMails(
     }
   } catch (error: any) {
     console.error('[GET_SEND_MAIL]', error)
-    throw new Error(
-      `Erreur lors de la réception des mails envoyés: ${error.message}`,
-    )
+    throw new Error(`Erreur lors de la réception des mails envoyés: ${error.message}`)
   }
 }
 
@@ -361,10 +334,10 @@ export async function onClickMail(
     const updatedMail = await Message.findOneAndUpdate(
       {
         _id: mailId,
-        $or: [{ recipientId: userId }, { senderId: userId }],
+        $or: [{recipientId: userId}, {senderId: userId}],
       },
-      [{ $set: { isRead: { $not: '$isRead' } } }], // Utilise opérateur $not pour inverser la valeur
-      { new: true },
+      [{$set: {isRead: {$not: '$isRead'}}}], // Utilise opérateur $not pour inverser la valeur
+      {new: true},
     )
 
     if (!updatedMail) {
@@ -388,7 +361,7 @@ export async function onClickMail(
 
 export async function sendMail(
   formData: FormData,
-  user: { firstname: string; lastname: string },
+  user: {firstname: string; lastname: string},
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
@@ -411,12 +384,10 @@ export async function sendMail(
     }
 
     // Upload du fichier si présent
-    const attachmentUrl = file
-      ? await uploadToCloudinary(file, file.name)
-      : null
+    const attachmentUrl = file ? await uploadToCloudinary(file, file.name) : null
 
     // Traitement des destinataires
-    let recipientInfo = JSON.parse(formData.get('recipientInfo') as string)
+    const recipientInfo = JSON.parse(formData.get('recipientInfo') as string)
     const normalizedRecipients = normalizeRecipientInfo(recipientInfo)
 
     // Extraction des IDs et types pour l'enregistrement en base
@@ -445,12 +416,7 @@ export async function sendMail(
     }
 
     // Enregistrement en base de données
-    const resRecDb = await recordMessageToDb(
-      body,
-      attachmentUrl,
-      false,
-      body.parentMessageId,
-    )
+    const resRecDb = await recordMessageToDb(body, attachmentUrl, false, body.parentMessageId)
     const nextStep = await resRecDb.json()
 
     if (nextStep.status !== 200) {
@@ -495,9 +461,7 @@ export async function sendMail(
     }
   } catch (error: any) {
     console.error('[IS_EMAIL_EXIST]', error)
-    throw new Error(
-      `Erreur lors de la vérification de l'existence du mail: ${error.message}`,
-    )
+    throw new Error(`Erreur lors de la vérification de l'existence du mail: ${error.message}`)
   }
 }
 
@@ -516,7 +480,7 @@ export async function verifyEmailAndPassword(
       }
     }
 
-    const userExists = await User.findOne({ email }).select('+password')
+    const userExists = await User.findOne({email}).select('+password')
     // console.log('userExists', userExists)
     if (!userExists) {
       return {

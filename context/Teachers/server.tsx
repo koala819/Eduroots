@@ -1,17 +1,15 @@
 'use server'
 
-import { Teacher } from '@/types/user'
+import {Teacher} from '@/types/user'
 
-import { getAllTeachers } from '@/app/actions/context/teachers'
-import { TeacherProvider } from '@/context/Teachers/client'
+import {getAllTeachers} from '@/app/actions/context/teachers'
+import {TeacherProvider} from '@/context/Teachers/client'
 
 interface TeachersServerComponentProps {
   children: React.ReactNode
 }
 
-export default async function TeachersServerComponent({
-  children,
-}: TeachersServerComponentProps) {
+export default async function TeachersServerComponent({children}: TeachersServerComponentProps) {
   let initialTeachers: Teacher[] | null = null
 
   const response = await getAllTeachers()
@@ -24,9 +22,5 @@ export default async function TeachersServerComponent({
     }
   }
 
-  return (
-    <TeacherProvider initialTeachersData={initialTeachers}>
-      {children}
-    </TeacherProvider>
-  )
+  return <TeacherProvider initialTeachersData={initialTeachers}>{children}</TeacherProvider>
 }

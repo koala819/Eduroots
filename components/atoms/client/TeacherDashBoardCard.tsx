@@ -1,10 +1,10 @@
 'use client'
 
-import { ArrowRight, BookOpen, UserCog, Users } from 'lucide-react'
+import {ArrowRight, BookOpen, UserCog, Users} from 'lucide-react'
 
 import Link from 'next/link'
 
-import { Card, CardContent } from '@/components/ui/card'
+import {Card, CardContent} from '@/components/ui/card'
 
 type DashboardCardProps = {
   icon: keyof typeof iconComponents
