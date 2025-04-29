@@ -168,18 +168,17 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-
   Deploy:
     needs: Update-Files
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
-          vercel-args: ${{ github.ref == 'refs/heads/master' && '--prod' || '--prebuilt' }}
+      - name: Deploy
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "Deploying to production"
+            # Add your production deployment steps here
+                  elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+                    echo "Deploying to staging"
+                    # Add your staging deployment steps here
+                  fi
