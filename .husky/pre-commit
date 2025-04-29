@@ -2,4 +2,4 @@
 pnpm format
 
 # Tests unitaires
-#pnpm test
+pnpm test

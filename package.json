@@ -13,7 +13,7 @@
     "start": "next start",
     "lint": "eslint . --quiet",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "test:api": "jest --config jest.config.js",
+    "test:api": "jest --config jest.config.cjs",
     "test:dom": "jest --config jest.config.dom.js",
     "test": "pnpm run test:api ",
     "test:watch": "jest --watch",
