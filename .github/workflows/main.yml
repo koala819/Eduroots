@@ -90,6 +90,10 @@ jobs:
         uses: github/codeql-action/autobuild@v2
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+      - name: Install PNPM
+        run: npm i -g pnpm
+      - name: Install Dependencies
+        run: pnpm install
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         env:
