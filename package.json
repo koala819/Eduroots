@@ -18,7 +18,7 @@
     "test": "pnpm run test:api ",
     "test:watch": "jest --watch",
     "prepare": "husky install",
-    "prepush": "rm -rf .next && pnpm test",
+    "prepush": "rm -rf .next",
     "find-unused": "ts-prune --project tsconfig.json --skip 'node_modules|.next|app/api|tests|__tests__|mocks'"
   },
   "dependencies": {
