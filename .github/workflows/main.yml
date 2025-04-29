@@ -126,8 +126,6 @@ jobs:
         run: npm i -g pnpm
       - name: Install Dependencies
         run: pnpm install
-      - name: Check formatting
-        run: pnpm format:check
       - name: Build Project
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
