@@ -7,6 +7,7 @@ import {BaseUser, Student, Teacher, UserRoleEnum} from '@/types/user'
 import dbConnect from '@/backend/config/dbConnect'
 import {User} from '@/backend/models/user.model'
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 // (Copie tout le contenu de authOptions ici)
 export const authOptions: NextAuthOptions = {
@@ -59,7 +60,18 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Mot de passe incorrect.')
         }
 
-        return user.toObject()
+        // Génération du JWT custom
+        const customToken = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+          },
+          process.env.MY_CUSTOM_JWT_SECRET || 'devsecret',
+          {expiresIn: '1h'},
+        )
+
+        return {...user.toObject(), customToken}
       },
     }),
   ],
