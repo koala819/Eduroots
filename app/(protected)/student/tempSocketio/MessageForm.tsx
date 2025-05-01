@@ -17,13 +17,6 @@ export default function MessageForm() {
     try {
       const session = await getSession()
       const token = session?.user?.customToken
-      console.log('Custom JWT:', token)
-      console.log(
-        'Secret utilisé:',
-        process.env.MY_CUSTOM_JWT_SECRET,
-        'Longueur:',
-        process.env.MY_CUSTOM_JWT_SECRET?.length,
-      )
       if (!token) throw new Error('Token custom manquant')
       const res = await fetch('/api/sendMessage', {
         method: 'POST',

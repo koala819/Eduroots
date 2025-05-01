@@ -61,13 +61,16 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Génération du JWT custom
+        if (!process.env.MY_CUSTOM_JWT_SECRET) {
+          throw new Error('MY_CUSTOM_JWT_SECRET is not defined')
+        }
         const customToken = jwt.sign(
           {
             id: user._id,
             email: user.email,
             role: user.role,
           },
-          process.env.MY_CUSTOM_JWT_SECRET || 'devsecret',
+          process.env.MY_CUSTOM_JWT_SECRET,
           {expiresIn: '1h'},
         )
 
