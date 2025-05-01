@@ -38,13 +38,13 @@ jobs:
               exit 1
             fi
           fi
-          # if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/master" ]; then
-          #   LAST_COMMIT=$(git log -1 --pretty=format:"%s")
-          #   if [[ $LAST_COMMIT != "Merge pull request #"* && $LAST_COMMIT != "Merge branch 'dev'"* ]]; then
-          #     echo "Error: Direct pushes to master are not allowed. Please create a PR from dev."
-          #     exit 1
-          #   fi
-          # fi
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            LAST_COMMIT=$(git log -1 --pretty=format:"%s")
+            if [[ $LAST_COMMIT != "Merge pull request #"* && $LAST_COMMIT != "Merge branch 'dev'"* ]]; then
+              echo "Error: Direct pushes to master are not allowed. Please create a PR from dev."
+              exit 1
+            fi
+          fi
 
   Check-Branch-Status:
     needs: Enforce-Workflow

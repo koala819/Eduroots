@@ -40,6 +40,7 @@ const nextConfig = {
     CONFIG_EMAIL_LASTNAME: process.env.CONFIG_EMAIL_LASTNAME,
     DEFAULT_NAME: process.env.DEFAULT_NAME,
     YOUTUBE_LINK: process.env.YOUTUBE_LINK,
+    MY_CUSTOM_JWT_SECRET: process.env.MY_CUSTOM_JWT_SECRET,
   },
   images: {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
