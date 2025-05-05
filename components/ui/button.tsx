@@ -12,6 +12,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<ReturnType<typeof createButtonVariants>> {
   asChild?: boolean
+  'data-testid'?: string
 }
 
 function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record<string, string>) {
@@ -53,14 +54,21 @@ function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({className, variant, size, asChild = false, ...props}, ref) => {
+  ({className, variant, size, asChild = false, 'data-testid': dataTestId, ...props}, ref) => {
     // const { theme } = useConfig()
     const Comp = asChild ? Slot : 'button'
     // const buttonVariants = React.useMemo(
     //   () => createButtonVariants(theme?.buttonVariants || {}),
     //   [theme?.buttonVariants],
     // )
-    return <Comp className={cn(buttonVariants({variant, size, className}))} ref={ref} {...props} />
+    return (
+      <Comp
+        className={cn(buttonVariants({variant, size, className}))}
+        ref={ref}
+        data-testid={dataTestId}
+        {...props}
+      />
+    )
   },
 )
 Button.displayName = 'Button'

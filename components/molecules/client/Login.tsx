@@ -204,24 +204,27 @@ export const LoginClient = () => {
                     </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl h-12">
+                        <SelectTrigger
+                          data-testid="role-combobox"
+                          className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl h-12"
+                        >
                           <SelectValue placeholder="Choisir un rôle" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={UserRoleEnum.Admin}>
+                        <SelectItem value={UserRoleEnum.Admin} data-testid="role-admin">
                           <div className="flex items-center">
                             <User className="mr-2" />
                             Direction
                           </div>
                         </SelectItem>
-                        <SelectItem value={UserRoleEnum.Teacher}>
+                        <SelectItem value={UserRoleEnum.Teacher} data-testid="role-teacher">
                           <div className="flex items-center">
                             <User className="mr-2" />
                             Enseignant(e)
                           </div>
                         </SelectItem>
-                        <SelectItem value={UserRoleEnum.Student}>
+                        <SelectItem value={UserRoleEnum.Student} data-testid="role-student">
                           <div className="flex items-center">
                             <User className="mr-2" />
                             Parent
@@ -248,6 +251,7 @@ export const LoginClient = () => {
                           {...field}
                           placeholder="nom@email.com"
                           className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl pl-12 h-12"
+                          data-testid="login-email"
                         />
                         <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       </div>
@@ -272,6 +276,7 @@ export const LoginClient = () => {
                           type={showPwd ? 'text' : 'password'}
                           placeholder="••••••••"
                           className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl pl-12 pr-12 h-12"
+                          data-testid="login-password"
                         />
                         <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <button
@@ -302,6 +307,7 @@ export const LoginClient = () => {
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-12 font-medium"
                   disabled={loading}
+                  data-testid="login-submit"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
