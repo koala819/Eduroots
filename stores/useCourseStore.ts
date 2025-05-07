@@ -1,4 +1,4 @@
-import {Course, CourseSession, TimeSlotEnum} from '@/types/course'
+import {Course, CourseSession, PopulatedCourse, TimeSlotEnum} from '@/types/course'
 
 import {getTeacherCourses} from '@/app/actions/context/courses'
 import {serializeData} from '@/lib/serialization'
@@ -14,6 +14,14 @@ function compareTimeSlots(a: CourseSession, b: CourseSession) {
   return timeSlotOrder[a.timeSlot.dayOfWeek] - timeSlotOrder[b.timeSlot.dayOfWeek]
 }
 
+// Fonction pour convertir PopulatedCourse en Course
+const adaptPopulatedCourse = (populatedCourse: PopulatedCourse): Course => {
+  return {
+    ...populatedCourse,
+    teacher: [populatedCourse.teacher._id],
+  }
+}
+
 interface CourseState {
   courses: Course[]
   fetchTeacherCourses: (teacherId: string) => Promise<void>
@@ -25,31 +33,35 @@ const useCourseStore = create<CourseState>((set) => ({
     try {
       const response = await getTeacherCourses(teacherId)
       if (response.success && Array.isArray(response.data)) {
-        const courses = response.data
-          .map((item) => {
-            const serializedItem = serializeData(item)
-            if (
-              serializedItem &&
-              typeof serializedItem === 'object' &&
-              'sessions' in serializedItem &&
-              Array.isArray(serializedItem.sessions)
-            ) {
-              return {
-                ...serializedItem,
-                sessions: (serializedItem.sessions as unknown as CourseSession[]).sort(
-                  compareTimeSlots,
-                ),
-              } as Course
-            }
-            return null
-          })
-          .filter((course): course is Course => course !== null)
-        set({courses})
+        const serializedData = serializeData(response.data)
+        if (Array.isArray(serializedData)) {
+          const courses = serializedData
+            .map((item) => {
+              if (
+                item &&
+                typeof item === 'object' &&
+                'teacher' in item &&
+                'sessions' in item &&
+                Array.isArray(item.sessions)
+              ) {
+                const populatedCourse = item as unknown as PopulatedCourse
+                const adaptedCourse = adaptPopulatedCourse(populatedCourse)
+                return {
+                  ...adaptedCourse,
+                  sessions: adaptedCourse.sessions.sort(compareTimeSlots),
+                }
+              }
+              return null
+            })
+            .filter((course): course is Course => course !== null)
+          set({courses})
+        }
       } else {
         console.error('Erreur lors de la récupération des cours du professeur:', response.message)
       }
     } catch (error) {
       console.error('Failed to fetch teacher courses:', error)
+      throw error
     }
   },
 }))
