@@ -2,19 +2,22 @@
 
 import React, {ChangeEvent, useState} from 'react'
 import ExcelJS from 'exceljs'
+import {TimeSlotEnum} from '@/types/course'
 
 // Définition des interfaces TypeScript
 interface ProcessedData {
-  firstName: string
-  lastName: string
-  dateOfBirth: string
-  gender: string
-  email: string
-  phone: string
+  lastName: string // Colonne A
+  firstName: string // Colonne B
   teacher: string // Colonne C
   level: string // Colonne D
   classRoomNumber: string // Colonne E
-  dayOfWeek: string // Colonne F
+  dayOfWeek: TimeSlotEnum // Colonne F
+  startTime: string // Colonne G
+  endTime: string // Colonne H
+  gender: string // Colonne I
+  dateOfBirth: string // Colonne J
+  email: string // Colonne K
+  phone: string // Colonne L
 }
 
 interface ResultData {
@@ -40,77 +43,57 @@ const ExcelConverter: React.FC = () => {
 
   // Fonction pour traiter les données Excel
   const processExcelData = (data: ExcelRow[]): ProcessedData[] => {
-    // Tableau pour stocker les données traitées
     const processedData: ProcessedData[] = []
 
-    // Traiter chaque ligne
+    const toUpper = (str: string) =>
+      str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+    const capitalizeWords = (str: string) =>
+      str
+        .split(/[- ]/)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(str.includes('-') ? '-' : ' ')
+
     data.forEach((row) => {
-      // Vérifier si nous avons au moins un nom complet
-      const fullName = row['B'] || ''
+      let lastName = row['A'] ? String(row['A']).trim() : ''
+      let firstName = row['B'] ? String(row['B']).trim() : ''
+      lastName = toUpper(lastName)
+      firstName = capitalizeWords(firstName)
 
-      if (!fullName) return // Ignorer les lignes sans nom
-
-      // Ignorer les lignes d'en-tête ou d'instruction (comme "Élève", "GENRE", "EMAIL", etc.)
+      // Ignorer les lignes d'en-tête ou vides
       if (
-        fullName === 'Élève' ||
-        row['G'] === 'GENRE' ||
-        row['J'] === 'EMAIL' ||
-        row['C'] === 'Enseignant' ||
-        row['D'] === 'Niveau' ||
-        row['E'] === 'Salle' ||
-        row['F'] === 'Créneau'
+        !lastName ||
+        !firstName ||
+        lastName === 'NOM' ||
+        firstName === 'PRÉNOM' ||
+        row['F'] === 'Jour de créneau' ||
+        row['G'] === 'Heure de début' ||
+        row['H'] === 'Heure de fin'
       ) {
         return
       }
 
-      // Extraire le nom et le prénom
-      let lastName = ''
-      let firstName = ''
+      // Professeur, niveau, salle
+      const teacher = row['C'] ? String(row['C']).trim() : ''
+      const level = row['D'] ? String(row['D']).trim() : ''
+      const classRoomNumber = row['E'] ? String(row['E']).trim() : ''
 
-      // Séparation nom/prénom (le nom est généralement en majuscules, suivi du prénom)
-      const nameParts = fullName.trim().split(' ')
+      // Jour de créneau (TimeSlotEnum)
+      const dayOfWeek =
+        row['F'] && Object.values(TimeSlotEnum).includes(String(row['F']).trim() as TimeSlotEnum)
+          ? (String(row['F']).trim() as TimeSlotEnum)
+          : undefined
 
-      if (nameParts.length >= 2) {
-        // Chercher le dernier mot en majuscules qui sert de séparateur
-        let lastIndex = 0
+      // Heure de début et de fin
+      const startTime = row['G'] ? String(row['G']).trim() : ''
+      const endTime = row['H'] ? String(row['H']).trim() : ''
 
-        for (let i = 0; i < nameParts.length; i++) {
-          if (nameParts[i] === nameParts[i].toUpperCase() && nameParts[i].length > 1) {
-            lastIndex = i
-          } else {
-            break // Premier mot qui n'est pas en majuscules
-          }
-        }
-
-        lastName = nameParts.slice(0, lastIndex + 1).join(' ')
-        firstName = nameParts.slice(lastIndex + 1).join(' ')
-      } else {
-        // S'il n'y a qu'un seul mot, on le considère comme le nom de famille
-        lastName = fullName
-      }
-
-      // Extraire et formater la date de naissance (colonne I)
-      let dateOfBirth = ''
-      if (row['I']) {
-        const dateValue = row['I']
-        if (dateValue instanceof Date) {
-          dateOfBirth = dateValue.toISOString().split('T')[0]
-        } else if (typeof dateValue === 'string') {
-          // Format probable: JJ/MM/AAAA
-          const dateParts = dateValue.split(/[\/.-]/)
-          if (dateParts.length === 3) {
-            const day = dateParts[0].padStart(2, '0')
-            const month = dateParts[1].padStart(2, '0')
-            const year = dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
-            dateOfBirth = `${year}-${month}-${day}`
-          }
-        }
-      }
-
-      // Extraire le genre (colonne G)
+      // Genre
       let gender = ''
-      if (row['G']) {
-        const genderValue = String(row['G']).trim().toUpperCase()
+      if (row['I']) {
+        const genderValue = String(row['I']).trim().toUpperCase()
         if (genderValue === 'F' || genderValue === 'FEMININ' || genderValue === 'FÉMININ') {
           gender = 'female'
         } else if (genderValue === 'M' || genderValue === 'MASCULIN') {
@@ -120,47 +103,49 @@ const ExcelConverter: React.FC = () => {
         }
       }
 
-      // Extraire l'email (colonne J)
-      const email = row['J'] || ''
+      // Date de naissance (colonne J)
+      let dateOfBirth = ''
+      if (row['J']) {
+        const dateValue = row['J']
+        if (dateValue instanceof Date) {
+          dateOfBirth = dateValue.toISOString().split('T')[0]
+        } else if (typeof dateValue === 'string') {
+          const dateParts = dateValue.split(/[\/.\-]/)
+          if (dateParts.length === 3) {
+            const day = dateParts[0].padStart(2, '0')
+            const month = dateParts[1].padStart(2, '0')
+            const year = dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
+            dateOfBirth = `${year}-${month}-${day}`
+          }
+        }
+      }
 
-      // Extraire le téléphone (colonne M)
+      // Email (colonne K)
+      const email = row['K'] ? String(row['K']).trim() : ''
+      // Téléphone (colonne L)
       let phone = ''
-      if (row['M']) {
-        const phoneStr = String(row['M'])
-        // Prendre uniquement le premier numéro s'il y en a plusieurs
+      if (row['L']) {
+        const phoneStr = String(row['L'])
         const phoneNumber = phoneStr.split(/[\/;,]/)[0].trim()
-        // Nettoyer le numéro (garder uniquement les chiffres)
         phone = phoneNumber.replace(/[^\d]/g, '')
       }
 
-      // Nouvelles colonnes demandées
-      // Extraire le professeur (colonne C)
-      const teacher = row['C'] ? String(row['C']).trim() : ''
-
-      // Extraire le niveau (colonne D)
-      const level = row['D'] ? String(row['D']).trim() : ''
-
-      // Extraire le numéro de classe (colonne E)
-      const classRoomNumber = row['E'] ? String(row['E']).trim() : ''
-
-      // Extraire le jour de la semaine (colonne F)
-      const dayOfWeek = row['F'] ? String(row['F']).trim() : ''
-
       // Créer l'objet de données traitées
       const processedItem: ProcessedData = {
-        firstName,
         lastName,
-        dateOfBirth,
-        gender,
-        email,
-        phone,
+        firstName,
         teacher,
         level,
         classRoomNumber,
-        dayOfWeek,
+        dayOfWeek: dayOfWeek as TimeSlotEnum,
+        startTime,
+        endTime,
+        gender,
+        dateOfBirth,
+        email,
+        phone,
       }
 
-      // Ajouter au tableau uniquement si au moins un champ n'est pas vide
       if (!isEmptyObject(processedItem) && (firstName || lastName)) {
         processedData.push(processedItem)
       }
@@ -263,15 +248,22 @@ const ExcelConverter: React.FC = () => {
           Le fichier Excel doit contenir les données dans les colonnes suivantes:
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
-          <li>Colonne B: Nom complet (généralement NOM Prénom)</li>
-          <li>Colonne C: Professeur</li>
-          <li>Colonne D: Niveau</li>
-          <li>Colonne E: Numéro de classe</li>
-          <li>Colonne F: Jour de la semaine</li>
-          <li>Colonne G: Genre (F, M, Féminin, Masculin)</li>
-          <li>Colonne I: Date de naissance (format JJ/MM/AAAA)</li>
-          <li>Colonne J: Email</li>
-          <li>Colonne M: Téléphone</li>
+          <li>Colonne A : Nom (en majuscules, ex : DUPONT)</li>
+          <li>
+            Colonne B : Prénom (première lettre de chaque partie en majuscule, ex : Anne-Laure)
+          </li>
+          <li>Colonne C : Professeur</li>
+          <li>Colonne D : Niveau</li>
+          <li>Colonne E : Salle</li>
+          <li>
+            Colonne F : Jour de créneau (saturday_morning, saturday_afternoon, sunday_morning)
+          </li>
+          <li>Colonne G : Heure de début (ex : 09:00)</li>
+          <li>Colonne H : Heure de fin (ex : 10:45)</li>
+          <li>Colonne I : Genre (F, M, Féminin, Masculin)</li>
+          <li>Colonne J : Date de naissance (format JJ/MM/AAAA)</li>
+          <li>Colonne K : Email</li>
+          <li>Colonne L : Téléphone</li>
         </ul>
       </div>
 
