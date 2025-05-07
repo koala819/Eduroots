@@ -40,7 +40,7 @@ export const TopMenu = ({
   setActiveView,
   selectedSession,
 }: {
-  teacherCourses: PopulatedCourse
+  teacherCourses: PopulatedCourse[]
   currentCourseId: string
   activeView: string
   setActiveView: (view: string) => void
@@ -55,15 +55,15 @@ export const TopMenu = ({
     router.push(`/teacher/classroom/course/${courseId}`)
   }
 
-  // Convertir le cours pour le menu
-  const adaptedCourse = adaptPopulatedCourse(teacherCourses)
+  // Convertir tous les cours pour le menu
+  const adaptedCourses = teacherCourses.map(adaptPopulatedCourse)
 
   return (
     <div className="bg-white shadow-sm border-b">
       {/* Vue desktop */}
       <div className="hidden sm:flex items-center justify-between px-4 py-2 space-x-4">
         <CourseMenu
-          courses={[adaptedCourse]}
+          courses={adaptedCourses}
           currentCourseId={currentCourseId}
           onCourseSelect={handleCourseSelect}
         />
@@ -106,7 +106,7 @@ export const TopMenu = ({
           />
           {!expanded && (
             <CourseMenu
-              courses={[adaptedCourse]}
+              courses={adaptedCourses}
               currentCourseId={currentCourseId}
               onCourseSelect={handleCourseSelect}
             />
