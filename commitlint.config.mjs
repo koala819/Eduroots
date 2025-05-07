@@ -1,8 +1,12 @@
-module.exports = {
+export default {
   extends: ['@commitlint/config-conventional'],
   ignores: [(message) => message.startsWith('#')],
   rules: {
-    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']],
+    'type-enum': [
+      2,
+      'always',
+      ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore'],
+    ],
     'subject-empty': [2, 'never'],
     'type-empty': [2, 'never'],
     'subject-case': [0],
