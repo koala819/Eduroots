@@ -9,20 +9,22 @@ import {useRouter} from 'next/navigation'
 import {CourseMenu} from '@/components/atoms/client/CourseMenu'
 
 import {useCourses} from '@/context/Courses/client'
+import useCourseStore from '@/stores/useCourseStore'
 
 export const CourseDisplay = () => {
   const router = useRouter()
   const {data: session} = useSession()
-  const {getTeacherCourses, isLoading, teacherCourses} = useCourses()
+  const {isLoading, teacherCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
 
   const [currentCourseId, setCurrentCourseId] = useState<string>('')
   const [isMenuVisible, setIsMenuVisible] = useState(false)
 
   useEffect(() => {
     if (session?.user?.id) {
-      getTeacherCourses(session.user.id).then(() => setIsMenuVisible(true))
+      fetchTeacherCourses(session.user.id).then(() => setIsMenuVisible(true))
     }
-  }, [session, getTeacherCourses])
+  }, [session, fetchTeacherCourses])
 
   // Fonction pour gérer la navigation
   function handleCourseSelect(courseId: string) {

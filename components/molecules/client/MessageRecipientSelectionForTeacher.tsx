@@ -19,6 +19,7 @@ import {useCourses} from '@/context/Courses/client'
 import {useTeachers} from '@/context/Teachers/client'
 import {formatDayOfWeek} from '@/lib/utils'
 import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
+import useCourseStore from '@/stores/useCourseStore'
 
 interface RecipientForTeacherProps {
   selectionMode: SelectionModeType
@@ -35,7 +36,8 @@ export const RecipientForTeacher = ({
   form,
   session,
 }: RecipientForTeacherProps) => {
-  const {teacherCourses, getTeacherCourses} = useCourses()
+  const {teacherCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const {students, getStudentsByTeacher, isLoading} = useTeachers()
 
   // État local
@@ -47,10 +49,10 @@ export const RecipientForTeacher = ({
   // Charger les données uniquement lorsque nécessaire
   useEffect(() => {
     if (session?.user?.role === 'teacher' && recipientType === 'students') {
-      getTeacherCourses(session.user._id)
+      fetchTeacherCourses(session.user._id)
       getStudentsByTeacher(session.user._id)
     }
-  }, [session, getStudentsByTeacher, getTeacherCourses, recipientType])
+  }, [session, getStudentsByTeacher, fetchTeacherCourses, recipientType])
 
   // Observer les changements de formulaire pour calculer les emails valides
   useEffect(() => {

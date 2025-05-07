@@ -15,6 +15,7 @@ import {useAttendance} from '@/context/Attendances/client'
 import {useBehavior} from '@/context/Behaviors/client'
 import {useCourses} from '@/context/Courses/client'
 import {AnimatePresence} from 'framer-motion'
+import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardBehaviorT = ({
   courseId,
@@ -25,12 +26,8 @@ export const DashboardBehaviorT = ({
 }) => {
   const {data: session} = useSession()
   const {allAttendance, fetchAttendances, isLoadingAttendance, getAttendanceById} = useAttendance()
-  const {
-    getTeacherCourses,
-    teacherCourses,
-    isLoading: isLoadingCourses,
-    error: errorCourses,
-  } = useCourses()
+  const {teacherCourses, isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const {allBehaviors, fetchBehaviors, error} = useBehavior()
 
   const [isCreatingBehavior, setIsCreatingBehavior] = useState<boolean>(false)
@@ -46,7 +43,7 @@ export const DashboardBehaviorT = ({
       try {
         // Chargement parallèle des présences et comportements
         await Promise.all([
-          getTeacherCourses(session.user.id),
+          fetchTeacherCourses(session.user.id),
           fetchAttendances({courseId}),
           fetchBehaviors({courseId}),
         ])
@@ -56,7 +53,7 @@ export const DashboardBehaviorT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, getTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false

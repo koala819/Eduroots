@@ -14,6 +14,7 @@ import {Sheet, SheetContent} from '@/components/ui/sheet'
 import {useAttendance} from '@/context/Attendances/client'
 import {useCourses} from '@/context/Courses/client'
 import {AnimatePresence} from 'framer-motion'
+import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardAttendanceT = ({
   courseId,
@@ -26,7 +27,8 @@ export const DashboardAttendanceT = ({
 }) => {
   const {data: session} = useSession()
 
-  const {getTeacherCourses, isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const {allAttendance, fetchAttendances, error} = useAttendance()
 
   const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
@@ -41,7 +43,7 @@ export const DashboardAttendanceT = ({
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([fetchAttendances({courseId}), getTeacherCourses(session.user.id)])
+        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(session.user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -50,7 +52,7 @@ export const DashboardAttendanceT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, getTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchTeacherCourses, session?.user?.id])
 
   function handleCreateAttendance(date: string) {
     setSelectedDate(date)

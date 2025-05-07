@@ -26,9 +26,11 @@ import {useGrades} from '@/context/Grades/client'
 import {formatDayOfWeek} from '@/lib/utils'
 import {format} from 'date-fns'
 import {fr} from 'date-fns/locale'
+import useCourseStore from '@/stores/useCourseStore'
 
 export default function CreateGradePage() {
-  const {teacherCourses, getTeacherCourses, isLoading} = useCourses()
+  const {teacherCourses, isLoading} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const {createGradeRecord, isLoading: isLoadingGrade} = useGrades()
   const router = useRouter()
   const {data: session} = useSession()
@@ -98,14 +100,14 @@ export default function CreateGradePage() {
     const fetchCourses = async () => {
       try {
         if (session?.user?.id) {
-          await getTeacherCourses(session.user.id)
+          await fetchTeacherCourses(session.user.id)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Une erreur est survenue')
       }
     }
     fetchCourses()
-  }, [session?.user?.id, getTeacherCourses])
+  }, [session?.user?.id, fetchTeacherCourses])
 
   const handleSelectSession = useCallback(
     (sessionId: string) => {
