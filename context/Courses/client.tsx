@@ -1,6 +1,6 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import {
   ReactNode,
   createContext,
@@ -11,9 +11,11 @@ import {
   useReducer,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {CourseSession, PopulatedCourse, TimeSlot, TimeSlotEnum} from '@/types/course'
+import { CourseSession, PopulatedCourse, TimeSlot, TimeSlotEnum } from '@/types/course'
+
+import useCourseStore from '@/stores/useCourseStore'
 
 import {
   addStudentToCourse as addStudentToCourseAction,
@@ -22,7 +24,7 @@ import {
   deleteCourse as deleteCourseAction,
   getCourseById as getCourseByIdAction,
   getStudentCourses as getStudentCoursesAction,
-  getTeacherCourses as getTeacherCoursesAction,
+  // getTeacherCourses as getTeacherCoursesAction,
   removeStudentFromCourse as removeStudentFromCourseAction,
   updateCourse as updateCourseAction,
   updateCourseSession as updateCourseSessionAction,
@@ -38,22 +40,22 @@ interface CourseState {
 }
 
 type CourseAction =
-  | {type: 'SET_LOADING_COURSE'; payload: boolean}
-  | {type: 'ADD_COURSE'; payload: PopulatedCourse}
+  | { type: 'SET_LOADING_COURSE'; payload: boolean }
+  | { type: 'ADD_COURSE'; payload: PopulatedCourse }
   | {
-      type: 'ADD_STUDENT_TO_COURSE'
-      payload: {courseId: string; course: PopulatedCourse}
-    }
-  | {type: 'DELETE_COURSE'; payload: string}
+    type: 'ADD_STUDENT_TO_COURSE'
+    payload: { courseId: string; course: PopulatedCourse }
+  }
+  | { type: 'DELETE_COURSE'; payload: string }
   | {
-      type: 'REMOVE_STUDENT_FROM_COURSE'
-      payload: {courseId: string; course: PopulatedCourse}
-    }
-  | {type: 'SET_COURSES'; payload: PopulatedCourse[]}
-  | {type: 'SET_TEACHER_COURSES'; payload: PopulatedCourse}
-  | {type: 'SET_ERROR'; payload: string | null}
-  | {type: 'SET_LOADING'; payload: boolean}
-  | {type: 'UPDATE_COURSE'; payload: PopulatedCourse}
+    type: 'REMOVE_STUDENT_FROM_COURSE'
+    payload: { courseId: string; course: PopulatedCourse }
+  }
+  | { type: 'SET_COURSES'; payload: PopulatedCourse[] }
+  | { type: 'SET_TEACHER_COURSES'; payload: PopulatedCourse }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'UPDATE_COURSE'; payload: PopulatedCourse }
 
 function courseReducer(state: CourseState, action: CourseAction): CourseState {
   switch (action.type) {
@@ -161,7 +163,7 @@ interface CourseContextType extends CourseState {
   deleteCourse: (courseId: string) => Promise<PopulatedCourse>
   getCoursesByTimeSlot: (timeSlot: TimeSlot) => PopulatedCourse[]
   getStudentCourses: (studentId: string) => Promise<PopulatedCourse[]>
-  getTeacherCourses: (teacherId: string) => Promise<PopulatedCourse>
+  fetchTeacherCourses: (teacherId: string) => Promise<void>
   getCourseById: (courseId: string) => Promise<PopulatedCourse | null>
   getCourseByIdForStudent: (courseId: string) => Promise<PopulatedCourse | null>
   removeStudentFromCourse: (courseId: string, studentId: string) => Promise<void>
@@ -180,15 +182,7 @@ interface CourseContextType extends CourseState {
 
 const CoursesContext = createContext<CourseContextType | null>(null)
 
-function compareTimeSlots(a: CourseSession, b: CourseSession) {
-  const timeSlotOrder = {
-    [TimeSlotEnum.SATURDAY_MORNING]: 0,
-    [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
-    [TimeSlotEnum.SUNDAY_MORNING]: 2,
-  }
 
-  return timeSlotOrder[a.timeSlot.dayOfWeek] - timeSlotOrder[b.timeSlot.dayOfWeek]
-}
 
 export const CoursesProvider = ({
   children,
@@ -197,15 +191,16 @@ export const CoursesProvider = ({
   children: ReactNode
   initialCourseData?: PopulatedCourse[] | null
 }) => {
-  const {toast} = useToast()
+  const { toast } = useToast()
   const [state, dispatch] = useReducer(courseReducer, getInitialState(initialCourseData))
-  const {data: session, status} = useSession()
+  const { data: session, status } = useSession()
+  const { fetchTeacherCourses } = useCourseStore()
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Course Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -218,7 +213,7 @@ export const CoursesProvider = ({
 
   const getCourseById = useCallback(
     async (id: string): Promise<PopulatedCourse | null> => {
-      dispatch({type: 'SET_LOADING_COURSE', payload: true})
+      dispatch({ type: 'SET_LOADING_COURSE', payload: true })
       try {
         const response = await getCourseByIdAction(id)
 
@@ -231,7 +226,7 @@ export const CoursesProvider = ({
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
       } finally {
-        dispatch({type: 'SET_LOADING_COURSE', payload: false})
+        dispatch({ type: 'SET_LOADING_COURSE', payload: false })
       }
     },
     [handleError],
@@ -277,7 +272,7 @@ export const CoursesProvider = ({
 
         dispatch({
           type: 'ADD_STUDENT_TO_COURSE',
-          payload: {courseId, course: courseData},
+          payload: { courseId, course: courseData },
         })
 
         return courseData
@@ -299,7 +294,7 @@ export const CoursesProvider = ({
         }
 
         const hasOverlap = response.data
-          ? (response.data as {hasOverlap: boolean}).hasOverlap
+          ? (response.data as { hasOverlap: boolean }).hasOverlap
           : false
 
         return hasOverlap
@@ -342,7 +337,7 @@ export const CoursesProvider = ({
 
         const newCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'ADD_COURSE', payload: newCourse})
+        dispatch({ type: 'ADD_COURSE', payload: newCourse })
 
         toast({
           title: 'Succès',
@@ -370,7 +365,7 @@ export const CoursesProvider = ({
 
         const deletedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'DELETE_COURSE', payload: courseId})
+        dispatch({ type: 'DELETE_COURSE', payload: courseId })
 
         toast({
           title: 'Succès',
@@ -401,44 +396,6 @@ export const CoursesProvider = ({
     [state.courses],
   )
 
-  const getTeacherCourses = useCallback(
-    async (teacherId: string): Promise<PopulatedCourse> => {
-      try {
-        const response = await getTeacherCoursesAction(teacherId)
-
-        if (!response.success) {
-          throw new Error(response.message || 'Failed to fetch teacher courses')
-        }
-
-        if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-          throw new Error('Aucun cours trouvé pour ce professeur')
-        }
-
-        const course = response.data[0] as unknown as PopulatedCourse
-
-        if (!course || !course.sessions) {
-          throw new Error('Données de cours invalides')
-        }
-
-        const coursesWithSortedSessions = {
-          ...course,
-          sessions: [...course.sessions].sort(compareTimeSlots),
-        }
-
-        dispatch({
-          type: 'SET_TEACHER_COURSES',
-          payload: coursesWithSortedSessions,
-        })
-
-        return coursesWithSortedSessions
-      } catch (error) {
-        handleError(error as Error, 'Erreur lors de la récupération des cours du professeur')
-        throw error
-      }
-    },
-    [handleError],
-  )
-
   const removeStudentFromCourse = useCallback(
     async (courseId: string, studentId: string): Promise<void> => {
       try {
@@ -452,7 +409,7 @@ export const CoursesProvider = ({
 
         dispatch({
           type: 'REMOVE_STUDENT_FROM_COURSE',
-          payload: {courseId, course: courseData},
+          payload: { courseId, course: courseData },
         })
 
         toast({
@@ -483,7 +440,7 @@ export const CoursesProvider = ({
 
         const updatedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'UPDATE_COURSE', payload: updatedCourse})
+        dispatch({ type: 'UPDATE_COURSE', payload: updatedCourse })
 
         toast({
           title: 'Succès',
@@ -508,7 +465,7 @@ export const CoursesProvider = ({
       return
     }
 
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const response = await updateCoursesAction(session.user.role, session.user._id)
 
@@ -518,12 +475,12 @@ export const CoursesProvider = ({
 
       const courseData = response.data as unknown as PopulatedCourse[]
       // console.log('Loaded courses data:', courseData.length)
-      dispatch({type: 'SET_COURSES', payload: courseData})
+      dispatch({ type: 'SET_COURSES', payload: courseData })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des cours')
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
-      dispatch({type: 'SET_LOADING_COURSE', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({ type: 'SET_LOADING_COURSE', payload: false })
     }
   }, [handleError, session, status])
 
@@ -553,7 +510,7 @@ export const CoursesProvider = ({
 
         const courseData = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'UPDATE_COURSE', payload: courseData})
+        dispatch({ type: 'UPDATE_COURSE', payload: courseData })
 
         toast({
           title: 'Succès',
@@ -579,10 +536,11 @@ export const CoursesProvider = ({
     if (status === 'authenticated' && session?.user) {
       // console.log('Session authenticated, loading courses data')
       updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
+      fetchTeacherCourses(session.user.id)
     } else if (status === 'loading') {
       // console.log('Auth session is still loading')
     }
-  }, [initialCourseData, session, status, updateCourses])
+  }, [initialCourseData, session, status, fetchTeacherCourses, updateCourses])
 
   const value = useMemo(
     () => ({
@@ -593,7 +551,7 @@ export const CoursesProvider = ({
       deleteCourse,
       getCoursesByTimeSlot,
       getStudentCourses,
-      getTeacherCourses,
+      fetchTeacherCourses,
       removeStudentFromCourse,
       updateCourse,
       updateCourses,
@@ -609,7 +567,7 @@ export const CoursesProvider = ({
       deleteCourse,
       getCoursesByTimeSlot,
       getStudentCourses,
-      getTeacherCourses,
+      fetchTeacherCourses,
       removeStudentFromCourse,
       updateCourse,
       updateCourses,
