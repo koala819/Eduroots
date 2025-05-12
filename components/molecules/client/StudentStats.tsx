@@ -55,9 +55,13 @@ export default function ChildStats({
         <StatCard
           icon="star"
           color="gold"
-          title="Comportement"
-          value={detailedBehavior?.behaviorAverage || 'N/A'}
-          description="/5"
+          title="Taux de présence"
+          value={
+            detailedAttendance?.attendanceRate
+              ? `${detailedAttendance.attendanceRate.toFixed(1)}%`
+              : 'N/A'
+          }
+          description="Taux de présence"
         />
       </div>
 

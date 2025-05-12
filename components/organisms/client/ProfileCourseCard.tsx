@@ -44,15 +44,13 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
             // Construire l'objet StudentStats à partir des données récupérées
             const studentStats: StudentStats = {
               userId: studentId,
-              absencesRate: attendanceData?.attendanceRate
-                ? 100 - attendanceData.attendanceRate
-                : 0,
-              absencesCount: attendanceData?.absencesCount || 0,
-              behaviorAverage: behaviorData?.average || 0,
-              absences: attendanceData?.absences || [],
-              grades: gradesData || {overallAverage: 0},
-              lastActivity: attendanceData?.lastActivity
-                ? new Date(attendanceData.lastActivity)
+              absencesRate: attendanceData?.data?.absencesRate || 0,
+              absencesCount: attendanceData?.data?.absencesCount || 0,
+              behaviorAverage: behaviorData?.data?.average || 0,
+              absences: attendanceData?.data?.absences || [],
+              grades: gradesData?.data || {overallAverage: 0},
+              lastActivity: attendanceData?.data?.lastActivity
+                ? new Date(attendanceData.data.lastActivity)
                 : null,
               lastUpdate: new Date(),
             }
