@@ -25,9 +25,9 @@ export const DashboardBehaviorT = ({
   courseDates: Date[]
 }) => {
   const {data: session} = useSession()
-  const {allAttendance, fetchAttendances, isLoadingAttendance, getAttendanceById} = useAttendance()
-  const {teacherCourses, isLoading: isLoadingCourses, error: errorCourses} = useCourses()
-  const {fetchTeacherCourses} = useCourseStore()
+  const {allAttendance, fetchAttendances, getAttendanceById} = useAttendance()
+  const {error: errorCourses} = useCourses()
+  const {fetchTeacherCourses, courses} = useCourseStore()
   const {allBehaviors, fetchBehaviors, error} = useBehavior()
 
   const [isCreatingBehavior, setIsCreatingBehavior] = useState<boolean>(false)
@@ -35,20 +35,37 @@ export const DashboardBehaviorT = ({
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedBehaviorId, setSelectedBehaviorId] = useState<string>('')
   const [attendanceStudents, setAttendanceStudents] = useState<AttendanceRecord[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id || !courseId) return
+      if (!session?.user?.id || !courseId) {
+        // console.log('Missing session or courseId', {
+        //   sessionUserId: session?.user?.id,
+        //   courseId
+        // })
+        setIsLoading(false)
+        return
+      }
 
       try {
-        // Chargement parallèle des présences et comportements
+        setIsLoading(true)
+        // console.log('Starting data load')
+
         await Promise.all([
           fetchTeacherCourses(session.user.id),
           fetchAttendances({courseId}),
           fetchBehaviors({courseId}),
         ])
+
+        // console.log('Data load completed', {
+        //   courses: courses,
+        //   allBehaviors: allBehaviors,
+        // })
       } catch (err) {
-        console.error('Error loading behavior:', err)
+        console.error('Error loading behavior data:', err)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -106,7 +123,13 @@ export const DashboardBehaviorT = ({
     setSelectedDate(null)
   }
 
-  if (isLoadingAttendance || !teacherCourses || allBehaviors === null || isLoadingCourses) {
+  // console.log('Render state', {
+  //   isLoading,
+  //   courses,
+  //   allBehaviors,
+  // })
+
+  if (isLoading || courses.length === 0 || allBehaviors === null) {
     return (
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">
