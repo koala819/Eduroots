@@ -138,13 +138,6 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Modifier la Feuille des Présences
-                </h2>
-              </div>
-
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">

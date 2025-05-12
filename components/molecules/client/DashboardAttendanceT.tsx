@@ -9,7 +9,7 @@ import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
 import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
 import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
 import {Card, CardContent} from '@/components/ui/card'
-import {Sheet, SheetContent} from '@/components/ui/sheet'
+import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
 
 import {useAttendance} from '@/context/Attendances/client'
 import {useCourses} from '@/context/Courses/client'
@@ -66,13 +66,11 @@ export const DashboardAttendanceT = ({
   }
 
   function handleCloseCreate() {
-    setIsCreatingAttendance(false)
-    setSelectedDate(null)
+    // window.location.reload()
   }
 
   function handleCloseEdit() {
-    setIsEdittingAttendance(false)
-    setSelectedDate(null)
+    window.location.reload()
   }
 
   if (isLoadingCourses || isLoadingAttendance) {
@@ -117,6 +115,9 @@ export const DashboardAttendanceT = ({
         {isCreatingAttendance && (
           <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Nouvelle Feuille des Présences
+              </SheetTitle>
               {selectedDate && (
                 <AttendanceCreate
                   courseId={courseId}
@@ -131,6 +132,9 @@ export const DashboardAttendanceT = ({
         {isEditingAttendance && (
           <Sheet open={isEditingAttendance} onOpenChange={setIsEdittingAttendance}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Modifier la Feuille des Présences
+              </SheetTitle>
               {selectedAttendanceId && selectedDate && (
                 <AttendanceEdit
                   courseId={courseId}

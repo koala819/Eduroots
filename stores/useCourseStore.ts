@@ -32,8 +32,10 @@ const useCourseStore = create<CourseState>((set) => ({
   fetchTeacherCourses: async (teacherId: string) => {
     try {
       const response = await getTeacherCourses(teacherId)
+      // console.log('response', response)
       if (response.success && Array.isArray(response.data)) {
         const serializedData = serializeData(response.data)
+        // console.log('serializedData', serializedData)
         if (Array.isArray(serializedData)) {
           const courses = serializedData
             .map((item) => {
@@ -54,6 +56,7 @@ const useCourseStore = create<CourseState>((set) => ({
               return null
             })
             .filter((course): course is Course => course !== null)
+          // console.log('courses', courses)
           set({courses})
         }
       } else {
