@@ -1,17 +1,17 @@
 'use client'
 
-import { BarChart2, CheckCircle, Clock, NotebookText, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { BiFemale, BiMale } from 'react-icons/bi'
+import {BarChart2, CheckCircle, Clock, NotebookText, XCircle} from 'lucide-react'
+import {useEffect, useState} from 'react'
+import {BiFemale, BiMale} from 'react-icons/bi'
 
-import { PopulatedCourse } from '@/types/course'
-import { GenderEnum, Student } from '@/types/user'
+import {PopulatedCourse} from '@/types/course'
+import {GenderEnum, Student} from '@/types/user'
 
-import { Button } from '@/components/ui/button'
+import {Button} from '@/components/ui/button'
 
-import { useAttendance } from '@/context/Attendances/client'
-import { useCourses } from '@/context/Courses/client'
-import { motion } from 'framer-motion'
+import {useAttendance} from '@/context/Attendances/client'
+import {useCourses} from '@/context/Courses/client'
+import {motion} from 'framer-motion'
 
 interface AttendanceEditProps {
   students: Student[]
@@ -28,8 +28,8 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   courseId,
   attendanceId,
 }) => {
-  const { updateAttendanceRecord, isLoadingAttendance, getAttendanceById } = useAttendance()
-  const { getCourseById, isLoadingCourse } = useCourses()
+  const {updateAttendanceRecord, isLoadingAttendance, getAttendanceById} = useAttendance()
+  const {getCourseById, isLoadingCourse} = useCourses()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
@@ -45,13 +45,13 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
       // console.log('attendance', attendance)
       if (attendance?.records) {
         const recordsMap = attendance.records.reduce(
-          (acc: { [x: string]: any }, record: { student: { _id: any }; isPresent: any }) => {
+          (acc: {[x: string]: any}, record: {student: {_id: any}; isPresent: any}) => {
             const studentId =
               typeof record.student === 'object' ? record.student._id : record.student
             acc[studentId] = record.isPresent
             return acc
           },
-          {} as { [key: string]: boolean },
+          {} as {[key: string]: boolean},
         )
         setAttendanceRecords(recordsMap)
       }
@@ -97,11 +97,11 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         ></div>
       </div>
     )
@@ -110,10 +110,10 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{opacity: 0, height: 0}}
+        animate={{opacity: 1, height: 'auto'}}
+        exit={{opacity: 0, height: 0}}
+        transition={{duration: 0.3}}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
@@ -161,8 +161,8 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                         key={student.id}
                         className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
                         onClick={() => handleTogglePresence(student.id)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                       >
                         <div className="flex items-center space-x-3">
                           {student.gender === GenderEnum.Masculin ? (
@@ -176,12 +176,13 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                           </span>
                         </div>
                         <motion.div
-                          className={`transition-all duration-300 ${attendanceRecords[student.id]
-                            ? 'text-green-500 bg-green-50'
-                            : 'text-red-500 bg-red-50'
-                            } p-2 rounded-full`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          className={`transition-all duration-300 ${
+                            attendanceRecords[student.id]
+                              ? 'text-green-500 bg-green-50'
+                              : 'text-red-500 bg-red-50'
+                          } p-2 rounded-full`}
+                          whileHover={{scale: 1.1}}
+                          whileTap={{scale: 0.9}}
                         >
                           {attendanceRecords[student.id] ? (
                             <CheckCircle className="h-6 w-6" />

@@ -1,23 +1,19 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
-import { revalidatePath } from 'next/cache'
+import {getServerSession} from 'next-auth'
+import {revalidatePath} from 'next/cache'
 
-import { ApiResponse } from '@/types/api'
-import {
-  BehaviorRecord,
-  CreateBehaviorPayload,
-  UpdateBehaviorPayload,
-} from '@/types/behavior'
-import { CourseSession } from '@/types/course'
-import { CourseDocument } from '@/types/mongoose'
+import {ApiResponse} from '@/types/api'
+import {BehaviorRecord, CreateBehaviorPayload, UpdateBehaviorPayload} from '@/types/behavior'
+import {CourseSession} from '@/types/course'
+import {CourseDocument} from '@/types/mongoose'
 
-import { Behavior } from '@/backend/models/behavior.model'
-import { Course } from '@/backend/models/course.model'
-import { GlobalStats } from '@/backend/models/global-stats.model'
-import { StudentStats } from '@/backend/models/student-stats.model'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { Types } from 'mongoose'
+import {Behavior} from '@/backend/models/behavior.model'
+import {Course} from '@/backend/models/course.model'
+import {GlobalStats} from '@/backend/models/global-stats.model'
+import {StudentStats} from '@/backend/models/student-stats.model'
+import {SerializedValue, serializeData} from '@/lib/serialization'
+import {Types} from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -33,7 +29,7 @@ export async function createBehaviorRecord(
   await getSessionServer()
 
   try {
-    const { course, sessionId, date, records } = data
+    const {course, sessionId, date, records} = data
 
     // Validation des données requises
     if (!course || !date || !Array.isArray(records)) {
@@ -65,8 +61,7 @@ export async function createBehaviorRecord(
     // Calcul des statistiques
     const totalStudents = records.length
     // Moyenne des ratings (sur 100)
-    const behaviorRate =
-      records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
+    const behaviorRate = records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
 
     // Mise à jour des stats pour chaque étudiant
     const updatePromises = records.map(async (record: any) => {
@@ -138,8 +133,7 @@ export async function createBehaviorRecord(
     if (courseDoc) {
       // Trouver la session correspondante
       const sessionIndex = courseDoc.sessions.findIndex(
-        (session: CourseSession) =>
-          session.id.toString() === sessionId.toString(),
+        (session: CourseSession) => session.id.toString() === sessionId.toString(),
       )
 
       if (sessionIndex !== -1) {
@@ -153,10 +147,8 @@ export async function createBehaviorRecord(
         })
 
         const sessionBehaviorRate =
-          allBehaviors.reduce(
-            (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
-            0,
-          ) / allBehaviors.length
+          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
+          allBehaviors.length
 
         // Mise à jour des stats de la session
         await Course.updateOne(
@@ -215,9 +207,7 @@ export async function createBehaviorRecord(
   }
 }
 
-export async function deleteBehaviorRecord(
-  id: string,
-): Promise<ApiResponse<SerializedValue>> {
+export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -258,7 +248,7 @@ export async function fetchBehaviorsByCourse(
 ): Promise<ApiResponse<SerializedValue>> {
   await getServerSession()
   try {
-    const behaviors = await Behavior.find({ course: courseId })
+    const behaviors = await Behavior.find({course: courseId})
 
     return {
       success: true,
@@ -277,21 +267,16 @@ export async function getBehaviorByIdAndDate(
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    const query: any = { course: courseId }
+    const query: any = {course: courseId}
 
     if (date) {
       const searchDate = date.split('T')[0] // garde juste YYYY-MM-DD
       query.$expr = {
-        $eq: [
-          { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-          searchDate,
-        ],
+        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, searchDate],
       }
     }
 
-    const behaviors = date
-      ? await Behavior.findOne(query)
-      : await Behavior.find(query)
+    const behaviors = date ? await Behavior.findOne(query) : await Behavior.find(query)
 
     return {
       success: true,
@@ -325,8 +310,7 @@ export async function getStudentBehaviorHistory(
         if (parentCourse) {
           // Trouvons la session spécifique
           const session = parentCourse.sessions.find(
-            (s: CourseDocument) =>
-              s._id.toString() === behavior.course.toString(),
+            (s: CourseDocument) => s._id.toString() === behavior.course.toString(),
           )
 
           return {
@@ -377,15 +361,9 @@ export async function updateBehaviorRecord(
   await getSessionServer()
 
   try {
-    const { courseId, records, behaviorId, sessionId, date } = data
+    const {courseId, records, behaviorId, sessionId, date} = data
 
-    if (
-      !courseId ||
-      !Array.isArray(records) ||
-      !behaviorId ||
-      !sessionId ||
-      !date
-    ) {
+    if (!courseId || !Array.isArray(records) || !behaviorId || !sessionId || !date) {
       return {
         success: false,
         message: 'Données invalides',
@@ -407,15 +385,11 @@ export async function updateBehaviorRecord(
     // Calcul des statistiques
     const totalStudents = records.length
 
-    const behaviorRate =
-      records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
+    const behaviorRate = records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
 
     // Créer une map des anciens ratings pour comparaison
     const oldRatingsMap = new Map(
-      oldBehavior.records.map((record: any) => [
-        record.student.toString(),
-        record.rating,
-      ]),
+      oldBehavior.records.map((record: any) => [record.student.toString(), record.rating]),
     )
 
     // Mise à jour des stats pour chaque étudiant dont la note a changé
@@ -435,8 +409,7 @@ export async function updateBehaviorRecord(
 
         allBehaviors.forEach((behavior) => {
           const studentRecord = behavior.records.find(
-            (r: BehaviorRecord) =>
-              r.student.toString() === studentId.toString(),
+            (r: BehaviorRecord) => r.student.toString() === studentId.toString(),
           )
           if (studentRecord?.rating) {
             totalRating += studentRecord.rating
@@ -494,8 +467,7 @@ export async function updateBehaviorRecord(
     const courseDoc = await Course.findById(courseId)
     if (courseDoc) {
       const sessionIndex = courseDoc.sessions.findIndex(
-        (session: CourseSession) =>
-          session.id.toString() === sessionId.toString(),
+        (session: CourseSession) => session.id.toString() === sessionId.toString(),
       )
 
       if (sessionIndex !== -1) {
@@ -508,10 +480,8 @@ export async function updateBehaviorRecord(
         })
 
         const sessionBehaviorRate =
-          allBehaviors.reduce(
-            (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
-            0,
-          ) / allBehaviors.length
+          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
+          allBehaviors.length
 
         // Mise à jour des stats de la session
         await Course.updateOne(
@@ -558,8 +528,7 @@ export async function updateBehaviorRecord(
 
     return {
       success: true,
-      message:
-        'Fiche de comportement et statistiques mises à jour avec succèss',
+      message: 'Fiche de comportement et statistiques mises à jour avec succèss',
       data: null,
     }
   } catch (error) {
