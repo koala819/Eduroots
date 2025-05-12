@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
 import DashboardCard from '@/components/atoms/client/TeacherDashBoardCard'
-import {Card} from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 
 export default function TeacherDashboardPage() {
   return (
