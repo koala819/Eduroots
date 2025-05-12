@@ -92,7 +92,7 @@ interface StatsContextType {
   error: string | null
 }
 
-const StatsContext = createContext<StatsContextType | null>(null)
+export const StatsContext = createContext<StatsContextType | null>(null)
 
 interface StatsProviderProps {
   children: ReactNode
