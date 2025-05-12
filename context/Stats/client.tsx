@@ -74,7 +74,7 @@ export function statsReducer(state: StatsState, action: StatsAction): StatsState
 }
 
 interface StatsContextType {
-  refreshEntityStats: () => Promise<void>
+  refreshEntityStats: (forceUpdate?: boolean) => Promise<void>
   updateStudentStats: (id: string, stats: StudentStats) => Promise<void>
   updateTeacherStats: (id: string, stats: TeacherStats) => Promise<void>
   refreshGlobalStats: () => Promise<void>

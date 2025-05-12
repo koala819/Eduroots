@@ -41,6 +41,12 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
               getStudentGrade(studentId),
             ])
 
+            console.log("📊 Données brutes reçues pour l'étudiant", studentId, {
+              attendanceData,
+              behaviorData,
+              gradesData,
+            })
+
             // Construire l'objet StudentStats à partir des données récupérées
             const studentStats: StudentStats = {
               userId: studentId,
@@ -54,6 +60,8 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
                 : null,
               lastUpdate: new Date(),
             }
+
+            console.log("📊 Statistiques construites pour l'étudiant", studentId, studentStats)
 
             // Ajouter l'étudiant avec toutes ses données
             completeStudents.push({

@@ -27,7 +27,9 @@ async function getSessionServer() {
   return session
 }
 
-export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>> {
+export async function refreshEntityStats(
+  forceUpdate: boolean = false,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -36,12 +38,22 @@ export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>
       await dbConnect()
     }
 
-    const studentStats = await executeWithRetry(() =>
-      StudentStatsModel.find().sort({lastUpdate: -1}).lean(),
-    )
-    const teacherStats = await executeWithRetry(() =>
-      TeacherStatsModel.find().sort({lastUpdate: -1}).lean(),
-    )
+    // Si forceUpdate est true, recalculer les statistiques
+    if (forceUpdate) {
+      // Récupérer tous les étudiants
+      const students = await User.find({role: 'student', isActive: true})
+      console.log("📊 Nombre d'étudiants trouvés:", students.length)
+
+      // Recalculer les statistiques pour chaque étudiant
+      for (const student of students) {
+        console.log("📊 Recalcul des statistiques pour l'étudiant:", student._id)
+        await calculateStudentAttendanceRate(student._id.toString())
+      }
+    }
+
+    // Récupérer les statistiques mises à jour
+    const studentStats = await StudentStatsModel.find().sort({lastUpdate: -1}).lean()
+    const teacherStats = await TeacherStatsModel.find().sort({lastUpdate: -1}).lean()
 
     const serializedStudentStats = studentStats.map((stat) => ({
       ...(serializeData(stat) as object),
@@ -51,12 +63,12 @@ export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>
       ...(serializeData(stat) as object),
     })) as EntityStats[]
 
-    // Combinez les deux tableaux
+    // Combiner les deux tableaux
     const allStats = [...serializedStudentStats, ...serializedTeacherStats]
     return {
       success: true,
       data: allStats ? serializeData(allStats) : null,
-      message: 'Cours récupéré avec succès',
+      message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
     console.error('[GET_ENTITY_STATS]', error)

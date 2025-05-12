@@ -78,6 +78,12 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
         {sortedStudents.map((student) => {
           const attendanceRate = 100 - (student.stats?.absencesRate || 0)
 
+          console.log("📊 Données reçues dans ClassOverview pour l'étudiant", student._id, {
+            student,
+            stats: student.stats,
+            attendanceRate,
+          })
+
           return (
             <Card
               key={student._id}
@@ -139,6 +145,13 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                         }`}
                       >
                         {(100 - student.stats.absencesRate).toFixed(1)}%
+                        <span className="text-gray-400 ml-1">
+                          ({student.stats.absencesCount}/
+                          {Math.round(
+                            student.stats.absencesCount / (student.stats.absencesRate / 100),
+                          )}
+                          )
+                        </span>
                       </span>
                     </div>
                     <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">

@@ -69,7 +69,8 @@ const ProfilePage = () => {
       onClick: async () => {
         const now = Date.now()
         const timeSinceLastUpdate = now - lastUpdateTime
-        const MIN_UPDATE_INTERVAL = 1000 * 60 * 30 // 30 minutes
+        const MIN_UPDATE_INTERVAL = 1000
+        // const MIN_UPDATE_INTERVAL = 1000 * 60 * 30 // 30 minutes
 
         if (timeSinceLastUpdate < MIN_UPDATE_INTERVAL) {
           toast({
@@ -88,7 +89,7 @@ const ProfilePage = () => {
             duration: 3000,
           })
 
-          await Promise.all([refreshEntityStats(), refreshGlobalStats()])
+          await Promise.all([refreshEntityStats(true), refreshGlobalStats()])
 
           setLastUpdateTime(now)
 
