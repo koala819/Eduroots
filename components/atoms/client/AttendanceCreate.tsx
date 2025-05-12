@@ -1,11 +1,11 @@
 'use client'
 
-import {BarChart2, CheckCircle, Clock, NotebookText, XCircle} from 'lucide-react'
-import {useEffect, useState} from 'react'
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { BarChart2, CheckCircle, Clock, NotebookText, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {PopulatedCourse} from '@/types/course'
-import {GenderEnum, Student} from '@/types/user'
+import { PopulatedCourse } from '@/types/course'
+import { GenderEnum, Student } from '@/types/user'
 
 import {
   AlertDialog,
@@ -18,11 +18,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {useAttendance} from '@/context/Attendances/client'
-import {useCourses} from '@/context/Courses/client'
-import {motion} from 'framer-motion'
+import { useAttendance } from '@/context/Attendances/client'
+import { useCourses } from '@/context/Courses/client'
+import { motion } from 'framer-motion'
 
 interface AttendanceCreateProps {
   students: Student[]
@@ -37,15 +37,15 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   date,
   courseId,
 }) => {
-  const {createAttendanceRecord} = useAttendance()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const { createAttendanceRecord } = useAttendance()
+  const { getCourseById, isLoadingCourse } = useCourses()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [attendanceData, setAttendanceData] = useState<{
     [key: string]: boolean
-  }>(students.reduce((acc, student) => ({...acc, [student._id]: true}), {}))
+  }>(students.reduce((acc, student) => ({ ...acc, [student._id]: true }), {}))
 
   useEffect(() => {
     async function fecthCourse() {
@@ -73,15 +73,9 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         courseId: courseId,
         date: date,
         records: records,
-        //todo : add sessionId
         sessionId: course?.sessions?.[0]?.id || '',
       })
       onClose()
-
-      // Optionally reload the page if needed
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de l'attendance:", error)
     } finally {
@@ -102,11 +96,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
         ></div>
       </div>
     )
@@ -115,21 +109,15 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{opacity: 0, height: 0}}
-        animate={{opacity: 1, height: 'auto'}}
-        exit={{opacity: 0, height: 0}}
-        transition={{duration: 0.3}}
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3 }}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Nouvelle Feuille des Présences
-                </h2>
-              </div>
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
@@ -172,8 +160,8 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                         key={student._id}
                         className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
                         onClick={() => handleTogglePresence(student._id)}
-                        whileHover={{scale: 1.02}}
-                        whileTap={{scale: 0.98}}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center space-x-3">
                           {student.gender === GenderEnum.Masculin ? (
@@ -187,13 +175,12 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                           </span>
                         </div>
                         <motion.div
-                          className={`transition-all duration-300 ${
-                            attendanceData[student._id]
-                              ? 'text-green-500 bg-green-50'
-                              : 'text-red-500 bg-red-50'
-                          } p-2 rounded-full`}
-                          whileHover={{scale: 1.1}}
-                          whileTap={{scale: 0.9}}
+                          className={`transition-all duration-300 ${attendanceData[student._id]
+                            ? 'text-green-500 bg-green-50'
+                            : 'text-red-500 bg-red-50'
+                            } p-2 rounded-full`}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                         >
                           {attendanceData[student._id] ? (
                             <CheckCircle className="h-6 w-6" />
@@ -218,40 +205,14 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                 >
                   {isRecording ? 'Enregistrement en cours...' : 'Enregistrer'}
                 </Button>
-                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="teacherWarning"
-                      className="border-gray-400 text-white"
-                      onClick={() => setIsConfirmOpen(true)}
-                    >
-                      Annuler
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la saisie de l&apos;appel ? Les données non
-                        enregistrées seront perdues.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border-2 border-gray-400"
-                      >
-                        Non
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleCancelAction(true)}
-                        className="bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500"
-                      >
-                        Oui
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  variant="teacherWarning"
+                  className="border-gray-400 text-white"
+                  onClick={() => handleCancelAction(true)}
+                >
+                  Annuler
+                </Button>
+
               </div>
             </div>
           </section>

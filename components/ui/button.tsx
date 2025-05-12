@@ -1,16 +1,16 @@
-import {Slot} from '@radix-ui/react-slot'
+import { Slot } from '@radix-ui/react-slot'
 import * as React from 'react'
 
-import {ButtonVariant} from '@/types/models'
+import { ButtonVariant } from '@/types/models'
 
 // import { useConfig } from '@/context/ConfigContext'
-import {cn} from '@/lib/utils'
-import {cva} from 'class-variance-authority'
-import {type VariantProps} from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+import { cva } from 'class-variance-authority'
+import { type VariantProps } from 'class-variance-authority'
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<ReturnType<typeof createButtonVariants>> {
+  VariantProps<ReturnType<typeof createButtonVariants>> {
   asChild?: boolean
 }
 
@@ -34,7 +34,7 @@ function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record
           teacherFooter: '',
           teacherSecondary: '',
           teacherTertiary: '',
-          teacherWarning: 'bg-green-500 text-destructive-foreground hover:bg-red-800/90',
+          teacherWarning: 'bg-red-500 text-destructive-foreground hover:bg-red-800/90',
           ...variantsRecord,
         },
         size: {
@@ -53,14 +53,14 @@ function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({className, variant, size, asChild = false, ...props}, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     // const { theme } = useConfig()
     const Comp = asChild ? Slot : 'button'
     // const buttonVariants = React.useMemo(
     //   () => createButtonVariants(theme?.buttonVariants || {}),
     //   [theme?.buttonVariants],
     // )
-    return <Comp className={cn(buttonVariants({variant, size, className}))} ref={ref} {...props} />
+    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
   },
 )
 Button.displayName = 'Button'
@@ -68,4 +68,4 @@ Button.displayName = 'Button'
 // Export buttonVariants function for use in other components
 export const buttonVariants = createButtonVariants({})
 
-export {Button, createButtonVariants}
+export { Button, createButtonVariants }

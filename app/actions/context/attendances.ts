@@ -1,18 +1,21 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
-import {revalidatePath} from 'next/cache'
+import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 
-import {ApiResponse} from '@/types/api'
-import {CreateAttendancePayload, UpdateAttendancePayload} from '@/types/attendance'
-import {CourseSession} from '@/types/course'
+import { ApiResponse } from '@/types/api'
+import {
+  CreateAttendancePayload,
+  UpdateAttendancePayload,
+} from '@/types/attendance'
+import { CourseSession } from '@/types/course'
 
-import {Attendance} from '@/backend/models/attendance.model'
-import {Course} from '@/backend/models/course.model'
-import {GlobalStats} from '@/backend/models/global-stats.model'
-import {StudentStats} from '@/backend/models/student-stats.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {Types} from 'mongoose'
+import { Attendance } from '@/backend/models/attendance.model'
+import { Course } from '@/backend/models/course.model'
+import { GlobalStats } from '@/backend/models/global-stats.model'
+import { StudentStats } from '@/backend/models/student-stats.model'
+import { SerializedValue, serializeData } from '@/lib/serialization'
+import { Types } from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -28,7 +31,7 @@ export async function createAttendanceRecord(
   await getSessionServer()
 
   try {
-    const {courseId, date, records, sessionId} = data
+    const { courseId, date, records, sessionId } = data
 
     if (!courseId || !date || !records) {
       return {
@@ -60,7 +63,8 @@ export async function createAttendanceRecord(
     const totalStudents = records.length
     // Fix the type here - records in the payload has a simpler structure than AttendanceRecord
     const presentStudents = records.filter((record) => record.isPresent).length
-    const presenceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
+    const presenceRate =
+      totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
 
     const attendance = new Attendance({
       course: new Types.ObjectId(courseId),
@@ -84,7 +88,8 @@ export async function createAttendanceRecord(
     if (course && sessionId) {
       // Trouver la session correspondante
       const sessionIndex = course.sessions.findIndex(
-        (session: CourseSession) => session.id.toString() === sessionId.toString(),
+        (session: CourseSession) =>
+          session.id.toString() === sessionId.toString(),
       )
 
       if (sessionIndex !== -1) {
@@ -94,8 +99,10 @@ export async function createAttendanceRecord(
         })
 
         const sessionPresenceRate =
-          allAttendances.reduce((sum, att) => sum + (att.stats?.presenceRate || 0), 0) /
-          (allAttendances.length || 1) // Éviter division par 0
+          allAttendances.reduce(
+            (sum, att) => sum + (att.stats?.presenceRate || 0),
+            0,
+          ) / (allAttendances.length || 1) // Éviter division par 0
 
         // Mettre à jour les stats de la session
         await Course.updateOne(
@@ -117,41 +124,41 @@ export async function createAttendanceRecord(
     const updatePromises = records.map(async (record) => {
       const studentId = record.student
 
-      // Récupérer les stats actuelles de l'étudiant
-      let studentStats = await StudentStats.findOne({
+      // Calculer les nouvelles stats
+      const existingStats = await StudentStats.findOne({
         userId: new Types.ObjectId(studentId),
         type: 'student',
       })
 
-      if (!studentStats) {
-        // Créer de nouvelles stats si elles n'existent pas
-        studentStats = new StudentStats({
-          userId: new Types.ObjectId(studentId),
-          type: 'student',
-          statsData: {
-            attendanceRate: record.isPresent ? 100 : 0,
-            totalAbsences: record.isPresent ? 0 : 1,
-            totalSessions: 1,
-            lastAttendance: new Date(date),
+      const totalSessions = (existingStats?.statsData?.totalSessions || 0) + 1
+      const totalAbsences =
+        (existingStats?.statsData?.totalAbsences || 0) +
+        (record.isPresent ? 0 : 1)
+      const attendanceRate =
+        ((totalSessions - totalAbsences) / totalSessions) * 100
+
+      // Utiliser updateOne avec upsert pour éviter les conflits
+      await StudentStats.updateOne(
+        { userId: new Types.ObjectId(studentId) },
+        {
+          $set: {
+            type: 'student',
+            statsData: {
+              ...(existingStats?.statsData || {}),
+              attendanceRate,
+              totalAbsences,
+              totalSessions,
+              lastAttendance: new Date(date),
+            },
+            lastUpdate: new Date(),
           },
-        })
-      } else {
-        // Mettre à jour les stats existantes
-        const totalSessions = studentStats.statsData.totalSessions + 1
-        const totalAbsences = studentStats.statsData.totalAbsences + (record.isPresent ? 0 : 1)
-        const attendanceRate = ((totalSessions - totalAbsences) / totalSessions) * 100
-
-        studentStats.statsData = {
-          ...studentStats.statsData,
-          attendanceRate,
-          totalAbsences,
-          totalSessions,
-          lastAttendance: new Date(date),
-        }
-      }
-
-      await studentStats.save()
+        },
+        { upsert: true },
+      )
     })
+
+    // Attendre que toutes les mises à jour soient terminées
+    await Promise.all(updatePromises)
 
     // Mise à jour des stats globales
     let globalStats = await GlobalStats.findOne({})
@@ -168,15 +175,14 @@ export async function createAttendanceRecord(
         0,
       )
       const averageAttendanceRate =
-        allAttendances.length > 0 ? totalAttendanceRates / allAttendances.length : 0
+        allAttendances.length > 0
+          ? totalAttendanceRates / allAttendances.length
+          : 0
 
       globalStats.averageAttendanceRate = averageAttendanceRate
       globalStats.lastUpdate = new Date()
     }
     await globalStats.save()
-
-    // Attendre que toutes les mises à jour soient terminées
-    await Promise.all(updatePromises)
 
     // Revalidate paths that might be affected
     revalidatePath('/courses/[courseId]/attendance')
@@ -245,25 +251,32 @@ export async function getAttendanceById(
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    const query: any = {course: courseId}
+    const query: any = { course: courseId }
 
     if (checkToday) {
       // Add logic to get today's attendance
       const today = new Date()
       const todayStr = today.toISOString().split('T')[0]
       query.$expr = {
-        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, todayStr],
+        $eq: [
+          { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          todayStr,
+        ],
       }
     } else if (date) {
       const searchDate = date.split('T')[0] // garde juste YYYY-MM-DD
       query.$expr = {
-        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, searchDate],
+        $eq: [
+          { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          searchDate,
+        ],
       }
     }
 
     const attendances =
-      date || checkToday ? await Attendance.findOne(query) : await Attendance.find(query)
-
+      date || checkToday
+        ? await Attendance.findOne(query)
+        : await Attendance.find(query)
     return {
       success: true,
       data: attendances ? serializeData(attendances) : null,
@@ -309,7 +322,7 @@ export async function restoreAttendance(
         isActive: true,
         deletedAt: null,
       },
-      {new: true},
+      { new: true },
     )
 
     if (!attendance) {
@@ -343,7 +356,7 @@ export async function softDeleteAttendance(
         isActive: false,
         deletedAt: new Date(),
       },
-      {new: true},
+      { new: true },
     )
 
     if (!attendance) {
@@ -368,7 +381,7 @@ export async function updateAttendanceRecord(
   data: UpdateAttendancePayload,
 ): Promise<ApiResponse<SerializedValue>> {
   try {
-    const {attendanceId, records} = data
+    const { attendanceId, records } = data
 
     if (!records || !Array.isArray(records)) {
       return {
@@ -391,7 +404,8 @@ export async function updateAttendanceRecord(
     // Calculer les nouvelles statistiques pour cette présence
     const totalStudents = data.records.length
     const presentStudents = records.filter((record) => record.isPresent).length
-    const presenceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
+    const presenceRate =
+      totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
 
     const updatedAttendance = await Attendance.findByIdAndUpdate(
       attendanceId,
@@ -426,7 +440,8 @@ export async function updateAttendanceRecord(
       const sessionId = oldAttendance.sessionId
       if (sessionId) {
         const sessionIndex = course.sessions.findIndex(
-          (session: CourseSession) => session.id.toString() === sessionId.toString(),
+          (session: CourseSession) =>
+            session.id.toString() === sessionId.toString(),
         )
 
         if (sessionIndex !== -1) {
@@ -436,8 +451,10 @@ export async function updateAttendanceRecord(
           })
 
           const sessionPresenceRate =
-            allAttendances.reduce((sum, att) => sum + (att.stats?.presenceRate || 0), 0) /
-            (allAttendances.length || 1) // éviter division par zéro
+            allAttendances.reduce(
+              (sum, att) => sum + (att.stats?.presenceRate || 0),
+              0,
+            ) / (allAttendances.length || 1) // éviter division par zéro
 
           // Mettre à jour les stats de la session
           await Course.updateOne(
@@ -458,7 +475,10 @@ export async function updateAttendanceRecord(
 
     // Créer un map des anciens statuts de présence pour comparaison
     const oldPresenceMap = new Map(
-      oldAttendance.records.map((record: any) => [record.student.toString(), record.isPresent]),
+      oldAttendance.records.map((record: any) => [
+        record.student.toString(),
+        record.isPresent,
+      ]),
     )
 
     // Mise à jour des stats pour chaque étudiant
@@ -476,7 +496,8 @@ export async function updateAttendanceRecord(
         if (studentStats) {
           // Ajuster les statistiques en fonction du changement
           const attendanceDiff = record.isPresent ? -1 : 1 // Si nouveau status est présent, réduire les absences
-          const totalAbsences = studentStats.statsData.totalAbsences + attendanceDiff
+          const totalAbsences =
+            studentStats.statsData.totalAbsences + attendanceDiff
           const attendanceRate =
             ((studentStats.statsData.totalSessions - totalAbsences) /
               studentStats.statsData.totalSessions) *
@@ -504,7 +525,9 @@ export async function updateAttendanceRecord(
         0,
       )
       const averageAttendanceRate =
-        allAttendances.length > 0 ? totalAttendanceRates / allAttendances.length : 0
+        allAttendances.length > 0
+          ? totalAttendanceRates / allAttendances.length
+          : 0
 
       globalStats.averageAttendanceRate = averageAttendanceRate
       globalStats.lastUpdate = new Date()

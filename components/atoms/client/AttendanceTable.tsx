@@ -1,15 +1,15 @@
 'use client'
 
-import {CheckCircle, Clock, Plus, Star, XCircle} from 'lucide-react'
+import { CheckCircle, Clock, Plus, Star, XCircle } from 'lucide-react'
 import React from 'react'
 
-import {AttendanceDocument} from '@/types/mongoose'
+import { AttendanceDocument } from '@/types/mongoose'
 
-import {Button} from '@/components/ui/button'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-import {useHolidays} from '@/context/Holidays/client'
-import {isWithinInterval} from 'date-fns'
+import { useHolidays } from '@/context/Holidays/client'
+import { isWithinInterval } from 'date-fns'
 
 export const AttendanceTable = ({
   courseDates,
@@ -22,7 +22,7 @@ export const AttendanceTable = ({
   handleCreateAttendance: (date: string) => void
   handleEditAttendance: (attendanceId: string, date: string) => void
 }) => {
-  const {holidays} = useHolidays()
+  const { holidays } = useHolidays()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">
