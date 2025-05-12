@@ -68,6 +68,54 @@ export async function createBehaviorRecord(
     const behaviorRate =
       records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
 
+    // Mise à jour des stats pour chaque étudiant
+    const updatePromises = records.map(async (record: any) => {
+      const studentId = record.student
+
+      // Récupérer tous les comportements de l'étudiant pour calculer la vraie moyenne
+      const allBehaviors = await Behavior.find({
+        'records.student': new Types.ObjectId(studentId),
+      })
+
+      // Calculer la vraie moyenne
+      let totalRating = 0
+      let totalSessions = 0
+
+      allBehaviors.forEach((behavior) => {
+        const studentRecord = behavior.records.find(
+          (r: BehaviorRecord) => r.student.toString() === studentId.toString(),
+        )
+        if (studentRecord?.rating) {
+          totalRating += studentRecord.rating
+          totalSessions++
+        }
+      })
+
+      // Ajouter le nouveau record
+      totalRating += record.rating
+      totalSessions++
+
+      const behaviorAverage = totalRating / totalSessions
+
+      await StudentStats.findOneAndUpdate(
+        {
+          userId: new Types.ObjectId(studentId),
+        },
+        {
+          $set: {
+            behaviorAverage,
+            lastActivity: new Date(date),
+            lastUpdate: new Date(),
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+        },
+      )
+    })
+
+    // Créer le behavior record
     const behavior = new Behavior({
       course: new Types.ObjectId(course),
       date: new Date(date),
@@ -84,58 +132,6 @@ export async function createBehaviorRecord(
     })
 
     await behavior.save()
-
-    // Mise à jour des stats pour chaque étudiant
-    const updatePromises = records.map(async (record: any) => {
-      const studentId = record.student
-
-      // Récupérer les stats actuelles de l'étudiant
-      let studentStats = await StudentStats.findOne({
-        userId: new Types.ObjectId(studentId),
-        type: 'student',
-      })
-
-      if (!studentStats) {
-        // Créer de nouvelles stats si elles n'existent pas
-        studentStats = new StudentStats({
-          userId: new Types.ObjectId(studentId),
-          type: 'student',
-          statsData: {
-            behaviorAverage: record.rating,
-            lastBehavior: new Date(date),
-            totalSessions: 1,
-          },
-        })
-      } else {
-        // Mettre à jour les stats existantes
-        const totalSessions = (studentStats.statsData.totalSessions || 0) + 1
-
-        // Récupérer tous les comportements précédents de l'étudiant
-        const studentBehaviors = await Behavior.find({
-          'records.student': new Types.ObjectId(studentId),
-        })
-
-        // Calculer la nouvelle moyenne de comportement
-        const totalRatings = studentBehaviors.reduce((sum, behavior) => {
-          const studentRecord = behavior.records.find(
-            (r: BehaviorRecord) =>
-              r.student.toString() === studentId.toString(),
-          )
-          return sum + (studentRecord ? studentRecord.rating : 0)
-        }, 0)
-
-        const behaviorAverage = totalRatings / totalSessions
-
-        studentStats.statsData = {
-          ...studentStats.statsData,
-          behaviorAverage,
-          lastBehavior: new Date(date),
-          totalSessions,
-        }
-      }
-
-      await studentStats.save()
-    })
 
     // Mise à jour des stats du cours
     const courseDoc = await Course.findById(course)
@@ -422,6 +418,55 @@ export async function updateBehaviorRecord(
       ]),
     )
 
+    // Mise à jour des stats pour chaque étudiant dont la note a changé
+    const updatePromises = records.map(async (record: any) => {
+      const studentId = record.student
+      const oldRating = oldRatingsMap.get(studentId.toString())
+
+      // Ne mettre à jour que si la note a changé
+      if (oldRating !== record.rating) {
+        // Récupérer tous les comportements de l'étudiant pour recalculer la moyenne
+        const allBehaviors = await Behavior.find({
+          'records.student': new Types.ObjectId(studentId),
+        })
+
+        let totalRating = 0
+        let totalSessions = 0
+
+        allBehaviors.forEach((behavior) => {
+          const studentRecord = behavior.records.find(
+            (r: BehaviorRecord) =>
+              r.student.toString() === studentId.toString(),
+          )
+          if (studentRecord?.rating) {
+            totalRating += studentRecord.rating
+            totalSessions++
+          }
+        })
+
+        const behaviorAverage = totalRating / totalSessions
+
+        // Mise à jour directe avec findOneAndUpdate
+        await StudentStats.findOneAndUpdate(
+          {
+            userId: new Types.ObjectId(studentId),
+          },
+          {
+            $set: {
+              behaviorAverage,
+              lastActivity: new Date(),
+              lastUpdate: new Date(),
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        )
+      }
+    })
+
+    // Mise à jour du behavior record
     const updatedBehavior = await Behavior.findByIdAndUpdate(behaviorId, {
       course: new Types.ObjectId(courseId),
       updatedAt: new Date(),
@@ -445,50 +490,7 @@ export async function updateBehaviorRecord(
       }
     }
 
-    // Mise à jour des stats pour chaque étudiant dont la note a changé
-    const updatePromises = records.map(async (record: any) => {
-      const studentId = record.student
-      const oldRating = oldRatingsMap.get(studentId.toString())
-
-      // Ne mettre à jour que si la note a changé
-      if (oldRating !== record.rating) {
-        const studentStats = await StudentStats.findOne({
-          userId: new Types.ObjectId(studentId),
-          type: 'student',
-        })
-
-        if (studentStats) {
-          // Récupérer tous les comportements de l'étudiant pour recalculer la moyenne
-          const allBehaviors = await Behavior.find({
-            'records.student': new Types.ObjectId(studentId),
-          })
-
-          const totalSessions = allBehaviors.length
-          const totalRatings = allBehaviors.reduce((sum, behavior) => {
-            const studentRecord = behavior.records.find(
-              (r: BehaviorRecord) =>
-                r.student.toString() === studentId.toString(),
-            )
-            return sum + (studentRecord ? studentRecord.rating : 0)
-          }, 0)
-
-          const behaviorAverage = totalRatings / totalSessions
-
-          // Mise à jour des stats de l'étudiant
-          studentStats.statsData = {
-            ...studentStats.statsData,
-            behaviorAverage,
-            lastBehavior: new Date(),
-            totalSessions,
-          }
-
-          await studentStats.save()
-        }
-      }
-    })
-
     // Mise à jour des stats du cours
-
     const courseDoc = await Course.findById(courseId)
     if (courseDoc) {
       const sessionIndex = courseDoc.sessions.findIndex(

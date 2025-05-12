@@ -127,7 +127,6 @@ export async function createAttendanceRecord(
       // Calculer les nouvelles stats
       const existingStats = await StudentStats.findOne({
         userId: new Types.ObjectId(studentId),
-        type: 'student',
       })
 
       const totalSessions = (existingStats?.statsData?.totalSessions || 0) + 1
@@ -142,7 +141,6 @@ export async function createAttendanceRecord(
         { userId: new Types.ObjectId(studentId) },
         {
           $set: {
-            type: 'student',
             statsData: {
               ...(existingStats?.statsData || {}),
               attendanceRate,
@@ -490,7 +488,6 @@ export async function updateAttendanceRecord(
       if (oldPresence !== record.isPresent) {
         const studentStats = await StudentStats.findOne({
           userId: new Types.ObjectId(studentId),
-          type: 'student',
         })
 
         if (studentStats) {

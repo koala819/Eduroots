@@ -38,9 +38,11 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   }>({})
 
   useEffect(() => {
+    // console.log('date', date)
+    // console.log('courseId', courseId)
     async function fetchData() {
       const attendance = await getAttendanceById(courseId, date)
-
+      // console.log('attendance', attendance)
       if (attendance?.records) {
         const recordsMap = attendance.records.reduce(
           (acc: { [x: string]: any }, record: { student: { _id: any }; isPresent: any }) => {
@@ -211,7 +213,6 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                 >
                   Annuler
                 </Button>
-
               </div>
             </div>
           </section>

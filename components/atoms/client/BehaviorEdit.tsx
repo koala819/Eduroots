@@ -1,13 +1,13 @@
 'use client'
 
-import {BarChart2, Clock, NotebookText, Star} from 'lucide-react'
-import {useEffect, useMemo, useState} from 'react'
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {AttendanceRecord} from '@/types/attendance'
-import {Behavior} from '@/types/behavior'
-import {PopulatedCourse} from '@/types/course'
-import {GenderEnum, Student} from '@/types/user'
+import { AttendanceRecord } from '@/types/attendance'
+import { Behavior } from '@/types/behavior'
+import { PopulatedCourse } from '@/types/course'
+import { GenderEnum, Student } from '@/types/user'
 
 import {
   AlertDialog,
@@ -20,13 +20,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {useBehavior} from '@/context/Behaviors/client'
-import {useCourses} from '@/context/Courses/client'
-import {useStudents} from '@/context/Students/client'
-import {cn} from '@/lib/utils'
-import {motion} from 'framer-motion'
+import { useBehavior } from '@/context/Behaviors/client'
+import { useCourses } from '@/context/Courses/client'
+import { useStudents } from '@/context/Students/client'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface BehaviorEditProps {
   students: AttendanceRecord[]
@@ -43,9 +43,9 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   courseId,
   behaviorId,
 }) => {
-  const {updateBehaviorRecord, isLoadingBehavior, getBehaviorById} = useBehavior()
-  const {getCourseById, isLoadingCourse} = useCourses()
-  const {getOneStudent} = useStudents()
+  const { updateBehaviorRecord, isLoadingBehavior, getBehaviorById } = useBehavior()
+  const { getCourseById, isLoadingCourse } = useCourses()
+  const { getOneStudent } = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
@@ -66,10 +66,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
       try {
         // Charger le cours et le behavior existant en parallèle
-        const [courseData, behaviorData] = (await Promise.all([
+        const [courseData, behaviorResponse] = await Promise.all([
           getCourseById(courseId),
           getBehaviorById(courseId, date),
-        ])) as [PopulatedCourse, Behavior | null]
+        ])
+
 
         if (!isMounted) return
 
@@ -92,8 +93,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                 studentsData[studentId] = studentDetail
 
                 // Si on a des données de behavior, chercher le rating existant
-                if (behaviorData && behaviorData.records) {
-                  const existingRecord = behaviorData.records.find((record) => {
+                if (behaviorResponse?.success && behaviorResponse.data?.records) {
+                  const existingRecord = behaviorResponse.data.records.find((record: any) => {
                     const recordStudentId =
                       typeof record.student === 'string' ? record.student : record.student.id
                     return recordStudentId === studentId
@@ -129,6 +130,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
       isMounted = false
     }
   }, [courseId, date, getOneStudent, getBehaviorById, getCourseById, presentStudents])
+
   async function handleSave() {
     setIsUpdating(true)
     if (!course?.sessions?.[0]?.id) {
@@ -141,6 +143,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         student: studentId,
         rating,
       }))
+
       await updateBehaviorRecord({
         courseId: courseId,
         behaviorId: behaviorId,
@@ -148,14 +151,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         date: date,
         sessionId: course.sessions[0].id,
       })
-      onClose()
 
-      // Optionally reload the page if needed
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
+      // La mise à jour a réussi, on peut fermer le modal
+      onClose()
     } catch (error) {
-      console.error('Error updating attendance:', error)
+      console.error('Error updating behavior:', error)
     } finally {
       setIsUpdating(false)
     }
@@ -181,11 +181,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
         ></div>
       </div>
     )
@@ -194,21 +194,16 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{opacity: 0, height: 0}}
-        animate={{opacity: 1, height: 'auto'}}
-        exit={{opacity: 0, height: 0}}
-        transition={{duration: 0.3}}
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3 }}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Modifier la Feuille des Comportements
-                </h2>
-              </div>
+
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
@@ -254,8 +249,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                     <motion.li
                       key={student.id}
                       className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
-                      whileHover={{scale: 1.02}}
-                      whileTap={{scale: 0.98}}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center space-x-3">
                         {studentDetail.gender === GenderEnum.Masculin ? (
@@ -272,8 +267,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                       </div>
                       <motion.div
                         className="transition-all duration-300 p-2 rounded-full"
-                        whileHover={{scale: 1.1}}
-                        whileTap={{scale: 0.9}}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                       >
                         {[1, 2, 3, 4, 5].map((rating) => (
                           <button

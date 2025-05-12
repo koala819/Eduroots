@@ -1,19 +1,19 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import React, { useEffect, useState } from 'react'
+import {useSession} from 'next-auth/react'
+import React, {useEffect, useState} from 'react'
 
-import { Student } from '@/types/user'
+import {Student} from '@/types/user'
 
-import { AttendanceCreate } from '@/components/atoms/client/AttendanceCreate'
-import { AttendanceEdit } from '@/components/atoms/client/AttendanceEdit'
-import { AttendanceTable } from '@/components/atoms/client/AttendanceTable'
-import { Card, CardContent } from '@/components/ui/card'
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
+import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
+import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
+import {Card, CardContent} from '@/components/ui/card'
+import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
 
-import { useAttendance } from '@/context/Attendances/client'
-import { useCourses } from '@/context/Courses/client'
-import { AnimatePresence } from 'framer-motion'
+import {useAttendance} from '@/context/Attendances/client'
+import {useCourses} from '@/context/Courses/client'
+import {AnimatePresence} from 'framer-motion'
 import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardAttendanceT = ({
@@ -25,11 +25,11 @@ export const DashboardAttendanceT = ({
   students: Student[]
   courseDates: Date[]
 }) => {
-  const { data: session } = useSession()
+  const {data: session} = useSession()
 
-  const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
-  const { fetchTeacherCourses } = useCourseStore()
-  const { allAttendance, fetchAttendances, error } = useAttendance()
+  const {isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
+  const {allAttendance, fetchAttendances, error} = useAttendance()
 
   const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
   const [isEditingAttendance, setIsEdittingAttendance] = useState<boolean>(false)
@@ -43,10 +43,7 @@ export const DashboardAttendanceT = ({
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([
-          fetchAttendances({ courseId }),
-          fetchTeacherCourses(session.user.id),
-        ])
+        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(session.user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -71,10 +68,10 @@ export const DashboardAttendanceT = ({
   async function handleCloseCreate() {
     setIsCreatingAttendance(false)
     // Attendre un peu que le modal soit fermé
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
     // Recharger les données sans recharger toute la page
     if (courseId) {
-      await fetchAttendances({ courseId })
+      await fetchAttendances({courseId})
     }
   }
 
@@ -82,7 +79,7 @@ export const DashboardAttendanceT = ({
     setIsEdittingAttendance(false)
     // Recharger les données sans recharger toute la page
     if (courseId) {
-      await fetchAttendances({ courseId })
+      await fetchAttendances({courseId})
     }
   }
 
@@ -92,11 +89,11 @@ export const DashboardAttendanceT = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
+          style={{animationDelay: '0.2s'}}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
+          style={{animationDelay: '0.4s'}}
         />
       </div>
     )
