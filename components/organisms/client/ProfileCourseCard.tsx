@@ -52,7 +52,7 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
               userId: studentId,
               absencesRate: attendanceData?.data?.absencesRate || 0,
               absencesCount: attendanceData?.data?.absencesCount || 0,
-              behaviorAverage: behaviorData?.data?.average || 0,
+              behaviorAverage: behaviorData?.data?.behaviorAverage || 0,
               absences: attendanceData?.data?.absences || [],
               grades: gradesData?.data || {overallAverage: 0},
               lastActivity: attendanceData?.data?.lastActivity

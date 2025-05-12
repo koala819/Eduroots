@@ -82,6 +82,8 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
             student,
             stats: student.stats,
             attendanceRate,
+            behaviorAverage: student.stats?.behaviorAverage,
+            behaviorAverageType: typeof student.stats?.behaviorAverage,
           })
 
           return (
@@ -171,12 +173,25 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                   </div>
                 </div>
                 {/* Comportement */}
-                <div className="flex  space-x-3 mt-2">
-                  {student.stats?.behaviorAverage !== null && (
+                <div className="flex space-x-3 mt-2">
+                  {student.stats?.behaviorAverage !== undefined && (
                     <div className="flex items-center gap-1">
                       <p className="text-gray-500">Comportement</p>
-                      <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-500" />
-                      {student.stats?.behaviorAverage}
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-3.5 w-3.5 ${
+                              star <= Math.round(student.stats?.behaviorAverage || 0)
+                                ? 'text-yellow-400 fill-yellow-500'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {Math.round(student.stats?.behaviorAverage || 0)}/5
+                      </span>
                     </div>
                   )}
                 </div>

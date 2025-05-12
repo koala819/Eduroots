@@ -86,7 +86,7 @@ export async function statsStudentUpdate(): Promise<{
         // Construire les statistiques de l'étudiant selon l'interface StudentStats
         const studentStats: StudentStats = {
           userId: studentId,
-          absencesRate: attendanceData?.attendanceRate || 0,
+          absencesRate: attendanceData?.absencesRate || 0,
           absencesCount: attendanceData?.absencesCount || 0,
           absences: attendanceData?.absences || [],
           behaviorAverage: behaviorData?.behaviorAverage || 0,
