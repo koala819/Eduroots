@@ -1,6 +1,6 @@
 {
-  "name": "EduRootS - Educational Platform",
-  "short_name": "EduRootS",
+  "name": "Eduroots - Educational Platform",
+  "short_name": "Eduroots",
   "version": "2.0",
   "description": "Application éducative et communautaire",
   "icons": [
@@ -17,15 +17,13 @@
       "purpose": "any maskable"
     }
   ],
-  "splash_pages": [
-    {
-      "src": "/splash.png",
-      "sizes": "1242x2688",
-      "type": "image/png",
-      "platform": "narrow",
-      "label": "Splash screen"
-    }
-  ],
+  "splash_screen": {
+    "src": "/splash.png",
+    "sizes": "1242x2688",
+    "type": "image/png",
+    "platform": "narrow",
+    "label": "Splash screen"
+  },
   "screenshots": [
     {
       "src": "/splash.png",

@@ -1,10 +1,10 @@
-<img src="./public/icon-512x512.png" alt="Logo EduRootS" width="100" align="left">
+<img src="./public/icon-512x512.png" alt="Logo Eduroots" width="100" align="left">
 
 <br>
 
-# EduRootS
+# Eduroots
 
-EduRootS is an open-source educational platform designed to facilitate course management and communication between teachers and students.
+Eduroots is an open-source educational platform designed to facilitate course management and communication between teachers and students.
 
 ## Features
 
@@ -31,8 +31,8 @@ EduRootS is an open-source educational platform designed to facilitate course ma
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/koala819/EduRootS.git
-cd EduRootS
+git clone https://github.com/koala819/Eduroots.git
+cd Eduroots
 ```
 
 2. Install dependencies:

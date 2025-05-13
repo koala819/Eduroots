@@ -1,5 +1,5 @@
 /**
- * EduRootS - Application de Gestion de Classe pour Mosquées
+ * Eduroots - Application de Gestion de Classe pour Mosquées
  * Copyright (C) 2024 Xavier
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,14 +38,14 @@ const fontSans = FontSans({
 })
 
 export const metadata: Metadata = {
-  applicationName: 'EduRootS',
+  applicationName: 'Eduroots',
   manifest: '/manifest.json',
-  title: 'EduRootS - Plateforme éducative',
+  title: 'Eduroots - Plateforme éducative',
   description: 'Application de gestion des cours',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'EduRootS',
+    title: 'Eduroots',
     startupImage: [
       {
         url: '/splash.png',
@@ -89,8 +89,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'EduRootS',
-    title: 'Bienvenue sur EduRootS',
+    siteName: 'Eduroots',
+    title: 'Bienvenue sur Eduroots',
     description: 'Application éducative et communautaire',
   },
   icons: {
@@ -136,7 +136,7 @@ export default async function DashboardLayout({
         <link rel="manifest" href="/manifest.json?v=2" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="EduRootS" />
+        <meta name="apple-mobile-web-app-title" content="Eduroots" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link
           rel="apple-touch-startup-image"
