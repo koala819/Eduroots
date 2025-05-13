@@ -28,7 +28,7 @@ const serwist = new Serwist({
   runtimeCaching: [
     ...defaultCache,
     {
-      matcher: ({ request }) => request.url.includes('/splash.webp'),
+      matcher: ({ request }) => request.url.includes('/splash.png'),
       handler: new CacheFirst({
         cacheName: 'splash-screen',
       }),

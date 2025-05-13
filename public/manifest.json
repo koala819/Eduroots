@@ -17,12 +17,20 @@
       "purpose": "any maskable"
     }
   ],
-  "splash_pages": null,
+  "splash_pages": [
+    {
+      "src": "/splash.png",
+      "sizes": "1242x2688",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Splash screen"
+    }
+  ],
   "screenshots": [
     {
-      "src": "/splash.webp",
+      "src": "/splash.png",
       "sizes": "1242x2688",
-      "type": "image/webp",
+      "type": "image/png",
       "platform": "narrow",
       "label": "Splash screen"
     }
