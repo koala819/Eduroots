@@ -14,7 +14,7 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope
 
-// Version 1.0.2 - Test notification de mise à jour
+// Version 1.0.0 - First version
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
