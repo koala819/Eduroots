@@ -96,6 +96,15 @@ importers:
       '@serwist/next':
         specifier: 9.0.9
         version: 9.0.9(next@14.2.26(@babel/core@7.27.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(typescript@5.4.5)
+      '@serwist/precaching':
+        specifier: ^9.0.14
+        version: 9.0.14(typescript@5.4.5)
+      '@serwist/routing':
+        specifier: ^9.0.14
+        version: 9.0.14(typescript@5.4.5)
+      '@serwist/strategies':
+        specifier: ^9.0.14
+        version: 9.0.14(typescript@5.4.5)
       '@tanstack/react-table':
         specifier: 8.20.5
         version: 8.20.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2231,6 +2240,30 @@ packages:
       typescript:
         optional: true
 
+  '@serwist/precaching@9.0.14':
+    resolution: {integrity: sha512-unwllMAAzzxdE23fNsxIMEn7zNNpwmiDmf172ulo8S3E0192RB56M6DMTSpQPrHJphs9WI5p0ALiFJgMCbsRqg==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@serwist/routing@9.0.14':
+    resolution: {integrity: sha512-mHiOdUUIhEDmWcZrx57ypd/tUFjsMeh4WvfWt9iug55dVoTvB+Y4ZgpFNAK4MJMTgWqlrdLoo2Uz8DTUaIZamg==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@serwist/strategies@9.0.14':
+    resolution: {integrity: sha512-89j8WvaAPvXwDmbJI6qr9w/2AlyiaHdu753WerKV8rjU5/aLZSWiK2kCAzhMInIt2hz9X4muGoKAjRiYdbRHlg==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   '@serwist/webpack-plugin@9.0.9':
     resolution: {integrity: sha512-Yytizgxcc4577ViUuJEej6OlJlcQHUIUCTsGCrdIqKJxSsbz0yDv4Xx+Yria2UDFAu8nmTqA2PSgI/gg0OYZ0A==}
     engines: {node: '>=18.0.0'}
@@ -4227,6 +4260,9 @@ packages:
   idb@8.0.0:
     resolution: {integrity: sha512-l//qvlAKGmQO31Qn7xdzagVPPaHTxXx199MhrAFuVBTPqydcPYBWjkrbv4Y0ktB+GmWOiwHl237UUOrLmQxLvw==}
 
+  idb@8.0.2:
+    resolution: {integrity: sha512-CX70rYhx7GDDQzwwQMDwF6kDRQi5vVs6khHUumDrMecBylKkwvZ8HWvKV08AGb7VbpoGCWUQ4aHzNDgoUiOIUg==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -5873,6 +5909,14 @@ packages:
     resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
     engines: {node: '>=10'}
     hasBin: true
+
+  serwist@9.0.14:
+    resolution: {integrity: sha512-vr4uqSeB7NxrAJeneCxhnEDDksovTcVAxkWyse4DFj/OP8UVJkdsSEJlzT94gRu5qrTZxKrb+pFrxsIStfWTWg==}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   serwist@9.0.9:
     resolution: {integrity: sha512-T3WzdvUjvK1AzNSTSuZkHWWKm0X5UuUaD3jvukHDFaJDmsLZBq0HGlrZ+bpOHoRFwhJSXwuH/V5ksE0I78wwvQ==}
@@ -8726,6 +8770,24 @@ snapshots:
     transitivePeerDependencies:
       - webpack
 
+  '@serwist/precaching@9.0.14(typescript@5.4.5)':
+    dependencies:
+      serwist: 9.0.14(typescript@5.4.5)
+    optionalDependencies:
+      typescript: 5.4.5
+
+  '@serwist/routing@9.0.14(typescript@5.4.5)':
+    dependencies:
+      serwist: 9.0.14(typescript@5.4.5)
+    optionalDependencies:
+      typescript: 5.4.5
+
+  '@serwist/strategies@9.0.14(typescript@5.4.5)':
+    dependencies:
+      serwist: 9.0.14(typescript@5.4.5)
+    optionalDependencies:
+      typescript: 5.4.5
+
   '@serwist/webpack-plugin@9.0.9(typescript@5.4.5)':
     dependencies:
       '@serwist/build': 9.0.9(typescript@5.4.5)
@@ -11105,6 +11167,8 @@ snapshots:
 
   idb@8.0.0: {}
 
+  idb@8.0.2: {}
+
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
@@ -12841,6 +12905,12 @@ snapshots:
       loose-envify: 1.4.0
 
   semver@7.7.2: {}
+
+  serwist@9.0.14(typescript@5.4.5):
+    dependencies:
+      idb: 8.0.2
+    optionalDependencies:
+      typescript: 5.4.5
 
   serwist@9.0.9(typescript@5.4.5):
     dependencies:

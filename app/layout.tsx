@@ -46,6 +46,43 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'EduRootS',
+    startupImage: [
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)',
+      },
+      {
+        url: '/splash.webp',
+        media:
+          '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)',
+      },
+    ],
   },
   formatDetection: {
     telephone: false,

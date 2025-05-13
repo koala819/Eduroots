@@ -1,6 +1,11 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { NetworkFirst, Serwist, StaleWhileRevalidate } from 'serwist'
+import {
+  CacheFirst,
+  NetworkFirst,
+  Serwist,
+  StaleWhileRevalidate,
+} from 'serwist'
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -22,6 +27,12 @@ const serwist = new Serwist({
   // runtimeCaching: defaultCache,
   runtimeCaching: [
     ...defaultCache,
+    {
+      matcher: ({ request }) => request.url.includes('/splash.webp'),
+      handler: new CacheFirst({
+        cacheName: 'splash-screen',
+      }),
+    },
     {
       matcher: ({ request }) => {
         const imageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif']
