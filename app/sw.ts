@@ -14,7 +14,7 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope
 
-// Version 1.0.0 - First version
+// Version 1.0.1 - Test notification de mise à jour
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
@@ -40,22 +40,25 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  // Supprimez explicitement les anciens caches lors de l'activation du nouveau SW
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          return caches.delete(cacheName)
-        }),
-      ).then(() => {
-        return self.clients.claim().then(() => {
-          self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-              if (client.type === 'window') {
-                client.postMessage({ type: 'SW_UPDATED' })
-              }
-            })
-          })
+    Promise.all([
+      // Supprimer les anciens caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            return caches.delete(cacheName)
+          }),
+        )
+      }),
+      // Prendre le contrôle des clients
+      self.clients.claim(),
+    ]).then(() => {
+      // Notifier les clients de la mise à jour
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          if (client.type === 'window') {
+            client.postMessage({ type: 'SW_UPDATED' })
+          }
         })
       })
     }),
