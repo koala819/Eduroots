@@ -17,8 +17,18 @@
       "purpose": "any maskable"
     }
   ],
-  "theme_color": "#60A5FA",
-  "background_color": "#EEF2FF",
+  "splash_pages": null,
+  "screenshots": [
+    {
+      "src": "/splash.webp",
+      "sizes": "1242x2688",
+      "type": "image/webp",
+      "platform": "narrow",
+      "label": "Splash screen"
+    }
+  ],
+  "theme_color": "#42587a",
+  "background_color": "#f7fafe",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
