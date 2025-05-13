@@ -1,11 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import {
-  CacheFirst,
-  NetworkFirst,
-  Serwist,
-  StaleWhileRevalidate,
-} from 'serwist'
+import { Serwist } from 'serwist'
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -25,34 +20,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  // runtimeCaching: defaultCache,
-  runtimeCaching: [
-    ...defaultCache,
-    {
-      matcher: ({ request }) => request.url.includes('/splash.png'),
-      handler: new CacheFirst({
-        cacheName: 'splash-screen',
-      }),
-    },
-    {
-      matcher: ({ request }) => {
-        const imageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif']
-        return (
-          request.destination === 'image' &&
-          imageExtensions.some((ext) => request.url.endsWith(ext))
-        )
-      },
-      handler: new StaleWhileRevalidate({
-        cacheName: 'images',
-      }),
-    },
-    {
-      matcher: ({ url }) => url.pathname === '/manifest.json',
-      handler: new NetworkFirst({
-        cacheName: 'manifest',
-      }),
-    },
-  ],
+  runtimeCaching: defaultCache,
 })
 
 serwist.addEventListeners()
