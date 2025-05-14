@@ -14,7 +14,7 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope
 
-// Version 1.0.2 - Test notification de mise à jour
+// Version 1.0.4 - Ajout des notifications push
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
@@ -25,20 +25,7 @@ const serwist = new Serwist({
 
 serwist.addEventListeners()
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('app-shell').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/icon-192x192.png',
-        '/icon-512x512.png',
-      ])
-    }),
-  )
-})
-
+// Gestion des mises à jour
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
@@ -52,16 +39,7 @@ self.addEventListener('activate', (event) => {
       }),
       // Prendre le contrôle des clients
       self.clients.claim(),
-    ]).then(() => {
-      // Notifier les clients de la mise à jour
-      return self.clients.matchAll().then((clients) => {
-        clients.forEach((client) => {
-          if (client.type === 'window') {
-            client.postMessage({ type: 'SW_UPDATED' })
-          }
-        })
-      })
-    }),
+    ]),
   )
 })
 
