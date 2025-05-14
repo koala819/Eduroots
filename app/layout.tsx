@@ -24,7 +24,6 @@ import { Inter as FontSans } from 'next/font/google'
 import RootProvider from '@/components/utils/RootProvider'
 
 import { ClearServiceWorkerCache } from '@/components/atoms/client/ClearServiceWorkerCache'
-import { UpdateNotification } from '@/components/atoms/client/UpdateNotification'
 import { Toaster } from '@/components/ui/toaster'
 
 import { cn } from '@/lib/utils'
@@ -181,7 +180,6 @@ export default async function DashboardLayout({
         )}
       >
         <ClearServiceWorkerCache />
-        <UpdateNotification />
         <RootProvider>{children}</RootProvider>
 
         <Toaster />
