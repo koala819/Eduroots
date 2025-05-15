@@ -1,32 +1,32 @@
 'use client'
 
-import {CircleArrowLeft, ClipboardEdit} from 'lucide-react'
-import {useSession} from 'next-auth/react'
-import {useCallback, useEffect, useMemo, useState} from 'react'
+import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {GradeRecord, GradeTypeEnum, UpdateGradeDTO} from '@/types/grade'
-import {Student} from '@/types/user'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/course'
+import { GradeRecord, GradeTypeEnum, UpdateGradeDTO } from '@/types/grade'
+import { Student } from '@/types/user'
 
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Checkbox} from '@/components/ui/checkbox'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Progress} from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
 
-import {useGrades} from '@/context/Grades/client'
-import {formatDayOfWeek} from '@/lib/utils'
-import {format} from 'date-fns'
-import {fr} from 'date-fns/locale'
+import { useGrades } from '@/context/Grades/client'
+import { formatDayOfWeek } from '@/lib/utils'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
-const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
-  const {gradeId} = params
+const GradeEditPage = ({ params }: { params: { gradeId: string } }) => {
+  const { gradeId } = params
   const {
     teacherGrades,
     updateGradeRecord,
@@ -34,8 +34,8 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
     getTeacherGrades,
   } = useGrades()
   const router = useRouter()
-  const {data: session} = useSession()
-  const {toast} = useToast()
+  const { data: session } = useSession()
+  const { toast } = useToast()
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -83,12 +83,14 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
             })
 
             // Préparer les données des élèves et leurs notes
-            const convertedRecords: GradeRecord[] = grade.records.map((record) => ({
-              student: record.student.id,
-              value: record.value,
-              isAbsent: record.isAbsent,
-              comment: record.comment || '',
-            }))
+            const convertedRecords: GradeRecord[] = grade.records.map(
+              (record) => ({
+                student: record.student.id,
+                value: record.value,
+                isAbsent: record.isAbsent,
+                comment: record.comment || '',
+              }),
+            )
 
             const convertedStudents = grade.records.map((record) => ({
               ...record.student,
@@ -117,19 +119,27 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
-    if (!gradeEntries.records.length) return {completed: 0, total: 0, percent: 0, average: 0}
+    if (!gradeEntries.records.length)
+      return { completed: 0, total: 0, percent: 0, average: 0 }
 
     const total = gradeEntries.records.length
     const absentCount = gradeEntries.records.filter((r) => r.isAbsent).length
-    const gradedCount = gradeEntries.records.filter((r) => !r.isAbsent && r.value > 0).length
-    const sum = gradeEntries.records.reduce((acc, r) => acc + (r.isAbsent ? 0 : r.value), 0)
+    const gradedCount = gradeEntries.records.filter(
+      (r) => !r.isAbsent && r.value > 0,
+    ).length
+    const sum = gradeEntries.records.reduce(
+      (acc, r) => acc + (r.isAbsent ? 0 : r.value),
+      0,
+    )
     const average = gradedCount > 0 ? sum / gradedCount : 0
 
     return {
       completed: gradedCount,
       total: total - absentCount,
       percent:
-        total === absentCount ? 100 : Math.round((gradedCount / (total - absentCount)) * 100),
+        total === absentCount
+          ? 100
+          : Math.round((gradedCount / (total - absentCount)) * 100),
       average: average.toFixed(1),
     }
   }, [gradeEntries.records])
@@ -141,7 +151,9 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
       value: number | string | boolean,
     ) => {
       setGradeEntries((prev) => {
-        const recordIndex = prev.records.findIndex((r) => r.student === studentId)
+        const recordIndex = prev.records.findIndex(
+          (r) => r.student === studentId,
+        )
 
         if (recordIndex === -1) return prev
 
@@ -150,7 +162,7 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
           ...newRecords[recordIndex],
           [field]: value,
           // Si marqué absent, réinitialiser la note
-          ...(field === 'isAbsent' && value === true ? {value: 0} : {}),
+          ...(field === 'isAbsent' && value === true ? { value: 0 } : {}),
         }
 
         return {
@@ -195,12 +207,13 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
           description: 'Les modifications ont été enregistrées avec succès',
           duration: 3000,
         })
-        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`)
+        router.push('/teacher/profiles/grades')
       } else {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: 'Une erreur est survenue lors de la mise à jour des notes',
+          description:
+            'Une erreur est survenue lors de la mise à jour des notes',
           duration: 3000,
         })
       }
@@ -208,7 +221,8 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        description:
+          error instanceof Error ? error.message : 'Une erreur est survenue',
         duration: 3000,
       })
     } finally {
@@ -252,11 +266,11 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
         />
       </div>
     )
@@ -269,9 +283,7 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
           <Button
             variant="link"
             className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
-            onClick={() =>
-              router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`)
-            }
+            onClick={() => router.push('/teacher/profiles/grades')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Retour</span>
@@ -279,14 +291,18 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
 
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <span className="text-xs font-medium">{gradeEntries.students.length}</span>
+              <span className="text-xs font-medium">
+                {gradeEntries.students.length}
+              </span>
             </div>
             <span className="text-sm text-gray-500">Élèves</span>
           </div>
         </div>
 
         <div className="pb-3 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">Modifier les notes</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Modifier les notes
+          </h1>
         </div>
 
         {/* Informations de l'évaluation */}
@@ -303,17 +319,23 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
               </Badge>
 
               {gradeInfo.subject && (
-                <Badge variant="outline" className={getSubjectColor(gradeInfo.subject)}>
+                <Badge
+                  variant="outline"
+                  className={getSubjectColor(gradeInfo.subject)}
+                >
                   {gradeInfo.subject}
                 </Badge>
               )}
 
               <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                {format(gradeInfo.date, 'dd MMMM yyyy', {locale: fr})}
+                {format(gradeInfo.date, 'dd MMMM yyyy', { locale: fr })}
               </Badge>
 
               {gradeInfo.isDraft && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-700">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-100 text-amber-700"
+                >
                   Brouillon
                 </Badge>
               )}
@@ -340,7 +362,9 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
         {/* Liste des élèves */}
         {gradeEntries.students.length > 0 ? (
           <div className="space-y-4 mt-2">
-            <h2 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Notes des élèves</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
+              Notes des élèves
+            </h2>
 
             {gradeEntries.students.map((student) => {
               const record = getStudentRecord(student.id)
@@ -369,7 +393,11 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
                               id={`absent-${student.id}`}
                               checked={record?.isAbsent || false}
                               onCheckedChange={(checked) => {
-                                handleGradeUpdate(student.id, 'isAbsent', checked as boolean)
+                                handleGradeUpdate(
+                                  student.id,
+                                  'isAbsent',
+                                  checked as boolean,
+                                )
                               }}
                               className="mr-2"
                             />
@@ -381,7 +409,10 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
                             </Label>
                           </div>
                           {record?.isAbsent && (
-                            <Badge variant="outline" className="bg-red-100 text-red-600 text-xs">
+                            <Badge
+                              variant="outline"
+                              className="bg-red-100 text-red-600 text-xs"
+                            >
                               Absent
                             </Badge>
                           )}
@@ -404,32 +435,49 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
                             max="20"
                             step="0.5"
                             disabled={record?.isAbsent || false}
-                            value={record?.value && record.value > 0 ? record.value : ''}
+                            value={
+                              record?.value && record.value > 0
+                                ? record.value
+                                : ''
+                            }
                             onChange={(e) => {
                               const value = parseFloat(e.target.value)
                               handleGradeUpdate(
                                 student.id,
                                 'value',
-                                isNaN(value) ? 0 : Math.min(20, Math.max(0, value)),
+                                isNaN(value)
+                                  ? 0
+                                  : Math.min(20, Math.max(0, value)),
                               )
                             }}
                             className="text-center"
                             placeholder="Note /20"
                           />
-                          <span className="ml-2 text-sm text-gray-500">/20</span>
+                          <span className="ml-2 text-sm text-gray-500">
+                            /20
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-3">
-                      <Label htmlFor={`comment-${student.id}`} className="text-sm mb-1 block">
+                      <Label
+                        htmlFor={`comment-${student.id}`}
+                        className="text-sm mb-1 block"
+                      >
                         Commentaire
                       </Label>
                       <Input
                         id={`comment-${student.id}`}
                         placeholder="Ajouter un commentaire (optionnel)"
                         value={record?.comment || ''}
-                        onChange={(e) => handleGradeUpdate(student.id, 'comment', e.target.value)}
+                        onChange={(e) =>
+                          handleGradeUpdate(
+                            student.id,
+                            'comment',
+                            e.target.value,
+                          )
+                        }
                       />
                     </div>
                   </CardContent>
@@ -442,9 +490,12 @@ const GradeEditPage = ({params}: {params: {gradeId: string}}) => {
             <div className="text-gray-400 mb-3">
               <ClipboardEdit className="w-12 h-12 mx-auto opacity-50" />
             </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">Aucun élève à afficher</h3>
+            <h3 className="text-lg font-medium text-gray-700 mb-1">
+              Aucun élève à afficher
+            </h3>
             <p className="text-gray-500 mb-4">
-              Aucune donnée d&apos;élève n&apos;est disponible pour cette évaluation.
+              Aucune donnée d&apos;élève n&apos;est disponible pour cette
+              évaluation.
             </p>
           </div>
         )}

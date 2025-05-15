@@ -41,7 +41,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   courseId,
 }) => {
   const {createBehaviorRecord} = useBehavior()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getCourseById} = useCourses()
   const {getOneStudent} = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
@@ -55,7 +55,6 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
       students
         .filter((record) => record.isPresent)
         .map((record) => [
-          // Ajustement pour utiliser le bon ID selon le type
           typeof record.student === 'string' ? record.student : record.student.id,
           5,
         ]),
@@ -65,53 +64,48 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   useEffect(() => {
     let isMounted = true
 
-    async function loadStudentDetails() {
+    const loadData = async () => {
       try {
-        const studentsData: Record<string, Student> = {}
-
-        await Promise.all(
-          students
-            .filter((s) => s.isPresent)
-            .map(async (s) => {
-              const studentId = typeof s.student === 'string' ? s.student : s.student.id
-              const studentDetail = await getOneStudent(studentId)
-              if (isMounted) {
-                studentsData[studentId] = studentDetail
-              }
-            }),
-        )
+        setIsInitialLoading(true)
+        const [courseData, studentsData] = await Promise.all([
+          getCourseById(courseId),
+          Promise.all(
+            students
+              .filter((s) => s.isPresent)
+              .map(async (s) => {
+                const studentId = typeof s.student === 'string' ? s.student : s.student.id
+                const studentDetail = await getOneStudent(studentId)
+                return [studentId, studentDetail]
+              }),
+          ),
+        ])
 
         if (isMounted) {
-          setStudentDetails(studentsData)
-          setIsInitialLoading(false)
+          setCourse(courseData)
+          setStudentDetails(Object.fromEntries(studentsData))
         }
       } catch (error) {
-        console.error('Error loading student details:', error)
-        setIsInitialLoading(false)
+        console.error('Error loading data:', error)
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false)
+        }
       }
     }
 
-    loadStudentDetails()
+    loadData()
     return () => {
       isMounted = false
     }
-  }, [students, getOneStudent])
+  }, [courseId, students, getCourseById, getOneStudent])
 
-  useEffect(() => {
-    async function fecthCourse() {
-      const course = await getCourseById(courseId)
-      setCourse(course)
-    }
-    fecthCourse()
-  }, [courseId, getCourseById])
-
-  async function handleSave() {
-    setIsRecording(true)
+  const handleSave = async () => {
     if (!course?.sessions?.[0]?.id) {
       console.error('Session ID not found')
       return
     }
 
+    setIsRecording(true)
     try {
       const records = Object.entries(behavior).map(([studentId, rating]) => ({
         student: studentId,
@@ -124,34 +118,30 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
         records: records,
         sessionId: course.sessions[0].id,
       })
-      onClose()
 
-      // Optionally reload the page if needed
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
+      onClose()
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de l'attendance:", error)
+      console.error("Erreur lors de l'enregistrement du comportement:", error)
     } finally {
       setIsRecording(false)
     }
   }
 
-  function handleCancelAction(confirmClose: boolean) {
+  const handleCancelAction = (confirmClose: boolean) => {
     if (confirmClose) {
       onClose()
     }
     setIsConfirmOpen(false)
   }
 
-  function setRating(studentId: string, rating: number) {
+  const setRating = (studentId: string, rating: number) => {
     setBehavior((prev) => ({
       ...prev,
       [studentId]: rating,
     }))
   }
 
-  if (isLoadingCourse || isInitialLoading) {
+  if (isInitialLoading) {
     return (
       <div className="h-[200px] flex items-center justify-center">
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
@@ -179,12 +169,6 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Nouvelle Feuille des Comportements
-                </h2>
-              </div>
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">

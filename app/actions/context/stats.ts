@@ -1,23 +1,24 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
-import {revalidatePath} from 'next/cache'
+import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 
-import {ApiResponse} from '@/types/api'
-import {EntityStats, StudentStats, TeacherStats} from '@/types/stats'
+import { ApiResponse } from '@/types/api'
+import { EntityStats, StudentStats, TeacherStats } from '@/types/stats'
 
-import dbConnect, {isConnected} from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/attendance.model'
-import {StudentStats as StudentStatsModel} from '@/backend/models/student-stats.model'
-import {TeacherStats as TeacherStatsModel} from '@/backend/models/teacher-stats.model'
-import {User} from '@/backend/models/user.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
+import dbConnect, { isConnected } from '@/backend/config/dbConnect'
+import { Attendance } from '@/backend/models/attendance.model'
+import { Course } from '@/backend/models/course.model'
+import { StudentStats as StudentStatsModel } from '@/backend/models/student-stats.model'
+import { TeacherStats as TeacherStatsModel } from '@/backend/models/teacher-stats.model'
+import { User } from '@/backend/models/user.model'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/lib/stats/student'
-import {isValidObjectId} from 'mongoose'
+import { isValidObjectId } from 'mongoose'
 
 async function getSessionServer() {
   const session = await getServerSession()
@@ -27,7 +28,9 @@ async function getSessionServer() {
   return session
 }
 
-export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>> {
+export async function refreshEntityStats(
+  forceUpdate: boolean = false,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   try {
@@ -36,12 +39,29 @@ export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>
       await dbConnect()
     }
 
-    const studentStats = await executeWithRetry(() =>
-      StudentStatsModel.find().sort({lastUpdate: -1}).lean(),
-    )
-    const teacherStats = await executeWithRetry(() =>
-      TeacherStatsModel.find().sort({lastUpdate: -1}).lean(),
-    )
+    // Si forceUpdate est true, recalculer les statistiques
+    if (forceUpdate) {
+      // Récupérer tous les étudiants
+      const students = await User.find({ role: 'student', isActive: true })
+      console.log("📊 Nombre d'étudiants trouvés:", students.length)
+
+      // Recalculer les statistiques pour chaque étudiant
+      for (const student of students) {
+        console.log(
+          "📊 Recalcul des statistiques pour l'étudiant:",
+          student._id,
+        )
+        await calculateStudentAttendanceRate(student._id.toString())
+      }
+    }
+
+    // Récupérer les statistiques mises à jour
+    const studentStats = await StudentStatsModel.find()
+      .sort({ lastUpdate: -1 })
+      .lean()
+    const teacherStats = await TeacherStatsModel.find()
+      .sort({ lastUpdate: -1 })
+      .lean()
 
     const serializedStudentStats = studentStats.map((stat) => ({
       ...(serializeData(stat) as object),
@@ -51,16 +71,18 @@ export async function refreshEntityStats(): Promise<ApiResponse<SerializedValue>
       ...(serializeData(stat) as object),
     })) as EntityStats[]
 
-    // Combinez les deux tableaux
+    // Combiner les deux tableaux
     const allStats = [...serializedStudentStats, ...serializedTeacherStats]
     return {
       success: true,
       data: allStats ? serializeData(allStats) : null,
-      message: 'Cours récupéré avec succès',
+      message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
     console.error('[GET_ENTITY_STATS]', error)
-    throw new Error('Erreur lors de la récupération des statistiques des entités')
+    throw new Error(
+      'Erreur lors de la récupération des statistiques des entités',
+    )
   }
 }
 
@@ -83,7 +105,11 @@ export async function updateStudentStats(
     }
 
     // Validation des statsData pour un étudiant
-    const requiredFields = ['attendanceRate', 'totalAbsences', 'behaviorAverage']
+    const requiredFields = [
+      'attendanceRate',
+      'totalAbsences',
+      'behaviorAverage',
+    ]
     if (!requiredFields.every((field) => field in statsData)) {
       return {
         success: false,
@@ -93,7 +119,7 @@ export async function updateStudentStats(
     }
 
     const stats = await StudentStatsModel.findOneAndUpdate(
-      {userId: id},
+      { userId: id },
       {
         $set: {
           ...statsData,
@@ -158,7 +184,7 @@ export async function updateTeacherStats(
     }
 
     const stats = await TeacherStatsModel.findOneAndUpdate(
-      {userId: id},
+      { userId: id },
       {
         $set: {
           ...statsData,
@@ -197,7 +223,9 @@ export async function updateTeacherStats(
 /**
  * Récupère les statistiques globales
  */
-export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>> {
+export async function refreshGlobalStats(): Promise<
+  ApiResponse<SerializedValue>
+> {
   await getSessionServer()
 
   try {
@@ -216,7 +244,9 @@ export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>
     }
 
     // Use executeWithRetry for all database operations
-    const attendances = await executeWithRetry(() => Attendance.find({isActive: true}).lean())
+    const attendances = await executeWithRetry(() =>
+      Attendance.find({ isActive: true }).lean(),
+    )
 
     // Calculer la moyenne des taux de présence
     let totalPresenceRate = 0
@@ -224,10 +254,11 @@ export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>
       totalPresenceRate += attendance.stats.presenceRate
     })
 
-    const averagePresenceRate = attendances.length > 0 ? totalPresenceRate / attendances.length : 0
+    const averagePresenceRate =
+      attendances.length > 0 ? totalPresenceRate / attendances.length : 0
 
-    const teachers = await User.find({role: 'teacher', isActive: true})
-    const students = await User.find({role: 'student', isActive: true})
+    const teachers = await User.find({ role: 'teacher', isActive: true })
+    const students = await User.find({ role: 'student', isActive: true })
     const totalStudents = students.length
 
     return {
@@ -282,7 +313,9 @@ export async function getStudentAttendance(
 /**
  * Récupère les données de comportement d'un étudiant
  */
-export async function getStudentBehavior(studentId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getStudentBehavior(
+  studentId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   if (!studentId) {
@@ -313,7 +346,9 @@ export async function getStudentBehavior(studentId: string): Promise<ApiResponse
 /**
  * Récupère les données de notes d'un étudiant
  */
-export async function getStudentGrade(studentId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getStudentGrade(
+  studentId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
 
   if (!studentId) {
@@ -334,12 +369,84 @@ export async function getStudentGrade(studentId: string): Promise<ApiResponse<Se
       message: "Notes de l'étudiant récupérés avec succès",
     }
   } catch (error) {
-    console.error(`Erreur lors de la récupération des notes pour l'étudiant ${studentId}:`, error)
+    console.error(
+      `Erreur lors de la récupération des notes pour l'étudiant ${studentId}:`,
+      error,
+    )
     throw error
   }
 }
 
-async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+/**
+ * Met à jour uniquement les statistiques des élèves d'un professeur spécifique
+ */
+export async function refreshTeacherStudentsStats(
+  forceUpdate: boolean = false,
+): Promise<ApiResponse<SerializedValue>> {
+  const session = await getSessionServer()
+
+  try {
+    if (!isConnected()) {
+      console.log('MongoDB not connected, reconnecting...')
+      await dbConnect()
+    }
+
+    // Si forceUpdate est true, recalculer les statistiques
+    if (forceUpdate) {
+      // Récupérer les cours du professeur
+      const courses = await Course.find({
+        teacher: session.user.id,
+        isActive: true,
+      })
+
+      // Récupérer tous les élèves uniques des cours du professeur
+      const studentIds = new Set<string>()
+      for (const course of courses) {
+        for (const session of course.sessions) {
+          session.students.forEach((student: { toString: () => string }) =>
+            studentIds.add(student.toString()),
+          )
+        }
+      }
+
+      console.log("📊 Nombre d'élèves du professeur trouvés:", studentIds.size)
+
+      // Recalculer les statistiques pour chaque élève du professeur
+      const uniqueStudentIds = Array.from(studentIds)
+      for (const studentId of uniqueStudentIds) {
+        console.log("📊 Recalcul des statistiques pour l'élève:", studentId)
+        await calculateStudentAttendanceRate(studentId)
+      }
+    }
+
+    // Récupérer les statistiques mises à jour des élèves du professeur
+    const studentStats = await StudentStatsModel.find()
+      .sort({ lastUpdate: -1 })
+      .lean()
+
+    const serializedStudentStats = studentStats.map((stat) => ({
+      ...(serializeData(stat) as object),
+    })) as EntityStats[]
+
+    return {
+      success: true,
+      data: serializedStudentStats
+        ? serializeData(serializedStudentStats)
+        : null,
+      message: 'Statistiques des élèves mises à jour avec succès',
+    }
+  } catch (error) {
+    console.error('[GET_TEACHER_STUDENTS_STATS]', error)
+    throw new Error(
+      'Erreur lors de la récupération des statistiques des élèves du professeur',
+    )
+  }
+}
+
+async function executeWithRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+): Promise<T> {
   let lastError
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -347,7 +454,10 @@ async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3):
       await dbConnect()
       return await operation()
     } catch (error) {
-      console.error(`Operation failed (attempt ${attempt}/${maxRetries}):`, error)
+      console.error(
+        `Operation failed (attempt ${attempt}/${maxRetries}):`,
+        error,
+      )
       lastError = error
 
       // Only retry on connection-related errors

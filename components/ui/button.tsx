@@ -34,7 +34,7 @@ function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record
           teacherFooter: '',
           teacherSecondary: '',
           teacherTertiary: '',
-          teacherWarning: 'bg-green-500 text-destructive-foreground hover:bg-red-800/90',
+          teacherWarning: 'bg-red-500 text-destructive-foreground hover:bg-red-800/90',
           ...variantsRecord,
         },
         size: {

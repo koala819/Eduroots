@@ -7,7 +7,7 @@ import {useRouter} from 'next/navigation'
 
 import {useToast} from '@/hooks/use-toast'
 
-import {SubjectNameEnum, TimeSlotEnum} from '@/types/course'
+import {CourseSession, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
 import {GenderEnum, Student, UserRoleEnum, UserType} from '@/types/user'
 
 import StepOne from '@/components/admin/atoms/client/NewStudentStep1'
@@ -22,6 +22,7 @@ import {useStudents} from '@/context/Students/client'
 import {useTeachers} from '@/context/Teachers/client'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import useCourseStore from '@/stores/useCourseStore'
 
 const studentSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -51,7 +52,8 @@ const studentSchema = z.object({
 export type FormData = z.infer<typeof studentSchema>
 
 const NewStudentForm = () => {
-  const {addStudentToCourse, getTeacherCourses} = useCourses()
+  const {addStudentToCourse} = useCourses()
+  const {courses} = useCourseStore()
   const router = useRouter()
   const {createStudent} = useStudents()
   const {teachers, getAllTeachers} = useTeachers()
@@ -178,8 +180,11 @@ const NewStudentForm = () => {
       for (const selection of values.selections) {
         try {
           // 1. D'abord récupérer les cours du professeur
-          const teacherCourse = await getTeacherCourses(selection.teacherId)
-          // console.log('🚀 les cours du professeur:', teacherCourse)
+          const teacherCourse = courses.find(
+            (course) =>
+              Array.isArray(course.teacher) &&
+              course.teacher.some((teacherId) => teacherId === selection.teacherId),
+          )
 
           if (!teacherCourse) {
             toast({
@@ -191,7 +196,7 @@ const NewStudentForm = () => {
           }
 
           // 2. Trouver la bonne session qui correspond à la sélection
-          const targetSession = teacherCourse.sessions.find((session) => {
+          const targetSession = teacherCourse.sessions.find((session: CourseSession) => {
             if (!session?.timeSlot) return false
 
             return (

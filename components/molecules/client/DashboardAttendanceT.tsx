@@ -9,11 +9,12 @@ import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
 import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
 import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
 import {Card, CardContent} from '@/components/ui/card'
-import {Sheet, SheetContent} from '@/components/ui/sheet'
+import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
 
 import {useAttendance} from '@/context/Attendances/client'
 import {useCourses} from '@/context/Courses/client'
 import {AnimatePresence} from 'framer-motion'
+import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardAttendanceT = ({
   courseId,
@@ -26,7 +27,8 @@ export const DashboardAttendanceT = ({
 }) => {
   const {data: session} = useSession()
 
-  const {getTeacherCourses, isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const {allAttendance, fetchAttendances, error} = useAttendance()
 
   const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
@@ -41,7 +43,7 @@ export const DashboardAttendanceT = ({
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([fetchAttendances({courseId}), getTeacherCourses(session.user.id)])
+        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(session.user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -50,7 +52,7 @@ export const DashboardAttendanceT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, getTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchTeacherCourses, session?.user?.id])
 
   function handleCreateAttendance(date: string) {
     setSelectedDate(date)
@@ -63,14 +65,22 @@ export const DashboardAttendanceT = ({
     setIsEdittingAttendance(true)
   }
 
-  function handleCloseCreate() {
+  async function handleCloseCreate() {
     setIsCreatingAttendance(false)
-    setSelectedDate(null)
+    // Attendre un peu que le modal soit fermé
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    // Recharger les données sans recharger toute la page
+    if (courseId) {
+      await fetchAttendances({courseId})
+    }
   }
 
-  function handleCloseEdit() {
+  async function handleCloseEdit() {
     setIsEdittingAttendance(false)
-    setSelectedDate(null)
+    // Recharger les données sans recharger toute la page
+    if (courseId) {
+      await fetchAttendances({courseId})
+    }
   }
 
   if (isLoadingCourses || isLoadingAttendance) {
@@ -115,6 +125,9 @@ export const DashboardAttendanceT = ({
         {isCreatingAttendance && (
           <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Nouvelle Feuille des Présences
+              </SheetTitle>
               {selectedDate && (
                 <AttendanceCreate
                   courseId={courseId}
@@ -129,6 +142,9 @@ export const DashboardAttendanceT = ({
         {isEditingAttendance && (
           <Sheet open={isEditingAttendance} onOpenChange={setIsEdittingAttendance}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Modifier la Feuille des Présences
+              </SheetTitle>
               {selectedAttendanceId && selectedDate && (
                 <AttendanceEdit
                   courseId={courseId}

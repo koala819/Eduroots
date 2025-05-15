@@ -1,6 +1,6 @@
-import {defaultCache} from '@serwist/next/worker'
-import type {PrecacheEntry, SerwistGlobalConfig} from 'serwist'
-import {NetworkFirst, Serwist, StaleWhileRevalidate} from 'serwist'
+import { defaultCache } from '@serwist/next/worker'
+import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
+import { Serwist } from 'serwist'
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -14,71 +14,32 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope
 
+// Version 1.0.4 - Ajout des notifications push
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  // runtimeCaching: defaultCache,
-  runtimeCaching: [
-    ...defaultCache,
-    {
-      matcher: ({request}) => {
-        const imageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif']
-        return (
-          request.destination === 'image' &&
-          imageExtensions.some((ext) => request.url.endsWith(ext))
-        )
-      },
-      handler: new StaleWhileRevalidate({
-        cacheName: 'images',
-      }),
-    },
-    {
-      matcher: ({url}) => url.pathname === '/manifest.json',
-      handler: new NetworkFirst({
-        cacheName: 'manifest',
-      }),
-    },
-  ],
+  runtimeCaching: defaultCache,
 })
 
 serwist.addEventListeners()
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('app-shell').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/icon-192x192.png',
-        '/icon-512x512.png',
-      ])
-    }),
-  )
-})
-
+// Gestion des mises à jour
 self.addEventListener('activate', (event) => {
-  // Supprimez explicitement les anciens caches lors de l'activation du nouveau SW
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          return caches.delete(cacheName)
-        }),
-      ).then(() => {
-        return self.clients.claim().then(() => {
-          self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-              if (client.type === 'window') {
-                client.postMessage({type: 'SW_UPDATED'})
-              }
-            })
-          })
-        })
-      })
-    }),
+    Promise.all([
+      // Supprimer les anciens caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            return caches.delete(cacheName)
+          }),
+        )
+      }),
+      // Prendre le contrôle des clients
+      self.clients.claim(),
+    ]),
   )
 })
 

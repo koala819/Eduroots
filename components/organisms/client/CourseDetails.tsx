@@ -14,7 +14,7 @@ interface CourseDetailsProps {
   selectedSession: CourseSession
   courseDates: Date[]
   sortedStudents: Student[]
-  teacherCourses: PopulatedCourse
+  teacherCourses: PopulatedCourse[]
 }
 
 export function CourseDetails({
