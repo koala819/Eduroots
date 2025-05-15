@@ -13,7 +13,9 @@ import {
 
 import {useToast} from '@/hooks/use-toast'
 
-import {CourseSession, PopulatedCourse, TimeSlot, TimeSlotEnum} from '@/types/course'
+import {CourseSession, PopulatedCourse, TimeSlot} from '@/types/course'
+
+import useCourseStore from '@/stores/useCourseStore'
 
 import {
   addStudentToCourse as addStudentToCourseAction,
@@ -22,7 +24,6 @@ import {
   deleteCourse as deleteCourseAction,
   getCourseById as getCourseByIdAction,
   getStudentCourses as getStudentCoursesAction,
-  getTeacherCourses as getTeacherCoursesAction,
   removeStudentFromCourse as removeStudentFromCourseAction,
   updateCourse as updateCourseAction,
   updateCourseSession as updateCourseSessionAction,
@@ -161,7 +162,7 @@ interface CourseContextType extends CourseState {
   deleteCourse: (courseId: string) => Promise<PopulatedCourse>
   getCoursesByTimeSlot: (timeSlot: TimeSlot) => PopulatedCourse[]
   getStudentCourses: (studentId: string) => Promise<PopulatedCourse[]>
-  getTeacherCourses: (teacherId: string) => Promise<PopulatedCourse>
+  fetchTeacherCourses: (teacherId: string) => Promise<void>
   getCourseById: (courseId: string) => Promise<PopulatedCourse | null>
   getCourseByIdForStudent: (courseId: string) => Promise<PopulatedCourse | null>
   removeStudentFromCourse: (courseId: string, studentId: string) => Promise<void>
@@ -180,16 +181,6 @@ interface CourseContextType extends CourseState {
 
 const CoursesContext = createContext<CourseContextType | null>(null)
 
-function compareTimeSlots(a: CourseSession, b: CourseSession) {
-  const timeSlotOrder = {
-    [TimeSlotEnum.SATURDAY_MORNING]: 0,
-    [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
-    [TimeSlotEnum.SUNDAY_MORNING]: 2,
-  }
-
-  return timeSlotOrder[a.timeSlot.dayOfWeek] - timeSlotOrder[b.timeSlot.dayOfWeek]
-}
-
 export const CoursesProvider = ({
   children,
   initialCourseData = null,
@@ -200,6 +191,7 @@ export const CoursesProvider = ({
   const {toast} = useToast()
   const [state, dispatch] = useReducer(courseReducer, getInitialState(initialCourseData))
   const {data: session, status} = useSession()
+  const {fetchTeacherCourses} = useCourseStore()
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
@@ -401,44 +393,6 @@ export const CoursesProvider = ({
     [state.courses],
   )
 
-  const getTeacherCourses = useCallback(
-    async (teacherId: string): Promise<PopulatedCourse> => {
-      try {
-        const response = await getTeacherCoursesAction(teacherId)
-
-        if (!response.success) {
-          throw new Error(response.message || 'Failed to fetch teacher courses')
-        }
-
-        if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-          throw new Error('Aucun cours trouvé pour ce professeur')
-        }
-
-        const course = response.data[0] as unknown as PopulatedCourse
-
-        if (!course || !course.sessions) {
-          throw new Error('Données de cours invalides')
-        }
-
-        const coursesWithSortedSessions = {
-          ...course,
-          sessions: [...course.sessions].sort(compareTimeSlots),
-        }
-
-        dispatch({
-          type: 'SET_TEACHER_COURSES',
-          payload: coursesWithSortedSessions,
-        })
-
-        return coursesWithSortedSessions
-      } catch (error) {
-        handleError(error as Error, 'Erreur lors de la récupération des cours du professeur')
-        throw error
-      }
-    },
-    [handleError],
-  )
-
   const removeStudentFromCourse = useCallback(
     async (courseId: string, studentId: string): Promise<void> => {
       try {
@@ -579,10 +533,11 @@ export const CoursesProvider = ({
     if (status === 'authenticated' && session?.user) {
       // console.log('Session authenticated, loading courses data')
       updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
+      fetchTeacherCourses(session.user.id)
     } else if (status === 'loading') {
       // console.log('Auth session is still loading')
     }
-  }, [initialCourseData, session, status, updateCourses])
+  }, [initialCourseData, session, status, fetchTeacherCourses, updateCourses])
 
   const value = useMemo(
     () => ({
@@ -593,7 +548,7 @@ export const CoursesProvider = ({
       deleteCourse,
       getCoursesByTimeSlot,
       getStudentCourses,
-      getTeacherCourses,
+      fetchTeacherCourses,
       removeStudentFromCourse,
       updateCourse,
       updateCourses,
@@ -609,7 +564,7 @@ export const CoursesProvider = ({
       deleteCourse,
       getCoursesByTimeSlot,
       getStudentCourses,
-      getTeacherCourses,
+      fetchTeacherCourses,
       removeStudentFromCourse,
       updateCourse,
       updateCourses,

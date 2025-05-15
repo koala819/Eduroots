@@ -1,11 +1,11 @@
-import {NextRequest, NextResponse} from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-import {CourseSession} from '@/types/course'
-import {GenderEnum, Student, Teacher} from '@/types/user'
+import { CourseSession } from '@/types/course'
+import { GenderEnum, Student, Teacher } from '@/types/user'
 
-import {Course} from '@/backend/models/course.model'
-import {TeacherStats} from '@/backend/models/teacher-stats.model'
-import {validateRequest} from '@/lib/api.utils'
+import { Course } from '@/backend/models/course.model'
+import { TeacherStats } from '@/backend/models/teacher-stats.model'
+import { validateRequest } from '@/lib/api.utils'
 
 function calculateAge(dateOfBirth: string): number {
   const today = new Date()
@@ -44,7 +44,9 @@ export async function POST(req: NextRequest) {
 
     courses.forEach((course) => {
       // Gérer le cas où teacher est un tableau
-      const teacherArray = Array.isArray(course.teacher) ? course.teacher : [course.teacher]
+      const teacherArray = Array.isArray(course.teacher)
+        ? course.teacher
+        : [course.teacher]
 
       teacherArray.forEach((teacher: Teacher) => {
         if (!teacher || !teacher._id) {
@@ -82,7 +84,9 @@ export async function POST(req: NextRequest) {
         course.sessions?.forEach((session: CourseSession) => {
           if (!session.students) return
 
-          const students = Array.isArray(session.students) ? session.students : [session.students]
+          const students = Array.isArray(session.students)
+            ? session.students
+            : [session.students]
 
           students.forEach((student: Student) => {
             if (!student) return
@@ -110,34 +114,37 @@ export async function POST(req: NextRequest) {
     // console.log('Stats calculées pour', teacherStats.size, 'professeurs')
 
     // Mise à jour des stats dans la base
-    const updatePromises = Array.from(teacherStats.entries()).map(async ([teacherId, stats]) => {
-      const statsData = {
-        studentCount: stats.studentCount,
-        averageAge: stats.validAgeCount > 0 ? stats.totalAge / stats.validAgeCount : 0,
-        genderDistribution: stats.genderDistribution,
-        courseCount: stats.courseCount,
-        lastUpdate: new Date(),
-      }
+    const updatePromises = Array.from(teacherStats.entries()).map(
+      async ([teacherId, stats]) => {
+        const statsData = {
+          studentCount: stats.studentCount,
+          averageAge:
+            stats.validAgeCount > 0 ? stats.totalAge / stats.validAgeCount : 0,
+          genderDistribution: stats.genderDistribution,
+          courseCount: stats.courseCount,
+          lastUpdate: new Date(),
+        }
 
-      // console.log(`Mise à jour stats pour prof ${teacherId}:`, statsData)
+        // console.log(`Mise à jour stats pour prof ${teacherId}:`, statsData)
 
-      return TeacherStats.findOneAndUpdate(
-        {
-          userId: teacherId,
-          type: 'teacher',
-        },
-        {
-          $set: {
-            statsData,
-            lastUpdate: new Date(),
+        return TeacherStats.findOneAndUpdate(
+          {
+            userId: teacherId,
+            type: 'teacher',
           },
-        },
-        {
-          upsert: true,
-          new: true,
-        },
-      )
-    })
+          {
+            $set: {
+              statsData,
+              lastUpdate: new Date(),
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        )
+      },
+    )
 
     const results = await Promise.all(updatePromises)
     // console.log(`${results.length} stats mises à jour avec succès`)

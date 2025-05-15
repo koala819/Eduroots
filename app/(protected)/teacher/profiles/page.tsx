@@ -1,14 +1,33 @@
 'use client'
 
-import {Calendar, LogOut, PenSquare, Users} from 'lucide-react'
-import {signOut} from 'next-auth/react'
-import {useSession} from 'next-auth/react'
+import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
+import { signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {ProfileSection} from '@/components/molecules/server/ProfileSection'
+import { ProfileSection } from '@/components/molecules/server/ProfileSection'
+
+import { useStats } from '@/context/Stats/client'
+
+// Déclaration du type OneSignal
+declare global {
+  interface Window {
+    OneSignal: {
+      isPushNotificationsSupported(): Promise<boolean>
+      User: {
+        PushSubscription: {
+          optedIn: boolean
+          optIn(): Promise<void>
+          optOut(): Promise<void>
+        }
+      }
+    }
+  }
+}
 
 export type MenuItem = {
   icon: React.ReactNode
@@ -19,9 +38,11 @@ export type MenuItem = {
 
 const ProfilePage = () => {
   const router = useRouter()
-  const {data: session} = useSession()
+  const { data: session } = useSession()
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
 
-  const {toast} = useToast()
+  const { toast } = useToast()
+  const { refreshTeacherStudentsStats, refreshGlobalStats } = useStats()
 
   function logoutHandler() {
     signOut({
@@ -36,7 +57,9 @@ const ProfilePage = () => {
       title: 'Détail des élèves',
       // color: 'text-green-600',
       onClick: () => {
-        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/classroom`)
+        router.push(
+          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/classroom`,
+        )
         // console.log('Détail élèves')
       },
     },
@@ -45,7 +68,9 @@ const ProfilePage = () => {
       title: 'Devoirs & Contrôles',
       // color: 'text-orange-600',
       onClick: () => {
-        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`)
+        router.push(
+          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`,
+        )
         // console.log('Gérer notes')
       },
     },
@@ -54,8 +79,60 @@ const ProfilePage = () => {
       title: 'Emploi du temps',
       // color: 'text-purple-600',
       onClick: () => {
-        router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/edit`)
+        router.push(
+          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/edit`,
+        )
         // console.log('Gérer matières')
+      },
+    },
+    {
+      icon: <BarChart className="h-5 w-5" />,
+      title: 'Mettre à jour les statistiques',
+      onClick: async () => {
+        const now = Date.now()
+        const timeSinceLastUpdate = now - lastUpdateTime
+        const MIN_UPDATE_INTERVAL = 1000 * 60 * 30 // 30 minutes
+
+        if (timeSinceLastUpdate < MIN_UPDATE_INTERVAL) {
+          toast({
+            variant: 'destructive',
+            title: 'Mise à jour impossible',
+            description: `Veuillez attendre ${Math.ceil((MIN_UPDATE_INTERVAL - timeSinceLastUpdate) / 1000 / 60)} minutes avant la prochaine mise à jour`,
+            duration: 3000,
+          })
+          return
+        }
+
+        try {
+          toast({
+            title: 'Mise à jour en cours',
+            description: 'Veuillez patienter...',
+            duration: 3000,
+          })
+
+          await Promise.all([
+            refreshTeacherStudentsStats(true),
+            refreshGlobalStats(),
+          ])
+
+          setLastUpdateTime(now)
+
+          toast({
+            variant: 'success',
+            title: 'Mise à jour terminée',
+            description: 'Les statistiques ont été actualisées avec succès',
+            duration: 3000,
+          })
+        } catch (error) {
+          console.error('Erreur lors de la mise à jour:', error)
+          toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description:
+              'Une erreur est survenue lors de la mise à jour des statistiques',
+            duration: 3000,
+          })
+        }
       },
     },
     // {
@@ -90,11 +167,11 @@ const ProfilePage = () => {
           <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping"></div>
           <div
             className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-            style={{animationDelay: '0.2s'}}
+            style={{ animationDelay: '0.2s' }}
           ></div>
           <div
             className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-            style={{animationDelay: '0.4s'}}
+            style={{ animationDelay: '0.4s' }}
           ></div>
         </div>
       </div>

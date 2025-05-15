@@ -76,6 +76,16 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
     <div className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {sortedStudents.map((student) => {
+          const attendanceRate = 100 - (student.stats?.absencesRate || 0)
+
+          console.log("📊 Données reçues dans ClassOverview pour l'étudiant", student._id, {
+            student,
+            stats: student.stats,
+            attendanceRate,
+            behaviorAverage: student.stats?.behaviorAverage,
+            behaviorAverageType: typeof student.stats?.behaviorAverage,
+          })
+
           return (
             <Card
               key={student._id}
@@ -100,23 +110,88 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
               </CardHeader>
               <CardContent>
                 {/* Absences et taux de présence */}
-                <div className="flex justify-between gap-1.5 mt-1">
-                  <p className="text-gray-500">{student.stats?.absencesCount} abs.</p>
-                  {student.stats?.absencesRate !== null && (
-                    <p
-                      className={`font-medium ${student.stats?.absencesRate ?? 0 >= 90 ? 'text-green-600' : student.stats?.absencesRate ?? 0 >= 75 ? 'text-amber-600' : 'text-red-600'}`}
-                    >
-                      {student.stats?.absencesRate.toFixed(0)}%
-                    </p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-zinc-500">Absences</span>
+                      <span className="text-xs font-medium">{student.stats.absencesCount}</span>
+                    </div>
+                    <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          student.stats.absencesCount > 5
+                            ? 'bg-red-500'
+                            : student.stats.absencesCount > 2
+                              ? 'bg-orange-500'
+                              : 'bg-green-500'
+                        }`}
+                        style={{
+                          width: `${Math.min((student.stats.absencesCount / 10) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-zinc-500">Taux de présence</span>
+                      <span
+                        className={`text-xs font-medium ${
+                          100 - student.stats.absencesRate > 80
+                            ? 'text-green-600'
+                            : 100 - student.stats.absencesRate > 60
+                              ? 'text-orange-500'
+                              : 'text-red-500'
+                        }`}
+                      >
+                        {(100 - student.stats.absencesRate).toFixed(1)}%
+                        <span className="text-gray-400 ml-1">
+                          ({student.stats.absencesCount}/
+                          {Math.round(
+                            student.stats.absencesCount / (student.stats.absencesRate / 100),
+                          )}
+                          )
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          100 - student.stats.absencesRate > 80
+                            ? 'bg-green-500'
+                            : 100 - student.stats.absencesRate > 60
+                              ? 'bg-orange-500'
+                              : 'bg-red-500'
+                        }`}
+                        style={{
+                          width: `${100 - student.stats.absencesRate}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
                 {/* Comportement */}
-                <div className="flex  space-x-3 mt-2">
-                  {student.stats?.behaviorAverage !== null && (
+                <div className="flex space-x-3 mt-2">
+                  {student.stats?.behaviorAverage !== undefined && (
                     <div className="flex items-center gap-1">
                       <p className="text-gray-500">Comportement</p>
-                      <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-500" />
-                      {student.stats?.behaviorAverage}
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-3.5 w-3.5 ${
+                              star <= Math.round(student.stats?.behaviorAverage || 0)
+                                ? 'text-yellow-400 fill-yellow-500'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {Math.round(student.stats?.behaviorAverage || 0)}/5
+                      </span>
                     </div>
                   )}
                 </div>
@@ -231,17 +306,13 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm text-gray-500">Taux de présence</span>
                                     <span className="font-medium">
-                                      {student.stats?.absencesRate.toFixed(1)}%
+                                      {attendanceRate.toFixed(1)}%
                                     </span>
                                   </div>
                                   <Progress
-                                    value={student.stats?.absencesRate}
+                                    value={attendanceRate}
                                     className="h-2"
-                                    color={
-                                      student.stats?.absencesRate > 80
-                                        ? 'bg-green-500'
-                                        : 'bg-amber-500'
-                                    }
+                                    color={attendanceRate > 80 ? 'bg-green-500' : 'bg-amber-500'}
                                   />
                                 </div>
                               )}

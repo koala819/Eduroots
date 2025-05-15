@@ -7,17 +7,6 @@ import {BiFemale, BiMale} from 'react-icons/bi'
 import {PopulatedCourse} from '@/types/course'
 import {GenderEnum, Student} from '@/types/user'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import {Button} from '@/components/ui/button'
 
 import {useAttendance} from '@/context/Attendances/client'
@@ -43,16 +32,17 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   const {getCourseById, isLoadingCourse} = useCourses()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
-  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [attendanceRecords, setAttendanceRecords] = useState<{
     [key: string]: boolean
   }>({})
 
   useEffect(() => {
+    // console.log('date', date)
+    // console.log('courseId', courseId)
     async function fetchData() {
       const attendance = await getAttendanceById(courseId, date)
-
+      // console.log('attendance', attendance)
       if (attendance?.records) {
         const recordsMap = attendance.records.reduce(
           (acc: {[x: string]: any}, record: {student: {_id: any}; isPresent: any}) => {
@@ -91,23 +81,14 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         date: date,
         records: records,
       })
-      onClose()
 
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
+      // Fermer le modal sans recharger la page
+      onClose()
     } catch (error) {
       console.error('Error updating attendance:', error)
     } finally {
       setIsUpdating(false)
     }
-  }
-
-  function handleCancelAction(confirmClose: boolean) {
-    if (confirmClose) {
-      onClose()
-    }
-    setIsConfirmOpen(false)
   }
 
   if (isLoadingAttendance || isLoadingCourse) {
@@ -138,13 +119,6 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Modifier la Feuille des Présences
-                </h2>
-              </div>
-
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
@@ -233,40 +207,13 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                 >
                   {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
                 </Button>
-                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="teacherWarning"
-                      className="border-gray-400 text-white"
-                      onClick={() => setIsConfirmOpen(true)}
-                    >
-                      Annuler
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la modification ? Les changements non
-                        enregistrés seront perdus.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border-2 border-gray-400"
-                      >
-                        Non
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleCancelAction(true)}
-                        className="bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500"
-                      >
-                        Oui
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  variant="teacherWarning"
+                  className="border-gray-400 text-white"
+                  onClick={() => onClose()}
+                >
+                  Annuler
+                </Button>
               </div>
             </div>
           </section>

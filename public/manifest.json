@@ -1,6 +1,6 @@
 {
-  "name": "EduRootS - Educational Platform",
-  "short_name": "EduRootS",
+  "name": "Eduroots - Educational Platform",
+  "short_name": "Eduroots",
   "version": "2.0",
   "description": "Application éducative et communautaire",
   "icons": [
@@ -8,17 +8,40 @@
       "src": "/icon-192x192.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512x512.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512-maskable.png?v=2",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "theme_color": "#60A5FA",
-  "background_color": "#EEF2FF",
+  "splash": "/splash.png",
+  "splash_screen": {
+    "src": "/splash.png",
+    "sizes": "1242x2688",
+    "type": "image/png",
+    "platform": "narrow",
+    "label": "Splash screen"
+  },
+  "screenshots": [
+    {
+      "src": "/splash.png",
+      "sizes": "1242x2688",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Splash screen"
+    }
+  ],
+  "theme_color": "#42587a",
+  "background_color": "#f7fafe",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

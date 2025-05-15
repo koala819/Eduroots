@@ -117,41 +117,37 @@ export async function createAttendanceRecord(
     const updatePromises = records.map(async (record) => {
       const studentId = record.student
 
-      // Récupérer les stats actuelles de l'étudiant
-      let studentStats = await StudentStats.findOne({
+      // Calculer les nouvelles stats
+      const existingStats = await StudentStats.findOne({
         userId: new Types.ObjectId(studentId),
-        type: 'student',
       })
 
-      if (!studentStats) {
-        // Créer de nouvelles stats si elles n'existent pas
-        studentStats = new StudentStats({
-          userId: new Types.ObjectId(studentId),
-          type: 'student',
-          statsData: {
-            attendanceRate: record.isPresent ? 100 : 0,
-            totalAbsences: record.isPresent ? 0 : 1,
-            totalSessions: 1,
-            lastAttendance: new Date(date),
+      const totalSessions = (existingStats?.statsData?.totalSessions || 0) + 1
+      const totalAbsences =
+        (existingStats?.statsData?.totalAbsences || 0) + (record.isPresent ? 0 : 1)
+      const attendanceRate = ((totalSessions - totalAbsences) / totalSessions) * 100
+
+      // Utiliser updateOne avec upsert pour éviter les conflits
+      await StudentStats.updateOne(
+        {userId: new Types.ObjectId(studentId)},
+        {
+          $set: {
+            statsData: {
+              ...(existingStats?.statsData || {}),
+              attendanceRate,
+              totalAbsences,
+              totalSessions,
+              lastAttendance: new Date(date),
+            },
+            lastUpdate: new Date(),
           },
-        })
-      } else {
-        // Mettre à jour les stats existantes
-        const totalSessions = studentStats.statsData.totalSessions + 1
-        const totalAbsences = studentStats.statsData.totalAbsences + (record.isPresent ? 0 : 1)
-        const attendanceRate = ((totalSessions - totalAbsences) / totalSessions) * 100
-
-        studentStats.statsData = {
-          ...studentStats.statsData,
-          attendanceRate,
-          totalAbsences,
-          totalSessions,
-          lastAttendance: new Date(date),
-        }
-      }
-
-      await studentStats.save()
+        },
+        {upsert: true},
+      )
     })
+
+    // Attendre que toutes les mises à jour soient terminées
+    await Promise.all(updatePromises)
 
     // Mise à jour des stats globales
     let globalStats = await GlobalStats.findOne({})
@@ -174,9 +170,6 @@ export async function createAttendanceRecord(
       globalStats.lastUpdate = new Date()
     }
     await globalStats.save()
-
-    // Attendre que toutes les mises à jour soient terminées
-    await Promise.all(updatePromises)
 
     // Revalidate paths that might be affected
     revalidatePath('/courses/[courseId]/attendance')
@@ -263,7 +256,6 @@ export async function getAttendanceById(
 
     const attendances =
       date || checkToday ? await Attendance.findOne(query) : await Attendance.find(query)
-
     return {
       success: true,
       data: attendances ? serializeData(attendances) : null,
@@ -470,7 +462,6 @@ export async function updateAttendanceRecord(
       if (oldPresence !== record.isPresent) {
         const studentStats = await StudentStats.findOne({
           userId: new Types.ObjectId(studentId),
-          type: 'student',
         })
 
         if (studentStats) {

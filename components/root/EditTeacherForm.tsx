@@ -21,6 +21,7 @@ import {useCourses} from '@/context/Courses/client'
 import {useTeachers} from '@/context/Teachers/client'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import useCourseStore from '@/stores/useCourseStore'
 
 const teacherSchema = z.object({
   firstname: z.string().min(2),
@@ -74,7 +75,8 @@ export interface TeacherFormData {
 }
 
 export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
-  const {getTeacherCourses, updateCourse, isLoading: isLoadingCourse} = useCourses()
+  const {updateCourse, isLoading: isLoadingCourse} = useCourses()
+  const {fetchTeacherCourses} = useCourseStore()
   const router = useRouter()
   const {getOneTeacher, updateTeacher, isLoading: isLoadingTeacher} = useTeachers()
   const {toast} = useToast()
@@ -117,11 +119,16 @@ export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
     const loadData = async () => {
       try {
         setIsDataLoading(true)
-        const [teacher, course] = await Promise.all([getOneTeacher(id), getTeacherCourses(id)])
+        await fetchTeacherCourses(id) // Appel pour mettre à jour l'état des cours
 
         if (!isMounted) return
 
-        if (teacher && course) {
+        const teacher = await getOneTeacher(id)
+        const courses = useCourseStore.getState().courses // Récupération des cours depuis l'état
+
+        const course = courses.find((course) => course.teacher.includes(id)) // Trouver le cours correspondant
+
+        if (teacher && course && course.sessions) {
           const formattedSessions = formatSessions(course.sessions)
 
           form.reset({
@@ -152,7 +159,7 @@ export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
     return () => {
       isMounted = false
     }
-  }, [id, getOneTeacher, getTeacherCourses, form, toast, formatSessions])
+  }, [id, getOneTeacher, fetchTeacherCourses, form, toast, formatSessions])
 
   const isLoading = isLoadingTeacher || isLoadingCourse || isDataLoading
 

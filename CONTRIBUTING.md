@@ -1,13 +1,13 @@
-# Contributing to EduRootS
+# Contributing to Eduroots
 
-Thank you for your interest in contributing to EduRootS! This document provides guidelines and instructions for contributing to our project.
+Thank you for your interest in contributing to Eduroots! This document provides guidelines and instructions for contributing to our project.
 
 ## How to Contribute
 
 1. **Fork the Repository**
 
    - Click the "Fork" button on the top right of the GitHub page
-   - Clone your fork locally: `git clone https://github.com/your-username/EduRootS.git`
+   - Clone your fork locally: `git clone https://github.com/your-username/Eduroots.git`
 
 2. **Create a Branch**
 
@@ -55,4 +55,4 @@ If you need help or have questions:
 - Join our community discussions
 - Contact the maintainers
 
-Thank you for contributing to EduRootS! Your help is valuable in improving this educational platform.
+Thank you for contributing to Eduroots! Your help is valuable in improving this educational platform.

@@ -8,6 +8,7 @@ import {
   useMemo,
   useReducer,
   useTransition,
+  useEffect,
 } from 'react'
 
 import {useToast} from '@/hooks/use-toast'
@@ -181,12 +182,18 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
     isLoading: false,
     isLoadingBehavior: false,
     error: null,
-    allBehaviors: initialBehaviorData || null,
+    allBehaviors: null,
     checkOneBehavior: null,
     todayBehavior: null,
   }
 
   const [state, dispatch] = useReducer(behaviorReducer, initialState)
+
+  useEffect(() => {
+    if (initialBehaviorData) {
+      dispatch({type: 'SET_ALL_BEHAVIORS', payload: initialBehaviorData})
+    }
+  }, [initialBehaviorData])
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
@@ -205,6 +212,8 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
 
   const handleGetStudentBehaviorHistory = useCallback(
     async (studentId: string) => {
+      if (!studentId) return []
+
       dispatch({type: 'SET_LOADING', payload: true})
       try {
         const data = await getStudentBehaviorHistory(studentId)
@@ -221,9 +230,15 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
 
   const handleGetBehaviorById = useCallback(
     async (courseId: string, date: string) => {
+      if (!courseId || !date) return null
+
       dispatch({type: 'SET_LOADING_BEHAVIOR', payload: true})
       try {
         const data = await getBehaviorByIdAndDate(courseId, date)
+        if (data?.success && data.data) {
+          const behaviorDoc = data.data as BehaviorDocument
+          dispatch({type: 'SET_ONE_BEHAVIOR', payload: behaviorDoc})
+        }
         return data
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la récupération du cours')
@@ -315,56 +330,59 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
       sessionId?: string
       checkToday?: boolean
     }) => {
+      if (!courseId) return
+
       dispatch({type: 'SET_LOADING_BEHAVIOR', payload: true})
       try {
-        // Call the server action
         const response = await fetchBehaviorsByCourse(courseId)
 
         if (!response.success || !response.data) {
-          throw new Error(response.message || 'Failed to fetch attendance data')
+          throw new Error(response.message || 'Failed to fetch behavior data')
         }
 
-        // Update state based on parameters
-        if (sessionId) {
-          // Find the specific behavior for the session
-          const sessionBehavior = Array.isArray(response.data)
-            ? response.data.find(
-                (b) =>
-                  b &&
-                  typeof b === 'object' &&
-                  'course' in b &&
-                  b?.course?.toString() === sessionId,
-              )
-            : response.data
-
-          dispatch({
-            type: 'SET_ONE_BEHAVIOR',
-            payload: sessionBehavior as BehaviorDocument,
-          })
-        } else if (checkToday) {
-          // Find today's behavior
-          const today = new Date().toISOString().split('T')[0]
-          const todayBehavior =
-            Array.isArray(response.data) && response.data.length > 0
+        startTransition(() => {
+          if (sessionId) {
+            const sessionBehavior = Array.isArray(response.data)
               ? response.data.find(
                   (b) =>
                     b &&
-                    (b as BehaviorDocument).date &&
-                    (b as BehaviorDocument).date &&
-                    new Date((b as BehaviorDocument).date).toISOString().split('T')[0] === today,
+                    typeof b === 'object' &&
+                    'course' in b &&
+                    b?.course?.toString() === sessionId,
                 )
               : response.data
 
-          dispatch({
-            type: 'SET_TODAY_BHEAVIOR',
-            payload: todayBehavior as BehaviorDocument,
-          })
-        } else {
-          dispatch({
-            type: 'SET_ALL_BEHAVIORS',
-            payload: response.data as BehaviorDocument[],
-          })
-        }
+            if (sessionBehavior) {
+              dispatch({
+                type: 'SET_ONE_BEHAVIOR',
+                payload: sessionBehavior as BehaviorDocument,
+              })
+            }
+          } else if (checkToday) {
+            const today = new Date().toISOString().split('T')[0]
+            const todayBehavior =
+              Array.isArray(response.data) && response.data.length > 0
+                ? response.data.find(
+                    (b) =>
+                      b &&
+                      (b as BehaviorDocument).date &&
+                      new Date((b as BehaviorDocument).date).toISOString().split('T')[0] === today,
+                  )
+                : response.data
+
+            if (todayBehavior) {
+              dispatch({
+                type: 'SET_TODAY_BHEAVIOR',
+                payload: todayBehavior as BehaviorDocument,
+              })
+            }
+          } else {
+            dispatch({
+              type: 'SET_ALL_BEHAVIORS',
+              payload: response.data as BehaviorDocument[],
+            })
+          }
+        })
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la vérification des comportements')
         throw error
