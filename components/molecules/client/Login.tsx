@@ -1,30 +1,43 @@
 'use client'
 
-import {Eye, EyeOff, Lock, Mail, User} from 'lucide-react'
-import {signIn} from 'next-auth/react'
-import {useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 import Link from 'next/link'
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {UserRoleEnum} from '@/types/user'
+import { UserRoleEnum } from '@/types/user'
 
-import {PWAButtonClient} from '@/components/atoms/client/PWAButton'
-import {Button} from '@/components/ui/button'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
-import {loginAction} from '@/app/actions/auth'
-import {FormSchema, FormValues} from '@/lib/validation/login-schema'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {motion} from 'framer-motion'
+import { loginAction } from '@/app/actions/auth'
+import { FormSchema, FormValues } from '@/lib/validation/login-schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { motion } from 'framer-motion'
 
 export const LoginClient = () => {
-  const {toast} = useToast()
+  const { toast } = useToast()
   const router = useRouter()
   const [showPwd, setShowPwd] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
@@ -47,7 +60,10 @@ export const LoginClient = () => {
     formData.append('pwd', values.pwd)
     formData.append('role', values.role as string)
 
-    formData.append('userAgent', typeof window !== 'undefined' ? navigator.userAgent : '')
+    formData.append(
+      'userAgent',
+      typeof window !== 'undefined' ? navigator.userAgent : '',
+    )
 
     try {
       const result = await loginAction(formData)
@@ -58,7 +74,8 @@ export const LoginClient = () => {
           toast({
             variant: 'destructive',
             title: 'Erreur de connexion',
-            description: result.message || 'Identifiants incorrects. Veuillez réessayer',
+            description:
+              result.message || 'Identifiants incorrects. Veuillez réessayer',
           })
           router.push('/unauthorized?error=CredentialsSignin')
           return
@@ -79,7 +96,8 @@ export const LoginClient = () => {
           variant: 'destructive',
           title: 'Mot de passe par défaut',
           description:
-            result.message || 'Veuillez changer votre mot de passe pour des raisons de sécurité',
+            result.message ||
+            'Veuillez changer votre mot de passe pour des raisons de sécurité',
         })
         router.push(result.redirectUrl)
         return
@@ -173,9 +191,9 @@ export const LoginClient = () => {
 
   return (
     <motion.div
-      initial={{opacity: 0, scale: 0.95}}
-      animate={{opacity: 1, scale: 1}}
-      transition={{duration: 0.3}}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
       className="hidden md:flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 items-center justify-center"
     >
       <div className="w-full max-w-sm">
@@ -184,8 +202,12 @@ export const LoginClient = () => {
           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center">
             <User className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Bienvenue</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Connectez-vous à votre compte</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Bienvenue
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Connectez-vous à votre compte
+          </p>
         </div>
 
         {/* Form Card */}
@@ -197,12 +219,15 @@ export const LoginClient = () => {
               <FormField
                 control={form.control}
                 name="role"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormLabel className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                       Je suis
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl h-12">
                           <SelectValue placeholder="Choisir un rôle" />
@@ -237,7 +262,7 @@ export const LoginClient = () => {
               <FormField
                 control={form.control}
                 name="mail"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormLabel className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                       Email
@@ -260,7 +285,7 @@ export const LoginClient = () => {
               <FormField
                 control={form.control}
                 name="pwd"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormLabel className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                       Mot de passe
@@ -279,7 +304,11 @@ export const LoginClient = () => {
                           onClick={() => setShowPwd(!showPwd)}
                           className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"
                         >
-                          {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showPwd ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -297,7 +326,10 @@ export const LoginClient = () => {
                 </Link>
               </div>
 
-              <motion.div whileHover={{scale: 1.05}} whileTap={{scale: 0.95}}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-12 font-medium"
