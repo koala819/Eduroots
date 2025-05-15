@@ -3,13 +3,14 @@
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useSession } from 'next-auth/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/hooks/use-toast'
 
 import { ProfileSection } from '@/components/molecules/server/ProfileSection'
+import { Switch } from '@/components/ui/switch'
 
 import { useStats } from '@/context/Stats/client'
 
@@ -40,9 +41,67 @@ const ProfilePage = () => {
   const router = useRouter()
   const { data: session } = useSession()
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
+  const [notificationsEnabled, setNotificationsEnabled] =
+    useState<boolean>(false)
 
   const { toast } = useToast()
   const { refreshTeacherStudentsStats, refreshGlobalStats } = useStats()
+
+  // Vérifier l'état des notifications OneSignal au chargement
+  useEffect(() => {
+    const checkOneSignalStatus = async () => {
+      if (window.OneSignal) {
+        const isPushSupported =
+          await window.OneSignal.isPushNotificationsSupported()
+        if (isPushSupported) {
+          const isSubscribed =
+            await window.OneSignal.User.PushSubscription.optedIn
+          setNotificationsEnabled(isSubscribed)
+        }
+      }
+    }
+    checkOneSignalStatus()
+  }, [])
+
+  // Gérer le changement d'état des notifications OneSignal
+  const handleNotificationToggle = async () => {
+    if (!window.OneSignal) {
+      toast({
+        variant: 'destructive',
+        title: 'OneSignal non initialisé',
+        description: 'Veuillez recharger la page',
+      })
+      return
+    }
+
+    try {
+      if (notificationsEnabled) {
+        // Désactiver les notifications OneSignal
+        await window.OneSignal.User.PushSubscription.optOut()
+        setNotificationsEnabled(false)
+        toast({
+          title: 'Notifications désactivées',
+          description: 'Vous ne recevrez plus de notifications',
+        })
+      } else {
+        // Activer les notifications OneSignal
+        await window.OneSignal.User.PushSubscription.optIn()
+        setNotificationsEnabled(true)
+        toast({
+          title: 'Notifications activées',
+          description: 'Vous recevrez maintenant les notifications',
+        })
+      }
+    } catch (error) {
+      console.error('Erreur lors de la gestion des notifications:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description:
+          'Une erreur est survenue lors de la gestion des notifications',
+      })
+    }
+  }
 
   function logoutHandler() {
     signOut({
@@ -52,6 +111,17 @@ const ProfilePage = () => {
   }
 
   const actions: MenuItem[] = [
+    {
+      icon: (
+        <Switch
+          checked={notificationsEnabled}
+          onCheckedChange={handleNotificationToggle}
+          className={notificationsEnabled ? 'bg-green-500' : 'bg-gray-400'}
+        />
+      ),
+      title: 'Notifications',
+      onClick: () => {}, // Le switch gère lui-même le clic
+    },
     {
       icon: <Users className="h-5 w-5" />,
       title: 'Détail des élèves',
