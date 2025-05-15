@@ -57,10 +57,7 @@ const ProfilePage = () => {
       title: 'Détail des élèves',
       // color: 'text-green-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/classroom`,
-        )
-        // console.log('Détail élèves')
+        router.push('/teacher/profiles/classroom')
       },
     },
     {
@@ -68,10 +65,7 @@ const ProfilePage = () => {
       title: 'Devoirs & Contrôles',
       // color: 'text-orange-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/grades`,
-        )
-        // console.log('Gérer notes')
+        router.push('/teacher/profiles/grades')
       },
     },
     {
@@ -79,10 +73,7 @@ const ProfilePage = () => {
       title: 'Emploi du temps',
       // color: 'text-purple-600',
       onClick: () => {
-        router.push(
-          `${process.env.NEXT_PUBLIC_CLIENT_URL}/teacher/profiles/edit`,
-        )
-        // console.log('Gérer matières')
+        router.push('/teacher/profiles/edit')
       },
     },
     {
