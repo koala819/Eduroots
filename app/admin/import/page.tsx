@@ -32,7 +32,6 @@ interface ExcelRow {
   [key: string]: any
 }
 
-
 interface TeacherData {
   id: string // Colonne I
   lastName: string // Colonne J
@@ -44,14 +43,14 @@ interface TeacherData {
 
 // Fonction utilitaire pour extraire la valeur d'une cellule ExcelJS
 const getCellString = (cell: any) => {
-  if (!cell) return '';
-  if (typeof cell === 'string') return cell.trim();
+  if (!cell) return ''
+  if (typeof cell === 'string') return cell.trim()
   if (typeof cell === 'object') {
-    if ('text' in cell) return String(cell.text).trim();
-    if ('hyperlink' in cell) return String(cell.hyperlink).replace('mailto:', '').trim();
+    if ('text' in cell) return String(cell.text).trim()
+    if ('hyperlink' in cell) return String(cell.hyperlink).replace('mailto:', '').trim()
   }
-  return String(cell).trim();
-};
+  return String(cell).trim()
+}
 
 const ExcelConverter: React.FC = () => {
   const [result, setResult] = useState<ResultData | null>(null)
@@ -177,7 +176,6 @@ const ExcelConverter: React.FC = () => {
     return processedData
   }
 
-
   const formatTeachersFromExcel = (data: ExcelRow[]): TeacherData[] => {
     const teachers: TeacherData[] = []
     const seen = new Set<string>() // Pour éviter les doublons sur l'id prof
@@ -245,9 +243,11 @@ const ExcelConverter: React.FC = () => {
       try {
         teachers = formatTeachersFromExcel(jsonData)
         setTeachersFormatted(teachers)
-        setTeacherStepMessage(`Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`)
+        setTeacherStepMessage(
+          `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`,
+        )
       } catch (err: any) {
-        setTeacherStepMessage('Erreur lors de l\'intégration des enseignants : ' + err.message)
+        setTeacherStepMessage("Erreur lors de l'intégration des enseignants : " + err.message)
         setTeachersFormatted(null)
       }
 
@@ -315,7 +315,9 @@ const ExcelConverter: React.FC = () => {
           Le fichier Excel doit contenir les données dans les colonnes suivantes :
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
-          <li><b>Colonne A à G (Élève) :</b></li>
+          <li>
+            <b>Colonne A à G (Élève) :</b>
+          </li>
           <li>Colonne A : Nom de l&apos;élève</li>
           <li>Colonne B : Prénom de l&apos;élève</li>
           <li>Colonne C : ID Professeur référent</li>
@@ -323,14 +325,18 @@ const ExcelConverter: React.FC = () => {
           <li>Colonne E : Date de naissance de l&apos;élève (JJ/MM/AAAA)</li>
           <li>Colonne F : Email de l&apos;élève</li>
           <li>Colonne G : Téléphone de l&apos;élève</li>
-          <li className="mt-2"><b>Colonne I à N (Enseignant) :</b></li>
+          <li className="mt-2">
+            <b>Colonne I à N (Enseignant) :</b>
+          </li>
           <li>Colonne I : ID Professeur</li>
           <li>Colonne J : Nom du professeur</li>
           <li>Colonne K : Prénom du professeur</li>
           <li>Colonne L : Email du professeur</li>
           <li>Colonne M : Genre du professeur</li>
           <li>Colonne N : Téléphone du professeur</li>
-          <li className="mt-2"><b>Colonne O à R (Cours) :</b></li>
+          <li className="mt-2">
+            <b>Colonne O à R (Cours) :</b>
+          </li>
           <li>Colonne O : Matière</li>
           <li>Colonne P : Jour de travail</li>
           <li>Colonne Q : Salle de classe</li>
