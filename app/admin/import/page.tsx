@@ -1,8 +1,8 @@
 'use client'
 
-import React, {ChangeEvent, useState} from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
-import {TimeSlotEnum} from '@/types/course'
+import { TimeSlotEnum } from '@/types/course'
 
 // Définition des interfaces TypeScript
 interface ProcessedData {
@@ -32,9 +32,32 @@ interface ExcelRow {
   [key: string]: any
 }
 
+
+interface TeacherData {
+  id: string // Colonne I
+  lastName: string // Colonne J
+  firstName: string // Colonne K
+  email: string // Colonne L
+  gender: string // Colonne M
+  phone: string // Colonne N
+}
+
+// Fonction utilitaire pour extraire la valeur d'une cellule ExcelJS
+const getCellString = (cell: any) => {
+  if (!cell) return '';
+  if (typeof cell === 'string') return cell.trim();
+  if (typeof cell === 'object') {
+    if ('text' in cell) return String(cell.text).trim();
+    if ('hyperlink' in cell) return String(cell.hyperlink).replace('mailto:', '').trim();
+  }
+  return String(cell).trim();
+};
+
 const ExcelConverter: React.FC = () => {
   const [result, setResult] = useState<ResultData | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [teacherStepMessage, setTeacherStepMessage] = useState<string | null>(null)
+  const [teachersFormatted, setTeachersFormatted] = useState<TeacherData[] | null>(null)
 
   // Fonction pour vérifier si un objet est vide (toutes les valeurs sont des chaînes vides)
   const isEmptyObject = (obj: ProcessedData): boolean => {
@@ -154,6 +177,39 @@ const ExcelConverter: React.FC = () => {
     return processedData
   }
 
+
+  const formatTeachersFromExcel = (data: ExcelRow[]): TeacherData[] => {
+    const teachers: TeacherData[] = []
+    const seen = new Set<string>() // Pour éviter les doublons sur l'id prof
+
+    data.forEach((row) => {
+      const id = getCellString(row['I'])
+      if (!id || seen.has(id)) return // ignorer les doublons ou vides
+      seen.add(id)
+
+      const lastName = getCellString(row['J']).toUpperCase()
+      const firstName = getCellString(row['K'])
+      const email = getCellString(row['L'])
+      let gender = ''
+      if (row['M']) {
+        const genderValue = getCellString(row['M']).toUpperCase()
+        if (genderValue === 'F' || genderValue === 'FEMININ' || genderValue === 'FÉMININ') {
+          gender = 'female'
+        } else if (genderValue === 'M' || genderValue === 'MASCULIN') {
+          gender = 'male'
+        } else {
+          gender = genderValue
+        }
+      }
+      const phone = getCellString(row['N']).replace(/[^\d]/g, '')
+
+      if (id && lastName && firstName) {
+        teachers.push({ id, lastName, firstName, email, gender, phone })
+      }
+    })
+    return teachers
+  }
+
   // Gérer le téléchargement du fichier
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -184,6 +240,17 @@ const ExcelConverter: React.FC = () => {
 
       console.log('Données brutes Excel:', jsonData)
 
+      // Étape 1 : formatage des enseignants
+      let teachers: TeacherData[] = []
+      try {
+        teachers = formatTeachersFromExcel(jsonData)
+        setTeachersFormatted(teachers)
+        setTeacherStepMessage(`Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`)
+      } catch (err: any) {
+        setTeacherStepMessage('Erreur lors de l\'intégration des enseignants : ' + err.message)
+        setTeachersFormatted(null)
+      }
+
       // Traiter les données
       const processedData = processExcelData(jsonData)
 
@@ -201,7 +268,7 @@ const ExcelConverter: React.FC = () => {
       })
     } catch (error) {
       console.error('Erreur lors du traitement du fichier:', error)
-      setResult({error: 'Erreur lors du traitement du fichier Excel'})
+      setResult({ error: 'Erreur lors du traitement du fichier Excel' })
     }
 
     setLoading(false)
@@ -245,25 +312,29 @@ const ExcelConverter: React.FC = () => {
                    hover:file:bg-blue-100"
         />
         <p className="text-sm text-gray-600">
-          Le fichier Excel doit contenir les données dans les colonnes suivantes:
+          Le fichier Excel doit contenir les données dans les colonnes suivantes :
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
-          <li>Colonne A : Nom (en majuscules, ex : DUPONT)</li>
-          <li>
-            Colonne B : Prénom (première lettre de chaque partie en majuscule, ex : Anne-Laure)
-          </li>
-          <li>Colonne C : Professeur</li>
-          <li>Colonne D : Niveau</li>
-          <li>Colonne E : Salle</li>
-          <li>
-            Colonne F : Jour de créneau (saturday_morning, saturday_afternoon, sunday_morning)
-          </li>
-          <li>Colonne G : Heure de début (ex : 09:00)</li>
-          <li>Colonne H : Heure de fin (ex : 10:45)</li>
-          <li>Colonne I : Genre (F, M, Féminin, Masculin)</li>
-          <li>Colonne J : Date de naissance (format JJ/MM/AAAA)</li>
-          <li>Colonne K : Email</li>
-          <li>Colonne L : Téléphone</li>
+          <li><b>Colonne A à G (Élève) :</b></li>
+          <li>Colonne A : Nom de l&apos;élève</li>
+          <li>Colonne B : Prénom de l&apos;élève</li>
+          <li>Colonne C : ID Professeur référent</li>
+          <li>Colonne D : Genre de l&apos;élève</li>
+          <li>Colonne E : Date de naissance de l&apos;élève (JJ/MM/AAAA)</li>
+          <li>Colonne F : Email de l&apos;élève</li>
+          <li>Colonne G : Téléphone de l&apos;élève</li>
+          <li className="mt-2"><b>Colonne I à N (Enseignant) :</b></li>
+          <li>Colonne I : ID Professeur</li>
+          <li>Colonne J : Nom du professeur</li>
+          <li>Colonne K : Prénom du professeur</li>
+          <li>Colonne L : Email du professeur</li>
+          <li>Colonne M : Genre du professeur</li>
+          <li>Colonne N : Téléphone du professeur</li>
+          <li className="mt-2"><b>Colonne O à R (Cours) :</b></li>
+          <li>Colonne O : Matière</li>
+          <li>Colonne P : Jour de travail</li>
+          <li>Colonne Q : Salle de classe</li>
+          <li>Colonne R : Niveau</li>
         </ul>
       </div>
 
@@ -273,32 +344,12 @@ const ExcelConverter: React.FC = () => {
         </div>
       )}
 
-      {result && !result.error && result.data && (
-        <div className="mt-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">
-              Résultat JSON ({result.nonEmptyCount} enregistrements utiles sur {result.recordCount}{' '}
-              lignes)
-            </h2>
-            <button
-              onClick={downloadResult}
-              className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Télécharger JSON
-            </button>
-          </div>
-
-          <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border">
-            <pre className="text-sm">{result.formatted}</pre>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-sm text-gray-600">
-              Le fichier JSON généré est au format requis pour la comparaison avec votre base de
-              données. Les noms complets ont été séparés en prénom et nom, et toutes les données
-              sont formatées selon les exigences de votre système.
-            </p>
-          </div>
+      {teacherStepMessage && (
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{teacherStepMessage}</div>
+      )}
+      {teacherStepMessage && teachersFormatted && teachersFormatted.length > 0 && (
+        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
+          <pre className="text-sm">{JSON.stringify(teachersFormatted, null, 2)}</pre>
         </div>
       )}
 
