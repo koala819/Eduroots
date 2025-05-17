@@ -64,6 +64,9 @@ export async function POST(req: NextRequest) {
             })
             .map((c: CourseSessionDataType) => c.subject)
             .filter(Boolean) || []
+
+        // les matières sont uniques
+        const uniqueSubjects = Array.from(new Set(teacherSubjects))
         // console.log('\n\n\nteacherSubjects pour', id, ':', teacherSubjects)
         return {
           id: id,
@@ -76,7 +79,7 @@ export async function POST(req: NextRequest) {
           phone: teacher?.phone || '0123456789',
           isActive: true,
           deletedAt: null,
-          subjects: teacherSubjects,
+          subjects: uniqueSubjects,
         } as Teacher
       })
 
