@@ -5,6 +5,7 @@ import ExcelJS from 'exceljs'
 import { ProcessedData as ProcessedDataType, CourseSessionData as CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
 import type { Student, Teacher } from '@/types/user'
+import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
 
 const ACADEMIC_YEAR = '2024'
 
@@ -19,7 +20,7 @@ interface ResultData {
 const ExcelConverter: React.FC = () => {
   const [result, setResult] = useState<ResultData | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
-  const [teacherStepMessage, setTeacherStepMessage] = useState<string | null>(null)
+  const [teacherStepMessage, setTeacherStepMessage] = useState<string>('')
   const [teachersFormatted, setTeachersFormatted] = useState<Teacher[] | null>(null)
   const [coursesFormatted, setCoursesFormatted] = useState<CourseSessionDataType[] | null>(null)
   const [courseStepMessage, setCourseStepMessage] = useState<string | null>(null)
@@ -31,6 +32,19 @@ const ExcelConverter: React.FC = () => {
   const [isImporting, setIsImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ success: boolean, message: string, logs?: string[], error?: string } | null>(null)
   const [courseWarnings, setCourseWarnings] = useState<string[]>([])
+  const [mergedTeachers, setMergedTeachers] = useState<Array<{
+    originalId: string
+    mergedId: string
+    name: string
+    subjects: string[]
+  }>>([])
+  const [studentCourses, setStudentCourses] = useState<Array<{
+    studentId: string
+    teacherId: string
+    subject: SubjectNameEnum
+    dayOfWeek: TimeSlotEnum
+    level: LevelEnum
+  }>>([])
 
   async function processExcelFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -64,12 +78,20 @@ const ExcelConverter: React.FC = () => {
       // Étape 1 : formatage des enseignants
       let teachers: Teacher[] = []
       let warnings: string[] = []
+      let mergedTeachersLocal: Array<{
+        originalId: string
+        mergedId: string
+        name: string
+        subjects: string[]
+      }> = []
       try {
         const result = formatTeachersFromExcelWithWarnings(jsonData)
         teachers = result.teachers
         warnings = result.warnings
+        mergedTeachersLocal = result.mergedTeachers
         setTeachersFormatted(teachers)
         setTeacherWarnings(warnings)
+        setMergedTeachers(mergedTeachersLocal)
         setTeacherStepMessage(
           `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`
         )
@@ -107,6 +129,7 @@ const ExcelConverter: React.FC = () => {
         setStudentsFormatted(students as Student[])
         setStudentWarningsRed(warningsRed)
         setStudentWarningsYellow(warningsYellow)
+        setStudentCourses(result.studentCourses)
         setStudentStepMessage(`Étape 3 : Intégration des étudiants avec succès (${students.length} étudiants formatés)`)
       } catch (err: any) {
         setStudentStepMessage("Erreur lors de l'intégration des étudiants : " + err.message)
@@ -141,9 +164,6 @@ const ExcelConverter: React.FC = () => {
   async function launchDatabaseImport() {
     setIsImporting(true)
     setImportResult(null)
-    // console.log('\n\n\n[FIRST] teachersFormatted:', teachersFormatted)
-    // console.log('\n\n\n[FIRST] coursesFormatted:', coursesFormatted)
-    // console.log('\n\n\n[FIRST] studentsFormatted:', studentsFormatted)
     try {
       const res = await fetchWithAuth('/api/newDb', {
         method: 'POST',
@@ -151,6 +171,7 @@ const ExcelConverter: React.FC = () => {
           teachers: teachersFormatted,
           courses: coursesFormatted?.map(c => ({ ...c, academicYear: ACADEMIC_YEAR })),
           students: studentsFormatted,
+          studentCourses: studentCourses,
         },
       })
       setImportResult(res)
@@ -202,10 +223,10 @@ const ExcelConverter: React.FC = () => {
           <li>Colonne L : Email du professeur</li>
           <li>Colonne M : Genre du professeur</li>
           <li>Colonne N : Téléphone du professeur</li>
-          <li className="mt-2">
-            <b>Colonne O à R (Cours) :</b>
-          </li>
           <li>Colonne O : Matière</li>
+          <li className="mt-2">
+            <b>Colonne P à R (Cours) :</b>
+          </li>
           <li>Colonne P : Jour de travail</li>
           <li>Colonne Q : Salle de classe</li>
           <li>Colonne R : Niveau</li>
@@ -221,12 +242,38 @@ const ExcelConverter: React.FC = () => {
       {teacherStepMessage && (
         <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{teacherStepMessage}</div>
       )}
-      {teacherStepMessage && teachersFormatted && teachersFormatted.length > 0 && (
+
+      {teacherWarnings.length > 0 && (
+        <div className="mt-2 p-4 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-300">
+          <b>Attention : Les champs suivants sont manquants pour certains enseignants :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {teacherWarnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {mergedTeachers.length > 0 && (
+        <div className="mt-2 p-4 bg-green-50 text-green-800 rounded-md border border-green-300">
+          <b>Fusions effectuées :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {mergedTeachers.map((m, i) => (
+              <li key={i}>
+                {m.name} : ID {m.originalId} fusionné avec ID {m.mergedId}
+                <br />
+                Matières : {m.subjects.join(', ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {teachersFormatted && teachersFormatted.length > 0 && (
         <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
           <pre className="text-sm">{JSON.stringify(teachersFormatted, null, 2)}</pre>
         </div>
       )}
-
 
       {courseStepMessage && (
         <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{courseStepMessage}</div>
@@ -289,17 +336,6 @@ const ExcelConverter: React.FC = () => {
         </div>
       )}
 
-      {teacherWarnings.length > 0 && (
-        <div className="mt-2 p-4 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-300">
-          <b>Attention : Les champs suivants sont manquants pour certains enseignants :</b>
-          <ul className="list-disc ml-6 mt-1">
-            {teacherWarnings.map((w, i) => (
-              <li key={i}>{w}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {studentWarningsRed.length > 0 && (
         <div className="mt-2 p-4 bg-red-50 text-red-800 rounded-md border border-red-300">
           <b>Attention : Les étudiants suivants n&apos;ont pas d&apos;ID Professeur (ligne ignorée à l&apos;import) :</b>
@@ -322,7 +358,35 @@ const ExcelConverter: React.FC = () => {
         </div>
       )}
 
-
+      {studentCourses.length > 0 && (
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Liens élèves-cours :</h3>
+          <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border">
+            <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Élève</th>
+                  <th className="px-4 py-2">Professeur</th>
+                  <th className="px-4 py-2">Matière</th>
+                  <th className="px-4 py-2">Jour</th>
+                  <th className="px-4 py-2">Niveau</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentCourses.map((link, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="px-4 py-2">{link.studentId}</td>
+                    <td className="px-4 py-2">{link.teacherId}</td>
+                    <td className="px-4 py-2">{link.subject}</td>
+                    <td className="px-4 py-2">{link.dayOfWeek}</td>
+                    <td className="px-4 py-2">{link.level}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {result && result.error && (
         <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">{result.error}</div>

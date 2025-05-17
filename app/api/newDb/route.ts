@@ -19,6 +19,42 @@ export async function POST(req: NextRequest) {
     const { teachers, courses, students } = await req.json()
     const logs: string[] = []
 
+    // Debug: Vérifier les données d'entrée
+    console.log("\n=== DEBUG: DONNÉES D'ENTRÉE ===")
+    console.log("Nombre d'étudiants:", students?.length)
+    console.log("Exemple d'étudiant:", students?.[0])
+    console.log('================================\n')
+
+    // Créer un map pour stocker les étudiants par professeur référent
+    const studentsByTeacher =
+      students?.reduce((acc: any, s: any) => {
+        console.log('\n=== DEBUG: RÉDUCTION ===')
+        console.log('Étudiant:', s)
+        console.log('teacherId présent?', 'teacherId' in s)
+        console.log('teacherId valeur:', s.teacherId)
+        console.log('========================\n')
+
+        if (s.teacherId) {
+          if (!acc[s.teacherId]) {
+            acc[s.teacherId] = []
+          }
+          acc[s.teacherId].push(s)
+        }
+        return acc
+      }, {}) || {}
+
+    // Debug: Afficher les profs et leurs étudiants
+    console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
+    console.log('studentsByTeacher', studentsByTeacher)
+    Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
+      console.log(`\nProf ID: ${teacherId}`)
+      console.log(
+        'Étudiants:',
+        (students as any[]).map((s) => s.id),
+      )
+    })
+    console.log('=====================================\n')
+
     // 1. Insérer les enseignants
     const insertedTeachers = []
     const teacherIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
@@ -91,22 +127,83 @@ export async function POST(req: NextRequest) {
         // Stocker l'ID MongoDB avec l'ID métier comme clé
         teacherIdMap[newTeacher.id] = savedTeacher._id.toString()
         insertedTeachers.push(savedTeacher)
-        console.log('newTeacher.id', newTeacher.id)
-        console.log('teacherIdMap[newTeacher.id]', teacherIdMap[newTeacher.id])
+        // console.log('newTeacher.id', newTeacher.id)
+        // console.log('teacherIdMap[newTeacher.id]', teacherIdMap[newTeacher.id])
       }
 
       logs.push(`${insertedTeachers.length} enseignants insérés.`)
     }
 
-    // 2. Insérer les cours avec les IDs des professeurs
+    // 2. Insérer les étudiants
+    const insertedStudents = []
+    const studentIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
+    if (students && students.length > 0) {
+      // console.log(
+      //   '[IMPORT] Début insertion étudiants, nombre:',
+      //   students.length,
+      // )
+      const hashedPassword = await bcrypt.hash(
+        process.env.STUDENT_PWD || 'changeme',
+        10,
+      )
+
+      const studentDataFormats: Student[] = students.map((s: any) => {
+        let gender: GenderEnum = GenderEnum.Masculin
+        if (s.gender === 'female' || s.gender === 'féminin')
+          gender = GenderEnum.Feminin
+        else if (s.gender === 'male' || s.gender === 'masculin')
+          gender = GenderEnum.Masculin
+        return {
+          id: s.id,
+          email: s.email?.toLowerCase() || '',
+          firstname: s.firstname,
+          lastname: s.lastname,
+          password: hashedPassword,
+          role: UserRoleEnum.Student,
+          gender,
+          phone: s.phone || '',
+          isActive: true,
+          deletedAt: null,
+          type: UserType.Student,
+          dateOfBirth: s.dateOfBirth || undefined,
+        } as Student
+      })
+
+      for (const newStudent of studentDataFormats) {
+        const student = new User(newStudent)
+        const savedStudent = await student.save()
+        // Stocker l'ID MongoDB avec l'ID Excel comme clé
+        studentIdMap[newStudent.id] = savedStudent._id.toString()
+        insertedStudents.push(savedStudent)
+      }
+      logs.push(`${insertedStudents.length} étudiants insérés.`)
+    }
+
+    // Debug: Afficher les profs et leurs étudiants avec les IDs MongoDB
+    console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS (IDs MongoDB) ===')
+    Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
+      const teacherMongoId = teacherIdMap[teacherId]
+      console.log(`\nProf ID Excel: ${teacherId} -> MongoDB: ${teacherMongoId}`)
+      console.log(
+        'Étudiants:',
+        (students as any[]).map((s) => ({
+          idExcel: s.id,
+          idMongo: studentIdMap[s.id],
+        })),
+      )
+    })
+    console.log('=====================================\n')
+
+    // 3. Insérer les cours avec les IDs des professeurs et des étudiants
     let insertedCourses = []
     if (courses && courses.length > 0) {
-      console.log('[IMPORT] Début insertion cours, nombre:', courses.length)
+      // console.log('[IMPORT] Début insertion cours, nombre:', courses.length)
 
       // Regrouper les cours uniquement par professeur
       const groupedCourses = courses.reduce(
         (acc: any, c: CourseSessionDataType) => {
-          console.log('c', c)
+          // console.log('c', c)
+          // Convertir l'ID Excel en ID MongoDB
           const teacherMongoId = teacherIdMap[c.teacherId]
           if (!teacherMongoId) {
             console.warn(`Professeur non trouvé pour l'ID ${c.teacherId}`)
@@ -115,7 +212,7 @@ export async function POST(req: NextRequest) {
 
           // Clé unique : professeur uniquement
           const key = teacherMongoId
-          console.log('Clé de regroupement:', key)
+          // console.log('Clé de regroupement:', key)
 
           if (!acc[key]) {
             acc[key] = {
@@ -128,7 +225,13 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Vérifier si une session similaire existe déjà (même jour, même créneau, même salle)
+          // Récupérer les étudiants de ce professeur et convertir leurs IDs
+          const teacherStudents = studentsByTeacher[c.teacherId] || []
+          const studentIds = teacherStudents
+            .map((s: any) => studentIdMap[s.id])
+            .filter(Boolean)
+
+          // Vérifier si une session similaire existe déjà
           const existingSession = acc[key].sessions.find(
             (s: any) =>
               s.timeSlot.dayOfWeek === c.dayOfWeek &&
@@ -148,8 +251,16 @@ export async function POST(req: NextRequest) {
                 existingSession.timeSlot.startTime === TimeEnum.MorningStart &&
                 existingSession.timeSlot.endTime === TimeEnum.MorningEnd
               ) {
+                // Récupérer les étudiants de ce professeur
+                const teacherStudents = studentsByTeacher[c.teacherId] || []
+                const studentIds = teacherStudents
+                  .map((s: any) => studentIdMap[s.id])
+                  .filter(Boolean)
+
                 // Première matière : 9h-10h45
                 existingSession.timeSlot.endTime = TimeEnum.MorningPause
+                existingSession.students = studentIds
+
                 // Deuxième matière : 11h-12h30
                 acc[key].sessions.push({
                   timeSlot: {
@@ -160,7 +271,7 @@ export async function POST(req: NextRequest) {
                   },
                   subject: c.subject,
                   level: c.level,
-                  students: [],
+                  students: studentIds,
                   sameStudents: false,
                   stats: {},
                 })
@@ -172,8 +283,16 @@ export async function POST(req: NextRequest) {
                   TimeEnum.AfternoonStart &&
                 existingSession.timeSlot.endTime === TimeEnum.AfternoonEnd
               ) {
+                // Récupérer les étudiants de ce professeur
+                const teacherStudents = studentsByTeacher[c.teacherId] || []
+                const studentIds = teacherStudents
+                  .map((s: any) => studentIdMap[s.id])
+                  .filter(Boolean)
+
                 // Première matière : 14h-15h45
                 existingSession.timeSlot.endTime = TimeEnum.AfternoonPause
+                existingSession.students = studentIds
+
                 // Deuxième matière : 16h-17h30
                 acc[key].sessions.push({
                   timeSlot: {
@@ -184,7 +303,7 @@ export async function POST(req: NextRequest) {
                   },
                   subject: c.subject,
                   level: c.level,
-                  students: [],
+                  students: studentIds,
                   sameStudents: false,
                   stats: {},
                 })
@@ -192,6 +311,12 @@ export async function POST(req: NextRequest) {
             }
           } else {
             // Si aucune session similaire n'existe, on ajoute la session normale
+            // Récupérer les étudiants de ce professeur
+            const teacherStudents = studentsByTeacher[c.teacherId] || []
+            const studentIds = teacherStudents
+              .map((s: any) => studentIdMap[s.id])
+              .filter(Boolean)
+
             acc[key].sessions.push({
               timeSlot: {
                 dayOfWeek: c.dayOfWeek,
@@ -201,7 +326,7 @@ export async function POST(req: NextRequest) {
               },
               subject: c.subject,
               level: c.level,
-              students: [],
+              students: studentIds,
               sameStudents: false,
               stats: {}, // Laisser vide, Mongoose/Middleware pourra compléter
             })
@@ -213,53 +338,13 @@ export async function POST(req: NextRequest) {
       )
 
       const coursesToInsert = Object.values(groupedCourses)
-      console.log('Nombre de cours après regroupement:', coursesToInsert.length)
-      console.log('Cours regroupés:', JSON.stringify(groupedCourses, null, 2))
+      // console.log('Nombre de cours après regroupement:', coursesToInsert.length)
+      // console.log('Cours regroupés:', JSON.stringify(groupedCourses, null, 2))
 
       insertedCourses = await Course.insertMany(coursesToInsert, {
         ordered: false,
       })
       logs.push(`${insertedCourses.length} cours insérés.`)
-    }
-
-    // 3. Insérer les étudiants
-    const insertedStudents = []
-    if (students && students.length > 0) {
-      console.log(
-        '[IMPORT] Début insertion étudiants, nombre:',
-        students.length,
-      )
-      const hashedPassword = await bcrypt.hash(
-        process.env.STUDENT_PWD || 'changeme',
-        10,
-      )
-      const studentDataFormats: Student[] = students.map((s: any) => {
-        let gender: GenderEnum = GenderEnum.Masculin
-        if (s.gender === 'female' || s.gender === 'féminin')
-          gender = GenderEnum.Feminin
-        else if (s.gender === 'male' || s.gender === 'masculin')
-          gender = GenderEnum.Masculin
-        return {
-          email: s.email?.toLowerCase() || '',
-          firstname: s.firstname,
-          lastname: s.lastname,
-          password: hashedPassword,
-          role: UserRoleEnum.Student,
-          gender,
-          phone: s.phone || '',
-          isActive: true,
-          deletedAt: null,
-          type: UserType.Student,
-          dateOfBirth: s.dateOfBirth || undefined,
-        } as Student
-      })
-      for (const newStudent of studentDataFormats) {
-        // console.log('[IMPORT] Tentative insertion étudiant:', newStudent)
-        const student = new User(newStudent)
-        const savedStudent = await student.save()
-        insertedStudents.push(savedStudent)
-      }
-      logs.push(`${insertedStudents.length} étudiants insérés.`)
     }
 
     return NextResponse.json({

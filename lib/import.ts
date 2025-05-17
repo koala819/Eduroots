@@ -3,6 +3,11 @@ import { LevelEnum, SubjectNameEnum } from '@/types/course'
 import type { Student, Teacher } from '@/types/user'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
+// Interface spécifique pour l'import
+interface ImportStudent extends Student {
+  teacherId: string
+}
+
 export interface CourseSessionData {
   teacherId: string // Colonne I
   subject: string // Colonne O
@@ -211,17 +216,37 @@ export function formatCoursesFromExcel(data: ExcelRowType[]): {
 }
 
 export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
-  students: Student[]
+  students: ImportStudent[]
   missingTeacherIdWarnings: string[]
   missingContactWarnings: string[]
+  studentCourses: Array<{
+    studentId: string
+    teacherId: string
+    sessionId: string
+    subject: SubjectNameEnum
+    dayOfWeek: TimeSlotEnum
+    level: LevelEnum
+  }>
 } {
-  const students: Student[] = []
+  const students: ImportStudent[] = []
   const missingTeacherIdWarnings: string[] = []
   const missingContactWarnings: string[] = []
+  const studentCourses: Array<{
+    studentId: string
+    teacherId: string
+    sessionId: string
+    subject: SubjectNameEnum
+    dayOfWeek: TimeSlotEnum
+    level: LevelEnum
+  }> = []
+
+  // D'abord, on récupère tous les cours pour les lier aux élèves
+  const courses = formatCoursesFromExcel(data).courses
 
   data.forEach((row, idx) => {
     const lastName = getCellString(row['A'])
     const firstName = getCellString(row['B'])
+    const teacherId = getCellString(row['C'])
 
     // Vérification stricte des champs requis
     if (!firstName?.trim() || !lastName?.trim()) {
@@ -231,7 +256,13 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       return
     }
 
-    const teacherId = getCellString(row['C'])
+    if (!teacherId) {
+      missingTeacherIdWarnings.push(
+        `- Étudiant ligne ${idx + 2} (${firstName} ${lastName}) : ID Professeur manquant`,
+      )
+      return
+    }
+
     let gender: GenderEnum = GenderEnum.Masculin
     const genderValue = getCellString(row['D']).toLowerCase()
     if (
@@ -248,15 +279,10 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
     ) {
       gender = GenderEnum.Masculin
     }
+
     const dateOfBirth = getCellString(row['E'])
     const email = getCellString(row['F'])
     const phone = getCellString(row['G']).replace(/[^\d]/g, '')
-
-    if (!teacherId) {
-      missingTeacherIdWarnings.push(
-        `- Étudiant ligne ${idx + 2} (${firstName} ${lastName}) : ID Professeur manquant`,
-      )
-    }
 
     const missing: string[] = []
     if (!email) missing.push('email manquant')
@@ -267,7 +293,7 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       )
     }
 
-    const student: Partial<Student> = {
+    const student: Partial<ImportStudent> = {
       email: email?.toLowerCase() || '',
       firstname: firstName.trim(),
       lastname: lastName.trim(),
@@ -279,26 +305,68 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       deletedAt: null,
       type: UserType.Student,
       dateOfBirth: dateOfBirth || undefined,
+      teacherId: teacherId || '', // Ajout du teacherId
     }
 
     // Vérification finale avant d'ajouter
     if (student.firstname && student.lastname) {
-      students.push(student as Student)
+      const studentId = `${lastName}_${firstName}_${idx}`.toUpperCase()
+      students.push({ ...(student as ImportStudent), id: studentId })
+
+      // On cherche les cours correspondant au prof
+      const matchingCourses = courses.filter((c) => c.teacherId === teacherId)
+
+      // On ajoute les cours pour cet élève
+      matchingCourses.forEach((course) => {
+        studentCourses.push({
+          studentId,
+          teacherId,
+          sessionId: course.teacherId,
+          subject: course.subject as SubjectNameEnum,
+          dayOfWeek: course.dayOfWeek as TimeSlotEnum,
+          level: course.level as LevelEnum,
+        })
+      })
     }
   })
 
-  return { students, missingTeacherIdWarnings, missingContactWarnings }
+  return {
+    students,
+    missingTeacherIdWarnings,
+    missingContactWarnings,
+    studentCourses,
+  }
 }
 
 // Formatage enseignants avec warnings
 export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
   teachers: Teacher[]
   warnings: string[]
+  mergedTeachers: Array<{
+    originalId: string
+    mergedId: string
+    name: string
+    subjects: string[]
+  }>
 } {
   const teachers: Teacher[] = []
   const warnings: string[] = []
-  const nameToIdMap = new Map<string, string>()
-  const duplicateNameWarnings: string[] = []
+  const mergedTeachers: Array<{
+    originalId: string
+    mergedId: string
+    name: string
+    subjects: string[]
+  }> = []
+
+  // Map pour stocker les profs par nom+prénom
+  const teachersByName = new Map<
+    string,
+    {
+      id: string
+      teacher: Partial<Teacher>
+      subjects: Set<string>
+    }
+  >()
 
   data.forEach(function (row) {
     const id = getCellString(row['I'])
@@ -316,21 +384,28 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
     }
 
     const nameKey = `${lastName}|${firstName}`
+    const subject = getCellString(row['O'])
 
-    // Si déjà vu avec un autre ID, warning et on n'ajoute pas
-    if (nameToIdMap.has(nameKey) && nameToIdMap.get(nameKey) !== id) {
-      duplicateNameWarnings.push(
-        `Conflit d'ID pour l'enseignant ${firstName} ${lastName} : ${nameToIdMap.get(nameKey)} et ${id}`,
-      )
+    // Si on a déjà vu ce prof
+    if (teachersByName.has(nameKey)) {
+      const existing = teachersByName.get(nameKey)!
+      // Si c'est un ID différent, on fusionne
+      if (existing.id !== id) {
+        existing.subjects.add(subject)
+        mergedTeachers.push({
+          originalId: id,
+          mergedId: existing.id,
+          name: `${firstName} ${lastName}`,
+          subjects: Array.from(existing.subjects),
+        })
+      } else {
+        // Même ID, on ajoute juste la matière
+        existing.subjects.add(subject)
+      }
       return
     }
-    // Si déjà vu avec le même ID, on n'ajoute pas de doublon
-    if (nameToIdMap.has(nameKey)) {
-      return
-    }
 
-    nameToIdMap.set(nameKey, id)
-
+    // Nouveau prof
     const email = getCellString(row['L'])
     let gender: GenderEnum = GenderEnum.Masculin
     if (row['M']) {
@@ -365,10 +440,12 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
       deletedAt: null,
     }
 
-    // Vérification finale avant d'ajouter
-    if (teacher.firstname && teacher.lastname) {
-      teachers.push(teacher as Teacher)
-    }
+    // Stocker le prof avec ses matières
+    teachersByName.set(nameKey, {
+      id,
+      teacher,
+      subjects: new Set([subject]),
+    })
 
     // Warnings pour email/téléphone manquant
     const missing: string[] = []
@@ -381,9 +458,19 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
     }
   })
 
-  warnings.push(...duplicateNameWarnings)
+  // Convertir les profs en tableau final
+  teachersByName.forEach(({ teacher, subjects }) => {
+    if (teacher.firstname && teacher.lastname) {
+      teachers.push({
+        ...(teacher as Teacher),
+        subjects: Array.from(subjects)
+          .map((s) => parseSubject(s))
+          .filter(Boolean) as SubjectNameEnum[],
+      })
+    }
+  })
 
-  return { teachers, warnings }
+  return { teachers, warnings, mergedTeachers }
 }
 
 // Extraction propre d'une cellule ExcelJS
