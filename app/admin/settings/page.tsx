@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Cake,
+  Import,
   Calendar,
   ChartLine,
   Clock,
@@ -19,21 +19,21 @@ import {
   UserRoundPlus,
   Users,
 } from 'lucide-react'
-import {signOut, useSession} from 'next-auth/react'
-import {useState} from 'react'
+import { signOut, useSession } from 'next-auth/react'
+import { useState } from 'react'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {EntityType} from '@/types/stats'
-import {Student, Teacher} from '@/types/user'
+import { EntityType } from '@/types/stats'
+import { Student, Teacher } from '@/types/user'
 
-import {UserListDialog} from '@/components/admin/atoms/client/UserListDialog'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-import {useStudents} from '@/context/Students/client'
-import {useTeachers} from '@/context/Teachers/client'
+import { useStudents } from '@/context/Students/client'
+import { useTeachers } from '@/context/Teachers/client'
 
 // Définition des types pour les actions
 type ActionVariant =
@@ -77,10 +77,10 @@ interface ActionGroup {
 }
 
 export default function SettingsPage() {
-  const {students} = useStudents()
-  const {teachers} = useTeachers()
+  const { students } = useStudents()
+  const { teachers } = useTeachers()
   const router = useRouter()
-  const {data: session} = useSession()
+  const { data: session } = useSession()
   const isAdmin = session?.user?.role === 'admin'
 
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
@@ -132,109 +132,109 @@ export default function SettingsPage() {
     // Actions réservées à admin
     ...(isAdmin
       ? ([
-          {
-            title: 'ADMIN',
-            description: 'Section réservée aux admins',
-            actions: [
-              {
-                icon: UserPlus,
-                label: 'Ajouter un élève',
-                description: 'Créer un nouveau profil étudiant',
-                href: '/admin/root/student/new',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: UserPlus,
-                label: 'Ajouter un professeur',
-                description: 'Créer un nouveau profil enseignant',
-                href: '/admin/root/teacher/new',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: Clock,
-                label: 'Éditer horaires',
-                description: 'Voir et modifier les horaires',
-                href: '/admin/root/schedule/edit',
-                variant: 'ghost',
-                isAdmin: true,
-              },
-              {
-                icon: TreePalm,
-                label: 'Éditer vacances',
-                description: 'Voir et modifier les vacances & jours fériés',
-                href: '/admin/root/schedule/holidays',
-                variant: 'ghost',
-                isAdmin: true,
-              },
-              {
-                icon: Squirrel,
-                label: 'Migration',
-                description: "Migrer les data de l'ancienne db vers la nouvelle",
-                href: '/admin/root/migration',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: History,
-                label: 'Voir les logs de connexion',
-                description: "Affichage de toutes les connexions depuis le début de l'application",
-                href: '/admin/root/logs',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: ChartLine,
-                label: 'Update Stats',
-                description: 'Mise à jour des stats',
-                href: '/admin/root/update-stats',
-                variant: 'ghost',
-                isAdmin: true,
-              },
-              {
-                icon: Search,
-                label: 'Check students sans cours',
-                description: 'Affiche les étudiants sans cours',
-                href: '/admin/root/xtra',
-                variant: 'ghost',
-                isAdmin: true,
-              },
-              {
-                icon: Cake,
-                label: 'Convertir dates de naissance',
-                description:
-                  "Script pour convertir les dates de naissance à partir d'un fichier XLS",
-                href: '/admin/root/convert',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: UserRoundPlus,
-                label: 'Nouvel Utilisateur',
-                description: "Ajouter d'un nouveau membre à l'application",
-                href: '/admin/root/register',
-                variant: 'secondary',
-                isAdmin: true,
-              },
-              {
-                icon: Palette,
-                label: 'Gérer le thème graphique',
-                description: 'Projet abandonné pour le moment',
-                href: '/admin/root/config',
-                variant: 'ghost',
-                isAdmin: true,
-              },
-            ],
-          },
-        ] as ActionGroup[])
+        {
+          title: 'ADMIN',
+          description: 'Section réservée aux admins',
+          actions: [
+            {
+              icon: UserPlus,
+              label: 'Ajouter un élève',
+              description: 'Créer un nouveau profil étudiant',
+              href: '/admin/root/student/new',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: UserPlus,
+              label: 'Ajouter un professeur',
+              description: 'Créer un nouveau profil enseignant',
+              href: '/admin/root/teacher/new',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: Clock,
+              label: 'Éditer horaires',
+              description: 'Voir et modifier les horaires',
+              href: '/admin/root/schedule/edit',
+              variant: 'ghost',
+              isAdmin: true,
+            },
+            {
+              icon: TreePalm,
+              label: 'Éditer vacances',
+              description: 'Voir et modifier les vacances & jours fériés',
+              href: '/admin/root/schedule/holidays',
+              variant: 'ghost',
+              isAdmin: true,
+            },
+            {
+              icon: Squirrel,
+              label: 'Migration',
+              description: "Migrer les data de l'ancienne db vers la nouvelle",
+              href: '/admin/root/migration',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: History,
+              label: 'Voir les logs de connexion',
+              description: "Affichage de toutes les connexions depuis le début de l'application",
+              href: '/admin/root/logs',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: ChartLine,
+              label: 'Update Stats',
+              description: 'Mise à jour des stats',
+              href: '/admin/root/update-stats',
+              variant: 'ghost',
+              isAdmin: true,
+            },
+            {
+              icon: Search,
+              label: 'Check students sans cours',
+              description: 'Affiche les étudiants sans cours',
+              href: '/admin/root/xtra',
+              variant: 'ghost',
+              isAdmin: true,
+            },
+            {
+              icon: Import,
+              label: 'XLS -> DB',
+              description:
+                "Script pour importer les données d'un fichier XLS vers la base de données",
+              href: '/admin/import',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: UserRoundPlus,
+              label: 'Nouvel Utilisateur',
+              description: "Ajouter d'un nouveau membre à l'application",
+              href: '/admin/root/register',
+              variant: 'secondary',
+              isAdmin: true,
+            },
+            {
+              icon: Palette,
+              label: 'Gérer le thème graphique',
+              description: 'Projet abandonné pour le moment',
+              href: '/admin/root/config',
+              variant: 'ghost',
+              isAdmin: true,
+            },
+          ],
+        },
+      ] as ActionGroup[])
       : []),
   ]
 
   const filteredData = selectedType
     ? (selectedType === 'students' ? students : teachers).filter((item) =>
-        `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : []
 
   function handleLogout() {
@@ -282,18 +282,16 @@ export default function SettingsPage() {
                   <Button
                     key={action.label}
                     variant={action.variant}
-                    className={`relative h-auto w-full p-4 flex flex-col items-start gap-2 whitespace-normal group transition-all duration-200 ${
-                      isAdminAction
-                        ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-orange-950/30 hover:from-rose-100 hover:to-orange-100 dark:hover:from-rose-950/50 dark:hover:to-orange-950/40 border-rose-200 dark:border-rose-800'
-                        : ''
-                    }`}
+                    className={`relative h-auto w-full p-4 flex flex-col items-start gap-2 whitespace-normal group transition-all duration-200 ${isAdminAction
+                      ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-orange-950/30 hover:from-rose-100 hover:to-orange-100 dark:hover:from-rose-950/50 dark:hover:to-orange-950/40 border-rose-200 dark:border-rose-800'
+                      : ''
+                      }`}
                     onClick={() => handleActionClick(action)}
                   >
                     <div className="flex items-center gap-2 text-base font-medium">
                       <Icon
-                        className={`h-5 w-5 transition-transform group-hover:scale-110 ${
-                          isAdminAction ? 'text-rose-600 dark:text-rose-400' : ''
-                        }`}
+                        className={`h-5 w-5 transition-transform group-hover:scale-110 ${isAdminAction ? 'text-rose-600 dark:text-rose-400' : ''
+                          }`}
                       />
                       {action.label}
                       {isAdminAction && (
