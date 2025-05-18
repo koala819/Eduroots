@@ -118,35 +118,22 @@ function parseSubject(value: string): SubjectNameEnum | undefined {
   return undefined
 }
 
-// Fonction pour extraire les horaires selon le créneau
-function extractTimeSlot(dayOfWeek: string) {
-  const timeMap = {
-    saturday_morning: {
-      start: TimeEnum.MorningStart,
-      end: TimeEnum.MorningEnd,
-    },
-    saturday_afternoon: {
-      start: TimeEnum.AfternoonStart,
-      end: TimeEnum.AfternoonEnd,
-    },
-    sunday_morning: { start: TimeEnum.MorningStart, end: TimeEnum.MorningEnd },
-  }
-  return (
-    timeMap[dayOfWeek as keyof typeof timeMap] || {
-      start: TimeEnum.MorningStart,
-      end: TimeEnum.MorningEnd,
-    }
-  )
-}
-
 // Formatage des cours (matières multiples, pas de filtrage strict)
 export function formatCoursesFromExcel(data: ExcelRowType[]): {
   courses: CourseSessionDataType[]
   warnings: string[]
 } {
   const courses: CourseSessionDataType[] = []
-  const seen = new Set<string>()
   const warnings: string[] = []
+
+  // Map pour regrouper les cours par professeur et créneau
+  const courseMap = new Map<
+    string,
+    {
+      firstPeriod: CourseSessionDataType | null
+      secondPeriod: CourseSessionDataType | null
+    }
+  >()
 
   data.forEach((row, idx) => {
     const teacherId = getCellString(row['I'])
@@ -175,25 +162,98 @@ export function formatCoursesFromExcel(data: ExcelRowType[]): {
       warnings.push(`Ligne ${idx + 2} : subject non reconnu : "${subjectRaw}"`)
     }
 
-    subjects.forEach((subject) => {
-      const key = `${teacherId}|${subject}|${dayOfWeek}|${classroomNumber}|${level}`
-      if (!teacherId || !subject || !dayOfWeek || !level || seen.has(key))
-        return
-      seen.add(key)
+    if (!teacherId || !dayOfWeek || !level) return
+
+    const key = `${teacherId}|${dayOfWeek}|${classroomNumber}|${level}`
+
+    if (!courseMap.has(key)) {
+      // Premier cours pour ce créneau
       const timeSlot = extractTimeSlot(dayOfWeek)
-      courses.push({
+
+      // On crée toujours les deux périodes
+      courseMap.set(key, {
+        firstPeriod: {
+          teacherId,
+          subject: subjects[0] || subjects[0], // Si une seule matière, on la met dans les deux périodes
+          dayOfWeek,
+          classroomNumber,
+          level,
+          startTime: timeSlot.start,
+          endTime: timeSlot.pause,
+        },
+        secondPeriod: {
+          teacherId,
+          subject: subjects[1] || subjects[0], // Si une seule matière, on la met dans les deux périodes
+          dayOfWeek,
+          classroomNumber,
+          level,
+          startTime: timeSlot.pause,
+          endTime: timeSlot.end,
+        },
+      })
+    } else {
+      // Mise à jour des cours existants
+      const existing = courseMap.get(key)!
+      const timeSlot = extractTimeSlot(dayOfWeek)
+
+      // On met à jour les deux périodes
+      existing.firstPeriod = {
         teacherId,
-        subject,
+        subject: subjects[0] || existing.firstPeriod?.subject || subjects[0],
         dayOfWeek,
         classroomNumber,
         level,
         startTime: timeSlot.start,
+        endTime: timeSlot.pause,
+      }
+
+      existing.secondPeriod = {
+        teacherId,
+        subject: subjects[1] || existing.secondPeriod?.subject || subjects[0],
+        dayOfWeek,
+        classroomNumber,
+        level,
+        startTime: timeSlot.pause,
         endTime: timeSlot.end,
-      })
-    })
+      }
+    }
+  })
+
+  // Convertir la Map en tableau de cours
+  courseMap.forEach(({ firstPeriod, secondPeriod }) => {
+    if (firstPeriod) courses.push(firstPeriod)
+    if (secondPeriod) courses.push(secondPeriod)
   })
 
   return { courses, warnings }
+}
+
+// Fonction pour extraire les horaires selon le créneau
+function extractTimeSlot(dayOfWeek: string) {
+  const timeMap = {
+    saturday_morning: {
+      start: TimeEnum.MorningStart,
+      pause: TimeEnum.MorningPause,
+      end: TimeEnum.MorningEnd,
+    },
+    saturday_afternoon: {
+      start: TimeEnum.AfternoonStart,
+      pause: TimeEnum.AfternoonPause,
+      end: TimeEnum.AfternoonEnd,
+    },
+    sunday_morning: {
+      start: TimeEnum.MorningStart,
+      pause: TimeEnum.MorningPause,
+      end: TimeEnum.MorningEnd,
+    },
+  }
+  return (
+    timeMap[dayOfWeek as keyof typeof timeMap] || {
+      start: TimeEnum.MorningStart,
+      pause: TimeEnum.MorningPause,
+      end: TimeEnum.MorningEnd,
+    }
+  )
 }
 
 export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
