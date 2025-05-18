@@ -584,7 +584,7 @@ export function processExcelData(data: ExcelRow[]): ProcessedData[] {
       phone,
     }
 
-    if (!isEmptyObject(processedItem) && (firstName || lastName)) {
+    if (!isEmptyObject(processedItem)) {
       processedData.push(processedItem)
     }
   })

@@ -18,7 +18,7 @@ import bcrypt from 'bcryptjs'
 function validateId(id: string | number): string | null {
   const validatedId = String(id).trim()
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
-    const sanitizedId = validatedId.replace(/[\n\r]/g, '');
+    const sanitizedId = validatedId.replace(/[\n\r]/g, '')
     console.warn(`ID invalide ignoré: ${sanitizedId}`)
     return null
   }
@@ -54,7 +54,10 @@ export async function POST(req: NextRequest) {
             // Validation du teacherId pour éviter l'injection de propriété
             const teacherId = String(s.teacherId).trim()
             if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
-              console.warn(`ID de professeur invalide ignoré: ${teacherId}`)
+              const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, '')
+              console.warn(
+                `ID de professeur invalide ignoré: ${sanitizedTeacherId}`,
+              )
               return acc
             }
             if (!acc[teacherId]) {
@@ -97,8 +100,10 @@ export async function POST(req: NextRequest) {
             !/^[a-zA-Z0-9_-]+$/.test(originalId) ||
             !/^[a-zA-Z0-9_-]+$/.test(mergedId)
           ) {
+            const sanitizedOriginalId = originalId.replace(/[\n\r]/g, '')
+            const sanitizedMergedId = mergedId.replace(/[\n\r]/g, '')
             console.warn(
-              `ID de professeur invalide ignoré dans la fusion: originalId=${originalId}, mergedId=${mergedId}`,
+              `ID de professeur invalide ignoré dans la fusion: originalId=${sanitizedOriginalId}, mergedId=${sanitizedMergedId}`,
             )
             return acc
           }
@@ -188,8 +193,9 @@ export async function POST(req: NextRequest) {
         // Stocker l'ID MongoDB avec l'ID métier comme clé
         const teacherId = String(newTeacher.id).trim()
         if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
+          const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, '')
           console.warn(
-            `ID de professeur invalide ignoré lors de la création du map: ${teacherId}`,
+            `ID de professeur invalide ignoré lors de la création du map: ${sanitizedTeacherId}`,
           )
           continue
         }
@@ -288,7 +294,10 @@ export async function POST(req: NextRequest) {
           // console.log('=====================================\n')
 
           if (!teacherMongoId) {
-            console.warn(`Professeur non trouvé pour l'ID ${c.teacherId}`)
+            const sanitizedTeacherId = String(c.teacherId).replace(/\n|\r/g, '')
+            console.warn(
+              `Professeur non trouvé pour l'ID ${sanitizedTeacherId}`,
+            )
             return acc
           }
 
