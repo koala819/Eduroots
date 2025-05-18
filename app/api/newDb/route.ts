@@ -15,24 +15,24 @@ export async function POST(req: NextRequest) {
   if (authError) return authError
 
   try {
-    // dbConnect déjà appelé dans validateRequest
-    const { teachers, courses, students } = await req.json()
+    const { teachers, courses, students, mergedTeachers, year } =
+      await req.json()
     const logs: string[] = []
 
     // Debug: Vérifier les données d'entrée
-    console.log("\n=== DEBUG: DONNÉES D'ENTRÉE ===")
-    console.log("Nombre d'étudiants:", students?.length)
-    console.log("Exemple d'étudiant:", students?.[0])
-    console.log('================================\n')
+    // console.log("\n=== DEBUG: DONNÉES D'ENTRÉE ===")
+    // console.log("Nombre d'étudiants:", students?.length)
+    // console.log("Exemple d'étudiant:", students?.[0])
+    // console.log('================================\n')
 
     // Créer un map pour stocker les étudiants par professeur référent
     const studentsByTeacher =
       students?.reduce((acc: any, s: any) => {
-        console.log('\n=== DEBUG: RÉDUCTION ===')
-        console.log('Étudiant:', s)
-        console.log('teacherId présent?', 'teacherId' in s)
-        console.log('teacherId valeur:', s.teacherId)
-        console.log('========================\n')
+        // console.log('\n=== DEBUG: RÉDUCTION ===')
+        // console.log('Étudiant:', s)
+        // console.log('teacherId présent?', 'teacherId' in s)
+        // console.log('teacherId valeur:', s.teacherId)
+        // console.log('========================\n')
 
         if (s.teacherId) {
           if (!acc[s.teacherId]) {
@@ -44,18 +44,32 @@ export async function POST(req: NextRequest) {
       }, {}) || {}
 
     // Debug: Afficher les profs et leurs étudiants
-    console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
-    console.log('studentsByTeacher', studentsByTeacher)
-    Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
-      console.log(`\nProf ID: ${teacherId}`)
-      console.log(
-        'Étudiants:',
-        (students as any[]).map((s) => s.id),
-      )
-    })
-    console.log('=====================================\n')
+    // console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
+    // console.log('studentsByTeacher', studentsByTeacher)
+    // Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
+    //   console.log(`\nProf ID: ${teacherId}`)
+    //   console.log(
+    //     'Étudiants:',
+    //     (students as any[]).map((s) => s.id),
+    //   )
+    // })
+    // console.log('=====================================\n')
 
-    // 1. Insérer les enseignants
+    // Créer un map pour les IDs fusionnés
+    const mergedTeacherMap =
+      mergedTeachers?.reduce((acc: any, mt: any) => {
+        acc[mt.originalId] = mt.mergedId
+        return acc
+      }, {}) || {}
+
+    // console.log('\n=== DEBUG: FUSION DES PROFESSEURS ===')
+    // console.log('mergedTeachers:', mergedTeachers)
+    // console.log('mergedTeacherMap:', mergedTeacherMap)
+    // console.log('=====================================\n')
+
+    /*----------------------------------------------------------
+    1. Insérer les enseignants
+    ----------------------------------------------------------*/
     const insertedTeachers = []
     const teacherIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
     if (teachers && teachers.length > 0) {
@@ -134,7 +148,9 @@ export async function POST(req: NextRequest) {
       logs.push(`${insertedTeachers.length} enseignants insérés.`)
     }
 
-    // 2. Insérer les étudiants
+    /*----------------------------------------------------------
+    2. Insérer les étudiants
+    ----------------------------------------------------------*/
     const insertedStudents = []
     const studentIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
     if (students && students.length > 0) {
@@ -180,21 +196,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Debug: Afficher les profs et leurs étudiants avec les IDs MongoDB
-    console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS (IDs MongoDB) ===')
-    Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
-      const teacherMongoId = teacherIdMap[teacherId]
-      console.log(`\nProf ID Excel: ${teacherId} -> MongoDB: ${teacherMongoId}`)
-      console.log(
-        'Étudiants:',
-        (students as any[]).map((s) => ({
-          idExcel: s.id,
-          idMongo: studentIdMap[s.id],
-        })),
-      )
-    })
-    console.log('=====================================\n')
+    // console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS (IDs MongoDB) ===')
+    // Object.entries(studentsByTeacher).forEach(([teacherId, students]) => {
+    //   const teacherMongoId = teacherIdMap[teacherId]
+    //   console.log(`\nProf ID Excel: ${teacherId} -> MongoDB: ${teacherMongoId}`)
+    //   console.log(
+    //     'Étudiants:',
+    //     (students as any[]).map((s) => ({
+    //       idExcel: s.id,
+    //       idMongo: studentIdMap[s.id],
+    //     })),
+    //   )
+    // })
+    // console.log('=====================================\n')
 
-    // 3. Insérer les cours avec les IDs des professeurs et des étudiants
+    /*----------------------------------------------------------
+    3. Insérer les cours avec les IDs des professeurs et des étudiants
+    ----------------------------------------------------------*/
     let insertedCourses = []
     if (courses && courses.length > 0) {
       // console.log('[IMPORT] Début insertion cours, nombre:', courses.length)
@@ -204,7 +222,15 @@ export async function POST(req: NextRequest) {
         (acc: any, c: CourseSessionDataType) => {
           // console.log('c', c)
           // Convertir l'ID Excel en ID MongoDB
-          const teacherMongoId = teacherIdMap[c.teacherId]
+          const originalTeacherId = mergedTeacherMap[c.teacherId] || c.teacherId
+          const teacherMongoId = teacherIdMap[originalTeacherId]
+
+          // console.log('\n=== DEBUG: CONVERSION ID PROFESSEUR ===')
+          // console.log('ID Excel original:', c.teacherId)
+          // console.log('ID Excel après fusion:', originalTeacherId)
+          // console.log('ID MongoDB:', teacherMongoId)
+          // console.log('=====================================\n')
+
           if (!teacherMongoId) {
             console.warn(`Professeur non trouvé pour l'ID ${c.teacherId}`)
             return acc
@@ -218,7 +244,7 @@ export async function POST(req: NextRequest) {
             acc[key] = {
               teacher: [teacherMongoId],
               sessions: [],
-              academicYear: '2024',
+              academicYear: year,
               isActive: true,
               deletedAt: null,
               stats: {},
@@ -226,10 +252,22 @@ export async function POST(req: NextRequest) {
           }
 
           // Récupérer les étudiants de ce professeur et convertir leurs IDs
-          const teacherStudents = studentsByTeacher[c.teacherId] || []
-          const studentIds = teacherStudents
-            .map((s: any) => studentIdMap[s.id])
-            .filter(Boolean)
+          // const teacherStudents = studentsByTeacher[c.teacherId] || []
+          // console.log('\n=== DEBUG: ÉTUDIANTS DU PROFESSEUR ===')
+          // console.log('ID Prof Excel:', c.teacherId)
+          // console.log('Étudiants trouvés:', teacherStudents.length)
+          // console.log(
+          //   'Étudiants:',
+          //   teacherStudents.map((s: ImportStudent) => ({
+          //     id: s.id,
+          //     teacherId: s.teacherId,
+          //   })),
+          // )
+          // console.log('=====================================\n')
+
+          // const studentIds = teacherStudents
+          //   .map((s: any) => studentIdMap[s.id])
+          //   .filter(Boolean)
 
           // Vérifier si une session similaire existe déjà
           const existingSession = acc[key].sessions.find(
@@ -237,7 +275,10 @@ export async function POST(req: NextRequest) {
               s.timeSlot.dayOfWeek === c.dayOfWeek &&
               s.timeSlot.startTime === c.startTime &&
               s.timeSlot.endTime === c.endTime &&
-              s.timeSlot.classroomNumber === parseInt(c.classroomNumber),
+              s.timeSlot.classroomNumber === parseInt(c.classroomNumber) &&
+              s.subject === c.subject &&
+              s.level === c.level &&
+              s.sameStudents === false,
           )
 
           if (existingSession) {

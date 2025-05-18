@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
-import { ProcessedData as ProcessedDataType, CourseSessionData as CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
+import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
 import type { Student, Teacher } from '@/types/user'
 import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
@@ -164,17 +164,19 @@ const ExcelConverter: React.FC = () => {
   async function launchDatabaseImport() {
     setIsImporting(true)
     setImportResult(null)
+    console.log('mergedTeachers', mergedTeachers)
     try {
-      const res = await fetchWithAuth('/api/newDb', {
+      const response = await fetchWithAuth('/api/newDb', {
         method: 'POST',
         body: {
           teachers: teachersFormatted,
-          courses: coursesFormatted?.map(c => ({ ...c, academicYear: ACADEMIC_YEAR })),
+          courses: coursesFormatted,
           students: studentsFormatted,
-          studentCourses: studentCourses,
-        },
+          mergedTeachers: mergedTeachers,
+          year: ACADEMIC_YEAR
+        }
       })
-      setImportResult(res)
+      setImportResult(response)
     } catch (err: any) {
       setImportResult({ success: false, message: 'Erreur inconnue', error: err?.message })
     }

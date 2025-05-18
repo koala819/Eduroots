@@ -4,11 +4,11 @@ import type { Student, Teacher } from '@/types/user'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
 // Interface spécifique pour l'import
-interface ImportStudent extends Student {
+export interface ImportStudent extends Student {
   teacherId: string
 }
 
-export interface CourseSessionData {
+export interface CourseSessionDataType {
   teacherId: string // Colonne I
   subject: string // Colonne O
   dayOfWeek: string // Colonne P
@@ -47,7 +47,7 @@ export interface StudentDataType {
   phone: string // Colonne G
 }
 
-export interface TeacherData {
+export interface TeacherDataType {
   id: string // Colonne I
   lastName: string // Colonne J
   firstName: string // Colonne K
@@ -58,25 +58,6 @@ export interface TeacherData {
 
 export interface ExcelRowType {
   [key: string]: any
-}
-
-export interface TeacherDataType {
-  id: string
-  lastName: string
-  firstName: string
-  email: string
-  gender: string
-  phone: string
-}
-
-export interface CourseSessionDataType {
-  teacherId: string
-  subject: string
-  dayOfWeek: string
-  classroomNumber: string
-  level: string
-  startTime: string
-  endTime: string
 }
 
 // Helpers de conversion/validation pour les enums
