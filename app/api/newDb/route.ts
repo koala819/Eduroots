@@ -7,8 +7,22 @@ import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 import { Course } from '@/backend/models/course.model'
 import { User } from '@/backend/models/user.model'
 import { validateRequest } from '@/lib/api.utils'
-import type { CourseSessionDataType, TeacherDataType } from '@/lib/import'
+import type {
+  CourseSessionDataType,
+  StudentDataType,
+  TeacherDataType,
+} from '@/lib/import'
 import bcrypt from 'bcryptjs'
+
+// Fonction utilitaire pour valider les IDs
+function validateId(id: string | number): string | null {
+  const validatedId = String(id).trim()
+  if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
+    console.warn(`ID invalide ignoré: ${validatedId}`)
+    return null
+  }
+  return validatedId
+}
 
 export async function POST(req: NextRequest) {
   const authError = await validateRequest(req)
@@ -27,21 +41,30 @@ export async function POST(req: NextRequest) {
 
     // Créer un map pour stocker les étudiants par professeur référent
     const studentsByTeacher =
-      students?.reduce((acc: any, s: any) => {
-        // console.log('\n=== DEBUG: RÉDUCTION ===')
-        // console.log('Étudiant:', s)
-        // console.log('teacherId présent?', 'teacherId' in s)
-        // console.log('teacherId valeur:', s.teacherId)
-        // console.log('========================\n')
+      students?.reduce(
+        (acc: Record<string, StudentDataType[]>, s: StudentDataType) => {
+          // console.log('\n=== DEBUG: RÉDUCTION ===')
+          // console.log('Étudiant:', s)
+          // console.log('teacherId présent?', 'teacherId' in s)
+          // console.log('teacherId valeur:', s.teacherId)
+          // console.log('========================\n')
 
-        if (s.teacherId) {
-          if (!acc[s.teacherId]) {
-            acc[s.teacherId] = []
+          if (s.teacherId) {
+            // Validation du teacherId pour éviter l'injection de propriété
+            const teacherId = String(s.teacherId).trim()
+            if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
+              console.warn(`ID de professeur invalide ignoré: ${teacherId}`)
+              return acc
+            }
+            if (!acc[teacherId]) {
+              acc[teacherId] = []
+            }
+            acc[teacherId].push(s)
           }
-          acc[s.teacherId].push(s)
-        }
-        return acc
-      }, {}) || {}
+          return acc
+        },
+        {},
+      ) || {}
 
     // Debug: Afficher les profs et leurs étudiants
     // console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
@@ -57,10 +80,33 @@ export async function POST(req: NextRequest) {
 
     // Créer un map pour les IDs fusionnés
     const mergedTeacherMap =
-      mergedTeachers?.reduce((acc: any, mt: any) => {
-        acc[mt.originalId] = mt.mergedId
-        return acc
-      }, {}) || {}
+      mergedTeachers?.reduce(
+        (
+          acc: Record<string, string>,
+          mt: {
+            originalId: string
+            mergedId: string
+          },
+        ) => {
+          // Validation des IDs pour éviter l'injection de propriété
+          const originalId = String(mt.originalId).trim()
+          const mergedId = String(mt.mergedId).trim()
+
+          if (
+            !/^[a-zA-Z0-9_-]+$/.test(originalId) ||
+            !/^[a-zA-Z0-9_-]+$/.test(mergedId)
+          ) {
+            console.warn(
+              `ID de professeur invalide ignoré dans la fusion: originalId=${originalId}, mergedId=${mergedId}`,
+            )
+            return acc
+          }
+
+          acc[originalId] = mergedId
+          return acc
+        },
+        {},
+      ) || {}
 
     // console.log('\n=== DEBUG: FUSION DES PROFESSEURS ===')
     // console.log('mergedTeachers:', mergedTeachers)
@@ -139,7 +185,14 @@ export async function POST(req: NextRequest) {
         const teacher = new User(newTeacher)
         const savedTeacher = await teacher.save()
         // Stocker l'ID MongoDB avec l'ID métier comme clé
-        teacherIdMap[newTeacher.id] = savedTeacher._id.toString()
+        const teacherId = String(newTeacher.id).trim()
+        if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
+          console.warn(
+            `ID de professeur invalide ignoré lors de la création du map: ${teacherId}`,
+          )
+          continue
+        }
+        teacherIdMap[teacherId] = savedTeacher._id.toString()
         insertedTeachers.push(savedTeacher)
         // console.log('newTeacher.id', newTeacher.id)
         // console.log('teacherIdMap[newTeacher.id]', teacherIdMap[newTeacher.id])
@@ -189,7 +242,9 @@ export async function POST(req: NextRequest) {
         const student = new User(newStudent)
         const savedStudent = await student.save()
         // Stocker l'ID MongoDB avec l'ID Excel comme clé
-        studentIdMap[newStudent.id] = savedStudent._id.toString()
+        const studentId = validateId(newStudent.id)
+        if (!studentId) continue
+        studentIdMap[studentId] = savedStudent._id.toString()
         insertedStudents.push(savedStudent)
       }
       logs.push(`${insertedStudents.length} étudiants insérés.`)
@@ -238,6 +293,11 @@ export async function POST(req: NextRequest) {
 
           // Clé unique : professeur uniquement
           const key = teacherMongoId
+          // Validation supplémentaire de la clé MongoDB
+          if (!/^[a-zA-Z0-9_-]+$/.test(key)) {
+            console.warn(`ID MongoDB invalide ignoré: ${key}`)
+            return acc
+          }
           // console.log('Clé de regroupement:', key)
 
           if (!acc[key]) {
@@ -295,7 +355,10 @@ export async function POST(req: NextRequest) {
                 // Récupérer les étudiants de ce professeur
                 const teacherStudents = studentsByTeacher[c.teacherId] || []
                 const studentIds = teacherStudents
-                  .map((s: any) => studentIdMap[s.id])
+                  .map((s: Student) => {
+                    const id = validateId(s.id)
+                    return id ? studentIdMap[id] : null
+                  })
                   .filter(Boolean)
 
                 // Première matière : 9h-10h45
@@ -327,7 +390,10 @@ export async function POST(req: NextRequest) {
                 // Récupérer les étudiants de ce professeur
                 const teacherStudents = studentsByTeacher[c.teacherId] || []
                 const studentIds = teacherStudents
-                  .map((s: any) => studentIdMap[s.id])
+                  .map((s: Student) => {
+                    const id = validateId(s.id)
+                    return id ? studentIdMap[id] : null
+                  })
                   .filter(Boolean)
 
                 // Première matière : 14h-15h45
@@ -355,7 +421,10 @@ export async function POST(req: NextRequest) {
             // Récupérer les étudiants de ce professeur
             const teacherStudents = studentsByTeacher[c.teacherId] || []
             const studentIds = teacherStudents
-              .map((s: any) => studentIdMap[s.id])
+              .map((s: Student) => {
+                const id = validateId(s.id)
+                return id ? studentIdMap[id] : null
+              })
               .filter(Boolean)
 
             acc[key].sessions.push({
