@@ -1,176 +1,52 @@
 'use client'
 
-import React, {ChangeEvent, useState} from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
+import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import type { Student, Teacher } from '@/types/user'
+import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
 
-// Définition des interfaces TypeScript
-interface ProcessedData {
-  firstName: string
-  lastName: string
-  dateOfBirth: string
-  gender: string
-  email: string
-  phone: string
-  teacher: string // Colonne C
-  level: string // Colonne D
-  classRoomNumber: string // Colonne E
-  dayOfWeek: string // Colonne F
-}
+const ACADEMIC_YEAR = '2024'
 
 interface ResultData {
-  data?: ProcessedData[]
+  data?: ProcessedDataType[]
   formatted?: string
   error?: string
   recordCount?: number
   nonEmptyCount?: number
 }
 
-interface ExcelRow {
-  [key: string]: any
-}
-
 const ExcelConverter: React.FC = () => {
   const [result, setResult] = useState<ResultData | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [teacherStepMessage, setTeacherStepMessage] = useState<string>('')
+  const [teachersFormatted, setTeachersFormatted] = useState<Teacher[] | null>(null)
+  const [coursesFormatted, setCoursesFormatted] = useState<CourseSessionDataType[] | null>(null)
+  const [courseStepMessage, setCourseStepMessage] = useState<string | null>(null)
+  const [teacherWarnings, setTeacherWarnings] = useState<string[]>([])
+  const [studentsFormatted, setStudentsFormatted] = useState<Student[] | null>(null)
+  const [studentStepMessage, setStudentStepMessage] = useState<string | null>(null)
+  const [studentWarningsRed, setStudentWarningsRed] = useState<string[]>([])
+  const [studentWarningsYellow, setStudentWarningsYellow] = useState<string[]>([])
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ success: boolean, message: string, logs?: string[], error?: string } | null>(null)
+  const [courseWarnings, setCourseWarnings] = useState<string[]>([])
+  const [mergedTeachers, setMergedTeachers] = useState<Array<{
+    originalId: string
+    mergedId: string
+    name: string
+    subjects: string[]
+  }>>([])
+  const [studentCourses, setStudentCourses] = useState<Array<{
+    studentId: string
+    teacherId: string
+    subject: SubjectNameEnum
+    dayOfWeek: TimeSlotEnum
+    level: LevelEnum
+  }>>([])
 
-  // Fonction pour vérifier si un objet est vide (toutes les valeurs sont des chaînes vides)
-  const isEmptyObject = (obj: ProcessedData): boolean => {
-    return Object.values(obj).every((value) => value === '')
-  }
-
-  // Fonction pour traiter les données Excel
-  const processExcelData = (data: ExcelRow[]): ProcessedData[] => {
-    // Tableau pour stocker les données traitées
-    const processedData: ProcessedData[] = []
-
-    // Traiter chaque ligne
-    data.forEach((row) => {
-      // Vérifier si nous avons au moins un nom complet
-      const fullName = row['B'] || ''
-
-      if (!fullName) return // Ignorer les lignes sans nom
-
-      // Ignorer les lignes d'en-tête ou d'instruction (comme "Élève", "GENRE", "EMAIL", etc.)
-      if (
-        fullName === 'Élève' ||
-        row['G'] === 'GENRE' ||
-        row['J'] === 'EMAIL' ||
-        row['C'] === 'Enseignant' ||
-        row['D'] === 'Niveau' ||
-        row['E'] === 'Salle' ||
-        row['F'] === 'Créneau'
-      ) {
-        return
-      }
-
-      // Extraire le nom et le prénom
-      let lastName = ''
-      let firstName = ''
-
-      // Séparation nom/prénom (le nom est généralement en majuscules, suivi du prénom)
-      const nameParts = fullName.trim().split(' ')
-
-      if (nameParts.length >= 2) {
-        // Chercher le dernier mot en majuscules qui sert de séparateur
-        let lastIndex = 0
-
-        for (let i = 0; i < nameParts.length; i++) {
-          if (nameParts[i] === nameParts[i].toUpperCase() && nameParts[i].length > 1) {
-            lastIndex = i
-          } else {
-            break // Premier mot qui n'est pas en majuscules
-          }
-        }
-
-        lastName = nameParts.slice(0, lastIndex + 1).join(' ')
-        firstName = nameParts.slice(lastIndex + 1).join(' ')
-      } else {
-        // S'il n'y a qu'un seul mot, on le considère comme le nom de famille
-        lastName = fullName
-      }
-
-      // Extraire et formater la date de naissance (colonne I)
-      let dateOfBirth = ''
-      if (row['I']) {
-        const dateValue = row['I']
-        if (dateValue instanceof Date) {
-          dateOfBirth = dateValue.toISOString().split('T')[0]
-        } else if (typeof dateValue === 'string') {
-          // Format probable: JJ/MM/AAAA
-          const dateParts = dateValue.split(/[\/.-]/)
-          if (dateParts.length === 3) {
-            const day = dateParts[0].padStart(2, '0')
-            const month = dateParts[1].padStart(2, '0')
-            const year = dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
-            dateOfBirth = `${year}-${month}-${day}`
-          }
-        }
-      }
-
-      // Extraire le genre (colonne G)
-      let gender = ''
-      if (row['G']) {
-        const genderValue = String(row['G']).trim().toUpperCase()
-        if (genderValue === 'F' || genderValue === 'FEMININ' || genderValue === 'FÉMININ') {
-          gender = 'female'
-        } else if (genderValue === 'M' || genderValue === 'MASCULIN') {
-          gender = 'male'
-        } else {
-          gender = genderValue
-        }
-      }
-
-      // Extraire l'email (colonne J)
-      const email = row['J'] || ''
-
-      // Extraire le téléphone (colonne M)
-      let phone = ''
-      if (row['M']) {
-        const phoneStr = String(row['M'])
-        // Prendre uniquement le premier numéro s'il y en a plusieurs
-        const phoneNumber = phoneStr.split(/[\/;,]/)[0].trim()
-        // Nettoyer le numéro (garder uniquement les chiffres)
-        phone = phoneNumber.replace(/[^\d]/g, '')
-      }
-
-      // Nouvelles colonnes demandées
-      // Extraire le professeur (colonne C)
-      const teacher = row['C'] ? String(row['C']).trim() : ''
-
-      // Extraire le niveau (colonne D)
-      const level = row['D'] ? String(row['D']).trim() : ''
-
-      // Extraire le numéro de classe (colonne E)
-      const classRoomNumber = row['E'] ? String(row['E']).trim() : ''
-
-      // Extraire le jour de la semaine (colonne F)
-      const dayOfWeek = row['F'] ? String(row['F']).trim() : ''
-
-      // Créer l'objet de données traitées
-      const processedItem: ProcessedData = {
-        firstName,
-        lastName,
-        dateOfBirth,
-        gender,
-        email,
-        phone,
-        teacher,
-        level,
-        classRoomNumber,
-        dayOfWeek,
-      }
-
-      // Ajouter au tableau uniquement si au moins un champ n'est pas vide
-      if (!isEmptyObject(processedItem) && (firstName || lastName)) {
-        processedData.push(processedItem)
-      }
-    })
-
-    return processedData
-  }
-
-  // Gérer le téléchargement du fichier
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  async function processExcelFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -185,11 +61,11 @@ const ExcelConverter: React.FC = () => {
       const worksheet = workbook.worksheets[0]
 
       // Convertir en JSON
-      const jsonData: ExcelRow[] = []
+      const jsonData: ExcelRowType[] = []
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return // Ignorer l'en-tête
 
-        const rowData: ExcelRow = {}
+        const rowData: ExcelRowType = {}
         row.eachCell((cell, colNumber) => {
           const columnLetter = String.fromCharCode(64 + colNumber) // Convertir le numéro de colonne en lettre (A, B, C, etc.)
           rowData[columnLetter] = cell.value
@@ -197,7 +73,70 @@ const ExcelConverter: React.FC = () => {
         jsonData.push(rowData)
       })
 
-      console.log('Données brutes Excel:', jsonData)
+      // console.log('Données brutes Excel:', jsonData)
+
+      // Étape 1 : formatage des enseignants
+      let teachers: Teacher[] = []
+      let warnings: string[] = []
+      let mergedTeachersLocal: Array<{
+        originalId: string
+        mergedId: string
+        name: string
+        subjects: string[]
+      }> = []
+      try {
+        const result = formatTeachersFromExcelWithWarnings(jsonData)
+        teachers = result.teachers
+        warnings = result.warnings
+        mergedTeachersLocal = result.mergedTeachers
+        setTeachersFormatted(teachers)
+        setTeacherWarnings(warnings)
+        setMergedTeachers(mergedTeachersLocal)
+        setTeacherStepMessage(
+          `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`
+        )
+      } catch (err: any) {
+        setTeacherStepMessage("Erreur lors de l'intégration des enseignants : " + err.message)
+        setTeachersFormatted(null)
+        setTeacherWarnings([])
+      }
+
+      // Étape 2 : formatage des cours
+      let courses: CourseSessionDataType[] = []
+      let courseWarningsLocal: string[] = []
+      try {
+        const result = formatCoursesFromExcel(jsonData)
+        courses = result.courses
+        courseWarningsLocal = result.warnings || []
+        setCoursesFormatted(courses)
+        setCourseWarnings(courseWarningsLocal)
+        setCourseStepMessage(`Étape 2 : Intégration des cours avec succès (${courses.length} cours formatés).`)
+      } catch (err: any) {
+        setCourseStepMessage("Erreur lors de l'intégration des cours : " + err.message)
+        setCoursesFormatted(null)
+        setCourseWarnings([])
+      }
+
+      // Étape 3 : formatage des étudiants
+      let students: Student[] = []
+      let warningsRed: string[] = []
+      let warningsYellow: string[] = []
+      try {
+        const result = formatStudentsFromExcelWithWarnings(jsonData)
+        students = result.students as Student[]
+        warningsRed = result.missingTeacherIdWarnings
+        warningsYellow = result.missingContactWarnings
+        setStudentsFormatted(students as Student[])
+        setStudentWarningsRed(warningsRed)
+        setStudentWarningsYellow(warningsYellow)
+        setStudentCourses(result.studentCourses)
+        setStudentStepMessage(`Étape 3 : Intégration des étudiants avec succès (${students.length} étudiants formatés)`)
+      } catch (err: any) {
+        setStudentStepMessage("Erreur lors de l'intégration des étudiants : " + err.message)
+        setStudentsFormatted(null)
+        setStudentWarningsRed([])
+        setStudentWarningsYellow([])
+      }
 
       // Traiter les données
       const processedData = processExcelData(jsonData)
@@ -216,28 +155,32 @@ const ExcelConverter: React.FC = () => {
       })
     } catch (error) {
       console.error('Erreur lors du traitement du fichier:', error)
-      setResult({error: 'Erreur lors du traitement du fichier Excel'})
+      setResult({ error: 'Erreur lors du traitement du fichier Excel' })
     }
 
     setLoading(false)
   }
 
-  // Télécharger le résultat
-  const downloadResult = () => {
-    if (!result || !result.formatted) return
-
-    const blob = new Blob([result.formatted], {
-      type: 'application/json',
-    })
-
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `données_pour_comparaison.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url) // Libérer la mémoire
+  async function launchDatabaseImport() {
+    setIsImporting(true)
+    setImportResult(null)
+    console.log('mergedTeachers', mergedTeachers)
+    try {
+      const response = await fetchWithAuth('/api/newDb', {
+        method: 'POST',
+        body: {
+          teachers: teachersFormatted,
+          courses: coursesFormatted,
+          students: studentsFormatted,
+          mergedTeachers: mergedTeachers,
+          year: ACADEMIC_YEAR
+        }
+      })
+      setImportResult(response)
+    } catch (err: any) {
+      setImportResult({ success: false, message: 'Erreur inconnue', error: err?.message })
+    }
+    setIsImporting(false)
   }
 
   return (
@@ -251,7 +194,7 @@ const ExcelConverter: React.FC = () => {
         <input
           type="file"
           accept=".xlsx,.xls"
-          onChange={handleFileChange}
+          onChange={processExcelFile}
           className="block w-full text-sm text-gray-500
                    file:mr-4 file:py-2 file:px-4
                    file:rounded-md file:border-0
@@ -260,18 +203,35 @@ const ExcelConverter: React.FC = () => {
                    hover:file:bg-blue-100"
         />
         <p className="text-sm text-gray-600">
-          Le fichier Excel doit contenir les données dans les colonnes suivantes:
+          Le fichier Excel doit contenir les données dans les colonnes suivantes :
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
-          <li>Colonne B: Nom complet (généralement NOM Prénom)</li>
-          <li>Colonne C: Professeur</li>
-          <li>Colonne D: Niveau</li>
-          <li>Colonne E: Numéro de classe</li>
-          <li>Colonne F: Jour de la semaine</li>
-          <li>Colonne G: Genre (F, M, Féminin, Masculin)</li>
-          <li>Colonne I: Date de naissance (format JJ/MM/AAAA)</li>
-          <li>Colonne J: Email</li>
-          <li>Colonne M: Téléphone</li>
+          <li>
+            <b>Colonne A à G (Élève) :</b>
+          </li>
+          <li>Colonne A : Nom de l&apos;élève</li>
+          <li>Colonne B : Prénom de l&apos;élève</li>
+          <li>Colonne C : ID Professeur référent</li>
+          <li>Colonne D : Genre de l&apos;élève</li>
+          <li>Colonne E : Date de naissance de l&apos;élève (JJ/MM/AAAA)</li>
+          <li>Colonne F : Email de l&apos;élève</li>
+          <li>Colonne G : Téléphone de l&apos;élève</li>
+          <li className="mt-2">
+            <b>Colonne I à N (Enseignant) :</b>
+          </li>
+          <li>Colonne I : ID Professeur</li>
+          <li>Colonne J : Nom du professeur</li>
+          <li>Colonne K : Prénom du professeur</li>
+          <li>Colonne L : Email du professeur</li>
+          <li>Colonne M : Genre du professeur</li>
+          <li>Colonne N : Téléphone du professeur</li>
+          <li>Colonne O : Matière</li>
+          <li className="mt-2">
+            <b>Colonne P à R (Cours) :</b>
+          </li>
+          <li>Colonne P : Jour de travail</li>
+          <li>Colonne Q : Salle de classe</li>
+          <li>Colonne R : Niveau</li>
         </ul>
       </div>
 
@@ -281,37 +241,184 @@ const ExcelConverter: React.FC = () => {
         </div>
       )}
 
-      {result && !result.error && result.data && (
-        <div className="mt-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">
-              Résultat JSON ({result.nonEmptyCount} enregistrements utiles sur {result.recordCount}{' '}
-              lignes)
-            </h2>
-            <button
-              onClick={downloadResult}
-              className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Télécharger JSON
-            </button>
-          </div>
+      {teacherStepMessage && (
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{teacherStepMessage}</div>
+      )}
 
+      {teacherWarnings.length > 0 && (
+        <div className="mt-2 p-4 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-300">
+          <b>Attention : Les champs suivants sont manquants pour certains enseignants :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {teacherWarnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {mergedTeachers.length > 0 && (
+        <div className="mt-2 p-4 bg-green-50 text-green-800 rounded-md border border-green-300">
+          <b>Fusions effectuées :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {mergedTeachers.map((m, i) => (
+              <li key={i}>
+                {m.name} : ID {m.originalId} fusionné avec ID {m.mergedId}
+                <br />
+                Matières : {m.subjects.join(', ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {teachersFormatted && teachersFormatted.length > 0 && (
+        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
+          <pre className="text-sm">{JSON.stringify(teachersFormatted, null, 2)}</pre>
+        </div>
+      )}
+
+      {courseStepMessage && (
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{courseStepMessage}</div>
+      )}
+      {courseStepMessage && coursesFormatted && coursesFormatted.length > 0 && (
+        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
+          <pre className="text-sm">{JSON.stringify(coursesFormatted, null, 2)}</pre>
+        </div>
+      )}
+
+      {courseWarnings.length > 0 && (
+        <div className="mt-2 p-4 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-300">
+          <b>Attention : Les champs suivants sont non reconnus pour certains cours :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {courseWarnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {coursesFormatted && coursesFormatted.length > 0 && (
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Horaires des cours :</h3>
           <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border">
-            <pre className="text-sm">{result.formatted}</pre>
+            <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Professeur</th>
+                  <th className="px-4 py-2">Jour</th>
+                  <th className="px-4 py-2">Début</th>
+                  <th className="px-4 py-2">Fin</th>
+                  <th className="px-4 py-2">Matière</th>
+                  <th className="px-4 py-2">Niveau</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coursesFormatted.map((course, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="px-4 py-2">{course.teacherId}</td>
+                    <td className="px-4 py-2">{course.dayOfWeek}</td>
+                    <td className="px-4 py-2">{course.startTime}</td>
+                    <td className="px-4 py-2">{course.endTime}</td>
+                    <td className="px-4 py-2">{course.subject}</td>
+                    <td className="px-4 py-2">{course.level}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </div>
+      )}
 
-          <div className="mt-4">
-            <p className="text-sm text-gray-600">
-              Le fichier JSON généré est au format requis pour la comparaison avec votre base de
-              données. Les noms complets ont été séparés en prénom et nom, et toutes les données
-              sont formatées selon les exigences de votre système.
-            </p>
+      {studentStepMessage && (
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{studentStepMessage}</div>
+      )}
+      {studentStepMessage && studentsFormatted && studentsFormatted.length > 0 && (
+        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
+          <pre className="text-sm">{JSON.stringify(studentsFormatted, null, 2)}</pre>
+        </div>
+      )}
+
+      {studentWarningsRed.length > 0 && (
+        <div className="mt-2 p-4 bg-red-50 text-red-800 rounded-md border border-red-300">
+          <b>Attention : Les étudiants suivants n&apos;ont pas d&apos;ID Professeur (ligne ignorée à l&apos;import) :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {studentWarningsRed.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {studentWarningsYellow.length > 0 && (
+        <div className="mt-2 p-4 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-300">
+          <b>Attention : Les champs suivants sont manquants pour certains étudiants :</b>
+          <ul className="list-disc ml-6 mt-1">
+            {studentWarningsYellow.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {studentCourses.length > 0 && (
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Liens élèves-cours :</h3>
+          <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border">
+            <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Élève</th>
+                  <th className="px-4 py-2">Professeur</th>
+                  <th className="px-4 py-2">Matière</th>
+                  <th className="px-4 py-2">Jour</th>
+                  <th className="px-4 py-2">Niveau</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentCourses.map((link, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="px-4 py-2">{link.studentId}</td>
+                    <td className="px-4 py-2">{link.teacherId}</td>
+                    <td className="px-4 py-2">{link.subject}</td>
+                    <td className="px-4 py-2">{link.dayOfWeek}</td>
+                    <td className="px-4 py-2">{link.level}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {result && result.error && (
         <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">{result.error}</div>
+      )}
+
+      {studentsFormatted && studentsFormatted.length > 0 && (
+        <div className="mt-6 flex flex-col items-center">
+          <button
+            className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 disabled:opacity-50"
+            onClick={launchDatabaseImport}
+            disabled={isImporting}
+          >
+            {isImporting ? 'Import en cours...' : 'Lancer l\'import en base'}
+          </button>
+          {isImporting && (
+            <div className="mt-2 text-blue-600">Veuillez patienter, import en cours...</div>
+          )}
+          {importResult && (
+            <div className={`mt-4 p-4 rounded-md ${importResult.success ? 'bg-green-50 text-green-700 border border-green-300' : 'bg-red-50 text-red-700 border border-red-300'}`}>
+              <b>{importResult.success ? 'Import réussi !' : 'Erreur lors de l\'import'}</b>
+              <div className="mt-2">{importResult.message}</div>
+              {importResult.logs && (
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">{importResult.logs.join('\n')}</pre>
+              )}
+              {importResult.error && (
+                <pre className="mt-2 text-xs bg-red-100 p-2 rounded">{importResult.error}</pre>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

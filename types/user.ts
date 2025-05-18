@@ -1,5 +1,5 @@
-import {SubjectNameEnum} from './course'
-import {RootEntity} from './root'
+import { SubjectNameEnum } from './course'
+import { RootEntity } from './root'
 
 export type UserRole = 'student' | 'teacher' | 'admin' | 'bureau'
 
@@ -21,7 +21,7 @@ export enum UserType {
   Both = 'both',
 }
 
-export type User = Student | Teacher | (BaseUser & {role: 'admin' | 'bureau'})
+export type User = Student | Teacher | (BaseUser & { role: 'admin' | 'bureau' })
 
 type EmailStatus = 'valid' | 'invalid' | 'pending' | 'bounced'
 
