@@ -3,7 +3,7 @@
 import {Calendar, MenuIcon} from 'lucide-react'
 import {CheckCircle2} from 'lucide-react'
 
-import {CourseSession, PopulatedCourse} from '@/types/course'
+import {Course, CourseSession} from '@/types/course'
 
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
@@ -20,16 +20,19 @@ import {
 import {formatDayOfWeek} from '@/lib/utils'
 
 export const CourseMenu = ({
-  teacherCourses,
+  courses,
   currentCourseId,
   onCourseSelect,
 }: {
-  teacherCourses: PopulatedCourse
+  courses: Course[]
   currentCourseId: string
   onCourseSelect: (id: string) => void
 }) => {
+  // Récupérer toutes les sessions de tous les cours
+  const allSessions = courses.flatMap((course) => course.sessions)
+
   // Find sessions that have sameStudents set to true
-  const sameStudentsCourses = teacherCourses.sessions.filter((course) => course.sameStudents)
+  const sameStudentsCourses = allSessions.filter((session) => session.sameStudents)
 
   return (
     <Sheet>
@@ -43,10 +46,7 @@ export const CourseMenu = ({
       <SheetContent side="left" className="[&>button]:hidden">
         <SheetHeader>
           <SheetTitle>Mes Cours</SheetTitle>
-          <SheetDescription>
-            {/* {teacherCourses.sessions.length} cours */}
-            Choisissez
-          </SheetDescription>
+          <SheetDescription>{allSessions.length} cours</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col h-full">
           {/* Course List */}
@@ -88,12 +88,12 @@ export const CourseMenu = ({
             )}
 
             {/* Render other courses regularly */}
-            {teacherCourses.sessions.map((course: CourseSession) => {
-              if (course.sameStudents) return null // Skip individual rendering of sameStudents courses
+            {allSessions.map((session: CourseSession) => {
+              if (session.sameStudents) return null // Skip individual rendering of sameStudents courses
 
-              const isSelected = course.id === currentCourseId
+              const isSelected = session.id === currentCourseId
               return (
-                <SheetClose asChild key={course.id}>
+                <SheetClose asChild key={session.id}>
                   <Card
                     className={`
                     cursor-pointer transition-all duration-200
@@ -103,7 +103,7 @@ export const CourseMenu = ({
                         : 'hover:bg-gray-50 hover:shadow-md'
                     }
                   `}
-                    onClick={() => onCourseSelect(course.id!)}
+                    onClick={() => onCourseSelect(session.id!)}
                   >
                     <div className="p-4 relative">
                       {isSelected && (
@@ -111,14 +111,14 @@ export const CourseMenu = ({
                       )}
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-gray-800 truncate max-w-[180px]">
-                          {course.subject}
+                          {session.subject}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
                         <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
                         <span className="truncate">
-                          {formatDayOfWeek(course.timeSlot.dayOfWeek)} {course.timeSlot.startTime} -{' '}
-                          {course.timeSlot.endTime}
+                          {formatDayOfWeek(session.timeSlot.dayOfWeek)} {session.timeSlot.startTime}{' '}
+                          - {session.timeSlot.endTime}
                         </span>
                       </div>
                     </div>

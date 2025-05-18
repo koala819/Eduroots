@@ -38,7 +38,7 @@ export async function statsStudentCheck(): Promise<{
             attendance: {
               totalSessions: attendanceData.totalSessions,
               absencesCount: attendanceData.absencesCount,
-              attendanceRate: attendanceData.attendanceRate,
+              absencesRate: attendanceData.absencesRate,
               lastActivity: attendanceData.lastActivity,
             },
             behavior: {

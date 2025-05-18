@@ -1,17 +1,17 @@
-import {SubjectNameEnum} from '@/types/course'
-import {StudentStats} from '@/types/stats'
+import { SubjectNameEnum } from '@/types/course'
+import { StudentStats } from '@/types/stats'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {StudentStats as StudentStatsCollection} from '@/backend/models/student-stats.model'
-import {User} from '@/backend/models/user.model'
+import { StudentStats as StudentStatsCollection } from '@/backend/models/student-stats.model'
+import { User } from '@/backend/models/user.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/lib/stats/student'
-import {convertToDate} from '@/lib/utils'
+import { convertToDate } from '@/lib/utils'
 import fs from 'fs/promises'
-import {ObjectId} from 'mongoose'
+import { ObjectId } from 'mongoose'
 import path from 'path'
 
 interface UpdateStats {
@@ -41,11 +41,13 @@ export async function statsStudentUpdate(): Promise<{
     // Connexion à la base de données
     await dbConnect()
     console.log('✅ Connecté à la base de données')
-    console.log(`\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES ÉTUDIANTS =====\n`)
+    console.log(
+      `\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES ÉTUDIANTS =====\n`,
+    )
 
     // Récupérer tous les étudiants actifs
     console.log('1️⃣ Récupération des étudiants...')
-    const students = await User.find({role: 'student', isActive: true})
+    const students = await User.find({ role: 'student', isActive: true })
     console.log(`- Total des étudiants trouvés: ${students.length}`)
 
     // Initialiser les statistiques
@@ -86,17 +88,21 @@ export async function statsStudentUpdate(): Promise<{
         // Construire les statistiques de l'étudiant selon l'interface StudentStats
         const studentStats: StudentStats = {
           userId: studentId,
-          absencesRate: attendanceData?.attendanceRate || 0,
+          absencesRate: attendanceData?.absencesRate || 0,
           absencesCount: attendanceData?.absencesCount || 0,
           absences: attendanceData?.absences || [],
           behaviorAverage: behaviorData?.behaviorAverage || 0,
           grades: {
             [SubjectNameEnum.Arabe]: {
-              average: gradeData?.grades?.bySubject[SubjectNameEnum.Arabe]?.average || 0,
+              average:
+                gradeData?.grades?.bySubject[SubjectNameEnum.Arabe]?.average ||
+                0,
             },
             [SubjectNameEnum.EducationCulturelle]: {
               average:
-                gradeData?.grades?.bySubject[SubjectNameEnum.EducationCulturelle]?.average || 0,
+                gradeData?.grades?.bySubject[
+                  SubjectNameEnum.EducationCulturelle
+                ]?.average || 0,
             },
             overallAverage: gradeData?.grades?.overallAverage || 0,
           },
@@ -119,7 +125,7 @@ export async function statsStudentUpdate(): Promise<{
           // Mise à jour du document existant
           if (statsDoc) {
             await StudentStatsCollection.updateOne(
-              {_id: (statsDoc as any)._id},
+              { _id: (statsDoc as any)._id },
               {
                 $set: {
                   ...studentStats,
@@ -152,13 +158,18 @@ export async function statsStudentUpdate(): Promise<{
           })
 
           stats.updatedStudents++
-          console.log(`  ✅ Statistiques mises à jour: ${differences.join(', ')}`)
+          console.log(
+            `  ✅ Statistiques mises à jour: ${differences.join(', ')}`,
+          )
         } else {
           stats.skippedStudents++
           console.log(`  ℹ️ Aucun changement nécessaire`)
         }
       } catch (error) {
-        console.error(`  ❌ Erreur lors du traitement de l'étudiant ${studentId}:`, error)
+        console.error(
+          `  ❌ Erreur lors du traitement de l'étudiant ${studentId}:`,
+          error,
+        )
         stats.skippedStudents++
       }
     }
@@ -174,7 +185,7 @@ export async function statsStudentUpdate(): Promise<{
       }
 
       const reportDir = path.join(process.cwd(), 'reports')
-      await fs.mkdir(reportDir, {recursive: true})
+      await fs.mkdir(reportDir, { recursive: true })
       const timestamp = new Date().toISOString().replace(/:/g, '-')
       const fileName = `student_stats_update_${timestamp}.json`
       reportPath = path.join(reportDir, fileName)
@@ -196,7 +207,9 @@ export async function statsStudentUpdate(): Promise<{
     console.log(`- Étudiants sans données: ${stats.studentsWithoutData}`)
     console.log(`- Changements de statistiques: ${stats.statsChanges.length}`)
 
-    console.log('\n✅ MISE À JOUR RÉUSSIE: Statistiques des étudiants recalculées avec succès')
+    console.log(
+      '\n✅ MISE À JOUR RÉUSSIE: Statistiques des étudiants recalculées avec succès',
+    )
 
     console.log(`\n===== FIN DE LA MISE À JOUR =====`)
 
@@ -220,7 +233,10 @@ export async function statsStudentUpdate(): Promise<{
 /**
  * Compare les anciennes et nouvelles statistiques d'un étudiant
  */
-function compareStudentStats(oldStats: Partial<StudentStats>, newStats: StudentStats): string[] {
+function compareStudentStats(
+  oldStats: Partial<StudentStats>,
+  newStats: StudentStats,
+): string[] {
   const differences = []
 
   // Vérifier le taux de présence
@@ -232,11 +248,15 @@ function compareStudentStats(oldStats: Partial<StudentStats>, newStats: StudentS
 
   // Vérifier le nombre total d'absences
   if ((oldStats.absencesCount || 0) !== newStats.absencesCount) {
-    differences.push(`absences totales: ${oldStats.absencesCount || 0} → ${newStats.absencesCount}`)
+    differences.push(
+      `absences totales: ${oldStats.absencesCount || 0} → ${newStats.absencesCount}`,
+    )
   }
 
   // Vérifier la moyenne de comportement
-  if (Math.abs((oldStats.behaviorAverage || 0) - newStats.behaviorAverage) > 0.01) {
+  if (
+    Math.abs((oldStats.behaviorAverage || 0) - newStats.behaviorAverage) > 0.01
+  ) {
     differences.push(
       `comportement: ${oldStats.behaviorAverage?.toFixed(2) || '0'} → ${newStats.behaviorAverage.toFixed(2)}`,
     )
@@ -280,7 +300,7 @@ async function safeUpdateUserStats(studentId: string, statsDocId: ObjectId) {
   try {
     // Tentative de mise à jour directe
     const updateResult = await User.updateOne(
-      {_id: studentId},
+      { _id: studentId },
       {
         $set: {
           stats: statsDocId,
@@ -306,7 +326,9 @@ async function safeUpdateUserStats(studentId: string, statsDocId: ObjectId) {
       if (user) {
         // Vérifier si le champ stats existe déjà
         if (!user.stats) {
-          console.log(`Ajout du champ stats pour ${user.firstname} ${user.lastname}`)
+          console.log(
+            `Ajout du champ stats pour ${user.firstname} ${user.lastname}`,
+          )
 
           // Ajouter explicitement le champ stats
           user.stats = statsDocId
@@ -322,7 +344,9 @@ async function safeUpdateUserStats(studentId: string, statsDocId: ObjectId) {
             stats: savedUser.stats,
           })
         } else {
-          console.log(`Champ stats existe déjà pour ${user.firstname} ${user.lastname}`)
+          console.log(
+            `Champ stats existe déjà pour ${user.firstname} ${user.lastname}`,
+          )
         }
       } else {
         console.error(`Utilisateur non trouvé avec l'ID: ${studentId}`)

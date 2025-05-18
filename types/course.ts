@@ -91,6 +91,7 @@ export interface CourseSession {
 export interface CourseStats {
   averageAttendance?: number
   averageGrade?: number
+  averageBehavior?: number
   studentCount?: number
   sessionCount?: number
   lastUpdated: Date

@@ -9,12 +9,13 @@ import {BehaviorCreate} from '@/components/atoms/client/BehaviorCreate'
 import {BehaviorEdit} from '@/components/atoms/client/BehaviorEdit'
 import {BehaviorTable} from '@/components/atoms/client/BehaviorTable'
 import {Card, CardContent} from '@/components/ui/card'
-import {Sheet, SheetContent} from '@/components/ui/sheet'
+import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
 
 import {useAttendance} from '@/context/Attendances/client'
 import {useBehavior} from '@/context/Behaviors/client'
 import {useCourses} from '@/context/Courses/client'
 import {AnimatePresence} from 'framer-motion'
+import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardBehaviorT = ({
   courseId,
@@ -24,39 +25,39 @@ export const DashboardBehaviorT = ({
   courseDates: Date[]
 }) => {
   const {data: session} = useSession()
-  const {allAttendance, fetchAttendances, isLoadingAttendance, getAttendanceById} = useAttendance()
-  const {
-    getTeacherCourses,
-    teacherCourses,
-    isLoading: isLoadingCourses,
-    error: errorCourses,
-  } = useCourses()
-  const {allBehaviors, fetchBehaviors, error} = useBehavior()
+
+  const {error: errorCourses} = useCourses()
+  const {allAttendance, fetchAttendances, getAttendanceById} = useAttendance()
+  const {fetchTeacherCourses, courses} = useCourseStore()
+  const {allBehaviors, fetchBehaviors, error, getBehaviorById} = useBehavior()
 
   const [isCreatingBehavior, setIsCreatingBehavior] = useState<boolean>(false)
   const [isEditingBehavior, setIsEditingBehavior] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedBehaviorId, setSelectedBehaviorId] = useState<string>('')
   const [attendanceStudents, setAttendanceStudents] = useState<AttendanceRecord[]>([])
+  const [isLoadingBehavior, setIsLoadingBehavior] = useState<boolean>(true)
 
   useEffect(() => {
     const loadData = async () => {
       if (!session?.user?.id || !courseId) return
 
       try {
-        // Chargement parallèle des présences et comportements
+        setIsLoadingBehavior(true)
         await Promise.all([
-          getTeacherCourses(session.user.id),
+          fetchTeacherCourses(session.user.id),
           fetchAttendances({courseId}),
           fetchBehaviors({courseId}),
         ])
       } catch (err) {
-        console.error('Error loading behavior:', err)
+        console.error('Error loading behavior data:', err)
+      } finally {
+        setIsLoadingBehavior(false)
       }
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, getTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -65,23 +66,6 @@ export const DashboardBehaviorT = ({
       const attendanceDate = new Date(attendance.date)
       return attendanceDate.toDateString() === date.toDateString()
     })
-  }
-
-  async function handleEditBehavior(behaviorId: string, date: string) {
-    try {
-      // Charger les données avant de montrer le modal
-      const data = await getAttendanceById(courseId, date)
-
-      if (data !== null && data !== undefined) {
-        setAttendanceStudents(data.records)
-        setSelectedBehaviorId(behaviorId)
-        setSelectedDate(date)
-        setIsEditingBehavior(true)
-      }
-    } catch (error) {
-      console.error('Error loading attendance:', error)
-      // Optionnel : afficher un toast d'erreur
-    }
   }
 
   async function handleCreateBehavior(date: string) {
@@ -99,17 +83,67 @@ export const DashboardBehaviorT = ({
     }
   }
 
-  function handleCloseCreate() {
+  async function handleEditBehavior(behaviorId: string, date: string) {
+    try {
+      setIsLoadingBehavior(true)
+      // Charger toutes les données nécessaires avant d'ouvrir le modal
+      const [attendanceData, behaviorResponse] = await Promise.all([
+        getAttendanceById(courseId, date),
+        getBehaviorById(courseId, date),
+      ])
+
+      if (attendanceData !== null && attendanceData !== undefined) {
+        // Mettre à jour les données d'assiduité
+        setAttendanceStudents(attendanceData.records)
+
+        // Vérifier que nous avons un behaviorId valide
+        if (behaviorResponse?.success && behaviorResponse.data?.id) {
+          setSelectedBehaviorId(behaviorResponse.data.id)
+          setSelectedDate(date)
+          setIsEditingBehavior(true)
+        } else {
+          console.error('Pas de behavior trouvé pour la date:', date)
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Error loading attendance:', error)
+    } finally {
+      setIsLoadingBehavior(false)
+    }
+  }
+
+  async function handleCloseCreate() {
     setIsCreatingBehavior(false)
-    setSelectedDate(null)
+    // Attendre un peu que le modal soit fermé
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    // Recharger les données sans recharger toute la page
+    if (courseId) {
+      await fetchAttendances({courseId})
+    }
   }
 
-  function handleCloseEdit() {
+  async function handleCloseEdit() {
+    // D'abord fermer le modal
     setIsEditingBehavior(false)
+    setSelectedBehaviorId('')
     setSelectedDate(null)
+
+    // Puis rafraîchir les données
+    if (courseId && session?.user?.id) {
+      try {
+        setIsLoadingBehavior(true)
+        // Recharger les données de comportement uniquement
+        await fetchBehaviors({courseId})
+      } catch (error) {
+        console.error('Error refreshing data:', error)
+      } finally {
+        setIsLoadingBehavior(false)
+      }
+    }
   }
 
-  if (isLoadingAttendance || !teacherCourses || allBehaviors === null || isLoadingCourses) {
+  if (isLoadingBehavior || courses.length === 0 || allBehaviors === null) {
     return (
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">
@@ -141,21 +175,28 @@ export const DashboardBehaviorT = ({
     <>
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">
-          <BehaviorTable
-            courseDates={courseDates}
-            handleCreate={handleCreateBehavior}
-            handleEdit={handleEditBehavior}
-            recordExists={isAttendanceExistsForDate}
-            getRecordForDate={(date) =>
-              allBehaviors.find((beh) => new Date(beh.date).toDateString() === date.toDateString())
-            }
-          />
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <BehaviorTable
+              courseDates={courseDates}
+              handleCreate={handleCreateBehavior}
+              handleEdit={handleEditBehavior}
+              recordExists={isAttendanceExistsForDate}
+              getRecordForDate={(date) =>
+                allBehaviors.find(
+                  (beh) => new Date(beh.date).toDateString() === date.toDateString(),
+                )
+              }
+            />
+          </div>
         </CardContent>
       </Card>
       <AnimatePresence>
         {isCreatingBehavior && (
           <Sheet open={isCreatingBehavior} onOpenChange={setIsCreatingBehavior}>
             <SheetContent side="right" className="w-full sm:max-w-xl">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Nouvelle Feuille des Comportements
+              </SheetTitle>
               {selectedDate && (
                 <BehaviorCreate
                   courseId={courseId}
@@ -169,7 +210,10 @@ export const DashboardBehaviorT = ({
         )}
         {isEditingBehavior && (
           <Sheet open={isEditingBehavior} onOpenChange={setIsEditingBehavior}>
-            <SheetContent side="right" className="w-full sm:max-w-xl">
+            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+                Modifier la Feuille des Comportements
+              </SheetTitle>
               {selectedBehaviorId && selectedDate && (
                 <BehaviorEdit
                   courseId={courseId}

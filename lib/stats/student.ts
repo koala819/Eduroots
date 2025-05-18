@@ -1,4 +1,3 @@
-import {AttendanceRecord} from '@/types/attendance'
 import {BehaviorRecord} from '@/types/behavior'
 import {SubjectNameEnum} from '@/types/course'
 import {GradeRecord} from '@/types/grade'
@@ -7,6 +6,7 @@ import dbConnect from '@/backend/config/dbConnect'
 import {Attendance} from '@/backend/models/attendance.model'
 import {Behavior} from '@/backend/models/behavior.model'
 import {Grade} from '@/backend/models/grade.model'
+import {StudentStats} from '@/backend/models/student-stats.model'
 
 export async function calculateStudentAttendanceRate(studentId: string) {
   try {
@@ -14,77 +14,102 @@ export async function calculateStudentAttendanceRate(studentId: string) {
     await dbConnect()
 
     // Récupérer tous les enregistrements de présence pour cet étudiant
-    const attendancesRecords = await Attendance.find({
-      records: {
-        $elemMatch: {
-          student: studentId,
-        },
-      },
-    })
+    const attendanceRecords = await Attendance.find({
+      'records.student': studentId,
+    }).sort({date: -1})
 
-    // Objet pour tracker les dates uniques et leurs enregistrements
-    const uniqueAttendances: {[key: string]: any} = {}
+    console.log('📊 Enregistrements de présence trouvés:', attendanceRecords.length)
 
-    // Tableau pour stocker les absences
-    const absences: {date: Date; course: string; reason?: string}[] = []
-
-    // Calculer le taux de présence
+    // Calculer les statistiques de présence
     let totalSessions = 0
-    let presentSessions = 0
     let absencesCount = 0
+    const absences: {date: Date; course: string}[] = []
 
-    attendancesRecords.forEach((attendance) => {
+    attendanceRecords.forEach((attendance) => {
       // Filtrer uniquement les enregistrements de ce student
       const studentRecord = attendance.records.find(
-        (r: AttendanceRecord) => r.student.toString() === studentId,
+        (r: {student: {toString: () => string}}) => r.student.toString() === studentId,
       )
 
       if (studentRecord) {
-        // Convertir la date en chaîne pour comparaison
-        const dateString = attendance.date.toISOString().split('T')[0]
-
-        // Vérifier si cette date a déjà été vue
-        if (!uniqueAttendances[dateString]) {
-          uniqueAttendances[dateString] = attendance
-          totalSessions++
-
-          if (studentRecord.isPresent) {
-            presentSessions++
-          } else {
-            absencesCount++
-
-            // Ajouter l'absence à notre tableau d'absences
-            absences.push({
-              date: attendance.date,
-              course: attendance.course.toString(),
-              reason: studentRecord.comment || '',
-            })
-          }
+        totalSessions++
+        if (!studentRecord.isPresent) {
+          absencesCount++
+          absences.push({
+            date: attendance.date,
+            course: attendance.course.toString(),
+          })
         }
       }
     })
 
-    // Convertir l'objet en tableau pour les records
-    const uniqueAttendanceRecords = Object.values(uniqueAttendances)
+    // Calculer le taux d'absence
+    const absencesRate = totalSessions > 0 ? (absencesCount / totalSessions) * 100 : 0
 
-    // Récupérer la dernière date de session
+    // Récupérer la dernière date d'activité
     const lastActivity =
-      uniqueAttendanceRecords.length > 0
-        ? uniqueAttendanceRecords.reduce((latest, current) =>
-            current.date > latest.date ? current : latest,
-          ).date
+      attendanceRecords.length > 0
+        ? attendanceRecords[0].date // Puisque nous avons trié par date décroissante
         : null
 
-    // Calculer le taux de présence en pourcentage
-    const attendanceRate = totalSessions > 0 ? (presentSessions / totalSessions) * 100 : 0
+    // Récupérer les statistiques existantes
+    const existingStats = await StudentStats.findOne({userId: studentId})
+
+    // Vérifier si les statistiques sont déjà à jour
+    if (
+      existingStats &&
+      existingStats.absencesCount === absencesCount &&
+      existingStats.absencesRate === absencesRate &&
+      existingStats.absences.length === absences.length &&
+      existingStats.lastActivity?.getTime() === lastActivity?.getTime()
+    ) {
+      console.log("📊 Statistiques déjà à jour pour l'étudiant:", studentId)
+      return {
+        studentId,
+        totalSessions,
+        absencesCount,
+        lastActivity,
+        absencesRate,
+        absences,
+      }
+    }
+
+    // Mettre à jour les statistiques de l'étudiant
+    await StudentStats.findOneAndUpdate(
+      {userId: studentId},
+      {
+        $set: {
+          absencesRate,
+          absencesCount,
+          absences,
+          lastActivity,
+          lastUpdate: new Date(),
+          // Préserver les champs existants
+          behaviorAverage: existingStats?.behaviorAverage || 0,
+          grades: existingStats?.grades || {overallAverage: 0},
+        },
+      },
+      {upsert: true, new: true},
+    )
+
+    console.log('📊 Statistiques mises à jour:', {
+      studentId,
+      totalSessions,
+      absencesRate,
+      absencesCount,
+      absences: absences.map((a) => ({
+        date: a.date.toISOString(),
+        course: a.course,
+      })),
+      lastActivity: lastActivity?.toISOString(),
+    })
 
     return {
       studentId,
       totalSessions,
       absencesCount,
       lastActivity,
-      attendanceRate: Number(attendanceRate.toFixed(2)),
-      records: uniqueAttendanceRecords,
+      absencesRate,
       absences,
     }
   } catch (error) {

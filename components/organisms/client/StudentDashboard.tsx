@@ -67,17 +67,31 @@ export default function StudentDashboard({familyStudents}: StudentDashboardProps
         getStudentGrade(studentId),
       ])
 
-      // Le nom s'appelle course mais il s'agit de l'id d'une session
-      const sessionId = attendance?.data.records[0].course
-      const courseData = await getCourseByIdForStudent(sessionId)
-      const teacherId = (courseData?.teacher as any)[0]
-      const teacherData = await getOneTeacher(teacherId)
+      if (attendance?.success && attendance.data) {
+        setDetailedAttendance(attendance.data)
+      }
 
-      setDetailedAttendance(attendance.data)
-      setDetailedBehavior(behavior.data)
-      setDetailedGrades(grades.data)
-      setDetailedCourse(courseData ?? undefined)
-      setDetailedTeacher(teacherData)
+      if (behavior?.success && behavior.data) {
+        setDetailedBehavior(behavior.data)
+      }
+
+      if (grades?.success && grades.data) {
+        setDetailedGrades(grades.data)
+      }
+
+      // Récupérer les informations du cours si nous avons des données d'assiduité
+      if (attendance?.success && attendance.data && attendance.data.absences?.length > 0) {
+        const courseId = attendance.data.absences[0].course
+        const courseData = await getCourseByIdForStudent(courseId)
+        if (courseData?.teacher) {
+          const teacherId = Array.isArray(courseData.teacher)
+            ? courseData.teacher[0]
+            : courseData.teacher
+          const teacherData = await getOneTeacher(teacherId)
+          setDetailedTeacher(teacherData)
+        }
+        setDetailedCourse(courseData ?? undefined)
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données détaillées:', error)
     } finally {

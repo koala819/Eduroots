@@ -30,7 +30,9 @@ import { Student, Teacher } from '@/types/user'
 import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
 
 import { useStudents } from '@/context/Students/client'
 import { useTeachers } from '@/context/Teachers/client'
@@ -85,7 +87,9 @@ export default function SettingsPage() {
 
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedEntity, setSelectedEntity] = useState<Student | Teacher | null>(null)
+  const [selectedEntity, setSelectedEntity] = useState<
+    Student | Teacher | null
+  >(null)
 
   // Groupes d'actions
   const actionGroups: ActionGroup[] = [
@@ -129,9 +133,23 @@ export default function SettingsPage() {
         },
       ],
     },
+    {
+      title: 'Mise à jour de la db',
+      description: 'A utiliser avec précaution',
+      actions: [
+        {
+          icon: ChartLine,
+          label: 'Update Stats',
+          description: 'Mise à jour des stats',
+          href: '/admin/root/update-stats',
+          variant: 'ghost',
+        },
+      ],
+    },
     // Actions réservées à admin
     ...(isAdmin
       ? ([
+
         {
           title: 'ADMIN',
           description: 'Section réservée aux admins',
@@ -233,6 +251,7 @@ export default function SettingsPage() {
 
   const filteredData = selectedType
     ? (selectedType === 'students' ? students : teachers).filter((item) =>
+
       `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
     )
     : []
@@ -290,8 +309,11 @@ export default function SettingsPage() {
                   >
                     <div className="flex items-center gap-2 text-base font-medium">
                       <Icon
-                        className={`h-5 w-5 transition-transform group-hover:scale-110 ${isAdminAction ? 'text-rose-600 dark:text-rose-400' : ''
-                          }`}
+                        className={`h-5 w-5 transition-transform group-hover:scale-110 ${
+                          isAdminAction
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : ''
+                        }`}
                       />
                       {action.label}
                       {isAdminAction && (

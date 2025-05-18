@@ -1,15 +1,15 @@
-import {NextRequest, NextResponse} from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-import {statsGradesClean} from '@/lib/stats/grade'
-import {checkAttendances} from '@/migrations/attendanceCHECK'
+import { statsGradesClean } from '@/lib/stats/grade'
+import { checkAttendances } from '@/migrations/attendanceCHECK'
 import checkRemainingFullSessions from '@/migrations/coursesCheckLongSessions'
-import {checkGradesDuplicates} from '@/migrations/gradeDuplicate'
-import {statsGradesUpdate} from '@/migrations/stats-Grades-update'
-import {statsStudentCheck} from '@/migrations/stats-Students-check'
-import {statsTeacherCheck} from '@/migrations/stats-Teachers-check'
-import {statsTeacherUpdate} from '@/migrations/stats-Teachers-update'
-import {statsStudentUpdate} from '@/migrations/stats-student-update'
-import {checkStats} from '@/migrations/statsCHECK'
+import { checkGradesDuplicates } from '@/migrations/gradeDuplicate'
+import { statsGradesUpdate } from '@/migrations/stats-Grades-update'
+import { statsStudentCheck } from '@/migrations/stats-Students-check'
+import { statsTeacherCheck } from '@/migrations/stats-Teachers-check'
+import { statsTeacherUpdate } from '@/migrations/stats-Teachers-update'
+import { statsStudentUpdate } from '@/migrations/stats-student-update'
+import { checkStats } from '@/migrations/statsCHECK'
 
 type MigrationFunction = () => Promise<{
   success: boolean
@@ -48,8 +48,8 @@ export async function POST(req: NextRequest) {
 
     if (!migrationType || !migrations[migrationType]) {
       return NextResponse.json(
-        {error: 'Type de migration non valide ou non spécifié.'},
-        {status: 400},
+        { error: 'Type de migration non valide ou non spécifié.' },
+        { status: 400 },
       )
     }
 
@@ -58,7 +58,11 @@ export async function POST(req: NextRequest) {
     const originalConsoleLog = console.log
     console.log = (...args: any[]) => {
       logs.push(
-        args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg)).join(' '),
+        args
+          .map((arg) =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
+          )
+          .join(' '),
       )
       originalConsoleLog(...args)
     }
@@ -84,7 +88,7 @@ export async function POST(req: NextRequest) {
           backupPath: result.backupPath,
           logs,
         },
-        {status: 500},
+        { status: 500 },
       )
     }
   } catch (error) {
@@ -93,7 +97,7 @@ export async function POST(req: NextRequest) {
       {
         error: "Une erreur inattendue s'est produite lors de la migration",
       },
-      {status: 500},
+      { status: 500 },
     )
   }
 }

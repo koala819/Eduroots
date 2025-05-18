@@ -66,10 +66,10 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
       try {
         // Charger le cours et le behavior existant en parallèle
-        const [courseData, behaviorData] = (await Promise.all([
+        const [courseData, behaviorResponse] = await Promise.all([
           getCourseById(courseId),
           getBehaviorById(courseId, date),
-        ])) as [PopulatedCourse, Behavior | null]
+        ])
 
         if (!isMounted) return
 
@@ -92,8 +92,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                 studentsData[studentId] = studentDetail
 
                 // Si on a des données de behavior, chercher le rating existant
-                if (behaviorData && behaviorData.records) {
-                  const existingRecord = behaviorData.records.find((record) => {
+                if (behaviorResponse?.success && behaviorResponse.data?.records) {
+                  const existingRecord = behaviorResponse.data.records.find((record: any) => {
                     const recordStudentId =
                       typeof record.student === 'string' ? record.student : record.student.id
                     return recordStudentId === studentId
@@ -129,6 +129,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
       isMounted = false
     }
   }, [courseId, date, getOneStudent, getBehaviorById, getCourseById, presentStudents])
+
   async function handleSave() {
     setIsUpdating(true)
     if (!course?.sessions?.[0]?.id) {
@@ -141,6 +142,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         student: studentId,
         rating,
       }))
+
       await updateBehaviorRecord({
         courseId: courseId,
         behaviorId: behaviorId,
@@ -148,14 +150,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         date: date,
         sessionId: course.sessions[0].id,
       })
-      onClose()
 
-      // Optionally reload the page if needed
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
+      // La mise à jour a réussi, on peut fermer le modal
+      onClose()
     } catch (error) {
-      console.error('Error updating attendance:', error)
+      console.error('Error updating behavior:', error)
     } finally {
       setIsUpdating(false)
     }
@@ -203,12 +202,6 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Modifier la Feuille des Comportements
-                </h2>
-              </div>
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">

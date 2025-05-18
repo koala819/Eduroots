@@ -88,13 +88,6 @@ export type StudentSortKeys =
   | 'absences'
   | 'email'
 
-export type TeacherSortKeys =
-  | 'firstname'
-  | 'lastname'
-  | 'email'
-  | 'sessionLevel'
-  | 'schedules'
-
 // Interface spécifique pour les étudiants groupés par matière
 export interface GroupedStudent extends Student {
   currentSubjects: SubjectNameEnum[]

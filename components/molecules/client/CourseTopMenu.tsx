@@ -5,7 +5,7 @@ import {useState} from 'react'
 
 import {useRouter} from 'next/navigation'
 
-import {CourseSession, PopulatedCourse} from '@/types/course'
+import {Course, CourseSession, PopulatedCourse} from '@/types/course'
 
 import {CourseMenu} from '@/components/atoms/client/CourseMenu'
 import {CourseSelected} from '@/components/atoms/client/CourseTopMenuDetailedView'
@@ -25,6 +25,14 @@ const views = [
   },
 ]
 
+// Fonction pour convertir PopulatedCourse en Course
+const adaptPopulatedCourse = (populatedCourse: PopulatedCourse): Course => {
+  return {
+    ...populatedCourse,
+    teacher: [populatedCourse.teacher._id],
+  }
+}
+
 export const TopMenu = ({
   teacherCourses,
   currentCourseId,
@@ -32,7 +40,7 @@ export const TopMenu = ({
   setActiveView,
   selectedSession,
 }: {
-  teacherCourses: PopulatedCourse
+  teacherCourses: PopulatedCourse[]
   currentCourseId: string
   activeView: string
   setActiveView: (view: string) => void
@@ -44,16 +52,18 @@ export const TopMenu = ({
 
   // Fonction pour gérer la navigation
   function handleCourseSelect(courseId: string) {
-    // setCurrentCourseId(courseId)
     router.push(`/teacher/classroom/course/${courseId}`)
   }
+
+  // Convertir tous les cours pour le menu
+  const adaptedCourses = teacherCourses.map(adaptPopulatedCourse)
 
   return (
     <div className="bg-white shadow-sm border-b">
       {/* Vue desktop */}
       <div className="hidden sm:flex items-center justify-between px-4 py-2 space-x-4">
         <CourseMenu
-          teacherCourses={teacherCourses}
+          courses={adaptedCourses}
           currentCourseId={currentCourseId}
           onCourseSelect={handleCourseSelect}
         />
@@ -96,7 +106,7 @@ export const TopMenu = ({
           />
           {!expanded && (
             <CourseMenu
-              teacherCourses={teacherCourses}
+              courses={adaptedCourses}
               currentCourseId={currentCourseId}
               onCourseSelect={handleCourseSelect}
             />

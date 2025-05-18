@@ -73,15 +73,9 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         courseId: courseId,
         date: date,
         records: records,
-        //todo : add sessionId
         sessionId: course?.sessions?.[0]?.id || '',
       })
       onClose()
-
-      // Optionally reload the page if needed
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de l'attendance:", error)
     } finally {
@@ -124,12 +118,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
-                  Nouvelle Feuille des Présences
-                </h2>
-              </div>
               {/* Course Details */}
               {date && course && (
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
@@ -218,40 +206,13 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                 >
                   {isRecording ? 'Enregistrement en cours...' : 'Enregistrer'}
                 </Button>
-                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="teacherWarning"
-                      className="border-gray-400 text-white"
-                      onClick={() => setIsConfirmOpen(true)}
-                    >
-                      Annuler
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la saisie de l&apos;appel ? Les données non
-                        enregistrées seront perdues.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border-2 border-gray-400"
-                      >
-                        Non
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleCancelAction(true)}
-                        className="bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500"
-                      >
-                        Oui
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  variant="teacherWarning"
+                  className="border-gray-400 text-white"
+                  onClick={() => handleCancelAction(true)}
+                >
+                  Annuler
+                </Button>
               </div>
             </div>
           </section>

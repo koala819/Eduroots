@@ -282,7 +282,6 @@ export const AttendancesProvider = ({
       dispatch({type: 'SET_LOADING_ATTENDANCE', payload: true})
       try {
         const response = await getAttendanceById(courseId, sessionId || '', checkToday)
-
         // Check if the response is successful and has data
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to fetch attendance data')

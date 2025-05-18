@@ -69,7 +69,7 @@ export default function GlobalLoadingIndicator() {
   if (!isAnyLoading) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[500]">
       <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center space-y-4">
         <motion.div
           initial={{rotate: 0}}
