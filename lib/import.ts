@@ -174,7 +174,7 @@ export function formatCoursesFromExcel(data: ExcelRowType[]): {
       courseMap.set(key, {
         firstPeriod: {
           teacherId,
-          subject: subjects[0] || subjects[0], // Si une seule matière, on la met dans les deux périodes
+          subject: subjects[0], // Si une seule matière, on la met dans les deux périodes
           dayOfWeek,
           classroomNumber,
           level,
