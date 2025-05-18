@@ -18,7 +18,8 @@ import bcrypt from 'bcryptjs'
 function validateId(id: string | number): string | null {
   const validatedId = String(id).trim()
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
-    console.warn(`ID invalide ignoré: ${validatedId}`)
+    const sanitizedId = validatedId.replace(/[\n\r]/g, '');
+    console.warn(`ID invalide ignoré: ${sanitizedId}`)
     return null
   }
   return validatedId
