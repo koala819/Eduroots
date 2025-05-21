@@ -12,7 +12,6 @@ import type {
   StudentDataType,
   TeacherDataType,
 } from '@/lib/import'
-import bcrypt from 'bcryptjs'
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
@@ -33,6 +32,28 @@ export async function POST(req: NextRequest) {
     const { teachers, courses, students, mergedTeachers, year } =
       await req.json()
     const logs: string[] = []
+
+    // Vérification stricte des mots de passe d'import
+    if (!process.env.STUDENT_PWD || !process.env.STUDENT_PWD.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "La variable d'environnement STUDENT_PWD doit être définie et non vide pour importer les étudiants.",
+        },
+        { status: 400 },
+      )
+    }
+    if (!process.env.TEACHER_PWD || !process.env.TEACHER_PWD.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "La variable d'environnement TEACHER_PWD doit être définie et non vide pour importer les enseignants.",
+        },
+        { status: 400 },
+      )
+    }
 
     // Créer un map pour stocker les étudiants par professeur référent
     const studentsByTeacher =
@@ -96,12 +117,6 @@ export async function POST(req: NextRequest) {
     const insertedTeachers = []
     const teacherIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
     if (teachers && teachers.length > 0) {
-      // Hacher les mots de passe avant l'insertion
-      const hashedPassword = await bcrypt.hash(
-        process.env.TEACHER_PWD || '@changer!',
-        10,
-      )
-
       // Créer un Set pour stocker les IDs uniques des enseignants de Excel
       const uniqueTeacherIdFromExcel = new Set<string>(
         teachers.map((t: TeacherDataType) => {
@@ -136,7 +151,7 @@ export async function POST(req: NextRequest) {
           email: teacher?.email?.toLowerCase() || 'user@mail.fr',
           firstname: teacher?.firstname,
           lastname: teacher?.lastname,
-          password: hashedPassword,
+          password: process.env.TEACHER_PWD,
           role: UserRoleEnum.Teacher,
           gender,
           phone: teacher?.phone || '0123456789',
@@ -172,11 +187,6 @@ export async function POST(req: NextRequest) {
     const insertedStudents = []
     const studentIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
     if (students && students.length > 0) {
-      const hashedPassword = await bcrypt.hash(
-        process.env.STUDENT_PWD || 'changeme',
-        10,
-      )
-
       const studentDataFormats: Student[] = students.map((s: any) => {
         let gender: GenderEnum = GenderEnum.Masculin
         if (s.gender === 'female' || s.gender === 'féminin')
@@ -188,7 +198,7 @@ export async function POST(req: NextRequest) {
           email: s.email?.toLowerCase() || '',
           firstname: s.firstname,
           lastname: s.lastname,
-          password: hashedPassword,
+          password: process.env.STUDENT_PWD,
           role: UserRoleEnum.Student,
           gender,
           phone: s.phone || '',
