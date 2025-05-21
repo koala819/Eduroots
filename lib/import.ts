@@ -351,7 +351,14 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
 
     // Vérification finale avant d'ajouter
     if (student.firstname && student.lastname) {
-      const studentId = `${lastName}_${firstName}_${idx}`.toUpperCase()
+      const normalize = (str: string) =>
+        str
+          .normalize('NFD') // retire les accents
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-zA-Z0-9_-]/g, '') // retire tout sauf lettres, chiffres, _ et -
+          .toUpperCase()
+
+      const studentId = `${normalize(lastName)}_${normalize(firstName)}_${idx}`
       students.push({ ...(student as ImportStudent), id: studentId })
 
       // On cherche les cours correspondant au prof
