@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get('authorization')
     const body = await req.json()
 
-    const res = await fetch('http://localhost:3001/messages', {
+    const res = await fetch('http://localhost:3001/conversations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
