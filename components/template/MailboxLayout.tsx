@@ -1,14 +1,14 @@
 'use client'
 
-import {Inbox, Menu, PenTool, Send, X} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Inbox, Menu, PenTool, Send, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
-import {usePathname} from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {cn} from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 const MailboxLayout = ({
   children,
@@ -31,7 +31,7 @@ const MailboxLayout = ({
       setIsAtTop(currentScroll <= 0)
     }
 
-    window.addEventListener('scroll', handleScroll, {passive: true})
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -41,11 +41,13 @@ const MailboxLayout = ({
   }, [pathname])
 
   const sidebarItems = [
-    {name: 'Boîte de réception', icon: Inbox, path: '/inbox'},
-    {name: 'Messages envoyés', icon: Send, path: '/sent'},
+    { name: 'Boîte de réception', icon: Inbox, path: '/inbox' },
+    { name: 'Messages envoyés', icon: Send, path: '/sent' },
   ]
 
-  const currentItem = sidebarItems.find((item) => pathname.endsWith(item.path))
+  const currentItem = sidebarItems.find(
+    (item) => pathname?.endsWith(item.path) ?? false,
+  )
 
   return (
     <div className="flex h-full bg-gray-50">
@@ -54,13 +56,20 @@ const MailboxLayout = ({
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-full sm:w-80 bg-white transform transition-transform duration-300 ease-in-out',
           'lg:relative lg:transform-none',
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          isSidebarOpen
+            ? 'translate-x-0'
+            : '-translate-x-full lg:translate-x-0',
         )}
       >
         {/* Header du sidebar */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">Messages</h2>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={closeSidebar}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={closeSidebar}
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -83,7 +92,9 @@ const MailboxLayout = ({
                 className={cn(
                   'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
                   'hover:bg-gray-100',
-                  pathname.endsWith(item.path) ? 'bg-gray-100 text-primary' : 'text-gray-600',
+                  pathname?.endsWith(item.path) ?? false
+                    ? 'bg-gray-100 text-primary'
+                    : 'text-gray-600',
                 )}
               >
                 <item.icon className="w-5 h-5" />
@@ -96,7 +107,10 @@ const MailboxLayout = ({
 
       {/* Overlay mobile */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
       )}
 
       {/* Contenu principal */}

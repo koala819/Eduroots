@@ -1,11 +1,17 @@
-import {LogOut, LucideIcon, Menu, Plus, Settings} from 'lucide-react'
+import { LogOut, LucideIcon, Menu, Plus, Settings } from 'lucide-react'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 import Image from 'next/image'
 
-import {Button} from '@/components/ui/button'
-import {ScrollArea} from '@/components/ui/scroll-area'
-import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 
 type NavItem = {
   href: string
@@ -22,7 +28,7 @@ type ItemsGroup = {
 
 type NavbarMobileProps = {
   items: ItemsGroup[]
-  pathname: string
+  pathname: string | null
   handleItemClick: (href: string) => void
   logoutHandler: () => void
   isAdmin: boolean
@@ -47,21 +53,35 @@ export const NavbarMobile = ({
     <div className="flex items-center  w-full h-16 justify-between ">
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className={`md:hidden ${getButtonClass('ghost')}`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`md:hidden ${getButtonClass('ghost')}`}
+          >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className={`w-80 p-0 ${isAdmin ? 'bg-red-500 text-white' : ''}`}>
+        <SheetContent
+          side="left"
+          className={`w-80 p-0 ${isAdmin ? 'bg-red-500 text-white' : ''}`}
+        >
           <SheetHeader className="border-b p-4">
             <div className="flex items-center gap-x-2">
               <div className="relative h-12 w-16 shrink-0">
-                <Image src="/Logo.jpg" alt="Logo" fill className="rounded-md object-cover" />
+                <Image
+                  src="/Logo.jpg"
+                  alt="Logo"
+                  fill
+                  className="rounded-md object-cover"
+                />
               </div>
               <div className="flex flex-col">
                 <SheetTitle className="text-left">
                   {session?.user?.firstname} {session?.user?.lastname}
                 </SheetTitle>
-                <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  {session?.user?.email}
+                </p>
               </div>
             </div>
           </SheetHeader>
@@ -121,7 +141,9 @@ export const NavbarMobile = ({
 
               {/* Organisation */}
               <div className="space-y-2 pt-2 border-t">
-                <h3 className="text-xs font-medium text-muted-foreground px-2">Organisation</h3>
+                <h3 className="text-xs font-medium text-muted-foreground px-2">
+                  Organisation
+                </h3>
                 {items
                   .filter((group) => group.category === 'Gestion')
                   .flatMap((group) =>
@@ -134,7 +156,9 @@ export const NavbarMobile = ({
                           disabled={isActive}
                           aria-current={isActive ? 'page' : undefined}
                           className={`w-full justify-start ${isActive ? 'font-semibold cursor-default' : ''}`}
-                          onClick={() => !isActive && handleItemClick(item.href)}
+                          onClick={() =>
+                            !isActive && handleItemClick(item.href)
+                          }
                         >
                           <item.icon
                             className={`h-4 w-4 mr-2 ${isActive ? 'text-white' : ''}`}
@@ -158,7 +182,9 @@ export const NavbarMobile = ({
                       className={`w-full justify-start ${
                         isActive ? 'font-semibold cursor-default' : ''
                       }`}
-                      onClick={() => !isActive && handleItemClick('/admin/settings')}
+                      onClick={() =>
+                        !isActive && handleItemClick('/admin/settings')
+                      }
                     >
                       <Settings
                         className={`h-4 w-4 mr-2 ${isActive ? 'text-white' : ''}`}
@@ -187,11 +213,18 @@ export const NavbarMobile = ({
         className={`flex items-center gap-x-2 ${isAdmin ? 'text-white' : ''} ${pathname === '/admin' ? 'cursor-auto' : ''}`}
       >
         <div className="relative h-12 w-16 shrink-0">
-          <Image src="/Logo.jpg" alt="Logo" fill className="rounded-md object-cover" />
+          <Image
+            src="/Logo.jpg"
+            alt="Logo"
+            fill
+            className="rounded-md object-cover"
+          />
         </div>
         <div className="hidden md:flex flex-col text-left">
           <span className="text-sm font-semibold">Administration</span>
-          <span className={`text-xs ${isAdmin ? 'text-red-100' : 'text-muted-foreground'}`}>
+          <span
+            className={`text-xs ${isAdmin ? 'text-red-100' : 'text-muted-foreground'}`}
+          >
             {session?.user?.firstname} {session?.user?.lastname}
           </span>
         </div>

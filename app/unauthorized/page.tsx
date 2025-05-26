@@ -1,22 +1,22 @@
 'use client'
 
-import {Suspense} from 'react'
+import { Suspense } from 'react'
 
 import Link from 'next/link'
-import {useSearchParams} from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 const ErrorContent = () => {
   const searchParams = useSearchParams()
-  const search = searchParams.get('error')
+  const search = searchParams?.get('error')
 
   return (
     <div className="p-6 bg-white rounded shadow-md text-center">
       <h1 className="text-2xl font-bold mb-4">
         {search === 'ErrorFetchTeacher' ? 'Error' : 'Authentication Error'}
       </h1>
-      <ErrorMessage error={search} />
+      <ErrorMessage error={search ?? null} />
       {search === 'ErrorFetchTeacher' ? (
         <Link href="/home">
           <Button>Revenir à l&apos;écran de Principal</Button>
@@ -30,7 +30,7 @@ const ErrorContent = () => {
   )
 }
 
-const ErrorMessage = ({error}: {error: string | null}) => {
+const ErrorMessage = ({ error }: { error: string | null }) => {
   function getErrorMessage(error: string | null) {
     switch (error) {
       case 'CredentialsSignin':
