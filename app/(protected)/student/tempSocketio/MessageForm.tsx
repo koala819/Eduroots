@@ -1,15 +1,21 @@
 'use client'
 import {useState} from 'react'
 import {getSession, signIn, signOut} from 'next-auth/react'
+import StudentSelector from '@/components/atoms/client/StudentSelector'
+import { Student } from '@/types/user'
 
+interface MessageFormProps {
+  familyStudents: Student[]
+}
 
-export default function MessageForm() {
+export default function MessageForm({familyStudents}: MessageFormProps) {
   const [message, setMessage] = useState('')
-  const conversation = '66a23f4e1bfe6a163d1af199'
+
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [newToken, setNewToken] = useState<string | null>(null)
-  const [isPending, setIsPending] = useState(false)
+  const [isPending, setIsPending] = useState<boolean>(false)
+  const [selectedChildId, setSelectedChildId] = useState<string | null>()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,13 +27,23 @@ export default function MessageForm() {
       const token = session?.user?.customToken
       if (!token) throw new Error('Token custom manquant')
 
+      /*
+      Fake data to test the message sending
+      */
+      const conversation = '66a23f4e1bfe6a163d1af199'
+      const members = [selectedChildId]
+      const name = 'Test'
+      const type = 'private' // 'private' or 'group'
+      const content = {message, members, name, conversation, type}
+      console.log('content', content)
+
       const res = await fetch('/api/sendMessage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({content: message, conversation}),
+        body: JSON.stringify(content),
       })
 
       if (res.status === 401 || res.status === 403) {
@@ -75,6 +91,14 @@ export default function MessageForm() {
 
   return (
     <div>
+      <section className="mb-6">
+        <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
+        <StudentSelector
+          familyStudents={familyStudents}
+          selectedChildId={selectedChildId}
+          onSelectStudent={setSelectedChildId}
+        />
+      </section>
       <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
           className="w-full border rounded p-2"
@@ -100,7 +124,7 @@ export default function MessageForm() {
       )}
       {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
       {result && (
-        <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded">{JSON.stringify(result)}</pre>
+        <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{JSON.stringify(result)}</pre>
       )}
     </div>
   )
