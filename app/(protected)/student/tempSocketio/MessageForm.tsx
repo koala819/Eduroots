@@ -93,7 +93,11 @@ export default function MessageForm() {
         </button>
       </form>
       {isPending && <p className="mt-4 text-gray-500">Envoi en cours...</p>}
-      {error && <pre className="mt-4 p-2 bg-red-100 text-red-800 rounded">{error}</pre>}
+      {error && (
+        <pre className="mt-4 p-2 bg-red-100 text-red-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+          {error}
+        </pre>
+      )}
       {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
       {result && (
         <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded">{JSON.stringify(result)}</pre>
