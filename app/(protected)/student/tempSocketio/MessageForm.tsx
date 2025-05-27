@@ -1,12 +1,14 @@
 'use client'
 import {useState} from 'react'
-import {getSession} from 'next-auth/react'
+import {getSession, signIn, signOut} from 'next-auth/react'
+
 
 export default function MessageForm() {
   const [message, setMessage] = useState('')
   const conversation = '66a23f4e1bfe6a163d1af199'
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [newToken, setNewToken] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,6 +20,7 @@ export default function MessageForm() {
       const session = await getSession()
       const token = session?.user?.customToken
       if (!token) throw new Error('Token custom manquant')
+
       const res = await fetch('/api/sendMessage', {
         method: 'POST',
         headers: {
@@ -26,6 +29,38 @@ export default function MessageForm() {
         },
         body: JSON.stringify({content: message, conversation}),
       })
+
+      if (res.status === 401 || res.status === 403) {
+        setError('Votre session a expiré, tentative de reconnexion automatique...')
+        setIsPending(false)
+
+        //Try refresh session
+        try {
+          // const refreshedSession = await getSession({triggerEvent: true})
+          signIn('credentials', {
+            redirect: false,
+            callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
+          })
+          // console.log('Token après refresh refreshedSession:', refreshedSession)
+          console.log('Token après refresh dans session:', session?.user?.customToken)
+          if (session && session.user?.customToken) {
+            setError(null)
+            setNewToken('Session reconnexion automatique réussie')
+          } else {
+            setError('Reconnexion automatique échouée, veuillez vous reconnecter manuellement')
+            setTimeout(() => {
+              signOut({
+                redirect: true,
+                callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
+              })
+            }, 3000)
+          }
+        } catch (error) {
+          setError('Erreur lors de la reconnexion automatique')
+        }
+        return
+      }
+
       const data = await res.json()
       if (data.success) {
         setResult(data.result)
@@ -59,6 +94,7 @@ export default function MessageForm() {
       </form>
       {isPending && <p className="mt-4 text-gray-500">Envoi en cours...</p>}
       {error && <pre className="mt-4 p-2 bg-red-100 text-red-800 rounded">{error}</pre>}
+      {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
       {result && (
         <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded">{JSON.stringify(result)}</pre>
       )}
