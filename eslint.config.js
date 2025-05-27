@@ -5,9 +5,6 @@ import typescriptParser from '@typescript-eslint/parser'
 import eslintConfigPrettier from 'eslint-config-prettier'
 import unusedImports from 'eslint-plugin-unused-imports'
 import globals from 'globals'
-import { fileURLToPath } from 'url'
-
-const r = (...args) => fileURLToPath(new URL(...args, import.meta.url))
 
 // Configuration principale pour Next.js
 const config = [
