@@ -49,7 +49,7 @@ export async function checkAttendances(): Promise<{
       console.log(
         '\n⚙️ Des sessions invalides ont été détectées, analyse des corrections possibles...\n',
       )
-      repairData = await analyzeAndSuggestRepairs(verificationResult.invalidAttendances)
+      repairData = await analyzeAndSuggestRepairs(verificationResult.invalidAttendances as any)
 
       // Générer le fichier de correction si nous avons des correspondances à haute confiance
       if (repairData && repairData.highConfidence && repairData.highConfidence.length > 0) {
@@ -284,7 +284,7 @@ async function analyzeAndSuggestRepairs(
 
             studentCoursesMap.get(studentId).push({
               courseId: course._id.toString(),
-              sessionId: session._id.toString(),
+              sessionId: (session._id as any).toString(),
               teacherId: teacherIds[0],
               teacherNames: teacherNames,
               subject: session.subject,

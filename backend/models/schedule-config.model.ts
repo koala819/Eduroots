@@ -73,5 +73,5 @@ scheduleConfigSchema.index({'daySchedules.periods.startTime': 1})
 scheduleConfigSchema.index({'daySchedules.periods.endTime': 1})
 
 export const ScheduleConfig: ScheduleConfigModel =
-  models.ScheduleConfig ||
+  (models.ScheduleConfig as ScheduleConfigModel) ||
   model<ScheduleConfigDocument, ScheduleConfigModel>('ScheduleConfig', scheduleConfigSchema)

@@ -36,7 +36,7 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         if (!studentRecord.isPresent) {
           absencesCount++
           absences.push({
-            date: attendance.date,
+            date: attendance.date as any,
             course: attendance.course.toString(),
           })
         }
@@ -61,7 +61,7 @@ export async function calculateStudentAttendanceRate(studentId: string) {
       existingStats.absencesCount === absencesCount &&
       existingStats.absencesRate === absencesRate &&
       existingStats.absences.length === absences.length &&
-      existingStats.lastActivity?.getTime() === lastActivity?.getTime()
+      (existingStats.lastActivity as any)?.getTime() === (lastActivity as any)?.getTime()
     ) {
       console.log("📊 Statistiques déjà à jour pour l'étudiant:", studentId)
       return {
@@ -101,7 +101,7 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         date: a.date.toISOString(),
         course: a.course,
       })),
-      lastActivity: lastActivity?.toISOString(),
+      lastActivity: (lastActivity as any)?.toISOString(),
     })
 
     return {

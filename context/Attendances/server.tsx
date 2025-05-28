@@ -24,8 +24,8 @@ export default async function AttendanceServerComponent({
     if (response.success && response.data) {
       // Traitement uniforme des données
       initialAttendanceData = Array.isArray(response.data)
-        ? (response.data as AttendanceDocument[])
-        : ([response.data] as AttendanceDocument[])
+        ? (response.data as any[])
+        : ([response.data] as any[])
     }
   }
 

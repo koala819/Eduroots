@@ -182,8 +182,8 @@ export const DashboardBehaviorT = ({
               handleEdit={handleEditBehavior}
               recordExists={isAttendanceExistsForDate}
               getRecordForDate={(date) =>
-                allBehaviors.find(
-                  (beh) => new Date(beh.date).toDateString() === date.toDateString(),
+                (allBehaviors as any).find(
+                  (beh: any) => new Date(beh.date).toDateString() === date.toDateString(),
                 )
               }
             />

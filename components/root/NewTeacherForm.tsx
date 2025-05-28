@@ -6,7 +6,6 @@ import {useForm} from 'react-hook-form'
 import {useToast} from '@/hooks/use-toast'
 
 import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
 import {Teacher, UserRoleEnum} from '@/types/user'
 
 import StepOne from '@/components/root/NewTeacherStep1'
@@ -143,7 +142,7 @@ const NewTeacherForm = () => {
         throw new Error('Erreur lors de la création du professeur')
       }
 
-      const courseData: Omit<CourseDocument, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
+      const courseData: Omit<any, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
         teacher: [teacher.id],
         sessions: values.sessions.map((session) => ({
           timeSlot: {

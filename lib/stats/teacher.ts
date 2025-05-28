@@ -114,7 +114,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
           courseInfo.sessions.push({
             dayOfWeek: formatDayOfWeek(session.timeSlot.dayOfWeek),
             students: session.students,
-            sameStudents: session.sameStudents,
+            sameStudents: session.sameStudents as any,
           })
         }
 

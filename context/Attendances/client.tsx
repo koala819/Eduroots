@@ -290,17 +290,17 @@ export const AttendancesProvider = ({
         if (sessionId) {
           dispatch({
             type: 'SET_ONE_ATTENDANCE',
-            payload: response.data as AttendanceDocument,
+            payload: response.data as any,
           })
         } else if (checkToday) {
           dispatch({
             type: 'SET_TODAY_ATTENDANCE',
-            payload: response.data as AttendanceDocument,
+            payload: response.data as any,
           })
         } else {
           dispatch({
             type: 'SET_ALL_ATTENDANCE',
-            payload: response.data as AttendanceDocument[],
+            payload: response.data as any,
           })
         }
       } catch (error) {

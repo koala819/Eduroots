@@ -6,7 +6,6 @@ import {revalidatePath} from 'next/cache'
 import {ApiResponse} from '@/types/api'
 import {BehaviorRecord, CreateBehaviorPayload, UpdateBehaviorPayload} from '@/types/behavior'
 import {CourseSession} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
 
 import {Behavior} from '@/backend/models/behavior.model'
 import {Course} from '@/backend/models/course.model'
@@ -147,7 +146,7 @@ export async function createBehaviorRecord(
         })
 
         const sessionBehaviorRate =
-          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
+          allBehaviors.reduce((sum, beh) => sum + ((beh as any).stats?.behaviorRate || 0), 0) /
           allBehaviors.length
 
         // Mise à jour des stats de la session
@@ -171,7 +170,7 @@ export async function createBehaviorRecord(
       // Calculer la nouvelle moyenne globale de comportement
       const allBehaviors = await Behavior.find({})
       const totalBehaviorRates = allBehaviors.reduce(
-        (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
+        (sum, beh) => sum + ((beh as any).stats?.behaviorRate || 0),
         0,
       )
       const averageBehaviorRate =
@@ -310,7 +309,7 @@ export async function getStudentBehaviorHistory(
         if (parentCourse) {
           // Trouvons la session spécifique
           const session = parentCourse.sessions.find(
-            (s: CourseDocument) => s._id.toString() === behavior.course.toString(),
+            (s: any) => s._id.toString() === behavior.course.toString(),
           )
 
           return {
@@ -318,7 +317,7 @@ export async function getStudentBehaviorHistory(
             id: behavior._id, // Ajout explicite de l'id
             date: behavior.date,
             records: behavior.records,
-            stats: behavior.stats,
+            stats: (behavior as any).stats,
             courseDetails: {
               id: parentCourse._id,
               academicYear: parentCourse.academicYear,
@@ -480,7 +479,7 @@ export async function updateBehaviorRecord(
         })
 
         const sessionBehaviorRate =
-          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
+          allBehaviors.reduce((sum, beh) => sum + ((beh as any).stats?.behaviorRate || 0), 0) /
           allBehaviors.length
 
         // Mise à jour des stats de la session
@@ -505,7 +504,7 @@ export async function updateBehaviorRecord(
       // Recalculer la moyenne globale de comportement
       const allBehaviors = await Behavior.find({})
       const totalBehaviorRates = allBehaviors.reduce(
-        (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
+        (sum, beh) => sum + ((beh as any).stats?.behaviorRate || 0),
         0,
       )
       const averageBehaviorRate =

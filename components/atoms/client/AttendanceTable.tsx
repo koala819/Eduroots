@@ -62,11 +62,14 @@ export const AttendanceTable = ({
                       <CheckCircle className="text-green-500 w-5 h-5" />
                     </TableCell>
                     <TableCell className="text-right sm:text-left">
-                      {!existingAttendance.warning && (
+                      {!(existingAttendance as any).warning && (
                         <Button
                           className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-gray-900 hover:bg-gray-800 text-white"
                           onClick={() =>
-                            handleEditAttendance(existingAttendance._id, date.toISOString())
+                            handleEditAttendance(
+                              (existingAttendance as any)._id.toString(),
+                              date.toISOString(),
+                            )
                           }
                         >
                           Modifier

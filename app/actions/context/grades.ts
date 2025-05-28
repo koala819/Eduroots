@@ -3,7 +3,7 @@
 import {getServerSession} from 'next-auth'
 
 import {ApiResponse} from '@/types/api'
-import {CreateGradeDTO, PopulatedGrade, PopulatedGradeRecord, UpdateGradeDTO} from '@/types/grade'
+import {CreateGradeDTO, PopulatedGrade, UpdateGradeDTO} from '@/types/grade'
 import {GradeDocument} from '@/types/mongoose'
 
 import {Grade as GradeModel} from '@/backend/models/grade.model'
@@ -39,12 +39,12 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<S
       sessionId: grade.sessionId,
       course: {
         ...grade.course,
-        id: grade.course._id.toString(),
+        id: (grade.course as any)._id.toString(),
       },
       date: grade.date,
       type: grade.type,
       stats: grade.stats,
-      records: grade.records.map((record: PopulatedGradeRecord) => ({
+      records: grade.records.map((record: any) => ({
         value: record.value,
         isAbsent: record.isAbsent,
         comment: record.comment,
@@ -146,12 +146,12 @@ export async function refreshGradeData(
         sessionId: grade.sessionId,
         course: {
           ...grade.course,
-          id: grade.course?._id?.toString(),
+          id: (grade.course as any)._id?.toString(),
         },
         date: grade.date,
         type: grade.type,
         isDraft: grade.isDraft,
-        records: grade.records.map((record: PopulatedGradeRecord) => ({
+        records: grade.records.map((record: any) => ({
           value: record.value,
           isAbsent: record.isAbsent,
           comment: record.comment,
@@ -190,12 +190,12 @@ export async function refreshGradeData(
       sessionId: grade.sessionId,
       course: {
         ...grade.course,
-        id: grade.course?._id?.toString(),
+        id: (grade.course as any)._id?.toString(),
       },
       date: grade.date,
       type: grade.type,
       isDraft: grade.isDraft,
-      records: grade.records.map((record: PopulatedGradeRecord) => ({
+      records: grade.records.map((record: any) => ({
         value: record.value,
         isAbsent: record.isAbsent,
         comment: record.comment,
@@ -294,11 +294,11 @@ export async function updateGradeRecord(
       isDraft: updatedGrade.isDraft,
       course: {
         ...updatedGrade.course,
-        id: updatedGrade.course._id.toString(),
+        id: (updatedGrade.course as any)._id.toString(),
       },
       date: updatedGrade.date,
       type: updatedGrade.type,
-      records: updatedGrade.records.map((record: PopulatedGradeRecord) => ({
+      records: updatedGrade.records.map((record: any) => ({
         value: record.value,
         isAbsent: record.isAbsent,
         comment: record.comment,

@@ -4,7 +4,7 @@ import {getServerSession} from 'next-auth'
 import {revalidatePath} from 'next/cache'
 
 import {ApiResponse} from '@/types/api'
-import {CourseSession, CourseSessionModel, TimeSlot} from '@/types/course'
+import {CourseSession, TimeSlot} from '@/types/course'
 import {GradeRecord} from '@/types/grade'
 import {CourseDocument, GradeDocument} from '@/types/mongoose'
 
@@ -317,8 +317,8 @@ export async function removeStudentFromCourse(
     const studentObjectId = new Types.ObjectId(studentId)
 
     // Retirer l'étudiant de toutes les sessions
-    course.sessions.forEach((session: CourseSessionModel) => {
-      const studentIndex = session.students.findIndex((sid) => sid.equals(studentObjectId))
+    course.sessions.forEach((session: any) => {
+      const studentIndex = session.students.findIndex((sid: any) => sid.equals(studentObjectId))
       if (studentIndex !== -1) {
         session.students.splice(studentIndex, 1)
       }
@@ -389,14 +389,14 @@ export async function updateCourse(
     // }
 
     // Mise à jour des sessions existantes
-    existingCourse.sessions = existingCourse.sessions.map((session: CourseSession) => {
+    existingCourse.sessions = existingCourse.sessions.map((session: any) => {
       if (sessionIds.includes(session.id)) {
-        const newSessionData = courseData.sessions.find((s: CourseSession) => s.id === session.id)
+        const newSessionData = courseData.sessions.find((s: any) => s.id === session.id)
         return {
           ...session,
-          timeSlot: {...session.timeSlot, ...newSessionData.timeSlot},
-          subject: newSessionData.subject,
-          level: newSessionData.level,
+          timeSlot: {...session.timeSlot, ...(newSessionData?.timeSlot || {})},
+          subject: newSessionData?.subject,
+          level: newSessionData?.level,
           sameStudents: sameStudents,
           stats: {...session.stats, lastUpdated: new Date()},
         }

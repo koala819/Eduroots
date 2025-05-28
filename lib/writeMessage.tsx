@@ -9,7 +9,7 @@ export function calculateValidEmails(
   if (!students || !selectedIds) return []
 
   return students
-    ?.filter((user) => selectedIds.includes(user._id))
+    ?.filter((user) => selectedIds.includes((user._id as any).toString()))
     .flatMap((user) => {
       const emails = []
 

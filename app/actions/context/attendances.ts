@@ -412,10 +412,10 @@ export async function updateAttendanceRecord(
     }
 
     // Mettre à jour les stats du course
-    const course = await Course.findById(oldAttendance.courseId)
+    const course = await Course.findById((oldAttendance as any).courseId)
     if (course) {
       // Trouver la session correspondante si elle existe
-      const sessionId = oldAttendance.sessionId
+      const sessionId = (oldAttendance as any).sessionId
       if (sessionId) {
         const sessionIndex = course.sessions.findIndex(
           (session: CourseSession) => session.id.toString() === sessionId.toString(),

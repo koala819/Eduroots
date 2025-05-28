@@ -8,7 +8,6 @@ import {useRouter} from 'next/navigation'
 import {useToast} from '@/hooks/use-toast'
 
 import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
 import {Teacher} from '@/types/user'
 
 import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
@@ -322,9 +321,9 @@ export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
 
       // 2. Mise à jour du cours
       // if (sessionsChanged) {
-      const courseData: Omit<CourseDocument, 'students' | 'stats'> = {
+      const courseData: Omit<any, 'students' | 'stats'> = {
         teacher: id,
-        sessions: values.sessions.map((session) => ({
+        sessions: values.sessions.map(session => ({
           id: session.id,
           timeSlot: {
             dayOfWeek: session.dayOfWeek,

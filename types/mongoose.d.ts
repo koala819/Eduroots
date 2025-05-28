@@ -1,8 +1,16 @@
 import {GradeStats} from './grade'
 import {Holiday} from './holidays'
 import {Student, Teacher} from './user'
-
+import {Types} from 'mongoose'
 import {Document} from 'mongoose'
+import {Behavior} from './behavior'
+import {Attendance} from './attendance'
+import {Course} from './course'
+import {Grade} from './grade'
+import {EntityStats} from './entityStats'
+import {ScheduleConfig} from './scheduleConfig'
+import {DaySchedule} from './daySchedule'
+import {Model} from 'mongoose'
 
 // Base document type
 export interface MongooseDocument extends Document {
@@ -22,6 +30,7 @@ export interface TeacherDocument extends Omit<Teacher, 'id'>, MongooseDocument {
 // Behavior document
 export interface BehaviorDocument extends Omit<Behavior, 'id'>, MongooseDocument {
   _id: Types.ObjectId
+  student: Student
 }
 
 export interface AttendanceDocument extends Omit<Attendance, 'id'>, MongooseDocument {

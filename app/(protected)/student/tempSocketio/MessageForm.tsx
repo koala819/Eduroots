@@ -92,15 +92,18 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
 
   return (
     <div>
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold text-slate-500 mb-3">Chat with {selectedChildId}</h2>
-        <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
-        <StudentSelector
-          familyStudents={familyStudents}
-          selectedChildId={selectedChildId}
-          onSelectStudent={setSelectedChildId}
-        />
-      </section>
+
+      <div className='flex h-screen  w-full justify-center items-center bg-green-500'>
+        <div className='flex flex-col gap-4'>
+          <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
+          <StudentSelector
+            familyStudents={familyStudents}
+            selectedChildId={selectedChildId}
+            onSelectStudent={setSelectedChildId}
+          />
+        </div>
+        </div>
+
       {/* Display chat only if student is selected */}
       {selectedChildId && (
         <>
