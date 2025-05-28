@@ -1,25 +1,27 @@
 'use client'
-import {useState} from 'react'
+import {FormEvent, useState} from 'react'
 import {getSession, signIn, signOut} from 'next-auth/react'
 import StudentSelector from '@/components/atoms/client/StudentSelector'
 import { Student } from '@/types/user'
 import {cn} from '@/lib/utils'
+import { IoSend } from 'react-icons/io5'
+import ChatSideBar from '@/app/(protected)/student/tempSocketio/ChatSideBar'
 
 interface MessageFormProps {
   familyStudents: Student[]
 }
 
 export default function MessageForm({familyStudents}: MessageFormProps) {
-  const [message, setMessage] = useState('')
-
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [newToken, setNewToken] = useState<string | null>(null)
   const [isPending, setIsPending] = useState<boolean>(false)
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
+  const [input, setInput] = useState('')
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  async function handleSelectStudent (studentId: string) {
+    setSelectedChildId(studentId)
     setResult(null)
     setError(null)
     setIsPending(true)
@@ -27,17 +29,6 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
       const session = await getSession()
       const token = session?.user?.customToken
       if (!token) throw new Error('Token custom manquant')
-
-      /*
-      Fake data to test the creation of group conversation
-      */
-      // const conversation = '66a23f4e1bfe6a163d1af199'
-      // const name = 'Test'
-      // const type = 'private' // 'private' or 'group'
-      const studentId = selectedChildId
-      // const content = {message, name, conversation, type, studentId}
-
-      // console.log('content', content)
 
       const res = await fetch('/api/sendMessage', {
         method: 'POST',
@@ -51,16 +42,11 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
       if (res.status === 401 || res.status === 403) {
         setError('Votre session a expiré, tentative de reconnexion automatique...')
         setIsPending(false)
-
-        //Try refresh session
         try {
-          // const refreshedSession = await getSession({triggerEvent: true})
           signIn('credentials', {
             redirect: false,
             callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
           })
-          // console.log('Token après refresh refreshedSession:', refreshedSession)
-          console.log('Token après refresh dans session:', session?.user?.customToken)
           if (session && session.user?.customToken) {
             setError(null)
             setNewToken('Session reconnexion automatique réussie')
@@ -80,6 +66,7 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
       }
 
       const data = await res.json()
+      console.log('data', data)
       if (data.success) {
         setResult(data.result)
       } else {
@@ -91,51 +78,75 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
     setIsPending(false)
   }
 
-  return (
-    <div className={cn( selectedChildId ? 'p-4' : 'p-0')}>
+  async function handleSendMessage(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault()
+    console.log('input', input)
+    console.log('selectedChildId', selectedChildId)
+  }
 
-      <div className={cn('flex w-full ', selectedChildId ? 'h-28' : 'h-screen justify-center items-center')}>
+  function handleSelectGroup(key: string): void {
+    setSelectedGroup(key)
+  }
+
+  return (
+    <div className={cn('flex flex-col h-full flex-1 min-h-0 ', selectedChildId ? 'p-4' : 'p-0')}>
+      <section className={cn('flex', selectedChildId ? 'h-28' : 'h-screen justify-center items-center')}>
         <div className='flex flex-col gap-4'>
           <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
           <StudentSelector
             familyStudents={familyStudents}
             selectedChildId={selectedChildId}
-            onSelectStudent={setSelectedChildId}
+            onSelectStudent={handleSelectStudent}
           />
         </div>
-        </div>
+      </section>
 
-      {/* Display chat only if student is selected */}
-      {selectedChildId && (
-        <>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <textarea
-          className="w-full border rounded p-2"
-          rows={4}
-          placeholder="Votre message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          disabled={isPending}
-        >
-          Envoyer
-        </button>
-      </form>
-      {isPending && <p className="mt-4 text-gray-500">Envoi en cours...</p>}
-      {error && (
-        <pre className="mt-4 p-2 bg-red-100 text-red-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
-          {error}
-        </pre>
-      )}
-      {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
       {result && (
-        <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{JSON.stringify(result)}</pre>
-      )}
-      </>
+        <section className="flex flex-1 min-h-0">
+          <ChatSideBar selected={selectedGroup!} onSelect={handleSelectGroup} />
+        {/* Zone de discussion Message */}
+        <main className="flex-1 flex flex-col bg-gray-50 h-full">
+          <div className="flex-1 overflow-y-auto p-8 bg-gray-50" style={{minHeight: 0}}>
+
+            {/* Affichage de la réponse du backend */}
+            {isPending && <p className="mt-4 text-gray-500">Envoi en cours...</p>}
+            {error && (
+              <pre className="mt-4 p-2 bg-red-100 text-red-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                {error}
+              </pre>
+            )}
+            {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
+            {result && (
+              <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{JSON.stringify(result[0])}</pre>
+            )}
+            {result && result[0].name === 'Parent et Prof' && (
+              <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">Parent et Prof</pre>
+            )}
+          </div>
+          {/* Zone d'envoi Sender */}
+          <form onSubmit={handleSendMessage} className="bg-yellow-300 flex items-center px-6 py-4 gap-4" style={{minHeight: '80px'}}>
+            <input
+              type="text"
+              className="flex-1 rounded-lg border border-yellow-400 px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              placeholder="Écrire un message..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              disabled={!selectedChildId || isPending}
+              name="sender-input"
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              className="bg-yellow-500 hover:bg-yellow-400 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
+              disabled={!selectedChildId || isPending || !input.trim()}
+              name="sender-button"
+            >
+              <IoSend className="text-xl" />
+              Envoyer
+            </button>
+          </form>
+        </main>
+      </section>
       )}
     </div>
   )

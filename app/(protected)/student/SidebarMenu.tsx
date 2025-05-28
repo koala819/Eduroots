@@ -11,8 +11,7 @@ export default function SidebarMenu() {
     const router = useRouter()
 
   function isActive (path: string) {
-    console.log('pathname', pathname)
-    console.log('path', path)
+
     return pathname === path
   }
 
