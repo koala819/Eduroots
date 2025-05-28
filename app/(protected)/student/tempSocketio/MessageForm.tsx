@@ -28,14 +28,15 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
       if (!token) throw new Error('Token custom manquant')
 
       /*
-      Fake data to test the message sending
+      Fake data to test the creation of group conversation
       */
-      const conversation = '66a23f4e1bfe6a163d1af199'
-      const members = [selectedChildId]
-      const name = 'Test'
-      const type = 'private' // 'private' or 'group'
-      const content = {message, members, name, conversation, type}
-      console.log('content', content)
+      // const conversation = '66a23f4e1bfe6a163d1af199'
+      // const name = 'Test'
+      // const type = 'private' // 'private' or 'group'
+      const studentId = selectedChildId
+      // const content = {message, name, conversation, type, studentId}
+
+      // console.log('content', content)
 
       const res = await fetch('/api/sendMessage', {
         method: 'POST',
@@ -43,7 +44,7 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(content),
+        body: JSON.stringify({ studentId })
       })
 
       if (res.status === 401 || res.status === 403) {
@@ -72,7 +73,7 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
             }, 3000)
           }
         } catch (error) {
-          setError('Erreur lors de la reconnexion automatique')
+          setError('Erreur lors de la reconnexion automatique' + error)
         }
         return
       }
@@ -92,6 +93,7 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
   return (
     <div>
       <section className="mb-6">
+        <h2 className="text-sm font-semibold text-slate-500 mb-3">Chat with {selectedChildId}</h2>
         <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
         <StudentSelector
           familyStudents={familyStudents}
@@ -99,6 +101,9 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
           onSelectStudent={setSelectedChildId}
         />
       </section>
+      {/* Display chat only if student is selected */}
+      {selectedChildId && (
+        <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
           className="w-full border rounded p-2"
@@ -125,6 +130,8 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
       {newToken && <pre className="mt-4 p-2 bg-green-100 text-black rounded">{newToken}</pre>}
       {result && (
         <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{JSON.stringify(result)}</pre>
+      )}
+      </>
       )}
     </div>
   )
