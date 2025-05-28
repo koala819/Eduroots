@@ -3,6 +3,7 @@ import {useState} from 'react'
 import {getSession, signIn, signOut} from 'next-auth/react'
 import StudentSelector from '@/components/atoms/client/StudentSelector'
 import { Student } from '@/types/user'
+import {cn} from '@/lib/utils'
 
 interface MessageFormProps {
   familyStudents: Student[]
@@ -91,11 +92,11 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
   }
 
   return (
-    <div>
+    <div className={cn( selectedChildId ? 'p-4' : 'p-0')}>
 
-      <div className='flex h-screen  w-full justify-center items-center bg-green-500'>
+      <div className={cn('flex w-full ', selectedChildId ? 'h-28' : 'h-screen justify-center items-center')}>
         <div className='flex flex-col gap-4'>
-          <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
+          <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
           <StudentSelector
             familyStudents={familyStudents}
             selectedChildId={selectedChildId}

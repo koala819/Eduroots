@@ -1,13 +1,7 @@
-'use client'
+import React from 'react'
+import SidebarMenu from './SidebarMenu'
 
-import SidebarMenu from "@/app/(protected)/student/tempSocketio/SidebarMenu"
-
-
-export default function StudentLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function TempSocketioLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
       {/* Sidebar interactive */}

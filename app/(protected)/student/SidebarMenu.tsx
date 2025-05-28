@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Home, User, LogOut } from 'lucide-react'
+import { Home, User, LogOut, Mail } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import {cn} from '@/lib/utils'
@@ -51,6 +51,24 @@ export default function SidebarMenu() {
         >
             <Home className="w-6 h-6 mx-auto" />
             Scolarité
+        </button>
+
+        <button
+            className={cn(
+              'flex flex-col items-center px-2 py-1 rounded-md text-white',
+              isActive('/student/tempSocketio')
+                ? 'bg-white cursor-default text-primary'
+                : 'transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer',
+            )}
+          onClick={(e) => {
+            router.push('/student/tempSocketio')
+            if (isActive('/student/tempSocketio')) {
+                e.preventDefault()
+            }
+          }}
+        >
+            <Mail className="w-6 h-6 mx-auto" />
+            Messagerie
         </button>
 
         <button
