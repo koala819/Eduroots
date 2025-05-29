@@ -103,7 +103,7 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
 
       {result && (
         <section className="flex flex-1 min-h-0">
-          <ChatSideBar selected={selectedGroup!} onSelect={handleSelectGroup} />
+          <ChatSideBar selected={selectedGroup!} onSelect={handleSelectGroup} result={result} />
         {/* Zone de discussion Message */}
         <main className="flex-1 flex flex-col bg-gray-50 h-full">
           <div className="flex-1 overflow-y-auto p-8 bg-gray-50" style={{minHeight: 0}}>
