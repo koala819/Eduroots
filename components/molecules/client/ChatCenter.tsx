@@ -19,7 +19,7 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   // const [newToken, setNewToken] = useState<string | null>(null)
-  const [isPending, setIsPending] = useState<boolean>(false)
+  // const [isPending, setIsPending] = useState<boolean>(false)
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
   const [teacherId, setTeacherId] = useState<string | null>()
   const [bureauId, setBureauId] = useState<string | null>()
@@ -56,7 +56,7 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
     setSelectedChildId(studentId)
     setResult(null)
     setError(null)
-    setIsPending(true)
+    // setIsPending(true)
     setLoading(true)
     try {
       const session = await getSession()
@@ -74,7 +74,7 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
 
       if (res.status === 401 || res.status === 403) {
         setError('Votre session a expiré, tentative de reconnexion automatique...')
-        setIsPending(false)
+        // setIsPending(false)
         try {
           signIn('credentials', {
             redirect: false,
@@ -159,11 +159,28 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
 
       {result && result.length > 0 && (
         <section className="flex flex-1 min-h-0">
-          <ChatSideBar selected={selectedGroup!} onSelect={handleSelectGroup} result={result} setLoading={setGroupLoading} />
+          <ChatSideBar
+            selected={selectedGroup!}
+            onSelect={handleSelectGroup}
+            result={result}
+            setLoading={setGroupLoading}
+          />
         {/* Zone de discussion Message */}
         <main className="flex-1 flex flex-col bg-gray-50 h-full">
-          <ChatContent selectedGroup={selectedGroup!} selectedChildId={selectedChildId!} teacherId={teacherId!} bureauId={bureauId!} setGroupLoading={setGroupLoading} loading={goruploading}  />
-          <ChatSendMessage selectedGroup={selectedGroup!} isPending={isPending} socketRef={socketRef} selectedChildId={selectedChildId!} />
+          <ChatContent
+            selectedGroup={selectedGroup!}
+            selectedChildId={selectedChildId!}
+            teacherId={teacherId!}
+            bureauId={bureauId!}
+            setGroupLoading={setGroupLoading}
+            loading={goruploading}
+            socketRef={socketRef}
+          />
+          <ChatSendMessage
+            selectedGroup={selectedGroup!}
+            socketRef={socketRef}
+            selectedChildId={selectedChildId!}
+          />
         </main>
       </section>
       )}

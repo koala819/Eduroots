@@ -2,7 +2,8 @@
 
 import {getSession} from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { Socket } from 'socket.io-client'
+// import Image from 'next/image'
 
 interface ChatContentProps {
   selectedGroup: string
@@ -11,31 +12,33 @@ interface ChatContentProps {
   bureauId: string
   setGroupLoading: (loading: boolean) => void
   loading: boolean
+  socketRef: React.RefObject<Socket>
 }
 
-export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauId, setGroupLoading, loading }: ChatContentProps) => {
+export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauId, setGroupLoading, loading, socketRef }: ChatContentProps) => {
     const [messagesByConversation, setMessagesByConversation] = useState<Record<string, any[]>>({})
-console.log('loading ChatContent', loading)
+
     const users = [
       {
         id: selectedChildId,
         name: 'Famille',
-        avatar: '/avatar-family.webp'
+        // avatar: '/avatar-family.webp'
       },
       {
         id: teacherId,
         name: 'Professeur',
-        avatar: '/avatar-teacher.webp'
+        // avatar: '/avatar-teacher.webp'
       },
       {
         id: bureauId,
         name: 'Bureau',
-        avatar: '/avatar-bureau.webp'
+        // avatar: '/avatar-bureau.webp'
       },
     ]
 
     useEffect(() => {
       if (!selectedGroup) return
+
       async function handleSelectGroup(conversationId: string) {
         console.log('selectedChildId', selectedChildId)
         const session = await getSession()
@@ -53,6 +56,26 @@ console.log('loading ChatContent', loading)
       }
       handleSelectGroup(selectedGroup)
     }, [selectedGroup])
+
+  useEffect(() => {
+    if (!socketRef.current) return
+
+    // Fonction de callback pour l'arrivée d'un nouveau message
+    const handleNewMessage = (message: any) => {
+      setMessagesByConversation(prev => ({
+        ...prev,
+        [selectedGroup]: [...(prev[selectedGroup] || []), message]
+      }))
+    }
+
+    // S'abonner à l'événement
+    socketRef.current.on('newMessage', handleNewMessage)
+
+    // Nettoyage à la destruction du composant
+    return () => {
+      socketRef.current?.off('newMessage', handleNewMessage)
+    }
+  }, [socketRef, selectedGroup])
 
     if (loading) return (
     <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}} >
@@ -72,29 +95,29 @@ console.log('loading ChatContent', loading)
         const user = users.find(u => u.id === msg.author)
         return (
           <div key={msg._id} className="w-full px-5 flex flex-col justify-between">
-            <div className="flex flex-col mt-5">
+            <div className="flex flex-col mt-2">
               {user?.id === selectedChildId ? (
-              <div className="flex justify-end mb-4">
-                <div className="mr-2 py-3 px-4 bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl text-white">
+              <div className="flex justify-end">
+                <div className="mr-2 px-4 bg-blue-400 rounded-l-3xl rounded-tr-xl text-white">
                   {msg.content}
                 </div>
-                <Image
+                {/* <Image
                   src={user?.avatar}
-                  className="object-cover h-12 w-12 rounded-full"
+                  className="object-contain h-20 w-20 rounded-full"
                   alt={user?.name}
                   width={64}
                   height={64}
-                />
+                /> */}
               </div>
               ) : (
-                <div className="flex justify-start mb-4">
-                  <Image
+                <div className="flex justify-start mt-4">
+                  {/* <Image
                     src="/avatar-teacher.webp"
                     className="object-cover h-12 w-12 rounded-full"
                     alt="teacher avatar"
                     width={64}
                     height={64}
-                  />
+                  /> */}
                   <div className="ml-2 py-3 px-4 bg-gray-200 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl">
                     <p>{msg.content}</p>
                   </div>

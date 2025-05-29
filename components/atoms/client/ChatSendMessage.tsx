@@ -5,12 +5,11 @@ import { Socket } from 'socket.io-client'
 
 interface ChatSendMessageProps {
   selectedGroup: string
-  isPending: boolean
   socketRef: React.RefObject<Socket>
   selectedChildId: string
 }
 
-export const ChatSendMessage = ({ selectedGroup, isPending, socketRef, selectedChildId }: ChatSendMessageProps) => {
+export const ChatSendMessage = ({ selectedGroup, socketRef, selectedChildId }: ChatSendMessageProps) => {
   const [input, setInput] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -18,7 +17,7 @@ export const ChatSendMessage = ({ selectedGroup, isPending, socketRef, selectedC
     event.preventDefault()
     if (!input.trim() || !selectedGroup) return
 
-    isPending = true
+
     socketRef.current?.emit('sendMessage', {
       conversationId: selectedGroup,
       content: input,
@@ -27,9 +26,9 @@ export const ChatSendMessage = ({ selectedGroup, isPending, socketRef, selectedC
 
     console.log('Message envoyé :', input)
     console.log('selectedGroup', selectedGroup)
-    console.log('isPending', isPending)
     setInput('')
     inputRef.current?.focus()
+
   }
 
   return (
@@ -45,14 +44,14 @@ export const ChatSendMessage = ({ selectedGroup, isPending, socketRef, selectedC
         placeholder="Écrire un message…"
         value={input}
         onChange={e => setInput(e.target.value)}
-        disabled={!selectedGroup || isPending}
+        disabled={!selectedGroup}
         name="sender-input"
         autoComplete="off"
       />
       <button
         type="submit"
         className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 flex items-center justify-center transition disabled:opacity-50"
-        disabled={!selectedGroup || isPending || !input.trim()}
+        disabled={!selectedGroup || !input.trim()}
         name="sender-button"
         aria-label="Envoyer"
       >
