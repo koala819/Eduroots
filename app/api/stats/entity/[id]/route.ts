@@ -5,12 +5,17 @@ import {TeacherStats} from '@/backend/models/teacher-stats.model'
 import {validateRequest} from '@/lib/api.utils'
 import {isValidObjectId} from 'mongoose'
 
-export async function PATCH(req: NextRequest, {params}: {params: {id: string}}) {
+type Params = Promise<{ id: string }>
+
+
+export async function PATCH(req: NextRequest, {params}: {params: Params}) {
+  const { id } = await params;
+
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
-    if (!isValidObjectId(params.id)) {
+    if (!isValidObjectId(id)) {
       return NextResponse.json({message: 'Invalid ID', status: 400})
     }
 
@@ -36,7 +41,7 @@ export async function PATCH(req: NextRequest, {params}: {params: {id: string}}) 
       }
 
       stats = await StudentStats.findOneAndUpdate(
-        {userId: params.id},
+        {userId: id},
         {
           $set: {
             ...statsData,
@@ -59,7 +64,7 @@ export async function PATCH(req: NextRequest, {params}: {params: {id: string}}) 
       }
 
       stats = await TeacherStats.findOneAndUpdate(
-        {userId: params.id},
+        {userId: id},
         {
           $set: {
             ...statsData,
