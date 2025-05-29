@@ -70,7 +70,7 @@
     "mongodb": "5",
     "mongoose": "8.9.5",
     "multer": "2.0.0",
-    "next": "15.2.2",
+    "next": "15.3.2",
     "next-auth": "4.24.7",
     "next-router-mock": "0.9.13",
     "nodemailer": "6.9.14",
@@ -147,12 +147,12 @@
     "semver": "7.5.2",
     "path-to-regexp": "6.3.0",
     "tar": "6.2.1",
-    "undici": "5.28.5",
+    "undici": "5.29.0",
     "esbuild": "0.25.0",
     "debug": "4.3.1",
     "cookie": "0.7.0",
     "next-auth": "4.24.7",
     "nookies": "2.5.2",
-    "tinymce": "7.0.0"
+    "tinymce": "7.2.0"
   }
 }

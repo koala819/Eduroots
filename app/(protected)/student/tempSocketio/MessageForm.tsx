@@ -119,9 +119,6 @@ export default function MessageForm({familyStudents}: MessageFormProps) {
             {result && (
               <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{JSON.stringify(result[0])}</pre>
             )}
-            {result && result[0].name === 'Parent et Prof' && (
-              <pre className="mt-4 p-2 bg-green-100 text-green-800 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">Parent et Prof</pre>
-            )}
           </div>
           {/* Zone d'envoi Sender */}
           <form onSubmit={handleSendMessage} className="bg-yellow-300 flex items-center px-6 py-4 gap-4" style={{minHeight: '80px'}}>
