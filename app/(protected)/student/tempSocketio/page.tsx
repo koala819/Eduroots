@@ -1,5 +1,5 @@
 import { getFamilyStudents } from '@/lib/family'
-import MessageForm from './MessageForm'
+import ChatCenter from '@/components/molecules/client/ChatCenter'
 import {getServerSession} from 'next-auth'
 import {authOptions} from '@/lib/authOptions'
 import {redirect} from 'next/navigation'
@@ -15,5 +15,5 @@ export default async function TempSocketioPage() {
 
   const familyStudents = await getFamilyStudents(session.user.email)
 
-  return <MessageForm familyStudents={familyStudents} />
+  return <ChatCenter familyStudents={familyStudents} />
 }

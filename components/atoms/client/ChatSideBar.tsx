@@ -4,12 +4,14 @@ import { HiUserGroup } from 'react-icons/hi'
 import { FaBuilding, FaChalkboardTeacher } from 'react-icons/fa'
 import clsx from 'clsx'
 
-    interface ChatSideBarProps {
-    selected: string // clé du groupe sélectionné
-    onSelect: (key: string) => void
-    result: {
-        name: string
-    }[]
+interface ChatSideBarProps {
+  selected: string
+  onSelect: (key: string) => void
+  result: {
+    name: string
+    _id: string
+  }[]
+  setLoading: (loading: boolean) => void
 }
 
 const GROUPS = [
@@ -35,27 +37,28 @@ const GROUPS = [
   },
 ]
 
-
-
-const ChatSideBar = ({ selected, onSelect, result }: ChatSideBarProps) => {
+export const ChatSideBar = ({ selected, onSelect, result, setLoading }: ChatSideBarProps) => {
 
     return (
-        <aside className="flex flex-col w-56 bg-white border-r border-gray-200 h-full min-h-0">
-            <div className="flex flex-col gap-2 py-4">
+        <aside className="flex flex-col w-56 bg-[#f4f2ee] border-r border-gray-200 h-full min-h-0 rounded-l-2xl">
+            <div className="flex flex-col gap-2 py-4 px-4">
             {GROUPS.map((group, index) => {
                 if (result[index].name === group.key) {
                     return (
                         <button
                         key={group.key}
-                        onClick={() => onSelect(group.key)}
+                        onClick={() => {
+                          setLoading(true)
+                          onSelect(result[index]._id)
+                        }}
                         className={clsx(
-                            'flex items-center gap-3 px-4 py-3 rounded-l-2xl transition-colors',
-                            selected === group.key
-                            ? 'bg-blue-100 text-blue-700 font-semibold'
-                            : 'hover:bg-gray-100 text-gray-700'
+                            'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
+                            selected === result[index]._id
+                            ? 'bg-blue-100 font-bold'
+                            : 'hover:bg-gray-200 text-gray-700'
                         )}
                         >
-                        <span className="bg-gray-200 rounded-full p-2 flex items-center justify-center">
+                        <span className="bg-gray-300 rounded-full p-4 flex items-center justify-center">
                             {group.icon}
                         </span>
                         <span className="ml-2 text-base text-left">{group.label}</span>
@@ -67,4 +70,3 @@ const ChatSideBar = ({ selected, onSelect, result }: ChatSideBarProps) => {
             </div>
         </aside>
 )}
-export default ChatSideBar
