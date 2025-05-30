@@ -12,11 +12,16 @@ interface ChatContentProps {
   bureauId: string
   setGroupLoading: (loading: boolean) => void
   loading: boolean
-  socketRef: React.RefObject<Socket>
+  socket: React.RefObject<Socket>
 }
 
-export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauId, setGroupLoading, loading, socketRef }: ChatContentProps) => {
+export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauId, setGroupLoading, loading, socket }: ChatContentProps) => {
     const [messagesByConversation, setMessagesByConversation] = useState<Record<string, any[]>>({})
+
+    socket.current?.emit('amIInRoom', { conversationId: selectedGroup })
+    socket.current?.on('amIInRoomResult', (data) => {
+      console.log('Suis-je dans la room ?', data)
+    })
 
     const users = [
       {
@@ -88,9 +93,11 @@ export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauI
 
     if (Object.keys(messagesByConversation).length === 0) return <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}} />
 
+    const messages = messagesByConversation[selectedGroup] || []
+
     return (
       <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}}>
-        {Object.keys(messagesByConversation).length > 0 && Object.values(messagesByConversation).map((msg: any) => {
+        { messages.length > 0 && messages.map((msg: any) => {
         // console.log('msg', msg)
         // console.log('users', users)
         const user = users.find(u => u.id === msg.author)

@@ -24,8 +24,6 @@ export const ChatSendMessage = ({ selectedGroup, socketRef, selectedChildId }: C
       authorId: selectedChildId
     })
 
-    console.log('Message envoyé :', input)
-    console.log('selectedGroup', selectedGroup)
     setInput('')
     inputRef.current?.focus()
 

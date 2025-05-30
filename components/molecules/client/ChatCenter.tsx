@@ -10,7 +10,6 @@ import {cn} from '@/lib/utils'
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 
-
 interface ChatCenterProps {
   familyStudents: Student[]
 }
@@ -18,8 +17,6 @@ interface ChatCenterProps {
 export default function ChatCenter({familyStudents}: ChatCenterProps) {
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
-  // const [newToken, setNewToken] = useState<string | null>(null)
-  // const [isPending, setIsPending] = useState<boolean>(false)
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
   const [teacherId, setTeacherId] = useState<string | null>()
   const [bureauId, setBureauId] = useState<string | null>()
@@ -50,11 +47,18 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
     connectSocket()
   }, [])
 
+
+  // Joindre les rooms de l'enfant
+  useEffect(() => {
+  if (socketRef.current && selectedChildId) {
+    socketRef.current.emit('joinChildRooms', { childId: selectedChildId })
+  }
+}, [selectedChildId])
+
   async function handleSelectStudent (studentId: string) {
     setSelectedChildId(studentId)
     setResult(null)
     setError(null)
-    // setIsPending(true)
     setLoading(true)
     try {
       const session = await getSession()
@@ -72,7 +76,6 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
 
       if (res.status === 401 || res.status === 403) {
         setError('Votre session a expiré, tentative de reconnexion automatique...')
-        // setIsPending(false)
         try {
           signIn('credentials', {
             redirect: false,
@@ -80,7 +83,6 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
           })
           if (session && session.user?.customToken) {
             setError(null)
-            // setNewToken('Session reconnexion automatique réussie')
           } else {
             setError('Reconnexion automatique échouée, veuillez vous reconnecter manuellement')
             setTimeout(() => {
@@ -143,7 +145,6 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
 
   return (
     <div className={cn('flex flex-col h-full flex-1 min-h-0 ', selectedChildId ? 'p-4' : 'p-0')}>
-      <div>Socket connecté ? {socketRef.current?.connected ? 'Oui' : 'Non'}</div>
       <section className={cn('flex', selectedChildId ? 'h-28' : 'h-screen justify-center items-center')}>
         <div className='flex flex-col gap-4'>
           <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
@@ -163,7 +164,7 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
             result={result}
             setLoading={setGroupLoading}
           />
-        {/* Zone de discussion Message */}
+
         <main className="flex-1 flex flex-col bg-gray-50 h-full">
           <ChatContent
             selectedGroup={selectedGroup!}
@@ -172,7 +173,7 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
             bureauId={bureauId!}
             setGroupLoading={setGroupLoading}
             loading={goruploading}
-            socketRef={socketRef}
+            socket={socketRef}
           />
           <ChatSendMessage
             selectedGroup={selectedGroup!}
