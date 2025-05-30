@@ -28,19 +28,17 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [goruploading, setGroupLoading] = useState<boolean>(false)
 
-  console.log('loading', loading)
-
   useEffect(() => {
     const connectSocket = async () => {
       const session = await getSession()
       const token = session?.user?.customToken
-      socketRef.current = io('http://localhost:3001', {
+      socketRef.current = io(`${process.env.NEXT_PUBLIC_SERVER_URL}`, {
         withCredentials: true,
         auth: {
           token: token,
         },
       })
-      // Exemple d'écoute d'un event
+      // Ecoute d'un event
       socketRef.current.on('connect', () => {
       })
 

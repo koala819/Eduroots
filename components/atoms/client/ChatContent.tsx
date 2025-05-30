@@ -40,42 +40,43 @@ export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauI
       if (!selectedGroup) return
 
       async function handleSelectGroup(conversationId: string) {
-        console.log('selectedChildId', selectedChildId)
         const session = await getSession()
         const token = session?.user?.customToken
 
-        const res = await fetch(`http://localhost:3001/conversations/${conversationId}/messages?childId=${selectedChildId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/conversations/${conversationId}/messages?childId=${selectedChildId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         const messages = await res.json()
 
-        setMessagesByConversation(messages)
+        setMessagesByConversation(prev => ({
+          ...prev,
+          [selectedGroup]: messages
+        }))
         setGroupLoading( false)
       }
       handleSelectGroup(selectedGroup)
     }, [selectedGroup])
 
-  useEffect(() => {
-    if (!socketRef.current) return
+    useEffect( () => {
+      if (!socket.current) {
+        console.log('socket not defined');
+        return
+      }
 
-    // Fonction de callback pour l'arrivée d'un nouveau message
-    const handleNewMessage = (message: any) => {
-      setMessagesByConversation(prev => ({
-        ...prev,
-        [selectedGroup]: [...(prev[selectedGroup] || []), message]
-      }))
-    }
+      const handleNewMessage = (data: any) => {
 
-    // S'abonner à l'événement
-    socketRef.current.on('newMessage', handleNewMessage)
-
-    // Nettoyage à la destruction du composant
-    return () => {
-      socketRef.current?.off('newMessage', handleNewMessage)
-    }
-  }, [socketRef, selectedGroup])
+        setMessagesByConversation(prev => ({
+          ...prev,
+          [data.conversationId]: [...(prev[data.conversationId] || []), data.message]
+        }))
+      }
+      socket.current?.on('newMessage', handleNewMessage)
+      return () => {
+        socket.current?.off('newMessage', handleNewMessage)
+      }
+    }, [])
 
     if (loading) return (
     <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}} >

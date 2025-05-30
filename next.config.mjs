@@ -1,4 +1,5 @@
 import withSerwistInit from '@serwist/next'
+import process from 'process'
 
 const withSerwist = withSerwistInit({
   // Note: This is only an example. If you use Pages Router,
@@ -29,6 +30,7 @@ const nextConfig = {
     MONGODB_URI: process.env.MONGODB_URI,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXT_PUBLIC_CLIENT_URL: process.env.NEXT_PUBLIC_CLIENT_URL,
+    NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
     START_YEAR: process.env.START_YEAR,
     STUDENT_PWD: process.env.STUDENT_PWD,
     TEACHER_PWD: process.env.TEACHER_PWD,
