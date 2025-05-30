@@ -19,11 +19,5 @@ export default async function StudentPage() {
   const familyStudents = await getFamilyStudents(session.user.email)
 
 
-  return (
-    <div className="flex flex-col bg-slate-50">
-      <main className="flex-1 container">
-        <StudentDashboard familyStudents={familyStudents} />
-      </main>
-    </div>
-  )
+  return <StudentDashboard familyStudents={familyStudents} />
 }

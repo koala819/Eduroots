@@ -1,8 +1,10 @@
 'use client'
 
-import { HiUserGroup } from 'react-icons/hi'
-import { FaBuilding, FaChalkboardTeacher } from 'react-icons/fa'
 import clsx from 'clsx'
+import avatarBureau from '@/public/avatar-bureau.webp'
+import avatarTeacher from '@/public/avatar-teacher.webp'
+import avatarFamily from '@/public/avatar-family.webp'
+import Image from 'next/image'
 
 interface ChatSideBarProps {
   selected: string
@@ -18,12 +20,12 @@ const GROUPS = [
   {
     key: 'parent-prof',
     label: 'Enseignant',
-    icon: <FaChalkboardTeacher className="text-blue-500 text-xl" />,
+    picture: {src: avatarTeacher, alt: 'Prof'},
   },
   {
     key: 'parent-bureau',
     label: 'Bureau',
-    icon: <FaBuilding className="text-green-600 text-xl" />,
+    picture: {src: avatarBureau, alt: 'Bureau'},
   },
   {
     key: 'parent-prof-bureau',
@@ -33,14 +35,14 @@ const GROUPS = [
         <span>Enseignant</span>
       </div>
     ),
-    icon: <HiUserGroup className="text-purple-500 text-2xl" />,
+    picture: {src: avatarFamily, alt: 'All'},
   },
 ]
 
 export const ChatSideBar = ({ selected, onSelect, result, setLoading }: ChatSideBarProps) => {
 
     return (
-        <aside className="flex flex-col w-56 bg-[#f4f2ee] border-r border-gray-200 h-full min-h-0 rounded-l-2xl">
+        <aside className="flex flex-col w-full md:w-72 bg-[#f4f2ee] border-r border-gray-200 h-full rounded-l-2xl">
             <div className="flex flex-col gap-2 py-4 px-4">
             {GROUPS.map((group, index) => {
                 if (result[index].name === group.key) {
@@ -58,10 +60,12 @@ export const ChatSideBar = ({ selected, onSelect, result, setLoading }: ChatSide
                             : 'hover:bg-gray-200 text-gray-700'
                         )}
                         >
-                        <span className="bg-gray-300 rounded-full p-4 flex items-center justify-center">
-                            {group.icon}
-                        </span>
-                        <span className="ml-2 text-base text-left">{group.label}</span>
+                          <Image
+                           src={group.picture.src}
+                           alt={group.picture.alt}
+                           className="w-20 h-20 md:w-16 md:h-16 rounded-full"
+                           />
+                           <span className="ml-2 text-base text-left">{group.label}</span>
                         </button>
                     )
                 }

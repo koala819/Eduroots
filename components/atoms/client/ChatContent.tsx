@@ -1,7 +1,7 @@
 'use client'
 
 import {getSession} from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Socket } from 'socket.io-client'
 // import Image from 'next/image'
 
@@ -17,11 +17,13 @@ interface ChatContentProps {
 
 export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauId, setGroupLoading, loading, socket }: ChatContentProps) => {
     const [messagesByConversation, setMessagesByConversation] = useState<Record<string, any[]>>({})
+     const bottomRef = useRef<HTMLDivElement>(null)
 
-    socket.current?.emit('amIInRoom', { conversationId: selectedGroup })
-    socket.current?.on('amIInRoomResult', (data) => {
-      console.log('Suis-je dans la room ?', data)
-    })
+    // check if I'm in the room
+    // socket.current?.emit('amIInRoom', { conversationId: selectedGroup })
+    // socket.current?.on('amIInRoomResult', (data) => {
+    //   console.log('Suis-je dans la room ?', data)
+    // })
 
     const users = [
       {
@@ -83,6 +85,13 @@ export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauI
       }
     }, [])
 
+    // Scroll to bottom when new messages are added
+    useEffect(() => {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, [messagesByConversation])
+
     if (loading) return (
     <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}} >
       <div className="flex justify-center items-center h-full">
@@ -96,8 +105,8 @@ export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauI
     const messages = messagesByConversation[selectedGroup] || []
 
     return (
-      <div className="flex-1 overflow-y-auto p-8 bg-gray-100" style={{minHeight: 0}}>
-        { messages.length > 0 && messages.map((msg: any) => {
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-100" style={{minHeight: 0}}>
+       { messages.length > 0 && messages.map((msg: any) => {
         // console.log('msg', msg)
         // console.log('users', users)
         const user = users.find(u => u.id === msg.author)
@@ -135,6 +144,7 @@ export const ChatContent = ({ selectedGroup, selectedChildId, teacherId, bureauI
           </div>
         )
       })}
+      <div ref={bottomRef} />
       </div>
           )
 }

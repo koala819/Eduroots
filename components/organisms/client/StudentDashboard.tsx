@@ -13,6 +13,7 @@ import ChildStats from '@/components/molecules/client/StudentStats'
 import {useCourses} from '@/context/Courses/client'
 import {useStats} from '@/context/Stats/client'
 import {useTeachers} from '@/context/Teachers/client'
+import { cn } from '@/lib/utils'
 
 interface StudentDashboardProps {
   familyStudents: Student[]
@@ -100,15 +101,17 @@ export default function StudentDashboard({familyStudents}: StudentDashboardProps
   }
 
   return (
-    <>
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
+    <div className={cn('flex flex-col p-4', selectedChildId ? '' : 'flex-1 justify-center items-center')}>
+
+      <section className='flex flex-col gap-4 mb-8'>
+        <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
         <StudentSelector
           familyStudents={familyStudents}
           selectedChildId={selectedChildId}
           onSelectStudent={setSelectedChildId}
         />
       </section>
+
 
       {selectedChildId &&
         (isLoadingDetails ? (
@@ -123,6 +126,6 @@ export default function StudentDashboard({familyStudents}: StudentDashboardProps
             subjectGradesData={subjectGradesData}
           />
         ))}
-    </>
+    </div>
   )
 }

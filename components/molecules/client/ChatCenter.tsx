@@ -2,13 +2,12 @@
 import { useState} from 'react'
 import {getSession, signIn, signOut} from 'next-auth/react'
 import StudentSelector from '@/components/atoms/client/StudentSelector'
-import { ChatSideBar } from '@/components/atoms/client/ChatSideBar'
-import { ChatSendMessage } from '@/components/atoms/client/ChatSendMessage'
-import { ChatContent } from '@/components/atoms/client/ChatContent'
 import { Student } from '@/types/user'
 import {cn} from '@/lib/utils'
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
+import ChatCenterDesktop from '@/app/(protected)/student/tempSocketio/ChatCenterDesktop'
+import ChatCenterMobile from '@/app/(protected)/student/tempSocketio/ChatCenterMobile'
 
 interface ChatCenterProps {
   familyStudents: Student[]
@@ -144,8 +143,10 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
   }
 
   return (
-    <div className={cn('flex flex-col h-full flex-1 min-h-0 ', selectedChildId ? 'p-4' : 'p-0')}>
-      <section className={cn('flex', selectedChildId ? 'h-28' : 'h-screen justify-center items-center')}>
+    <div className={cn('flex flex-col h-full w-full'
+    // , selectedChildId ? 'p-4' : 'p-0'
+    )}>
+      <section className={cn('flex', selectedChildId ? 'h-28' : 'flex-1 justify-center items-center')}>
         <div className='flex flex-col gap-4'>
           <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
           <StudentSelector
@@ -157,31 +158,35 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
       </section>
 
       {result && result.length > 0 && (
-        <section className="flex flex-1 min-h-0">
-          <ChatSideBar
-            selected={selectedGroup!}
-            onSelect={handleSelectGroup}
+        <>
+        <section className="hidden md:flex flex-1 min-h-0">
+          <ChatCenterDesktop
+            selectedGroup={selectedGroup!}
+            handleSelectGroup={handleSelectGroup}
             result={result}
-            setLoading={setGroupLoading}
+            setGroupLoading={setGroupLoading}
+            selectedChildId={selectedChildId!}
+            teacherId={teacherId!}
+            bureauId={bureauId!}
+            goruploading={goruploading}
+            socketRef={socketRef}
           />
-
-        <main className="flex-1 flex flex-col bg-gray-50 h-full">
-          <ChatContent
+        </section>
+        <section className="flex md:hidden flex-1 min-h-0">
+          <ChatCenterMobile
+            handleSelectGroup={handleSelectGroup}
+            result={result}
+            setGroupLoading={setGroupLoading}
             selectedGroup={selectedGroup!}
             selectedChildId={selectedChildId!}
             teacherId={teacherId!}
             bureauId={bureauId!}
-            setGroupLoading={setGroupLoading}
-            loading={goruploading}
-            socket={socketRef}
-          />
-          <ChatSendMessage
-            selectedGroup={selectedGroup!}
+            goruploading={goruploading}
             socketRef={socketRef}
-            selectedChildId={selectedChildId!}
+            setSelectedGroup={setSelectedGroup}
           />
-        </main>
-      </section>
+        </section>
+        </>
       )}
     </div>
   )
