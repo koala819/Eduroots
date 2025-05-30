@@ -4,6 +4,8 @@ import { Home, User, LogOut, Mail } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import {cn} from '@/lib/utils'
+import EdurootsLogo from '@/public/Logo-blanc.webp'
+import Image from 'next/image'
 
 
 export default function SidebarMenu() {
@@ -27,7 +29,7 @@ export default function SidebarMenu() {
       {/* Logo */}
       <div>
         <div className="flex items-center mb-8">
-          {/* <EdurootsLogo className="h-8 w-8 mr-2" /> */}
+          <Image src={EdurootsLogo} alt="Eduroots" className="h-24 w-24 mr-2" />
           <span className="font-bold text-xl">Eduroots</span>
         </div>
 
