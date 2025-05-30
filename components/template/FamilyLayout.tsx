@@ -16,9 +16,9 @@ export function FamilyLayout({children}: ClientLayoutProps) {
   const router = useRouter()
 
   const navItems = [
-    { href: '/familly', label: 'Scolarité', Icon: Home },
-    { href: '/familly/messages', label: 'Messagerie', Icon: Mail },
-    { href: '/familly/profile', label: 'Profil', Icon: User },
+    { href: '/family', label: 'Scolarité', Icon: Home },
+    { href: '/family/messages', label: 'Messagerie', Icon: Mail },
+    { href: '/family/profile', label: 'Profil', Icon: User },
   ]
 
   useEffect(() => {
