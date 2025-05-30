@@ -6,8 +6,8 @@ import { Student } from '@/types/user'
 import {cn} from '@/lib/utils'
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
-import ChatCenterDesktop from '@/app/(protected)/student/tempSocketio/ChatCenterDesktop'
-import ChatCenterMobile from '@/app/(protected)/student/tempSocketio/ChatCenterMobile'
+import ChatCenterDesktop from '@/components/molecules/client/ChatCenterDesktop'
+import ChatCenterMobile from '@/components/molecules/client/ChatCenterMobile'
 
 interface ChatCenterProps {
   familyStudents: Student[]

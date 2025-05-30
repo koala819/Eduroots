@@ -10,7 +10,7 @@ const STUDENT_ROLE = 'student'
 const SU_ROUTES = ['/admin/root/logs']
 const ADMIN_ROUTES = ['/admin', '/admin/register', '/admin/student', '/admin/teacher']
 const TEACHER_ROUTES = ['/teacher', '/teacher/attendance']
-const STUDENT_ROUTES = ['/student']
+const STUDENT_ROUTES = ['/familly']
 
 // Définir des routes de messages spécifiques à chaque rôle
 const ADMIN_MESSAGE_ROUTES = [
@@ -26,10 +26,10 @@ const TEACHER_MESSAGE_ROUTES = [
   '/teacher/messages/write',
 ]
 const STUDENT_MESSAGE_ROUTES = [
-  '/student/messages',
-  '/student/messages/inbox',
-  '/student/messages/sent',
-  '/student/messages/write',
+  '/familly/messages',
+  '/familly/messages/inbox',
+  '/familly/messages/sent',
+  '/familly/messages/write',
 ]
 
 export async function middleware(req: NextRequest) {
@@ -49,7 +49,7 @@ export async function middleware(req: NextRequest) {
     } else if (userRole === TEACHER_ROLE) {
       return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
     } else if (userRole === STUDENT_ROLE) {
-      return NextResponse.redirect(new URL('/student/messages/inbox', req.url))
+      return NextResponse.redirect(new URL('/familly/messages/inbox', req.url))
     } else {
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
@@ -62,8 +62,8 @@ export async function middleware(req: NextRequest) {
   if (pathname === '/teacher/messages') {
     return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
   }
-  if (pathname === '/student/messages') {
-    return NextResponse.redirect(new URL('/student/messages/inbox', req.url))
+  if (pathname === '/familly/messages') {
+    return NextResponse.redirect(new URL('/familly/messages/inbox', req.url))
   }
 
   // Vérification des routes SuperUser (SU)
@@ -93,7 +93,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Vérification des routes student
+  // Vérification des routes familly
   else if (
     STUDENT_ROUTES.some((route) => pathname.startsWith(route)) ||
     STUDENT_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
@@ -115,7 +115,7 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/teacher/:path*',
-    '/student/:path*',
+    '/familly/:path*',
     '/messages/:path*',
     '/admin/logs',
   ],

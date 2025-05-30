@@ -183,7 +183,7 @@ export const LoginClient = () => {
       case UserRoleEnum.Teacher:
         return '/teacher'
       case UserRoleEnum.Student:
-        return '/student'
+        return '/familly'
       default:
         return '/home'
     }
