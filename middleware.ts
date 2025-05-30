@@ -25,12 +25,7 @@ const TEACHER_MESSAGE_ROUTES = [
   '/teacher/messages/sent',
   '/teacher/messages/write',
 ]
-const STUDENT_MESSAGE_ROUTES = [
-  '/family/messages',
-  '/family/messages/inbox',
-  '/family/messages/sent',
-  '/family/messages/write',
-]
+
 
 export async function middleware(req: NextRequest) {
   const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
@@ -41,29 +36,12 @@ export async function middleware(req: NextRequest) {
   const userRole = (token.user as {role?: string})?.role ?? ''
   const pathname = req.nextUrl.pathname
 
-  // Redirection pour les routes racines de messages selon le rôle
-  if (pathname === '/messages') {
-    // Rediriger vers la boîte de réception appropriée selon le rôle
-    if (ADMIN_ROLES.includes(userRole)) {
-      return NextResponse.redirect(new URL('/admin/messages/inbox', req.url))
-    } else if (userRole === TEACHER_ROLE) {
-      return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
-    } else if (userRole === STUDENT_ROLE) {
-      return NextResponse.redirect(new URL('/family/messages/inbox', req.url))
-    } else {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
-    }
-  }
-
   // Redirections pour les pages de messages racines de chaque rôle
   if (pathname === '/admin/messages') {
     return NextResponse.redirect(new URL('/admin/messages/inbox', req.url))
   }
   if (pathname === '/teacher/messages') {
     return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
-  }
-  if (pathname === '/family/messages') {
-    return NextResponse.redirect(new URL('/family/messages/inbox', req.url))
   }
 
   // Vérification des routes SuperUser (SU)
@@ -95,8 +73,7 @@ export async function middleware(req: NextRequest) {
 
   // Vérification des routes family
   else if (
-    STUDENT_ROUTES.some((route) => pathname.startsWith(route)) ||
-    STUDENT_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
+    STUDENT_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (userRole !== STUDENT_ROLE) {
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))

@@ -4,22 +4,19 @@ import {useEffect, useState} from 'react'
 import SidebarMenu from '@/components/template/Sidebar'
 import Image from 'next/image'
 import {usePathname, useRouter} from 'next/navigation'
-import { Home, User, Mail } from 'lucide-react'
+
 
 interface ClientLayoutProps {
   children: React.ReactNode
+  navItems: { href: string; label: string; Icon: string }[]
 }
 
-export function FamilyLayout({children}: ClientLayoutProps) {
+export function CustomLayout({children, navItems}: ClientLayoutProps) {
   const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
   const router = useRouter()
 
-  const navItems = [
-    { href: '/family', label: 'Scolarité', Icon: Home },
-    { href: '/family/messages', label: 'Messagerie', Icon: Mail },
-    { href: '/family/profile', label: 'Profil', Icon: User },
-  ]
+
 
   useEffect(() => {
     setIsNavigating(false)

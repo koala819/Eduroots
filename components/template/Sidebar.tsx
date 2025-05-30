@@ -1,29 +1,25 @@
 'use client'
-import React from 'react'
 import { LogOut } from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import {cn} from '@/lib/utils'
+import {cn, logoutHandler} from '@/lib/utils'
 import EdurootsLogo from '@/public/Logo-blanc.webp'
 import Image from 'next/image'
+import * as LucideIcons from 'lucide-react'
 
 type SidebarMenuProps = {
   handleNavClick: (href: string) => void
   pathname: string
-  navItems: { href: string; label: string; Icon: React.ElementType }[]
+  navItems: { href: string; label: string; Icon: string }[]
 }
 
 
 export default function SidebarMenu({ handleNavClick, pathname, navItems }: SidebarMenuProps) {
+
+
     function isActive (path: string) {
       return pathname === path
     }
 
-    function logoutHandler() {
-        signOut({
-        redirect: true,
-        callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
-        })
-    }
+
 
   return (
     <>
@@ -40,7 +36,7 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
         {/* Menu */}
         <div className="flex flex-col gap-8">
            {navItems.map(({ href, label, Icon }) => {
-
+            const IconComponent = LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{size: number}>
             return (
               <button
                 key={href}
@@ -56,7 +52,7 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
                   : 'transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer',
               )}
               >
-                <Icon className="h-6 w-6 mx-auto"/>
+                {IconComponent && <IconComponent size={42} />}
                 {label}
               </button>
             )
@@ -65,11 +61,11 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
 
           <button
            title="Déconnexion"
-           className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer'
+           className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer bg-red-500'
            onClick={logoutHandler}
           >
-            <LogOut className="w-6 h-6 mx-auto text-red-400" />
-            <span className='text-red-400'>Sortir</span>
+            <LogOut className="w-6 h-6 mx-auto text-[#EDEDED]" />
+            <span className='text-[#EDEDED] font-medium text-xl tracking-widest'>Déconnexion</span>
           </button>
         </div>
       </aside>
@@ -77,7 +73,7 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
       {/* Barre de navigation mobile */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#375073] text-white flex justify-around items-center py-2 md:hidden z-50">
         {navItems.map(({ href, label, Icon }) => {
-
+            const IconComponent = LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{size: number}>
             return (
               <button
                 key={href}
@@ -91,7 +87,7 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
                   : 'transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer',
               )}
               >
-                <Icon className="h-6 w-6 mx-auto"/>
+                {IconComponent && <IconComponent size={28} />}
                 {label}
               </button>
             )
@@ -99,11 +95,11 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
 
         <button
          title="Déconnexion"
-         className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors cursor-pointer'
+         className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors bg-red-500 py-2'
          onClick={logoutHandler}
         >
-          <LogOut className="w-6 h-6 text-red-400" />
-          <span className='text-red-400'>Sortir</span>
+          <LogOut className="w-6 h-6 text-[#EDEDED]" />
+          <span className='text-[#EDEDED]'>Sortir</span>
         </button>
       </nav>
     </>
