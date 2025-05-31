@@ -17,6 +17,7 @@ export const ChatSendMessage = ({ selectedGroup, socketRef, selectedChildId }: C
     event.preventDefault()
     if (!input.trim() || !selectedGroup) return
 
+// console.log('Envoi du message', { conversationId: selectedGroup, content: input, authorId: selectedChildId })
 
     socketRef.current?.emit('sendMessage', {
       conversationId: selectedGroup,

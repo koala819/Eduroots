@@ -28,12 +28,30 @@ export default function ChatCenter({familyStudents}: ChatCenterProps) {
     const connectSocket = async () => {
       const session = await getSession()
       const token = session?.user?.customToken
-      socketRef.current = io(`${process.env.NEXT_PUBLIC_SERVER_URL}`, {
+
+      // Vérifie que l'URL est bien définie
+      if (!process.env.NEXT_PUBLIC_SERVER_URL) {
+        console.error('NEXT_PUBLIC_SERVER_URL n\'est pas définie')
+        return
+      }
+
+      socketRef.current = io(process.env.NEXT_PUBLIC_SERVER_URL!, {
         withCredentials: true,
         auth: {
           token: token,
         },
       })
+
+      // Vérifie la connexion du socket
+      // socketRef.current.on('connect', () => {
+      //   console.log('Socket connecté !', socketRef.current?.id)
+      // })
+
+      // Gère les erreurs de connexion
+      // socketRef.current.on('connect_error', (err) => {
+      //   console.error('Erreur de connexion socket.io', err)
+      // })
+
       // Ecoute d'un event
       socketRef.current.on('connect', () => {
       })
