@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Socket } from 'socket.io-client'
 // import Image from 'next/image'
 
-interface ChatContentProps {
+interface MessagesChatProps {
   selectedGroup: string
   selectedChildId: string
   teacherId: string
@@ -15,7 +15,7 @@ interface ChatContentProps {
   socket: React.RefObject<Socket>
 }
 
-export const ChatContent = ({
+export const MessagesChat = ({
   selectedGroup,
   selectedChildId,
   teacherId,
@@ -23,7 +23,7 @@ export const ChatContent = ({
   setGroupLoading,
   loading,
   socket,
-}: ChatContentProps) => {
+}: MessagesChatProps) => {
   const [messagesByConversation, setMessagesByConversation] = useState<Record<string, any[]>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -59,14 +59,15 @@ export const ChatContent = ({
       const token = session?.user?.customToken
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/conversations/${conversationId}/messages?
-        childId=${selectedChildId}`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/conversations/${conversationId}/messages` +
+        `?author=${selectedChildId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
       const messages = await res.json()
+      console.log('messages', messages)
 
       setMessagesByConversation((prev) => ({
         ...prev,

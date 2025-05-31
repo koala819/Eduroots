@@ -144,7 +144,10 @@ const ClassRoomPage = () => {
           </Button>
 
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div
+              className="h-8 w-8 flex items-center justify-center rounded-full
+              bg-blue-100 text-blue-600"
+            >
               <span className="text-xs font-medium">
                 {sortedTimeSlots.length}
               </span>
@@ -185,7 +188,9 @@ const ClassRoomPage = () => {
               return (
                 <Card
                   key={`${course.courseId}-${subject}`}
-                  className="shadow-sm border-l-4 border-l-blue-500 border-t-0 border-r-0 border-b-0 overflow-hidden rounded-lg animate-fadeIn bg-white"
+                  className="shadow-sm border-l-4 border-l-blue-500 border-t-0
+                  border-r-0 border-b-0 overflow-hidden rounded-lg animate-fadeIn
+                   bg-white"
                 >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
@@ -198,11 +203,13 @@ const ClassRoomPage = () => {
                     {subjectSessions.map((session) => (
                       <div
                         key={session.sessionId}
-                        className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
+                        className="bg-gray-50 rounded-lg p-4
+                        hover:bg-gray-100 transition-colors duration-200"                      >
+                        <div className="flex flex-col
+                        sm:flex-row sm:justify-between sm:items-center mb-3">
                           <div className="flex items-center mb-2 sm:mb-0">
-                            <div className="h-7 w-24 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                            <div className="h-7 w-24 rounded-full bg-blue-100
+                             flex items-center justify-center mr-2">
                               <span className="text-blue-600 text-xs font-medium">
                                 Niveau {session.level}
                               </span>

@@ -1,13 +1,13 @@
 'use client'
 
-import {ClipboardList, Star} from 'lucide-react'
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { ClipboardList, Star } from 'lucide-react'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {GenderEnum} from '@/types/user'
+import { GenderEnum } from '@/types/user'
 
-import {StudentWithDetails as StudentType} from '@/components/organisms/client/ProfileCourseCard'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
+import { StudentWithDetails as StudentType } from '@/components/organisms/client/ProfileCourseCard'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -26,31 +26,31 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {Progress} from '@/components/ui/progress'
-import {Separator} from '@/components/ui/separator'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 
-import {cn, convertToDate, getColorClass} from '@/lib/utils'
-import {differenceInYears, parseISO} from 'date-fns'
+import { cn, convertToDate, getColorClass } from '@/lib/utils'
+import { differenceInYears, parseISO } from 'date-fns'
 
 interface DesktopClassViewProps {
   students: StudentType[]
 }
 
-export const ClassOverview = ({students}: DesktopClassViewProps) => {
+export const ClassOverview = ({ students }: DesktopClassViewProps) => {
   const sortedStudents = [...students].sort((a, b) => a.firstname.localeCompare(b.firstname))
   function getBorderColorClass(absences: number): string {
     if (absences === 0) {
       return 'border-l-[6px] border-or'
     }
     switch (absences % 3) {
-      case 1:
-        return 'border-l-[6px] border-argent'
-      case 2:
-        return 'border-l-[6px] border-bronze'
-      case 0:
-        return 'border-l-[6px] border-inferno'
-      default:
-        return 'border-l-[6px] border-gray-500'
+    case 1:
+      return 'border-l-[6px] border-argent'
+    case 2:
+      return 'border-l-[6px] border-bronze'
+    case 0:
+      return 'border-l-[6px] border-inferno'
+    default:
+      return 'border-l-[6px] border-gray-500'
     }
   }
 
@@ -78,7 +78,7 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
         {sortedStudents.map((student) => {
           const attendanceRate = 100 - (student.stats?.absencesRate || 0)
 
-          console.log("📊 Données reçues dans ClassOverview pour l'étudiant", student._id, {
+          console.log('📊 Données reçues dans ClassOverview pour l\'étudiant', student._id, {
             student,
             stats: student.stats,
             attendanceRate,
@@ -201,7 +201,8 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                     <ClipboardList className="h-3.5 w-3.5 text-gray-500" />
                     <p className="text-gray-500">Moyenne générale</p>
                     <span
-                      className={`font-medium ${getGradeColorClass(student.stats?.grades?.overallAverage)}`}
+                      className={`font-medium
+                        ${getGradeColorClass(student.stats?.grades?.overallAverage)}`}
                     >
                       {student.stats?.grades?.overallAverage.toFixed(1)}
                     </span>
@@ -302,20 +303,20 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
 
                             {student.stats?.absencesRate !== null &&
                               student.stats?.absencesRate !== undefined && (
-                                <div className="mt-3">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm text-gray-500">Taux de présence</span>
-                                    <span className="font-medium">
-                                      {attendanceRate.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                  <Progress
-                                    value={attendanceRate}
-                                    className="h-2"
-                                    color={attendanceRate > 80 ? 'bg-green-500' : 'bg-amber-500'}
-                                  />
+                              <div className="mt-3">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm text-gray-500">Taux de présence</span>
+                                  <span className="font-medium">
+                                    {attendanceRate.toFixed(1)}%
+                                  </span>
                                 </div>
-                              )}
+                                <Progress
+                                  value={attendanceRate}
+                                  className="h-2"
+                                  color={attendanceRate > 80 ? 'bg-green-500' : 'bg-amber-500'}
+                                />
+                              </div>
+                            )}
 
                             <Separator className="my-3" />
 
@@ -340,34 +341,40 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                           <CardContent className="pt-6">
                             {student?.stats?.behaviorAverage !== null &&
                               student?.stats?.behaviorAverage !== undefined && (
-                                <div className="mb-4">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm text-gray-500">
+                              <div className="mb-4">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm text-gray-500">
                                       Note de comportement
-                                    </span>
-                                    <span className="font-medium">
-                                      {student.stats.behaviorAverage}
+                                  </span>
+                                  <span className="font-medium">
+                                    {student.stats.behaviorAverage}
                                       /5
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center mt-1">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                      <svg
-                                        key={star}
-                                        className={`w-5 h-5 ${
-                                          star <= Math.round(student.stats?.behaviorAverage || 0)
-                                            ? 'text-yellow-400'
-                                            : 'text-gray-300'
-                                        }`}
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                      >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                      </svg>
-                                    ))}
-                                  </div>
+                                  </span>
                                 </div>
-                              )}
+                                <div className="flex items-center mt-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <svg
+                                      key={star}
+                                      className={`w-5 h-5 ${
+                                        star <= Math.round(student.stats?.behaviorAverage || 0)
+                                          ? 'text-yellow-400'
+                                          : 'text-gray-300'
+                                      }`}
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07
+                                       3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588
+                                       1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07
+                                       3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0
+                                       00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.
+                                       118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.
+                                       57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
                             <Separator className="my-3" />
 
@@ -410,7 +417,8 @@ export const ClassOverview = ({students}: DesktopClassViewProps) => {
                                   })}
 
                                 {student.stats?.grades.overallAverage !== undefined && (
-                                  <div className="flex items-center justify-between pt-2 border-t mt-2">
+                                  <div className="flex items-center justify-between
+                                  pt-2 border-t mt-2">
                                     <span className="text-sm font-medium text-black">
                                       Moyenne générale
                                     </span>

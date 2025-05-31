@@ -1,11 +1,11 @@
 'use client'
 import { ChatSendMessage } from '@/components/atoms/client/ChatSendMessage'
-import { ChatContent } from '@/components/atoms/client/ChatContent'
-import { ChatSideBar } from '@/components/atoms/client/ChatSideBar'
+import { MessagesChat } from '@/components/atoms/client/MessagesChat'
+import { MessagesSideBar } from '@/components/molecules/client/MessagesSideBar'
 import { Student } from '@/types/user'
 import { cn } from '@/lib/utils'
 
-interface ChatCenterProps {
+interface MessagesDesktopProps {
   selectedGroup: string
   handleSelectGroup: (key: string) => void
   childrenRooms?: {
@@ -16,13 +16,15 @@ interface ChatCenterProps {
   selectedChildId: string
   teacherId: string
   bureauId: string
-  goruploading: boolean
+  grouploading: boolean
   socketRef: any
   students?: Student[]
   fromFamily: boolean
+  coursesTeachersWithChildren?: {name: string, students: Student[]}[]
+  userType: 'family' | 'teacher' | 'bureau'
 }
 
-export default function ChatCenterDesktop({
+export default function MessagesDesktop({
   selectedGroup,
   handleSelectGroup,
   childrenRooms,
@@ -30,20 +32,24 @@ export default function ChatCenterDesktop({
   selectedChildId,
   teacherId,
   bureauId,
-  goruploading,
+  grouploading,
   socketRef,
   students,
   fromFamily,
-}: ChatCenterProps) {
-
+  coursesTeachersWithChildren,
+  userType,
+}: MessagesDesktopProps) {
   return (
     <section className="flex flex-1 min-h-0">
-      <ChatSideBar
+      <MessagesSideBar
         selected={selectedGroup!}
         onSelect={handleSelectGroup}
         childrenRooms={childrenRooms}
         setLoading={setGroupLoading}
         students={students}
+        coursesTeachersWithChildren={coursesTeachersWithChildren}
+        userType={userType}
+        fromFamily={fromFamily}
       />
 
       <main
@@ -53,13 +59,13 @@ export default function ChatCenterDesktop({
         )}
       >
         <div className="flex-1 overflow-y-auto bg-gray-100">
-          <ChatContent
+          <MessagesChat
             selectedGroup={selectedGroup!}
             selectedChildId={selectedChildId!}
             teacherId={teacherId!}
             bureauId={bureauId!}
             setGroupLoading={setGroupLoading}
-            loading={goruploading}
+            loading={grouploading}
             socket={socketRef}
           />
         </div>

@@ -16,6 +16,7 @@ interface ChatSideBarProps {
   }[]
   setLoading: (loading: boolean) => void
   students?: Student[]
+  coursesTeachersWithChildren?: {name: string, students: Student[]}[]
 }
 
 const GROUPS = [

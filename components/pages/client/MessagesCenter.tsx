@@ -6,23 +6,22 @@ import { Student } from '@/types/user'
 import { cn } from '@/lib/utils'
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
-import ChatCenterDesktop from '@/components/molecules/client/ChatCenterDesktop'
-import ChatCenterMobile from '@/components/molecules/client/ChatCenterMobile'
+import MessagesDesktop from '@/components/organisms/client/MessagesDesktop'
+import MessagesMobile from '@/components/organisms/client/MessagesMobile'
 
-interface ChatCenterProps {
+interface MessagesCenterProps {
   familyStudents?: Student[]
   students?: Student[]
-  courses?: {
-    _id: string
-    name: string
-    sessions: {
-      _id: string
-      students: Student[]
-    }[]
-  }[]
+  coursesTeachersWithChildren?: {name: string, students: Student[]}[]
+  userType: 'family' | 'teacher' | 'bureau'
 }
 
-export default function ChatCenter({ familyStudents, students, courses }: ChatCenterProps) {
+export const MessagesCenter = ({
+  familyStudents,
+  students,
+  coursesTeachersWithChildren,
+  userType,
+}: MessagesCenterProps) => {
   const [childrenRooms, setChildrenRooms] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
@@ -31,9 +30,8 @@ export default function ChatCenter({ familyStudents, students, courses }: ChatCe
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
-  const [goruploading, setGroupLoading] = useState<boolean>(false)
+  const [grouploading, setGroupLoading] = useState<boolean>(false)
 
-  // console.log('courses', courses)
   // Connexion au socket
   useEffect(() => {
     const connectSocket = async () => {
@@ -150,7 +148,36 @@ export default function ChatCenter({ familyStudents, students, courses }: ChatCe
     }
   }
 
-  function handleSelectGroup(key: string): void {
+  async function handleSelectGroup(key: string): Promise<void> {
+    console.log('key', key)
+    // const session = await getSession()
+    // const token = session?.user?.customToken
+
+    // const res = await fetch(
+    //   `/api/getMessages?conversationId=${key}&childId=${selectedChildId}`,
+    //   {
+    //     headers: {
+    //       'Authorization': `Bearer ${token}`,
+    //       'Content-Type': 'application/json',
+    //     },
+    //   },
+    // )
+
+    // if (!res.ok) {
+    //   throw new Error('Erreur lors de la récupération des messages')
+    // }
+
+    // const data = await res.json()
+    // if (!data.success) {
+    //   throw new Error(data.error || 'Erreur inconnue')
+    // }
+    // console.log('conversation data', data)
+
+    // setMessagesByConversation((prev) => ({
+    //   ...prev,
+    //   [selectedGroup]: data.result,
+    // }))
+    setGroupLoading(false)
     setSelectedGroup(key)
   }
 
@@ -203,10 +230,14 @@ export default function ChatCenter({ familyStudents, students, courses }: ChatCe
         </section>
       )}
 
-      {((childrenRooms && childrenRooms.length > 0) || (students && students.length > 0)) && (
+      {(
+        (childrenRooms && childrenRooms.length > 0)
+        || (students && students.length > 0)
+        || (coursesTeachersWithChildren && coursesTeachersWithChildren.length > 0)
+      )&& (
         <>
           <section className="hidden md:flex flex-1 min-h-0">
-            <ChatCenterDesktop
+            <MessagesDesktop
               selectedGroup={selectedGroup!}
               handleSelectGroup={handleSelectGroup}
               childrenRooms={childrenRooms}
@@ -214,14 +245,16 @@ export default function ChatCenter({ familyStudents, students, courses }: ChatCe
               selectedChildId={selectedChildId!}
               teacherId={teacherId!}
               bureauId={bureauId!}
-              goruploading={goruploading}
+              grouploading={grouploading}
               socketRef={socketRef}
               students={students}
               fromFamily={familyStudents ? true : false}
+              coursesTeachersWithChildren={coursesTeachersWithChildren}
+              userType={userType}
             />
           </section>
           <section className="flex md:hidden flex-1 min-h-0">
-            <ChatCenterMobile
+            <MessagesMobile
               handleSelectGroup={handleSelectGroup}
               childrenRooms={childrenRooms}
               setGroupLoading={setGroupLoading}
@@ -229,11 +262,12 @@ export default function ChatCenter({ familyStudents, students, courses }: ChatCe
               selectedChildId={selectedChildId!}
               teacherId={teacherId!}
               bureauId={bureauId!}
-              goruploading={goruploading}
+              grouploading={grouploading}
               socketRef={socketRef}
               setSelectedGroup={setSelectedGroup}
               students={students}
               fromFamily={familyStudents ? true : false}
+              userType={userType}
             />
           </section>
         </>

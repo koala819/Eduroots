@@ -1,6 +1,6 @@
 'use client'
 import { LogOut } from 'lucide-react'
-import {cn, logoutHandler} from '@/lib/utils'
+import { cn, logoutHandler } from '@/lib/utils'
 import EdurootsLogo from '@/public/Logo-blanc.webp'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
@@ -15,9 +15,9 @@ type SidebarMenuProps = {
 export default function SidebarMenu({ handleNavClick, pathname, navItems }: SidebarMenuProps) {
 
 
-    function isActive (path: string) {
-      return pathname === path
-    }
+  function isActive (path: string) {
+    return pathname === path
+  }
 
 
 
@@ -35,8 +35,9 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
         </div>
         {/* Menu */}
         <div className="flex flex-col gap-8">
-           {navItems.map(({ href, label, Icon }) => {
-            const IconComponent = LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{size: number}>
+          {navItems.map(({ href, label, Icon }) => {
+            const IconComponent =
+              LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{ size: number }>
             return (
               <button
                 key={href}
@@ -46,11 +47,12 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
                 aria-label={label}
                 tabIndex={isActive(href) ? -1 : 0}
                 className={cn(
-                'flex flex-col items-center px-2 py-1 rounded-md text-white',
-                isActive(href)
-                  ? 'bg-white cursor-default text-primary'
-                  : 'transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer',
-              )}
+                  'flex flex-col items-center px-2 py-1 rounded-md text-white',
+                  isActive(href)
+                    ? 'bg-white cursor-default text-primary'
+                    : 'transition-colors hover:bg-white/10 cursor-pointer'+
+                    ' hover:text-white group-hover:shadow-sm',
+                )}
               >
                 {IconComponent && <IconComponent size={42} />}
                 {label}
@@ -60,9 +62,11 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
 
 
           <button
-           title="Déconnexion"
-           className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer bg-red-500'
-           onClick={logoutHandler}
+            title="Déconnexion"
+            className='flex flex-col items-center px-2 py-1 rounded-md
+            text-white transition-colors hover:bg-white/10 hover:text-white
+            group-hover:shadow-sm cursor-pointer bg-red-500'
+            onClick={logoutHandler}
           >
             <LogOut className="w-6 h-6 mx-auto text-[#EDEDED]" />
             <span className='text-[#EDEDED] font-medium text-xl tracking-widest'>Déconnexion</span>
@@ -71,35 +75,39 @@ export default function SidebarMenu({ handleNavClick, pathname, navItems }: Side
       </aside>
 
       {/* Barre de navigation mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#375073] text-white flex justify-around items-center py-2 md:hidden z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#375073] text-white
+      flex justify-around items-center py-2 md:hidden z-50">
         {navItems.map(({ href, label, Icon }) => {
-            const IconComponent = LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{size: number}>
-            return (
-              <button
-                key={href}
-                onClick={() => !isActive(href) && handleNavClick(href)}
-                disabled={isActive(href)}
-                aria-current={isActive(href) ? 'page' : undefined}
-                className={cn(
+          const IconComponent =
+            LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{ size: number }>
+          return (
+            <button
+              key={href}
+              onClick={() => !isActive(href) && handleNavClick(href)}
+              disabled={isActive(href)}
+              aria-current={isActive(href) ? 'page' : undefined}
+              className={cn(
                 'flex flex-col items-center px-2 py-1 rounded-md text-white',
                 isActive(href)
                   ? 'bg-white cursor-default text-primary'
-                  : 'transition-colors hover:bg-white/10 hover:text-white group-hover:shadow-sm cursor-pointer',
+                  : 'transition-colors hover:bg-white/10 hover:text-white' +
+                  'group-hover:shadow-sm cursor-pointer',
               )}
-              >
-                {IconComponent && <IconComponent size={28} />}
-                {label}
-              </button>
-            )
-          })}
+            >
+              {IconComponent && <IconComponent size={18} />}
+              <span className='text-xs'>{label}</span>
+            </button>
+          )
+        })}
 
         <button
-         title="Déconnexion"
-         className='flex flex-col items-center px-2 py-1 rounded-md text-white transition-colors bg-red-500 py-2'
-         onClick={logoutHandler}
+          title="Déconnexion"
+          className='flex flex-col items-center px-2 py-1 rounded-md text-white
+          transition-colors bg-red-500 py-2'
+          onClick={logoutHandler}
         >
-          <LogOut className="w-6 h-6 text-[#EDEDED]" />
-          <span className='text-[#EDEDED]'>Sortir</span>
+          <LogOut className="w-4 h-4 text-[#EDEDED]" />
+          <span className='text-[#EDEDED] text-xs'>Sortir</span>
         </button>
       </nav>
     </>

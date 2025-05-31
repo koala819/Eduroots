@@ -1,13 +1,13 @@
 'use client'
 
-import { ChatContent } from '@/components/atoms/client/ChatContent'
+import { MessagesChat } from '@/components/atoms/client/MessagesChat'
 import { ChatSendMessage } from '@/components/atoms/client/ChatSendMessage'
 import { ArrowLeft } from 'lucide-react'
 import { Student } from '@/types/user'
 import { cn } from '@/lib/utils'
-import { ChatSideBar } from '@/components/atoms/client/ChatSideBar'
+import { MessagesSideBar } from '@/components/molecules/client/MessagesSideBar'
 
-interface ChatCenterMobileProps {
+interface MessagesMobileProps {
   handleSelectGroup: (key: string) => void
   childrenRooms?: {
     name: string
@@ -18,14 +18,19 @@ interface ChatCenterMobileProps {
   selectedChildId: string
   teacherId: string
   bureauId: string
-  goruploading: boolean
+  grouploading: boolean
   socketRef: any
   setSelectedGroup: (group: string | null) => void
   students?: Student[]
   fromFamily: boolean
+  coursesTeachersWithChildren?: {
+    name: string
+    students: Student[]
+  }[]
+  userType: 'family' | 'teacher' | 'bureau'
 }
 
-export default function ChatCenterMobile({
+export default function MessagesMobile({
   handleSelectGroup,
   childrenRooms,
   setGroupLoading,
@@ -33,12 +38,14 @@ export default function ChatCenterMobile({
   selectedChildId,
   teacherId,
   bureauId,
-  goruploading,
+  grouploading,
   socketRef,
   setSelectedGroup,
   students,
   fromFamily,
-}: ChatCenterMobileProps) {
+  coursesTeachersWithChildren,
+  userType,
+}: MessagesMobileProps) {
 
   const groupLabels: Record<string, string> = {
     'parent-prof': 'Professeur',
@@ -57,12 +64,15 @@ export default function ChatCenterMobile({
           'h-[calc(100vh-12rem)]' : 'h-[calc(100vh)] overflow-y-auto',
         )}
         >
-          <ChatSideBar
+          <MessagesSideBar
             selected={selectedGroup!}
             onSelect={handleSelectGroup}
             childrenRooms={childrenRooms}
             setLoading={setGroupLoading}
             students={students}
+            coursesTeachersWithChildren={coursesTeachersWithChildren}
+            userType={userType}
+            fromFamily={fromFamily}
           />
         </div>
       ) : (
@@ -82,13 +92,13 @@ export default function ChatCenterMobile({
 
           {/* Zone de contenu avec scroll */}
           <div className="flex-1 overflow-y-auto">
-            <ChatContent
+            <MessagesChat
               selectedGroup={selectedGroup!}
               selectedChildId={selectedChildId!}
               teacherId={teacherId!}
               bureauId={bureauId!}
               setGroupLoading={setGroupLoading}
-              loading={goruploading}
+              loading={grouploading}
               socket={socketRef}
             />
           </div>

@@ -54,7 +54,8 @@ const MailboxLayout = ({
       {/* Sidebar mobile */}
       <div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-full sm:w-80 bg-white transform transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-50 w-full sm:w-80'+
+          'bg-white transform transition-transform duration-300 ease-in-out',
           'lg:relative lg:transform-none',
           isSidebarOpen
             ? 'translate-x-0'

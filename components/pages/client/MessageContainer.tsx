@@ -1,17 +1,17 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
-import {useCallback, useEffect, useReducer} from 'react'
+import { useSession } from 'next-auth/react'
+import { useCallback, useEffect, useReducer } from 'react'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 
-import {useMailsManager} from '@/hooks/useMailsManager'
+import { useMailsManager } from '@/hooks/useMailsManager'
 
-import {MessageContainerProps} from '@/types/models'
+import { MessageContainerProps } from '@/types/models'
 
 import MessageList from '@/components/template/client/MessageList'
 
-import {formatDate} from '@/lib/mails/utils'
+import { formatDate } from '@/lib/mails/utils'
 
 // Définir un type pour l'état
 type MailsState = {
@@ -31,26 +31,26 @@ type MailsAction =
 // Créer un reducer pour gérer l'état
 const mailsReducer = (state: MailsState, action: MailsAction): MailsState => {
   switch (action.type) {
-    case 'FETCH_START':
-      return {...state, isLoading: true, error: null}
-    case 'FETCH_SUCCESS':
-      return {...state, isLoading: false, isInitialRender: false}
-    case 'FETCH_ERROR':
-      return {
-        ...state,
-        isLoading: false,
-        error: action.payload,
-        isInitialRender: false,
-      }
-    case 'SET_DISPLAY_INDEX':
-      return {...state, displayPostIndex: action.payload}
-    default:
-      return state
+  case 'FETCH_START':
+    return { ...state, isLoading: true, error: null }
+  case 'FETCH_SUCCESS':
+    return { ...state, isLoading: false, isInitialRender: false }
+  case 'FETCH_ERROR':
+    return {
+      ...state,
+      isLoading: false,
+      error: action.payload,
+      isInitialRender: false,
+    }
+  case 'SET_DISPLAY_INDEX':
+    return { ...state, displayPostIndex: action.payload }
+  default:
+    return state
   }
 }
 
-const MessageContainer: React.FC<MessageContainerProps> = ({isSentbox = false}) => {
-  const {data: session} = useSession()
+const MessageContainer: React.FC<MessageContainerProps> = ({ isSentbox = false }) => {
+  const { data: session } = useSession()
 
   // Utiliser useReducer pour gérer l'état - TOUJOURS mettre les hooks au niveau supérieur
   const [state, dispatch] = useReducer(mailsReducer, {
@@ -60,8 +60,9 @@ const MessageContainer: React.FC<MessageContainerProps> = ({isSentbox = false}) 
     isInitialRender: true,
   })
 
-  // Utiliser un hook personnalisé pour gérer les emails - Utiliser un objet vide si session est null
-  const {messages, fetchMails, handleDelete, handleMessageClick} = useMailsManager(
+  // Utiliser un hook personnalisé pour gérer les emails
+  // - Utiliser un objet vide si session est null
+  const { messages, fetchMails, handleDelete, handleMessageClick } = useMailsManager(
     session || ({} as Session),
     isSentbox,
   )
@@ -71,10 +72,10 @@ const MessageContainer: React.FC<MessageContainerProps> = ({isSentbox = false}) 
   const loadEmails = useCallback(async () => {
     if (!session) return
 
-    dispatch({type: 'FETCH_START'})
+    dispatch({ type: 'FETCH_START' })
     try {
       await fetchMails()
-      dispatch({type: 'FETCH_SUCCESS'})
+      dispatch({ type: 'FETCH_SUCCESS' })
     } catch (err) {
       dispatch({
         type: 'FETCH_ERROR',
@@ -103,7 +104,7 @@ const MessageContainer: React.FC<MessageContainerProps> = ({isSentbox = false}) 
       if (!session) return
 
       handleDelete(index)
-      dispatch({type: 'SET_DISPLAY_INDEX', payload: null})
+      dispatch({ type: 'SET_DISPLAY_INDEX', payload: null })
     },
     [handleDelete, session],
   )

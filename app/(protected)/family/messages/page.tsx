@@ -1,5 +1,5 @@
 import { getFamilyStudents } from '@/lib/family'
-import ChatCenter from '@/components/organisms/client/ChatCenter'
+import { MessagesCenter } from '@/components/pages/client/MessagesCenter'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { redirect } from 'next/navigation'
@@ -15,5 +15,5 @@ export default async function TempSocketioPage() {
 
   const familyStudents = await getFamilyStudents(session.user.email)
 
-  return <ChatCenter familyStudents={familyStudents} />
+  return <MessagesCenter familyStudents={familyStudents} userType="family" />
 }
