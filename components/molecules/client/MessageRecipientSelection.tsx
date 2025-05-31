@@ -35,7 +35,7 @@ export const RecipientSelection = ({
       if (!students) return
 
       if (mode === 'all') {
-        const studentIds = students.map((s) => s._id) ?? []
+        const studentIds = students.map((s) => (s._id as any).toString()) ?? []
         form.setValue('recipients', studentIds)
       } else {
         form.setValue('recipients', []) // Réinitialisation si le mode n'est pas 'all'

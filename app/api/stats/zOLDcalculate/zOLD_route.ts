@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { CourseSession } from '@/types/course'
-import { GenderEnum, Student, Teacher } from '@/types/user'
+import { GenderEnum, Student } from '@/types/user'
 
 import { Course } from '@/backend/models/course.model'
 import { TeacherStats } from '@/backend/models/teacher-stats.model'
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         ? course.teacher
         : [course.teacher]
 
-      teacherArray.forEach((teacher: Teacher) => {
+      teacherArray.forEach((teacher: any) => {
         if (!teacher || !teacher._id) {
           //   console.log('Teacher invalide trouvé:', teacher)
           return

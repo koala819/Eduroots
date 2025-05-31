@@ -5,6 +5,7 @@ import {SerializableDate} from '@/types/stats'
 
 import {type ClassValue, clsx} from 'clsx'
 import {addWeeks, isAfter} from 'date-fns'
+import { signOut } from 'next-auth/react'
 import {twMerge} from 'tailwind-merge'
 
 export function capitalizeFirstLetter(string: string): string {
@@ -304,4 +305,11 @@ export function getColorClass(absences: number): string {
     default:
       return 'bg-gray-500 text-white' // Should never happen, but for safety
   }
+}
+
+export function logoutHandler() {
+  signOut({
+    redirect: true,
+    callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
+  })
 }

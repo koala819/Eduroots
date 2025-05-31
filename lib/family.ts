@@ -1,29 +1,8 @@
-import {getServerSession} from 'next-auth'
-import {redirect} from 'next/navigation'
+import { getAllStudents } from '@/app/actions/context/students'
+import { Student } from '@/types/user'
 
-import {Student} from '@/types/user'
-
-import StudentDashboard from '@/components/organisms/client/StudentDashboard'
-
-import {getAllStudents} from '@/app/actions/context/students'
-import {authOptions} from '@/lib/authOptions'
-
-export const metadata = {
-  title: 'Dashboard Étudiant | École',
-  description: 'Visualisez les informations scolaires de vos enfants',
-}
-
-export default async function StudentPage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session || !session.user?.email) {
-    redirect('/')
-  }
-
-  const familyStudents = await getStudentDataByEmail(session.user.email)
-
-  async function getStudentDataByEmail(email: string): Promise<Student[]> {
-    try {
+export async function getFamilyStudents(email: string): Promise<Student[]> {
+   try {
       const studentsResponse = await getAllStudents()
 
       let studentsArray: Student[] = []
@@ -49,13 +28,4 @@ export default async function StudentPage() {
       console.error('Erreur lors de la récupération des étudiants:', error)
       return []
     }
-  }
-
-  return (
-    <div className="flex flex-col bg-slate-50">
-      <main className="flex-1 container">
-        <StudentDashboard familyStudents={familyStudents} />
-      </main>
-    </div>
-  )
 }

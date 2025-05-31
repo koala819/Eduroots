@@ -7,7 +7,7 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <div className="relative w-8 h-8 bg-slate-100 rounded-md flex items-center justify-center overflow-hidden">
             <Image
-              src="/icon-maskable-512x512.png"
+              src="/icon-512x512-maskable.png"
               alt="Eduroots"
               fill
               priority

@@ -125,7 +125,7 @@ export const RecipientForTeacher = ({
   // Composants pour la liste virtualisée
   const StudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
     const student = filteredValidStudents[index]
-    const isChecked = form.watch('recipients')?.includes(student._id)
+    const isChecked = form.watch('recipients')?.includes((student._id as any).toString())
 
     return (
       <div style={style} className="px-4 py-2">
@@ -139,11 +139,11 @@ export const RecipientForTeacher = ({
             onCheckedChange={(checked) => {
               const currentRecipients = form.watch('recipients') || []
               if (checked) {
-                form.setValue('recipients', [...currentRecipients, student._id])
+                form.setValue('recipients', [...currentRecipients, (student._id as any).toString()])
               } else {
                 form.setValue(
                   'recipients',
-                  currentRecipients.filter((id) => id !== student._id),
+                  currentRecipients.filter((id) => id !== (student._id as any).toString()),
                 )
               }
             }}

@@ -251,7 +251,7 @@ export async function refreshGlobalStats(): Promise<
     // Calculer la moyenne des taux de présence
     let totalPresenceRate = 0
     attendances.forEach((attendance) => {
-      totalPresenceRate += attendance.stats.presenceRate
+      totalPresenceRate += (attendance as any).stats?.presenceRate || 0
     })
 
     const averagePresenceRate =

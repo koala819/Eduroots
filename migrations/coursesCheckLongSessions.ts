@@ -126,7 +126,7 @@ async function checkRemainingFullSessions(): Promise<CheckResult> {
         total: foundSessions.length,
         morning: morning.length,
         afternoon: afternoon.length,
-        sessions: foundSessions,
+        sessions: foundSessions as any,
       },
     }
   } catch (error) {

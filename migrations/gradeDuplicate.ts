@@ -35,7 +35,7 @@ export async function checkGradesDuplicates(): Promise<{
 
     // Parcourir tous les grades
     grades.forEach((grade) => {
-      const key = `${grade.sessionId}-${grade.date.toISOString().split('T')[0]}`
+      const key = `${grade.sessionId}-${(grade.date as any).toISOString().split('T')[0]}`
 
       if (!duplicateGroups[key]) {
         duplicateGroups[key] = []

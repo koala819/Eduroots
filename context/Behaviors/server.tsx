@@ -24,8 +24,8 @@ export default async function BehaviorsServerComponent({
     if (response.success && response.data) {
       // Traitement uniforme des données
       initialBehaviorData = Array.isArray(response.data)
-        ? (response.data as BehaviorDocument[])
-        : ([response.data] as BehaviorDocument[])
+        ? (response.data as any[])
+        : ([response.data] as any[])
     }
   }
 

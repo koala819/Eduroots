@@ -82,11 +82,10 @@ function behaviorReducer(state: BehaviorState, action: BehaviorAction): Behavior
       }
 
     case 'SET_ALL_BEHAVIORS':
-      const newState = {
+      return {
         ...state,
-        allBehaviors: action.payload,
+        allBehaviors: action.payload as any,
       }
-      return newState
 
     case 'SET_BEHAVIOR_RECORDS':
       return {
@@ -236,7 +235,7 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
       try {
         const data = await getBehaviorByIdAndDate(courseId, date)
         if (data?.success && data.data) {
-          const behaviorDoc = data.data as BehaviorDocument
+          const behaviorDoc = data.data as any
           dispatch({type: 'SET_ONE_BEHAVIOR', payload: behaviorDoc})
         }
         return data
@@ -355,7 +354,7 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
             if (sessionBehavior) {
               dispatch({
                 type: 'SET_ONE_BEHAVIOR',
-                payload: sessionBehavior as BehaviorDocument,
+                payload: sessionBehavior as any,
               })
             }
           } else if (checkToday) {
@@ -365,21 +364,21 @@ export const BehaviorProvider = ({children, initialBehaviorData = null}: Behavio
                 ? response.data.find(
                     (b) =>
                       b &&
-                      (b as BehaviorDocument).date &&
-                      new Date((b as BehaviorDocument).date).toISOString().split('T')[0] === today,
+                      (b as any).date &&
+                      new Date((b as any).date).toISOString().split('T')[0] === today,
                   )
                 : response.data
 
             if (todayBehavior) {
               dispatch({
                 type: 'SET_TODAY_BHEAVIOR',
-                payload: todayBehavior as BehaviorDocument,
+                payload: todayBehavior as any,
               })
             }
           } else {
             dispatch({
               type: 'SET_ALL_BEHAVIORS',
-              payload: response.data as BehaviorDocument[],
+              payload: response.data as any[],
             })
           }
         })

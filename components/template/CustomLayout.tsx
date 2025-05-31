@@ -1,32 +1,35 @@
 'use client'
 
 import {useEffect, useState} from 'react'
-
+import SidebarMenu from '@/components/template/Sidebar'
 import Image from 'next/image'
 import {usePathname, useRouter} from 'next/navigation'
 
-import FooterTeacher from '@/components/atoms/FooterTeacher'
 
 interface ClientLayoutProps {
   children: React.ReactNode
+  navItems: { href: string; label: string; Icon: string }[]
 }
 
-export function ClientLayout({children}: ClientLayoutProps) {
-  const [isNavigating, setIsNavigating] = useState(false)
+export function CustomLayout({children, navItems}: ClientLayoutProps) {
+  const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
   const router = useRouter()
+
+
 
   useEffect(() => {
     setIsNavigating(false)
   }, [pathname])
 
-  const handleNavClick = (href: string) => {
+   function handleNavClick (href: string) {
     setIsNavigating(true)
     router.push(href)
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col">
+    <div className="flex min-h-screen">
+
       {/* Loading Overlay */}
       {isNavigating && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-[90]">
@@ -37,13 +40,12 @@ export function ClientLayout({children}: ClientLayoutProps) {
         </div>
       )}
 
-      {/* Main content */}
-      <main className="w-full flex-grow pb-24 bg-gray-50">{children}</main>
+      <SidebarMenu handleNavClick={handleNavClick} pathname={pathname} navItems={navItems} />
 
-      {/* Fixed footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-white">
-        <FooterTeacher handleNavClick={handleNavClick} currentRoute={pathname} />
-      </div>
+      {/* Main content */}
+      <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0">
+        {children}
+      </main>
     </div>
   )
 }

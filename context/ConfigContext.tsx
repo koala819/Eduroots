@@ -58,7 +58,7 @@ export const ConfigProvider: React.FC<{children: React.ReactNode}> = ({children}
               academicYearStart: new Date(response.data.academicYearStart),
             }
           } else {
-            throw new Error('Réponse invalide du serveur')
+            console.log('zOLDTHEME::Réponse invalide du serveur')
           }
         } catch (error) {
           console.error('Échec du chargement du thème:', error)
@@ -86,8 +86,8 @@ export const ConfigProvider: React.FC<{children: React.ReactNode}> = ({children}
 
         if (
           !cachedData ||
-          !isEqual(cachedData.theme, freshData.theme) ||
-          cachedData.academicYearStart !== freshData.academicYearStart.toISOString()
+          !isEqual(cachedData.theme, freshData?.theme) ||
+          cachedData.academicYearStart !== freshData?.academicYearStart.toISOString()
         ) {
           // setState((prevState) => ({
           //   ...prevState,
@@ -99,8 +99,8 @@ export const ConfigProvider: React.FC<{children: React.ReactNode}> = ({children}
           localStorage.setItem(
             cacheKey,
             JSON.stringify({
-              theme: freshData.theme,
-              academicYearStart: freshData.academicYearStart.toISOString(),
+              theme: freshData?.theme,
+              academicYearStart: freshData?.academicYearStart.toISOString(),
             }),
           )
         }

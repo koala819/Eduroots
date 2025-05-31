@@ -326,7 +326,7 @@ export const CoursesProvider = ({
       courseData: Omit<PopulatedCourse, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
     ): Promise<PopulatedCourse> => {
       try {
-        const response = await createCourseAction(courseData)
+        const response = await createCourseAction(courseData as any)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to create course')
@@ -429,7 +429,7 @@ export const CoursesProvider = ({
       sameStudents: boolean,
     ): Promise<void> => {
       try {
-        const response = await updateCourseAction(courseId, courseData, sameStudents)
+        const response = await updateCourseAction(courseId, courseData as any, sameStudents)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to update course')

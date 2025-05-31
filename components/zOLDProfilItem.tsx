@@ -1,6 +1,6 @@
 import {Button} from '@/components/ui/button'
 
-import {MenuItem} from '@/app/(protected)/teacher/profiles/page'
+
 
 export const ProfileItem = ({
   icon,
@@ -8,7 +8,7 @@ export const ProfileItem = ({
   color,
   onClick,
   variant = 'desktop',
-}: MenuItem & {variant?: 'desktop' | 'mobile'}) => {
+}: any & {variant?: 'desktop' | 'mobile'}) => {
   // Styles conditionnels basés sur la variante
   const buttonStyle =
     variant === 'desktop'

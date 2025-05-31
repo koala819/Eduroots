@@ -65,7 +65,9 @@ export async function GET(req: NextRequest) {
         date: {$gte: startDate, $lte: endDate},
       })
 
-      const attendanceDates = new Set(attendances.map((a) => a.date.toISOString().split('T')[0]))
+      const attendanceDates = new Set(
+        attendances.map((a) => (a.date as any).toISOString().split('T')[0]),
+      )
 
       const missingDates = weekPeriods
         .map((period) => {

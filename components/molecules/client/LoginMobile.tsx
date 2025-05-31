@@ -181,7 +181,7 @@ export const LoginMobileClient = () => {
       case UserRoleEnum.Teacher:
         return '/teacher'
       case UserRoleEnum.Student:
-        return '/student'
+        return '/family'
       default:
         return '/home'
     }

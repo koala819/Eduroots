@@ -13,6 +13,8 @@ interface StudentStats {
   attendanceRate: number
 }
 
+type Params = Promise<{ id: string }>
+
 // Helper function pour le calcul des stats
 function calculateStudentStats(studentRecords: any[]): StudentStats {
   const presentRecords = studentRecords.filter((record) => !record.isAbsent)
@@ -30,12 +32,13 @@ function calculateStudentStats(studentRecords: any[]): StudentStats {
   }
 }
 
-export async function GET(req: NextRequest, {params}: {params: {studentId: string}}) {
+export async function GET(req: NextRequest, {params}: {params: Params}) {
+  const { id: studentId } = await params;
+
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
-    const {studentId} = params
     const url = new URL(req.url)
     const fields = url.searchParams.get('fields')
 

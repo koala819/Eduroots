@@ -1,2 +1,5 @@
+# Lint files
+pnpm lint
+
 # Tests unitaires
 pnpm test
