@@ -12,19 +12,6 @@ const ADMIN_ROUTES = ['/admin', '/admin/register', '/admin/student', '/admin/tea
 const TEACHER_ROUTES = ['/teacher', '/teacher/attendance']
 const STUDENT_ROUTES = ['/family']
 
-// Définir des routes de messages spécifiques à chaque rôle
-const ADMIN_MESSAGE_ROUTES = [
-  '/admin/messages',
-  '/admin/messages/inbox',
-  '/admin/messages/sent',
-  '/admin/messages/write',
-]
-const TEACHER_MESSAGE_ROUTES = [
-  '/teacher/messages',
-  '/teacher/messages/inbox',
-  '/teacher/messages/sent',
-  '/teacher/messages/write',
-]
 
 
 export async function middleware(req: NextRequest) {
@@ -36,13 +23,6 @@ export async function middleware(req: NextRequest) {
   const userRole = (token.user as {role?: string})?.role ?? ''
   const pathname = req.nextUrl.pathname
 
-  // Redirections pour les pages de messages racines de chaque rôle
-  if (pathname === '/admin/messages') {
-    return NextResponse.redirect(new URL('/admin/messages/inbox', req.url))
-  }
-  if (pathname === '/teacher/messages') {
-    return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
-  }
 
   // Vérification des routes SuperUser (SU)
   if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
@@ -53,8 +33,7 @@ export async function middleware(req: NextRequest) {
 
   // Vérification des routes admin
   else if (
-    ADMIN_ROUTES.some((route) => pathname.startsWith(route)) ||
-    ADMIN_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
+    ADMIN_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (!ADMIN_ROLES.includes(userRole)) {
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
@@ -63,8 +42,7 @@ export async function middleware(req: NextRequest) {
 
   // Vérification des routes teacher
   else if (
-    TEACHER_ROUTES.some((route) => pathname.startsWith(route)) ||
-    TEACHER_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
+    TEACHER_ROUTES.some((route) => pathname.startsWith(route))
   ) {
     if (userRole !== TEACHER_ROLE) {
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
@@ -93,7 +71,6 @@ export const config = {
     '/admin/:path*',
     '/teacher/:path*',
     '/family/:path*',
-    '/messages/:path*',
     '/admin/logs',
   ],
 }

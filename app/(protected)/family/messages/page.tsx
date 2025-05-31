@@ -1,8 +1,8 @@
 import { getFamilyStudents } from '@/lib/family'
 import ChatCenter from '@/components/organisms/client/ChatCenter'
-import {getServerSession} from 'next-auth'
-import {authOptions} from '@/lib/authOptions'
-import {redirect} from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/authOptions'
+import { redirect } from 'next/navigation'
 
 
 
