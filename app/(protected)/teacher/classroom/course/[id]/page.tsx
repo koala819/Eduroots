@@ -1,61 +1,22 @@
-'use client'
+import { getCourseById } from '@/app/actions/context/courses'
+import { ErrorComponent } from '@/components/atoms/client/ErrorComponent'
+import { PopulatedCourse } from '@/types/course'
+import { generateWeeklyDates } from '@/lib/utils'
+import { TeacherCourses } from '@/components/pages/client/TeacherCourses'
 
-import {useEffect, useState} from 'react'
-import {useSession} from 'next-auth/react'
 
-import {Course, PopulatedCourse} from '@/types/course'
+type Params = Promise<{ id: string }>;
 
-import {ErrorComponent} from '@/components/atoms/client/ErrorComponent'
-import {CourseDetails} from '@/components/organisms/client/CourseDetails'
+export default async function CoursePage({ params }: { params: Params }) {
+  const { id: courseId } = await params
 
-import {getCourseById} from '@/app/actions/context/courses'
-import useCourseStore from '@/stores/useCourseStore'
-import {generateWeeklyDates} from '@/lib/utils'
+  const response = await getCourseById(courseId)
 
-export default function CoursePage({params}: {params: {id: string}}) {
-  const courseId = params.id
-  const {data: session} = useSession()
-  const {courses, fetchTeacherCourses} = useCourseStore()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [courseData, setCourseData] = useState<PopulatedCourse | null>(null)
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (!session?.user?.id) return
-
-      try {
-        // Charger tous les cours du professeur
-        await fetchTeacherCourses(session.user.id)
-
-        // Charger les détails du cours spécifique
-        const response = await getCourseById(courseId)
-        if (!response.success) {
-          throw new Error(response.message || 'Erreur lors du chargement du cours')
-        }
-        setCourseData(response.data as unknown as PopulatedCourse)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadData()
-  }, [courseId, session, fetchTeacherCourses])
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    )
+  if (!response.success) {
+    return <ErrorComponent message={response.message || 'Erreur lors du chargement du cours'} />
   }
 
-  if (error || !courseData) {
-    return <ErrorComponent message={error || 'Erreur lors du chargement du cours'} />
-  }
-
+  const courseData = response.data as unknown as PopulatedCourse
   const selectedSession = courseData.sessions.find((session) => session.id === courseId)
 
   if (!selectedSession) {
@@ -63,28 +24,14 @@ export default function CoursePage({params}: {params: {id: string}}) {
   }
 
   const courseDates = generateWeeklyDates(selectedSession.timeSlot.dayOfWeek)
-
   const sortedStudents = [...selectedSession.students].sort((a, b) =>
     `${a.lastname} ${a.firstname}`.localeCompare(`${b.lastname} ${b.firstname}`),
   )
-
-  // Convertir les cours du store en PopulatedCourse[]
-  const populatedCourses = courses.map((course: Course) => ({
-    ...course,
-    _id: course.id,
-    teacher: {
-      _id: course.teacher[0],
-      id: course.teacher[0],
-    },
-  })) as unknown as PopulatedCourse[]
-
   return (
-    <CourseDetails
+    <TeacherCourses
       courseId={courseId}
-      selectedSession={selectedSession}
       courseDates={courseDates}
       sortedStudents={sortedStudents}
-      teacherCourses={populatedCourses}
     />
   )
 }

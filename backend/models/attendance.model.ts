@@ -1,6 +1,6 @@
-import {AttendanceDocument} from '@/types/mongoose'
-import {rootOptions, rootSchema} from './root.model'
-import {Model, Schema, model, models} from 'mongoose'
+import { AttendanceDocument } from '@/types/mongoose'
+import { rootOptions, rootSchema } from './root.model'
+import { Model, Schema, model, models } from 'mongoose'
 
 const attendanceNEWSchema = new Schema(
   {
@@ -10,7 +10,7 @@ const attendanceNEWSchema = new Schema(
       ref: 'courseNEW',
       required: true,
     },
-    date: {type: Date, required: true},
+    date: { type: Date, required: true },
     records: [
       {
         student: {
@@ -18,25 +18,25 @@ const attendanceNEWSchema = new Schema(
           ref: 'userNEW',
           required: true,
         },
-        isPresent: {type: Boolean, required: true},
+        isPresent: { type: Boolean, required: true },
         comment: String,
       },
     ],
     stats: {
-      presenceRate: {type: Number, default: 0},
-      totalStudents: {type: Number, default: 0},
-      lastUpdate: {type: Date, default: Date.now},
+      presenceRate: { type: Number, default: 0 },
+      totalStudents: { type: Number, default: 0 },
+      lastUpdate: { type: Date, default: Date.now },
     },
   },
   rootOptions,
 )
 
-attendanceNEWSchema.index({course: 1, date: 1})
-attendanceNEWSchema.index({'records.student': 1})
+attendanceNEWSchema.index({ course: 1, date: 1 })
+attendanceNEWSchema.index({ 'records.student': 1 })
 // Utile pour les rapports d'assiduité sur une période
-attendanceNEWSchema.index({date: 1})
+attendanceNEWSchema.index({ date: 1 })
 // Nouvel index pour le soft delete
-attendanceNEWSchema.index({isActive: 1, deletedAt: 1})
+attendanceNEWSchema.index({ isActive: 1, deletedAt: 1 })
 
 // Calcule automatiquement le pourcentage de présence pour une session
 attendanceNEWSchema.virtual('presenceRate').get(function () {
