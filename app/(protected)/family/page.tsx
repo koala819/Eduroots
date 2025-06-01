@@ -1,7 +1,7 @@
-import {getServerSession} from 'next-auth'
-import {redirect} from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 import StudentDashboard from '@/components/organisms/client/StudentDashboard'
-import {authOptions} from '@/lib/authOptions'
+import { authOptions } from '@/lib/authOptions'
 import { getFamilyStudents } from '@/lib/family'
 
 export const metadata = {

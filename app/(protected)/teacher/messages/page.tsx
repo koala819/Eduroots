@@ -18,11 +18,12 @@ interface Session {
 }
 
 interface Group {
+  id: string
   name: string
   students: Student[]
 }
 
-function groupSimilarSessions(sessions: Session[]): Group[] {
+export function groupSimilarSessions(sessions: Session[]): Group[] {
   const groupedSessions = new Map<string, Group>()
 
   sessions.forEach((session) => {
@@ -44,6 +45,7 @@ function groupSimilarSessions(sessions: Session[]): Group[] {
       } else {
         // Si les étudiants sont différents, on crée un nouveau groupe avec le sujet
         groupedSessions.set(`${dayOfWeek}_${session.subject}`, {
+          id: session.sessionId,
           name: `${dayOfWeek}_${session.subject}`,
           students: session.students,
         })
@@ -51,6 +53,7 @@ function groupSimilarSessions(sessions: Session[]): Group[] {
     } else {
       // Premier groupe pour ce dayOfWeek
       groupedSessions.set(dayOfWeek, {
+        id: session.sessionId,
         name: dayOfWeek,
         students: session.students,
       })

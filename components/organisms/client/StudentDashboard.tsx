@@ -1,28 +1,28 @@
 'use client'
 
-import {useEffect, useMemo, useState} from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import {PopulatedCourse} from '@/types/course'
-import {CourseStats, StudentStats} from '@/types/stats'
-import {Student, Teacher} from '@/types/user'
+import { PopulatedCourse } from '@/types/course'
+import { CourseStats, StudentStats } from '@/types/stats'
+import { Student, Teacher } from '@/types/user'
 
 import StudentSelector from '@/components/atoms/client/StudentSelector'
 import StudentDetailsSkeleton from '@/components/atoms/server/StudentDetailsSkeleton'
 import ChildStats from '@/components/molecules/client/StudentStats'
 
-import {useCourses} from '@/context/Courses/client'
-import {useStats} from '@/context/Stats/client'
-import {useTeachers} from '@/context/Teachers/client'
+import { useCourses } from '@/context/Courses/client'
+import { useStats } from '@/context/Stats/client'
+import { useTeachers } from '@/context/Teachers/client'
 import { cn } from '@/lib/utils'
 
 interface StudentDashboardProps {
   familyStudents: Student[]
 }
 
-export default function StudentDashboard({familyStudents}: StudentDashboardProps) {
-  const {getCourseByIdForStudent} = useCourses()
-  const {getStudentAttendance, getStudentBehavior, getStudentGrade} = useStats()
-  const {getOneTeacher} = useTeachers()
+export default function StudentDashboard({ familyStudents }: StudentDashboardProps) {
+  const { getCourseByIdForStudent } = useCourses()
+  const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()
+  const { getOneTeacher } = useTeachers()
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
   const [detailedAttendance, setDetailedAttendance] = useState<StudentStats>()
@@ -101,12 +101,14 @@ export default function StudentDashboard({familyStudents}: StudentDashboardProps
   }
 
   return (
-    <div className={cn('flex flex-col p-4', selectedChildId ? '' : 'flex-1 justify-center items-center')}>
+    <div className={cn('flex flex-col p-4',
+      selectedChildId ? '' : 'flex-1 justify-center items-center')}>
 
       <section className='flex flex-col gap-4 mb-8'>
-        <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center', selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
+        <h2 className={cn('text-2xl font-semibold text-slate-500 mb-3 text-center',
+          selectedChildId ? 'hidden' : '')}>Choix de l'enfant</h2>
         <StudentSelector
-          familyStudents={familyStudents}
+          familyChildrenFromHome={familyStudents}
           selectedChildId={selectedChildId}
           onSelectStudent={setSelectedChildId}
         />

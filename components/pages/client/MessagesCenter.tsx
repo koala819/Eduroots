@@ -8,16 +8,17 @@ import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import MessagesDesktop from '@/components/organisms/client/MessagesDesktop'
 import MessagesMobile from '@/components/organisms/client/MessagesMobile'
+import { FamilyChildren } from '@/app/(protected)/family/messages/page'
 
 interface MessagesCenterProps {
-  familyStudents?: Student[]
+  FamilyChildren?: FamilyChildren[],
   students?: Student[]
   coursesTeachersWithChildren?: {name: string, students: Student[]}[]
   userType: 'family' | 'teacher' | 'bureau'
 }
 
 export const MessagesCenter = ({
-  familyStudents,
+  FamilyChildren,
   students,
   coursesTeachersWithChildren,
   userType,
@@ -149,34 +150,6 @@ export const MessagesCenter = ({
   }
 
   async function handleSelectGroup(key: string): Promise<void> {
-    console.log('key', key)
-    // const session = await getSession()
-    // const token = session?.user?.customToken
-
-    // const res = await fetch(
-    //   `/api/getMessages?conversationId=${key}&childId=${selectedChildId}`,
-    //   {
-    //     headers: {
-    //       'Authorization': `Bearer ${token}`,
-    //       'Content-Type': 'application/json',
-    //     },
-    //   },
-    // )
-
-    // if (!res.ok) {
-    //   throw new Error('Erreur lors de la récupération des messages')
-    // }
-
-    // const data = await res.json()
-    // if (!data.success) {
-    //   throw new Error(data.error || 'Erreur inconnue')
-    // }
-    // console.log('conversation data', data)
-
-    // setMessagesByConversation((prev) => ({
-    //   ...prev,
-    //   [selectedGroup]: data.result,
-    // }))
     setGroupLoading(false)
     setSelectedGroup(key)
   }
@@ -205,7 +178,7 @@ export const MessagesCenter = ({
   return (
     <div className={cn('flex flex-col h-full w-full',
     )}>
-      {familyStudents && (
+      {FamilyChildren && (
         <section
           className={cn(
             'flex',
@@ -222,7 +195,7 @@ export const MessagesCenter = ({
               Choix de l'enfant
             </h2>
             <StudentSelector
-              familyStudents={familyStudents}
+              familyChildrenFromChat={FamilyChildren}
               selectedChildId={selectedChildId}
               onSelectStudent={handleSelectStudent}
             />
@@ -248,7 +221,7 @@ export const MessagesCenter = ({
               grouploading={grouploading}
               socketRef={socketRef}
               students={students}
-              fromFamily={familyStudents ? true : false}
+              fromFamily={FamilyChildren ? true : false}
               coursesTeachersWithChildren={coursesTeachersWithChildren}
               userType={userType}
             />
@@ -266,7 +239,7 @@ export const MessagesCenter = ({
               socketRef={socketRef}
               setSelectedGroup={setSelectedGroup}
               students={students}
-              fromFamily={familyStudents ? true : false}
+              fromFamily={FamilyChildren ? true : false}
               userType={userType}
             />
           </section>
