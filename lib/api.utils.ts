@@ -8,7 +8,7 @@ import {
 } from '@/types/mongoose'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {Grade as GradeModel} from '@/backend/models/grade.model'
+import {Grade as GradeModel} from '@/backend/models/zOLDgrade.model'
 
 // import { Student, Teacher } from '@/backend/models/user.model'
 // import { Model } from 'mongoose'

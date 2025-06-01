@@ -1,7 +1,7 @@
 // Le nouvel endpoint - sauvegardez ceci dans /pages/api/student-stats.ts ou votre structure équivalente
 import {NextRequest, NextResponse} from 'next/server'
 
-import {StudentStats} from '@/backend/models/student-stats.model'
+import {StudentStats} from '@/backend/models/zOLDstudent-stats.model'
 import {validateRequest} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {

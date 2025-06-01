@@ -41,7 +41,7 @@ attendanceNEWSchema.index({ isActive: 1, deletedAt: 1 })
 // Calcule automatiquement le pourcentage de présence pour une session
 attendanceNEWSchema.virtual('presenceRate').get(function () {
   if (!this.records || this.records.length === 0) return 0
-  const presentCount = this.records.filter((r) => r.isPresent).length
+  const presentCount = this.records.filter((r: { isPresent: boolean }) => r.isPresent).length
   return (presentCount / this.records.length) * 100
 })
 

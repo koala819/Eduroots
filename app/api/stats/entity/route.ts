@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 
-import {StudentStats} from '@/backend/models/student-stats.model'
-import {TeacherStats} from '@/backend/models/teacher-stats.model'
+import {StudentStats} from '@/backend/models/zOLDstudent-stats.model'
+import {TeacherStats} from '@/backend/models/zOLDteacher-stats.model'
 import {validateRequest} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {

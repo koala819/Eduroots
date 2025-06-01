@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from 'next/server'
 
 import {AttendanceRecord} from '@/types/attendance'
 
-import {Attendance} from '@/backend/models/attendance.model'
+import {Attendance} from '@/backend/models/zOLDattendance.model'
 import {validateRequest} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {

@@ -1,7 +1,7 @@
-import {ScheduleConfigDocument, ScheduleConfigModel} from '@/types/mongoose'
-import {PeriodTypeEnum} from '@/types/schedule'
+import { ScheduleConfigDocument, ScheduleConfigModel } from '@/types/mongoose'
+import { PeriodTypeEnum } from '@/types/schedule'
 
-import {Schema, model, models} from 'mongoose'
+import { Schema, model, models } from 'mongoose'
 
 const periodSchema = new Schema(
   {
@@ -10,7 +10,7 @@ const periodSchema = new Schema(
       required: true,
       validate: {
         validator: (v: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v),
-        message: "Le format de l'heure doit être HH:MM",
+        message: 'Le format de l\'heure doit être HH:MM',
       },
     },
     endTime: {
@@ -18,7 +18,7 @@ const periodSchema = new Schema(
       required: true,
       validate: {
         validator: (v: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v),
-        message: "Le format de l'heure doit être HH:MM",
+        message: 'Le format de l\'heure doit être HH:MM',
       },
     },
     type: {
@@ -31,14 +31,14 @@ const periodSchema = new Schema(
       required: true,
     },
   },
-  {_id: false},
+  { _id: false },
 )
 
 const dayScheduleSchema = new Schema(
   {
     periods: [periodSchema],
   },
-  {_id: false},
+  { _id: false },
 )
 
 const scheduleConfigSchema = new Schema(
@@ -68,9 +68,9 @@ const scheduleConfigSchema = new Schema(
 )
 
 // Indexes
-scheduleConfigSchema.index({academicYear: 1, isActive: 1})
-scheduleConfigSchema.index({'daySchedules.periods.startTime': 1})
-scheduleConfigSchema.index({'daySchedules.periods.endTime': 1})
+scheduleConfigSchema.index({ academicYear: 1, isActive: 1 })
+scheduleConfigSchema.index({ 'daySchedules.periods.startTime': 1 })
+scheduleConfigSchema.index({ 'daySchedules.periods.endTime': 1 })
 
 export const ScheduleConfig: ScheduleConfigModel =
   models.ScheduleConfig ||

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { GradeRecord } from '@/types/grade'
 
-import { Grade as GradeModel } from '@/backend/models/grade.model'
-import { User as UserModel } from '@/backend/models/user.model'
+import { Grade as GradeModel } from '@/backend/models/zOLDgrade.model'
+import { User as UserModel } from '@/backend/models/zOLDuser.model'
 import { validateRequest } from '@/lib/api.utils'
 
 // Type pour les stats

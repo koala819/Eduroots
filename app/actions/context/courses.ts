@@ -8,8 +8,8 @@ import {CourseSession, CourseSessionModel, TimeSlot} from '@/types/course'
 import {GradeRecord} from '@/types/grade'
 import {CourseDocument, GradeDocument} from '@/types/mongoose'
 
-import {Course} from '@/backend/models/course.model'
-import {Grade} from '@/backend/models/grade.model'
+import {Course} from '@/backend/models/zOLDcourse.model'
+import {Grade} from '@/backend/models/zOLDgrade.model'
 import {SerializedValue, serializeData} from '@/lib/serialization'
 import {Types} from 'mongoose'
 

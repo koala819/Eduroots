@@ -2,7 +2,7 @@ import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {User} from '@/backend/models/user.model'
+import {User} from '@/backend/models/zOLDuser.model'
 import readline from 'readline'
 
 const rl = readline.createInterface({

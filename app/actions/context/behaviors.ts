@@ -8,10 +8,10 @@ import {BehaviorRecord, CreateBehaviorPayload, UpdateBehaviorPayload} from '@/ty
 import {CourseSession} from '@/types/course'
 import {CourseDocument} from '@/types/mongoose'
 
-import {Behavior} from '@/backend/models/behavior.model'
-import {Course} from '@/backend/models/course.model'
-import {GlobalStats} from '@/backend/models/global-stats.model'
-import {StudentStats} from '@/backend/models/student-stats.model'
+import {Behavior} from '@/backend/models/zOLDbehavior.model'
+import {Course} from '@/backend/models/zOLDcourse.model'
+import {GlobalStats} from '@/backend/models/zOLDglobal-stats.model'
+import {StudentStats} from '@/backend/models/zOLDstudent-stats.model'
 import {SerializedValue, serializeData} from '@/lib/serialization'
 import {Types} from 'mongoose'
 

@@ -1,5 +1,5 @@
 import dbConnect from '@/backend/config/dbConnect'
-import {Grade} from '@/backend/models/grade.model'
+import {Grade} from '@/backend/models/zOLDgrade.model'
 import fs from 'fs/promises'
 import path from 'path'
 

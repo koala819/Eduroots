@@ -1,7 +1,7 @@
-import {AppConfigDocument, ThemeConfig} from '@/types/models'
+import { AppConfigDocument, ThemeConfig } from '@/types/models'
 
 import bcrypt from 'bcryptjs'
-import {Schema, model, models} from 'mongoose'
+import { Schema, model, models } from 'mongoose'
 
 const themeSchema = new Schema<ThemeConfig>(
   {
@@ -21,7 +21,7 @@ const themeSchema = new Schema<ThemeConfig>(
     //   // of: String,
     // },
   },
-  {_id: false, strict: false},
+  { _id: false, strict: false },
 )
 
 const appConfigSchema = new Schema<AppConfigDocument>(
@@ -54,8 +54,8 @@ const appConfigSchema = new Schema<AppConfigDocument>(
   },
   {
     timestamps: true,
-    toJSON: {getters: true},
-    toObject: {getters: true},
+    toJSON: { getters: true },
+    toObject: { getters: true },
   },
 )
 

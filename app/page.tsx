@@ -1,51 +1,23 @@
-import type { Metadata, Viewport } from 'next'
+import { createClient } from '@supabase/supabase-js'
 
-import { LoginClient } from '@/components/molecules/client/Login'
-import { LoginMobileClient } from '@/components/molecules/client/LoginMobile'
+const supabase = createClient(
+  'https://sopyqttakjinwjxscgmk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvcHlxdHRha2ppbndqeHNjZ21rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg3NjY0NjUsImV4cCI6MjA2NDM0MjQ2NX0.y0cwzKTjf2b7re7u9-Uw3moo5G5_sS4THFyCG-81Hb0',
+)
 
-export const metadata: Metadata = {
-  title: 'Eduroots',
-  description: 'Educational Platform',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Eduroots',
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: [
-      { url: '/icons/touch-icon-iphone.png' },
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
-      {
-        url: '/icons/touch-icon-ipad-retina.png',
-        sizes: '167x167',
-        type: 'image/png',
-      },
-    ],
-  },
-  manifest: '/manifest.json?v=2',
-}
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  themeColor: '#ffffff',
-}
-
-export default function HomePage() {
-  return (
-    <div className="min-h-screen flex justify-center items-center">
-      {/* Desktop version */}
-      <div className="hidden md:block w-full">
-        <LoginClient />
-      </div>
-
-      {/* Mobile version */}
-      <div className="md:hidden w-full">
-        <LoginMobileClient />
-      </div>
-    </div>
+// Fetch user named John along with their orders
+const { data, error } = await supabase
+  .from('users')
+  .select(
+    `
+    id, name,
+    orders (product, quantity)
+  `,
   )
+  .eq('name', 'John')
+
+if (error) {
+  console.error(error)
+} else {
+  console.log(data)
 }

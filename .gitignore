@@ -7,6 +7,7 @@ app/admin/compare-students/données_pour_comparaison.json
 
 # Backup before migration
 backup/
+utils
 
 # Report after migration and/or update
 reports/

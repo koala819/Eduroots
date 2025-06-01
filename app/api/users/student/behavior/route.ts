@@ -2,7 +2,7 @@ import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {Behavior} from '@/backend/models/behavior.model'
+import {Behavior} from '@/backend/models/zOLDbehavior.model'
 
 export async function GET(req: NextRequest) {
   const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})

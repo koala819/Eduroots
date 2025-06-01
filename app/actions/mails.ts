@@ -6,7 +6,7 @@ import {ApiResponse} from '@/types/api'
 import {MessageBody} from '@/types/models'
 
 import {Message} from '@/backend/models/message'
-import {User} from '@/backend/models/user.model'
+import {User} from '@/backend/models/zOLDuser.model'
 import {getBasicUserInfo} from '@/lib/getBasicUserInfo'
 import {EMAIL_CONFIG} from '@/lib/mails/config'
 import {sendEmailNotification} from '@/lib/mails/emailService'

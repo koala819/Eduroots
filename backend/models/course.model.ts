@@ -1,9 +1,9 @@
-import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
+import { CourseDocument } from '@/types/mongoose'
 
-import {rootOptions, rootSchema} from './root.model'
+import { rootOptions, rootSchema } from './root.model'
 
-import {Model, Schema, model, models} from 'mongoose'
+import { Model, Schema, model, models } from 'mongoose'
 
 const timeSlotSchema = new Schema(
   {
@@ -17,7 +17,7 @@ const timeSlotSchema = new Schema(
       required: true,
       validate: {
         validator: (v: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v),
-        message: "Le format de l'heure doit être HH:MM",
+        message: 'Le format de l\'heure doit être HH:MM',
       },
     },
     endTime: {
@@ -25,17 +25,17 @@ const timeSlotSchema = new Schema(
       required: true,
       validate: {
         validator: (v: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v),
-        message: "Le format de l'heure doit être HH:MM",
+        message: 'Le format de l\'heure doit être HH:MM',
       },
     },
-    classroomNumber: {type: Number, required: true},
+    classroomNumber: { type: Number, required: true },
   },
-  {_id: false},
+  { _id: false },
 )
 
 const courseSessionSchema = new Schema(
   {
-    timeSlot: {type: timeSlotSchema, required: true},
+    timeSlot: { type: timeSlotSchema, required: true },
     subject: {
       type: String,
       enum: Object.values(SubjectNameEnum),
@@ -58,12 +58,12 @@ const courseSessionSchema = new Schema(
       averageAttendance: Number,
       averageGrade: Number,
       averageBehavior: Number,
-      lastUpdated: {type: Date, default: Date.now},
+      lastUpdated: { type: Date, default: Date.now },
     },
   },
   {
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true},
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 )
 
@@ -87,16 +87,16 @@ const courseNEWSchema = new Schema<CourseDocument>(
 )
 
 // Cela signifie "trouve-moi rapidement tous les cours d'un professeur pour une année donnée".
-courseNEWSchema.index({teacher: 1, academicYear: 1})
-courseNEWSchema.index({'sessions.students': 1})
-courseNEWSchema.index({isActive: 1})
+courseNEWSchema.index({ teacher: 1, academicYear: 1 })
+courseNEWSchema.index({ 'sessions.students': 1 })
+courseNEWSchema.index({ isActive: 1 })
 courseNEWSchema.index({
   'sessions.timeSlot.dayOfWeek': 1,
   'sessions.timeSlot.startTime': 1,
 })
-courseNEWSchema.index({'sessions.timeSlot.classroomNumber': 1})
-courseNEWSchema.index({academicYear: 1, isActive: 1})
-courseNEWSchema.index({'sessions.stats.lastUpdated': 1})
+courseNEWSchema.index({ 'sessions.timeSlot.classroomNumber': 1 })
+courseNEWSchema.index({ academicYear: 1, isActive: 1 })
+courseNEWSchema.index({ 'sessions.stats.lastUpdated': 1 })
 
 // Hook pour mettre à jour les stats
 // courseNEWSchema.pre('save', async function (next) {

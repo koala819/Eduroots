@@ -1,5 +1,5 @@
-import {SubjectNameEnum} from '@/types/course'
-import {GenderEnum} from '@/types/user'
+import { SubjectNameEnum } from '@/types/course'
+import { GenderEnum } from '@/types/user'
 
 export interface AbsenceLevelGroup {
   id: string

@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {ConnectionLog} from '@/backend/models/connectionLog'
+import {ConnectionLog} from '@/backend/models/zOLDconnectionLog'
 import {Document, Types} from 'mongoose'
 
 interface IConnectionLog extends Document {

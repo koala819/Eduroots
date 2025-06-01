@@ -1,5 +1,5 @@
 import dbConnect from '@/backend/config/dbConnect'
-import {Course} from '@/backend/models/course.model'
+import {Course} from '@/backend/models/zOLDcourse.model'
 
 interface CheckResult {
   success: boolean

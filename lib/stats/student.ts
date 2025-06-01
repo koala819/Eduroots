@@ -3,10 +3,10 @@ import {SubjectNameEnum} from '@/types/course'
 import {GradeRecord} from '@/types/grade'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/attendance.model'
-import {Behavior} from '@/backend/models/behavior.model'
-import {Grade} from '@/backend/models/grade.model'
-import {StudentStats} from '@/backend/models/student-stats.model'
+import {Attendance} from '@/backend/models/zOLDattendance.model'
+import {Behavior} from '@/backend/models/zOLDbehavior.model'
+import {Grade} from '@/backend/models/zOLDgrade.model'
+import {StudentStats} from '@/backend/models/zOLDstudent-stats.model'
 
 export async function calculateStudentAttendanceRate(studentId: string) {
   try {

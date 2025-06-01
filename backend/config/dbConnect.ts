@@ -1,4 +1,4 @@
-import {initializeModels} from './init-models'
+import { initializeModels } from './init-models'
 
 import mongoose from 'mongoose'
 

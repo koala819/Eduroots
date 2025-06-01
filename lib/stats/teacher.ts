@@ -2,8 +2,8 @@ import {CourseSession, TimeSlotEnum} from '@/types/course'
 import {GenderEnum, User} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {Course as CourseCollection} from '@/backend/models/course.model'
-import {User as UserCollection} from '@/backend/models/user.model'
+import {Course as CourseCollection} from '@/backend/models/zOLDcourse.model'
+import {User as UserCollection} from '@/backend/models/zOLDuser.model'
 import {formatDayOfWeek} from '@/lib/utils'
 import {differenceInYears} from 'date-fns'
 

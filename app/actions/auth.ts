@@ -3,8 +3,8 @@
 import {UserRoleEnum} from '@/types/user'
 
 import dbConnect from '@/backend/config/dbConnect'
-import {ConnectionLog} from '@/backend/models/connectionLog'
-import {User} from '@/backend/models/user.model'
+import {ConnectionLog} from '@/backend/models/zOLDconnectionLog'
+import {User} from '@/backend/models/zOLDuser.model'
 import {FormSchema} from '@/lib/validation/login-schema'
 import {compare} from 'bcryptjs'
 
