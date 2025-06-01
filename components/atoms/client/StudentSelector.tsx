@@ -1,6 +1,6 @@
 'use client'
 
-import { FamilyChildren } from '@/app/(protected)/family/messages/page'
+import { FamilyChildren } from '@/types/messages'
 import { Student } from '@/types/user'
 
 interface StudentSelectorProps {

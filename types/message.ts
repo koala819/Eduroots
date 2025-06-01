@@ -1,6 +1,6 @@
 // Dans message.ts
-import {SubjectNameEnum, TimeSlotEnum} from './course'
-import {Student, Teacher, User} from './user'
+import { SubjectNameEnum, TimeSlotEnum } from './course'
+import { Student, Teacher, User } from './user'
 
 interface SessionInfo {
   dayOfWeek: TimeSlotEnum

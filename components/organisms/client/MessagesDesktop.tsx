@@ -4,6 +4,7 @@ import { MessagesChat } from '@/components/atoms/client/MessagesChat'
 import { MessagesSideBar } from '@/components/molecules/client/MessagesSideBar'
 import { Student } from '@/types/user'
 import { cn } from '@/lib/utils'
+import { FamilyChildren } from '@/types/messages'
 
 interface MessagesDesktopProps {
   selectedGroup: string
@@ -22,6 +23,7 @@ interface MessagesDesktopProps {
   fromFamily: boolean
   coursesTeachersWithChildren?: {name: string, students: Student[]}[]
   userType: 'family' | 'teacher' | 'bureau'
+  FamilyChildren?: FamilyChildren[]
 }
 
 export default function MessagesDesktop({
@@ -38,7 +40,13 @@ export default function MessagesDesktop({
   fromFamily,
   coursesTeachersWithChildren,
   userType,
+  FamilyChildren,
 }: MessagesDesktopProps) {
+
+
+  const coursesWithChild = FamilyChildren?.find((child) => child.id === selectedChildId)
+  console.log('coursesWithChild', coursesWithChild)
+
   return (
     <section className="flex flex-1 min-h-0">
       <MessagesSideBar

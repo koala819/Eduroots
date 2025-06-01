@@ -1,37 +1,13 @@
-import { getFamilyStudents } from '@/lib/family'
+import { getFamilyStudents } from '@/lib/messages'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { redirect } from 'next/navigation'
 import { getStudentsByFamily } from '@/app/actions/context/family'
 import { getTeachersForStudent } from '@/app/actions/context/students'
-import { GenderEnum, Teacher } from '@/types/user'
-import { groupSimilarSessions } from '@/app/(protected)/teacher/messages/page'
+import { Teacher } from '@/types/user'
+import { groupSimilarSessions } from '@/lib/messages'
 import { MessagesCenter } from '@/components/pages/client/MessagesCenter'
-
-export type FamilyChildren = {
-    id: string,
-    name: string,
-    firstname: string,
-    teachers: {
-      id: string,
-      name: string,
-      firstname: string,
-    }[],
-    courses: {
-      id: string,
-      name: string,
-      students: {
-        _id: string,
-        id: string,
-        email: string,
-        firstname: string,
-        lastname: string,
-        dateOfBirth: string | undefined,
-        gender: GenderEnum | undefined,
-        secondaryEmail: string | undefined,
-      }[],
-    }[],
-  }
+import { FamilyChildren } from '@/types/messages'
 
 
 export default async function FamilyMessagesPage() {
@@ -96,8 +72,10 @@ export default async function FamilyMessagesPage() {
   // Sérialiser l'objet final
   const serializedFamilyChildren = JSON.parse(JSON.stringify(FamilyChildren))
 
-  return <MessagesCenter
-    FamilyChildren={serializedFamilyChildren}
-    userType="family"
-  />
+
+  return (
+    <MessagesCenter
+      FamilyChildren={serializedFamilyChildren}
+      userType="family"
+    />)
 }

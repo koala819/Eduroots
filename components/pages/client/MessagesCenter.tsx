@@ -8,7 +8,7 @@ import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import MessagesDesktop from '@/components/organisms/client/MessagesDesktop'
 import MessagesMobile from '@/components/organisms/client/MessagesMobile'
-import { FamilyChildren } from '@/app/(protected)/family/messages/page'
+import { FamilyChildren } from '@/types/messages'
 
 interface MessagesCenterProps {
   FamilyChildren?: FamilyChildren[],
@@ -224,6 +224,7 @@ export const MessagesCenter = ({
               fromFamily={FamilyChildren ? true : false}
               coursesTeachersWithChildren={coursesTeachersWithChildren}
               userType={userType}
+              FamilyChildren={FamilyChildren}
             />
           </section>
           <section className="flex md:hidden flex-1 min-h-0">

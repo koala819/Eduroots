@@ -1,5 +1,5 @@
 import { Course } from '@/backend/models/course.model'
-import { getFamilyStudents } from '@/lib/family'
+import { getFamilyStudents } from '@/lib/messages'
 
 
 export async function getStudentsByFamily(familyEmail: string) {
