@@ -1,6 +1,6 @@
 'use client'
 
-import {Student} from '@/types/user'
+import { Student } from '@/types/user'
 
 interface StudentSelectorProps {
   familyStudents: Student[]
@@ -19,15 +19,16 @@ export default function StudentSelector({
         return (
           <div
             key={child.id || child._id}
-            className={`flex flex-col items-center cursor-pointer transition-all`}
+            className={'flex flex-col items-center cursor-pointer transition-all'}
             onClick={() => onSelectStudent(child._id)}
           >
             <div
-              className={`w-16 h-16 rounded-lg flex items-center justify-center text-xl font-bold mb-2 border-2 transition-all m-4 ${
-                selectedChildId === child._id
-                  ? 'bg-sky-100 text-sky-500 border-sky-500 transform scale-105 shadow-lg'
-                  : 'bg-slate-200 text-slate-500 border-transparent'
-              }`}
+              className={`w-16 h-16 rounded-lg flex items-center justify-center text-xl font-bold
+                mb-2 border-2 transition-all m-4
+                ${ selectedChildId === child._id
+            ? 'bg-sky-100 text-sky-500 border-sky-500 transform scale-105 shadow-lg'
+            : 'bg-slate-200 text-slate-500 border-transparent'
+          }`}
             >
               {child.firstname.charAt(0).toUpperCase()} {child.lastname.charAt(0).toUpperCase()}
             </div>
