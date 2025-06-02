@@ -133,6 +133,45 @@ export type GlobalStats = {
   updated_at: Date
 }
 
+export type Grade = {
+  id: string
+  course_session_id: string
+  date: Date
+  is_draft: boolean
+  stats_average_grade: number
+  stats_highest_grade: number
+  stats_lowest_grade: number
+  stats_absent_count: number
+  stats_total_students: number
+  last_update: Date
+  created_at: Date
+  updated_at: Date
+  is_active: boolean
+  deleted_at: Date | null
+  type: string
+}
+
+export type GradeRecord = {
+  id: string
+  grade_id: string
+  student_id: string
+  value: number | null
+  is_absent: boolean
+  created_at: Date
+  updated_at: Date
+  comment: string | null
+}
+
+export type GradeTeacherMigration = {
+  id: string
+  course_session_id: string
+  teacher_id: string
+  original_grade: string
+  created_at: Date
+  updated_at: Date | null
+}
+
+
 export type Holiday = {
   id: string
   updated_by: string | null
@@ -314,6 +353,21 @@ export type Database = {
         Row: GlobalStats
         Insert: Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>>
+      }
+      grades: {
+        Row: Grade
+        Insert: Omit<Grade, 'id' | 'created_at' | 'updated_at' | 'last_update'>
+        Update: Partial<Omit<Grade, 'id' | 'created_at' | 'updated_at' | 'last_update'>>
+      }
+      grades_records: {
+        Row: GradeRecord
+        Insert: Omit<GradeRecord, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<GradeRecord, 'id' | 'created_at' | 'updated_at'>>
+      }
+      grades_teachers_migration: {
+        Row: GradeTeacherMigration
+        Insert: Omit<GradeTeacherMigration, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<GradeTeacherMigration, 'id' | 'created_at' | 'updated_at'>>
       }
       holidays: {
         Row: Holiday
