@@ -57,6 +57,27 @@ export type Holiday = {
   type: 'REGULAR' | 'SPECIAL'
 }
 
+export type ScheduleConfig = {
+  id: string
+  is_active: boolean
+  updated_by: string | null
+  academic_year: string
+  created_at: Date
+  updated_at: Date
+}
+
+export type ScheduleDay = {
+  id: string
+  config_id: string
+  start_time: string
+  end_time: string
+  order_number: number
+  day_of_week: string
+  type: string
+  created_at: Date
+  updated_at: Date
+}
+
 export type StatsStudent = {
   id: string
   user_id: string
@@ -169,6 +190,16 @@ export type Database = {
         Row: Holiday
         Insert: Omit<Holiday, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Holiday, 'id' | 'created_at' | 'updated_at'>>
+      }
+      schedule_configs: {
+        Row: ScheduleConfig
+        Insert: Omit<ScheduleConfig, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ScheduleConfig, 'id' | 'created_at' | 'updated_at'>>
+      }
+      schedule_days: {
+        Row: ScheduleDay
+        Insert: Omit<ScheduleDay, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ScheduleDay, 'id' | 'created_at' | 'updated_at'>>
       }
       student_stats: {
         Row: StatsStudent
