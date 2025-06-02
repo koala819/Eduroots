@@ -73,7 +73,7 @@ export type StatsStudentAbsence = {
   id: string
   student_stats_id: string
   date: Date
-  course_id: string
+  course_session_id: string
   reason: string
   created_at: Date
   updated_at: Date
