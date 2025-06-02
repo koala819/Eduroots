@@ -1,5 +1,6 @@
 import withSerwistInit from '@serwist/next'
-import { process } from 'dotenv'
+import process from 'process'
+
 
 const withSerwist = withSerwistInit({
   // Note: This is only an example. If you use Pages Router,

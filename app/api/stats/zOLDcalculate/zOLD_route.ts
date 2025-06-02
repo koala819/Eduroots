@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CourseSession } from '@/types/course'
 import { GenderEnum, Student, Teacher } from '@/types/user'
 
-import { Course } from '@/backend/models/zOLDcourse.model'
-import { TeacherStats } from '@/backend/models/zOLDteacher-stats.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
+import { TeacherStats } from '@/zOLDbackend/models/zOLDteacher-stats.model'
 import { validateRequest } from '@/lib/api.utils'
 
 function calculateAge(dateOfBirth: string): number {

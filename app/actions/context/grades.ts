@@ -6,7 +6,7 @@ import {ApiResponse} from '@/types/api'
 import {CreateGradeDTO, PopulatedGrade, PopulatedGradeRecord, UpdateGradeDTO} from '@/types/grade'
 import {GradeDocument} from '@/types/mongoose'
 
-import {Grade as GradeModel} from '@/backend/models/zOLDgrade.model'
+import {Grade as GradeModel} from '@/zOLDbackend/models/zOLDgrade.model'
 import {calculateAndUpdateGradeStats, calculateGradeStats} from '@/lib/api.utils'
 import {SerializedValue, serializeData} from '@/lib/serialization'
 

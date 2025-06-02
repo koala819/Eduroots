@@ -7,8 +7,8 @@ import {
   // TeacherDocument,
 } from '@/types/mongoose'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Grade as GradeModel} from '@/backend/models/zOLDgrade.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Grade as GradeModel} from '@/zOLDbackend/models/zOLDgrade.model'
 
 // import { Student, Teacher } from '@/backend/models/user.model'
 // import { Model } from 'mongoose'

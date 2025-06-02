@@ -1,8 +1,8 @@
 import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/zOLDattendance.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
 import {generateWeekPeriods} from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {

@@ -6,8 +6,8 @@ import {ApiResponse} from '@/types/api'
 import {CourseSession} from '@/types/course'
 import {Teacher} from '@/types/user'
 
-import {Course} from '@/backend/models/zOLDcourse.model'
-import {User} from '@/backend/models/zOLDuser.model'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import {SerializedValue, serializeData} from '@/lib/serialization'
 import {isValidObjectId} from 'mongoose'
 

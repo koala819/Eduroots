@@ -1,6 +1,6 @@
-import dbConnect from '@/backend/config/dbConnect'
-import {Course} from '@/backend/models/zOLDcourse.model'
-import {Grade} from '@/backend/models/zOLDgrade.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
 import fs from 'fs/promises'
 import path from 'path'
 

@@ -1,7 +1,7 @@
 import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
-import dbConnect from '@/backend/config/dbConnect'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
 import mongoose from 'mongoose'
 
 export async function GET(req: NextRequest) {

@@ -1,8 +1,8 @@
 import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {User} from '@/backend/models/zOLDuser.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import {validateRequest} from '@/lib/api.utils'
 import {formatName} from '@/lib/utils'
 

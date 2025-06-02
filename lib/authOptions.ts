@@ -4,8 +4,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import {Credentials} from '@/types/models'
 import {BaseUser, Student, Teacher, UserRoleEnum} from '@/types/user'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {User} from '@/backend/models/zOLDuser.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 

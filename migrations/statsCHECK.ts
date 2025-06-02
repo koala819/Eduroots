@@ -1,4 +1,4 @@
-import {User as UserCollection} from '@/backend/models/zOLDuser.model'
+import {User as UserCollection} from '@/zOLDbackend/models/zOLDuser.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,

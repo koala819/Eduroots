@@ -2,9 +2,9 @@ import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 import {GenderEnum} from '@/types/user'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Course} from '@/backend/models/zOLDcourse.model'
-import {User} from '@/backend/models/zOLDuser.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import fs from 'fs'
 import path from 'path'
 

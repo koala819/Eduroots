@@ -5,8 +5,8 @@ import {getServerSession} from 'next-auth'
 import {ApiResponse} from '@/types/api'
 import {Student} from '@/types/user'
 
-import {Course} from '@/backend/models/zOLDcourse.model'
-import {User} from '@/backend/models/zOLDuser.model'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import {SerializedValue, serializeData} from '@/lib/serialization'
 import {isValidObjectId} from 'mongoose'
 

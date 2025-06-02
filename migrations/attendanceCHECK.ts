@@ -1,9 +1,9 @@
 import {SubjectNameEnum} from '@/types/course'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/zOLDattendance.model'
-import {Course} from '@/backend/models/zOLDcourse.model'
-import {User} from '@/backend/models/zOLDuser.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import fs from 'fs/promises'
 import path from 'path'
 import {Types} from 'mongoose'

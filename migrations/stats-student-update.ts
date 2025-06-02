@@ -1,9 +1,9 @@
 import { SubjectNameEnum } from '@/types/course'
 import { StudentStats } from '@/types/stats'
 
-import dbConnect from '@/backend/config/dbConnect'
-import { StudentStats as StudentStatsCollection } from '@/backend/models/zOLDstudent-stats.model'
-import { User } from '@/backend/models/zOLDuser.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import { StudentStats as StudentStatsCollection } from '@/zOLDbackend/models/zOLDstudent-stats.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,

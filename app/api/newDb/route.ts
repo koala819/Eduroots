@@ -4,8 +4,8 @@ import { TimeEnum } from '@/types/course'
 import type { Student, Teacher } from '@/types/user'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
-import { Course } from '@/backend/models/zOLDcourse.model'
-import { User } from '@/backend/models/zOLDuser.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import { validateRequest } from '@/lib/api.utils'
 import type {
   CourseSessionDataType,

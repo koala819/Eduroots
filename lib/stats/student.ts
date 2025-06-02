@@ -2,11 +2,11 @@ import {BehaviorRecord} from '@/types/behavior'
 import {SubjectNameEnum} from '@/types/course'
 import {GradeRecord} from '@/types/grade'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/zOLDattendance.model'
-import {Behavior} from '@/backend/models/zOLDbehavior.model'
-import {Grade} from '@/backend/models/zOLDgrade.model'
-import {StudentStats} from '@/backend/models/zOLDstudent-stats.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
+import {Behavior} from '@/zOLDbackend/models/zOLDbehavior.model'
+import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
+import {StudentStats} from '@/zOLDbackend/models/zOLDstudent-stats.model'
 
 export async function calculateStudentAttendanceRate(studentId: string) {
   try {

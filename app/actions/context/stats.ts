@@ -6,12 +6,12 @@ import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
 import { EntityStats, StudentStats, TeacherStats } from '@/types/stats'
 
-import dbConnect, { isConnected } from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/zOLDattendance.model'
-import { Course } from '@/backend/models/zOLDcourse.model'
-import { StudentStats as StudentStatsModel } from '@/backend/models/zOLDstudent-stats.model'
-import { TeacherStats as TeacherStatsModel } from '@/backend/models/zOLDteacher-stats.model'
-import { User } from '@/backend/models/zOLDuser.model'
+import dbConnect, { isConnected } from '@/zOLDbackend/config/dbConnect'
+import { Attendance } from '@/zOLDbackend/models/zOLDattendance.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
+import { StudentStats as StudentStatsModel } from '@/zOLDbackend/models/zOLDstudent-stats.model'
+import { TeacherStats as TeacherStatsModel } from '@/zOLDbackend/models/zOLDteacher-stats.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 import {
   calculateStudentAttendanceRate,
