@@ -122,6 +122,17 @@ export type CourseTeacher = {
   created_at: Date
 }
 
+export type GlobalStats = {
+  id: string
+  total_students: number
+  total_teachers: number
+  average_attendance_rate: number
+  presence_rate: number
+  last_update: Date
+  created_at: Date
+  updated_at: Date
+}
+
 export type Holiday = {
   id: string
   updated_by: string | null
@@ -240,8 +251,8 @@ export type Database = {
   public: {
     Tables: {
       app_config: {
-      Row: AppConfig
-      Insert: Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>
+        Row: AppConfig
+        Insert: Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>>
       }
       app_config_theme: {
@@ -298,6 +309,11 @@ export type Database = {
         Row: CourseTeacher
         Insert: Omit<CourseTeacher, 'created_at'>
         Update: Partial<Omit<CourseTeacher, 'created_at'>>
+      }
+      global_stats: {
+        Row: GlobalStats
+        Insert: Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>>
       }
       holidays: {
         Row: Holiday
