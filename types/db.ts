@@ -1,31 +1,47 @@
 export type Course = {
-  id: number
+  id: string
   is_active: boolean
-  deleted_at: string | null
-  created_at: string
-  updated_at: string
+  deleted_at: Date | null
+  created_at: Date
+  updated_at: Date
   academic_year: string
 }
 
 export type CourseSession = {
-  id: number
-  course_id: number
-  time_slot_id: number
-  created_at: string
-  updated_at: string
-  same_students: boolean
+  id: string
+  course_id: string
+  subject: string
+  level: string
   stats_average_attendance: number | null
   stats_average_grade: number | null
   stats_average_behavior: number | null
-  stats_last_updated: string
-  subject: string
-  level: string
+  stats_last_updated: Date
+  created_at: Date
+  updated_at: Date
+}
+
+export type CourseSessionStudent = {
+  id: string
+  course_sessions_id: string
+  student_id: string
+  created_at: Date
+}
+
+export type CourseSessionTimeslot = {
+  id: string
+  course_sessions_id: string
+  day_of_week: string
+  start_time: string
+  end_time: string
+  classroom_number: string | null
+  created_at: Date
+  updated_at: Date
 }
 
 export type CourseTeacher = {
-  course_id: number
-  teacher_id: number
-  created_at: string
+  course_id: string
+  teacher_id: string
+  created_at: Date
 }
 
 export type Holiday = {
@@ -86,16 +102,14 @@ export type User = {
   subjects: string[] | null
   school_year: string | null
   stats_model: string | null
-  student_stats_id: number | null
-  teacher_stats_id: number | null
+  student_stats_id: string | null
+  teacher_stats_id: string | null
   role: string
   phone: string | null
   created_at: Date | null
   updated_at: Date | null
   hasInvalidEmail: boolean
 }
-
-
 
 export type Database = {
   public: {
@@ -105,15 +119,25 @@ export type Database = {
         Insert: Omit<Course, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Course, 'id' | 'created_at' | 'updated_at'>>
       }
-      course_sessions: {
+      courses_sessions: {
         Row: CourseSession
         Insert: Omit<CourseSession, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<CourseSession, 'id' | 'created_at' | 'updated_at'>>
       }
-      course_teachers: {
+      courses_sessions_timeslot: {
+        Row: CourseSessionTimeslot
+        Insert: Omit<CourseSessionTimeslot, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<CourseSessionTimeslot, 'id' | 'created_at' | 'updated_at'>>
+      }
+      courses_sessions_students: {
+        Row: CourseSessionStudent
+        Insert: Omit<CourseSessionStudent, 'id' | 'created_at'>
+        Update: Partial<Omit<CourseSessionStudent, 'id' | 'created_at'>>
+      }
+      courses_teacher: {
         Row: CourseTeacher
-        Insert: Omit<CourseTeacher, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<CourseTeacher, 'id' | 'created_at' | 'updated_at'>>
+        Insert: Omit<CourseTeacher, 'created_at'>
+        Update: Partial<Omit<CourseTeacher, 'created_at'>>
       }
       holidays: {
         Row: Holiday
