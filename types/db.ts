@@ -1,3 +1,26 @@
+export type Attendance = {
+  id: string
+  course_id: string
+  date: Date
+  presence_rate: number
+  total_students: number
+  last_update: Date
+  created_at: Date
+  updated_at: Date
+  is_active: boolean
+  deleted_at: Date | null
+}
+
+export type AttendanceRecord = {
+  id: string
+  attendance_id: string
+  student_id: string
+  is_present: boolean
+  comment: string | null
+  created_at: Date
+  updated_at: Date
+}
+
 export type Course = {
   id: string
   is_active: boolean
@@ -161,6 +184,16 @@ export type User = {
 export type Database = {
   public: {
     Tables: {
+      attendances: {
+        Row: Attendance
+        Insert: Omit<Attendance, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Attendance, 'id' | 'created_at' | 'updated_at'>>
+      }
+      attendance_records: {
+        Row: AttendanceRecord
+        Insert: Omit<AttendanceRecord, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<AttendanceRecord, 'id' | 'created_at' | 'updated_at'>>
+      }
       courses: {
         Row: Course
         Insert: Omit<Course, 'id' | 'created_at' | 'updated_at'>
