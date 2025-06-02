@@ -88,6 +88,32 @@ export type StatsStudentGrade = {
   updated_at: Date
 }
 
+export type TeacherStats = {
+  id: string
+  is_active: boolean
+  user_id: string
+  total_students: number
+  min_age: number
+  max_age: number
+  average_age: number
+  last_update: Date
+  created_at: Date
+  updated_at: Date
+}
+
+export type TeacherStatsGenderDistribution = {
+  id: string
+  teacher_stats_id: string
+  count_masculin: number
+  count_feminin: number
+  count_undefined: number
+  percentage_masculin: string
+  percentage_feminin: string
+  percentage_undefined: string
+  created_at: Date
+  updated_at: Date
+}
+
 export type User = {
   id: string
   firstname: string
@@ -158,6 +184,16 @@ export type Database = {
         Row: StatsStudentGrade
         Insert: Omit<StatsStudentGrade, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<StatsStudentGrade, 'id' | 'created_at' | 'updated_at'>>
+      }
+      teacher_stats: {
+        Row: TeacherStats
+        Insert: Omit<TeacherStats, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<TeacherStats, 'id' | 'created_at' | 'updated_at'>>
+      }
+      teacher_gender_distribution: {
+        Row: TeacherStatsGenderDistribution
+        Insert: Omit<TeacherStatsGenderDistribution, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<TeacherStatsGenderDistribution, 'id' | 'created_at' | 'updated_at'>>
       }
       users: {
         Row: User
