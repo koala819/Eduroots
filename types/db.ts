@@ -21,6 +21,29 @@ export type AttendanceRecord = {
   updated_at: Date
 }
 
+export type Behavior = {
+  id: string
+  course_id: string
+  date: Date
+  behavior_rate: number
+  total_students: number
+  last_update: Date
+  created_at: Date
+  updated_at: Date
+  is_active: boolean
+  deleted_at: Date | null
+}
+
+export type BehaviorRecord = {
+  id: string
+  behavior_id: string
+  student_id: string
+  rating: number
+  comment: string | null
+  created_at: Date
+  updated_at: Date
+}
+
 export type Course = {
   id: string
   is_active: boolean
@@ -193,6 +216,16 @@ export type Database = {
         Row: AttendanceRecord
         Insert: Omit<AttendanceRecord, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<AttendanceRecord, 'id' | 'created_at' | 'updated_at'>>
+      }
+      behaviors: {
+        Row: Behavior
+        Insert: Omit<Behavior, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Behavior, 'id' | 'created_at' | 'updated_at'>>
+      }
+      behavior_records: {
+        Row: BehaviorRecord
+        Insert: Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>>
       }
       courses: {
         Row: Course
