@@ -44,6 +44,20 @@ export type BehaviorRecord = {
   updated_at: Date
 }
 
+export type ConnectionLog = {
+  id: string
+  user_id: string | null
+  is_successful: boolean
+  timestamp: Date
+  created_at: Date
+  updated_at: Date
+  user_agent: string
+  firstname: string | null
+  lastname: string | null
+  email: string
+  role: string
+}
+
 export type Course = {
   id: string
   is_active: boolean
@@ -226,6 +240,11 @@ export type Database = {
         Row: BehaviorRecord
         Insert: Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>>
+      }
+      connection_logs: {
+        Row: ConnectionLog
+        Insert: Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>>
       }
       courses: {
         Row: Course
