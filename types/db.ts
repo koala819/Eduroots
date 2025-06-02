@@ -1,3 +1,21 @@
+export type AppConfig = {
+  id: string
+  academic_year_start: Date
+  created_at: Date
+  updated_at: Date
+}
+
+export type AppConfigTheme = {
+  id: string
+  config_id: string
+  created_at: Date
+  updated_at: Date
+  card_header: string | null
+  loader: string | null
+  user_type: string
+  button_variants: string | null
+}
+
 export type Attendance = {
   id: string
   course_id: string
@@ -221,6 +239,16 @@ export type User = {
 export type Database = {
   public: {
     Tables: {
+      app_config: {
+      Row: AppConfig
+      Insert: Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>>
+      }
+      app_config_theme: {
+        Row: AppConfigTheme
+        Insert: Omit<AppConfigTheme, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<AppConfigTheme, 'id' | 'created_at' | 'updated_at'>>
+      }
       attendances: {
         Row: Attendance
         Insert: Omit<Attendance, 'id' | 'created_at' | 'updated_at'>
