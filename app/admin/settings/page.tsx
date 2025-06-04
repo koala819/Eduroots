@@ -19,10 +19,9 @@ import {
   UserRoundPlus,
   Users,
 } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
 import { EntityType } from '@/types/stats'
 import { Student, Teacher } from '@/types/user'
@@ -32,7 +31,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
 
 import { useStudents } from '@/context/Students/client'
 import { useTeachers } from '@/context/Teachers/client'
@@ -82,14 +80,32 @@ export default function SettingsPage() {
   const { students } = useStudents()
   const { teachers } = useTeachers()
   const router = useRouter()
-  const { data: session } = useSession()
-  const isAdmin = session?.user?.role === 'admin'
+  const [session, setSession] = useState<any>(null)
+  const isAdmin = session?.user?.user_metadata?.role === 'admin'
 
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedEntity, setSelectedEntity] = useState<
     Student | Teacher | null
   >(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    // Récupérer la session initiale
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setSession(user)
+    })
+
+    // Écouter les changements d'authentification
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, user) => {
+      setSession(user)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   // Groupes d'actions
   const actionGroups: ActionGroup[] = [
@@ -189,7 +205,7 @@ export default function SettingsPage() {
             {
               icon: Squirrel,
               label: 'Migration',
-              description: "Migrer les data de l'ancienne db vers la nouvelle",
+              description: 'Migrer les data de l\'ancienne db vers la nouvelle',
               href: '/admin/root/migration',
               variant: 'secondary',
               isAdmin: true,
@@ -197,7 +213,8 @@ export default function SettingsPage() {
             {
               icon: History,
               label: 'Voir les logs de connexion',
-              description: "Affichage de toutes les connexions depuis le début de l'application",
+              description:
+                'Affichage de toutes les connexions depuis le début de l\'application',
               href: '/admin/root/logs',
               variant: 'secondary',
               isAdmin: true,
@@ -222,7 +239,7 @@ export default function SettingsPage() {
               icon: Import,
               label: 'XLS -> DB',
               description:
-                "Script pour importer les données d'un fichier XLS vers la base de données",
+                'Script pour importer les données d\'un fichier XLS vers la base de données',
               href: '/admin/import',
               variant: 'secondary',
               isAdmin: true,
@@ -230,7 +247,8 @@ export default function SettingsPage() {
             {
               icon: UserRoundPlus,
               label: 'Nouvel Utilisateur',
-              description: "Ajouter d'un nouveau membre à l'application",
+              description:
+                'Ajouter d\'un nouveau membre à l\'application',
               href: '/admin/root/register',
               variant: 'secondary',
               isAdmin: true,
@@ -256,11 +274,10 @@ export default function SettingsPage() {
     )
     : []
 
-  function handleLogout() {
-    signOut({
-      redirect: true,
-      callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
-    })
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
   }
 
   function handleActionClick(action: Action) {
@@ -274,7 +291,8 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       {isAdmin && (
-        <div className="bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-950/30 dark:to-amber-900/20 rounded-lg p-4 mb-6 flex items-center gap-3 shadow-sm">
+        <div className="bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-950/30
+        dark:to-amber-900/20 rounded-lg p-4 mb-6 flex items-center gap-3 shadow-sm">
           <ShieldCheck className="h-6 w-6 text-amber-600 dark:text-amber-400" />
           <p className="text-sm text-amber-800 dark:text-amber-300">
             Vous avez accès aux fonctionnalités administrateur
@@ -301,31 +319,37 @@ export default function SettingsPage() {
                   <Button
                     key={action.label}
                     variant={action.variant}
-                    className={`relative h-auto w-full p-4 flex flex-col items-start gap-2 whitespace-normal group transition-all duration-200 ${isAdminAction
-                      ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-orange-950/30 hover:from-rose-100 hover:to-orange-100 dark:hover:from-rose-950/50 dark:hover:to-orange-950/40 border-rose-200 dark:border-rose-800'
-                      : ''
-                      }`}
+                    className={`relative h-auto w-full p-4 flex flex-col items-start gap-2
+                      whitespace-normal group  group transition-all duration-200
+                      ${isAdminAction
+                    ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40'+
+                      'dark:to-orange-950/30 hover:from-rose-100 hover:to-orange-100' +
+                      'dark:hover:from-rose-950/50 dark:hover:to-orange-950/40 border-rose-200' +
+                      'dark:border-rose-800'
+                    : ''
+                  }`}
                     onClick={() => handleActionClick(action)}
                   >
                     <div className="flex items-center gap-2 text-base font-medium">
                       <Icon
-                        className={`h-5 w-5 transition-transform group-hover:scale-110 ${
-                          isAdminAction
-                            ? 'text-rose-600 dark:text-rose-400'
-                            : ''
-                        }`}
+                        className={`h-5 w-5 transition-transform group-hover:scale-110
+                          ${isAdminAction ? 'text-rose-600 dark:text-rose-400' : ''
+                  }`}
                       />
                       {action.label}
                       {isAdminAction && (
                         <Badge
                           variant="outline"
-                          className="ml-1 bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800 text-[10px] py-0 px-1.5"
+                          className="ml-1 bg-rose-100 text-rose-700 border-rose-200
+                          dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800
+                           text-[10px] py-0 px-1.5"
                         >
                           Admin
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-left text-muted-foreground group-hover:text-foreground transition-colors">
+                    <p className="text-sm text-left text-muted-foreground
+                    group-hover:text-foreground transition-colors">
                       {action.description}
                     </p>
                   </Button>

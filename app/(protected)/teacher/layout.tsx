@@ -1,4 +1,4 @@
-import {ClientLayout} from '@/components/template/TeacherLayout'
+import { ClientLayout } from '@/components/template/TeacherLayout'
 
 export default function TeacherLayout({
   children,

@@ -6,8 +6,8 @@ import { createClient } from '@/utils/supabase/client'
 
 import { usePathname, useRouter } from 'next/navigation'
 
-import { NavbarDesktop } from '@/components/admin/atoms/NavbarDesktop'
-import { NavbarMobile } from '@/components/admin/atoms/NavbarMobile'
+import { NavbarDesktop } from '@/components/zOLDNavbarDesktop'
+import { NavbarMobile } from '@/components/zOLDNavbarMobile'
 
 type AdminNavbarProps = {
   handleNavClick: (href: string) => void

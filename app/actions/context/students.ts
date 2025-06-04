@@ -120,7 +120,7 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
 
   try {
 
-    // Utiliser getUser() au lieu de getSession()
+
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError) {
       console.error('❌ Erreur lors de la récupération de l\'utilisateur:', userError)

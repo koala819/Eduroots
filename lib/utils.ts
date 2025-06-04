@@ -1,11 +1,12 @@
-import {TimeSlotEnum} from '@/types/course'
-import {ButtonVariant, ThemeConfig} from '@/types/models'
-import {PeriodTypeEnum} from '@/types/schedule'
-import {SerializableDate} from '@/types/stats'
+import { TimeSlotEnum } from '@/types/course'
+import { ButtonVariant, ThemeConfig } from '@/types/models'
+import { PeriodTypeEnum } from '@/types/schedule'
+import { SerializableDate } from '@/types/stats'
 
-import {type ClassValue, clsx} from 'clsx'
-import {addWeeks, isAfter} from 'date-fns'
-import {twMerge} from 'tailwind-merge'
+import { type ClassValue, clsx } from 'clsx'
+import { addWeeks, isAfter } from 'date-fns'
+import { twMerge } from 'tailwind-merge'
+import { createClient } from '@/utils/supabase/client'
 
 export function capitalizeFirstLetter(string: string): string {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
@@ -60,7 +61,7 @@ export function createDefaultHolidays(academicYear: string, updatedBy: string) {
         type: 'REGULAR',
       },
       {
-        name: "Vacances d'Hiver",
+        name: 'Vacances d\'Hiver',
         start: new Date('2025-02-17'),
         end: new Date('2025-03-02'),
         type: 'REGULAR',
@@ -72,7 +73,7 @@ export function createDefaultHolidays(academicYear: string, updatedBy: string) {
         type: 'REGULAR',
       },
       {
-        name: "Vacances d'Été",
+        name: 'Vacances d\'Été',
         start: new Date('2025-06-30'),
         end: new Date('2025-08-31'),
         type: 'REGULAR',
@@ -91,7 +92,7 @@ export function createDefaultHolidays(academicYear: string, updatedBy: string) {
         type: 'SPECIAL',
       },
       {
-        name: "Fête de l'école",
+        name: 'Fête de l\'école',
         start: new Date('2025-06-28'),
         end: new Date('2025-06-29'),
         type: 'SPECIAL',
@@ -295,13 +296,22 @@ export function getColorClass(absences: number): string {
     return 'bg-effet-metal-or from-or-clair via-or to-or-fonce text-amber-900'
   } // 0 absences
   switch (absences % 3) {
-    case 1:
-      return 'bg-effet-metal-argent from-argent-clair via-argent to-argent-fonce text-slate-900' // 1, 4, 7... absences
-    case 2:
-      return 'bg-effet-metal-bronze from-bronze-clair via-bronze to-bronze-fonce text-orange-50' // 2, 5, 8... absences
-    case 0:
-      return 'bg-effet-inferno from-inferno-light via-inferno to-inferno-dark text-black' // 3, 6, 9... absences
-    default:
-      return 'bg-gray-500 text-white' // Should never happen, but for safety
+  case 1:
+    return 'bg-effet-metal-argent from-argent-clair via-argentto-argent-fonce' +
+        'text-slate-900' // 1, 4, 7... absences
+  case 2:
+    return 'bg-effet-metal-bronze from-bronze-clair via-bronze to-bronze-fonce' +
+        'text-orange-50' // 2, 5, 8... absences
+  case 0:
+    return 'bg-effet-inferno from-inferno-light via-inferno to-inferno-dark' +
+        'text-black' // 3, 6, 9... absences
+  default:
+    return 'bg-gray-500 text-white' // Should never happen, but for safety
   }
+}
+
+export async function logoutHandler() {
+  const supabase = createClient()
+  await supabase.auth.signOut()
+  window.location.href = '/'
 }

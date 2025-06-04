@@ -15,9 +15,9 @@ export const metadata = {
 export default async function StudentPage() {
   const supabase = await createClient()
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/')
   }
 
@@ -28,7 +28,7 @@ export default async function StudentPage() {
   }
 
   const students = response.data as unknown as Student[]
-  const student = students.find((s) => s.id === session.user.id)
+  const student = students.find((s) => s.id === user.id)
 
   if (!student) {
     redirect('/')

@@ -1,26 +1,38 @@
 import { createClient } from '@/utils/supabase/server'
 
-export async function fetchWithAuth(
+type FetchOptions = {
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+  body?: any
+  noHeader?: boolean
+  skipAuthCheck?: boolean
+}
+
+type FetchResponse<T = any> = {
+  data: T | null
+  error: string | null
+}
+
+export async function fetchWithAuth<T = any>(
   url: string | URL,
   {
     method,
     body,
     noHeader,
     skipAuthCheck = false,
-  }: {
-    method: string
-    body?: any
-    noHeader?: boolean
-    skipAuthCheck?: boolean
-  },
-) {
+  }: FetchOptions,
+): Promise<FetchResponse<T>> {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!skipAuthCheck && !session) {
+    if (authError) {
+      console.error('Erreur d\'authentification:', authError.message)
+      return { data: null, error: 'Erreur d\'authentification' }
+    }
+
+    if (!skipAuthCheck && !user) {
       console.error('Session non authentifiée')
-      return null
+      return { data: null, error: 'Session non authentifiée' }
     }
 
     const finalUrl =
@@ -28,7 +40,7 @@ export async function fetchWithAuth(
 
     const headers: Record<string, string> = {
       ...(noHeader ? {} : { 'Content-Type': 'application/json' }),
-      ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+      ...(user ? { 'Authorization': `Bearer ${user.id}` } : {}),
     }
 
     const options = {
@@ -40,17 +52,24 @@ export async function fetchWithAuth(
 
     const res = await fetch(finalUrl, options)
 
-    if (res.status !== 200) {
-      console.log('error in fetchWithAuth', res.statusText)
-      return null
-    } else {
-      const datares = await res.json()
-      // console.log('fetchWithAuth res', datares)
-
-      return datares
+    if (!res.ok) {
+      const errorText = await res.text()
+      console.error(`Erreur HTTP ${res.status}:`, errorText)
+      return {
+        data: null,
+        error: `Erreur ${res.status}: ${errorText || res.statusText}`,
+      }
     }
+
+    const data = await res.json()
+    // console.log('fetchWithAuth res', data)
+
+    return { data, error: null }
   } catch (error: any) {
-    console.error('Error fetching data:', error)
-    return null
+    console.error('Erreur lors de la requête:', error)
+    return {
+      data: null,
+      error: error.message || 'Erreur inconnue lors de la requête',
+    }
   }
 }
