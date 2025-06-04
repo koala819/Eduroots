@@ -239,61 +239,38 @@ export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>
   const supabase = await createClient()
 
   try {
-    // Récupérer les présences actives avec le calcul du taux de présence
-    const { data: attendances, error: attendanceError } = await supabase
-      .schema('education')
-      .from('attendances')
-      .select(`
-        id,
-        presence_rate,
-        total_students,
-        date
-      `)
-      .eq('is_active', true)
 
-    if (attendanceError) {
-      throw new Error(`Erreur lors de la récupération des présences: ${attendanceError.message}`)
+    // Récupérer les statistiques globales les plus récentes
+    const { data: globalStats, error } = await supabase
+      .schema('stats')
+      .from('global_stats')
+      .select('*')
+      .order('last_update', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération des statistiques globales: ${error.message}`)
     }
 
-    // Calculer la moyenne des taux de présence
-    let totalPresenceRate = 0
-    if (attendances && attendances.length > 0) {
-      totalPresenceRate = attendances
-        .reduce((sum, att) => sum + (att.presence_rate || 0), 0) / attendances.length
+    if (!globalStats) {
+      throw new Error('Aucune statistique globale trouvée')
     }
 
-    // Récupérer le nombre de professeurs et étudiants
-    const { data: teachers, error: teacherError } = await supabase
-      .schema('education')
-      .from('users')
-      .select('id', { count: 'exact' })
-      .eq('role', 'teacher')
-      .eq('is_active', true)
-
-    const { data: students, error: studentError } = await supabase
-      .schema('education')
-      .from('users')
-      .select('id', { count: 'exact' })
-      .eq('role', 'student')
-      .eq('is_active', true)
-
-    if (teacherError || studentError) {
-      throw new Error('Erreur lors du comptage des utilisateurs')
-    }
-
-    return {
+    const response = {
       success: true,
       data: serializeData({
-        presenceRate: totalPresenceRate,
-        totalStudents: students?.length || 0,
-        totalTeachers: teachers?.length || 0,
-        lastUpdate: new Date(),
+        presenceRate: globalStats.average_attendance_rate || 0,
+        totalStudents: globalStats.total_students || 0,
+        totalTeachers: globalStats.total_teachers || 0,
+        lastUpdate: globalStats.last_update,
       }),
       message: 'Statistiques globales récupérées avec succès',
     }
+
+    return response
   } catch (error) {
-    console.error('[GET_GLOBAL_STATS]', error)
-    throw new Error('Erreur lors de la récupération des statistiques globales')
+    throw new Error('Erreur lors de la récupération des statistiques globales' + error)
   }
 }
 
