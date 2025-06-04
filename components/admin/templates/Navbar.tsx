@@ -1,23 +1,35 @@
 'use client'
 
-import {Calendar, Home, MessageSquare} from 'lucide-react'
-import {signOut, useSession} from 'next-auth/react'
-import {useState} from 'react'
+import { Calendar, Home, MessageSquare } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
 
-import {usePathname} from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
-import {NavbarDesktop} from '@/components/admin/atoms/NavbarDesktop'
-import {NavbarMobile} from '@/components/admin/atoms/NavbarMobile'
+import { NavbarDesktop } from '@/components/admin/atoms/NavbarDesktop'
+import { NavbarMobile } from '@/components/admin/atoms/NavbarMobile'
 
 type AdminNavbarProps = {
   handleNavClick: (href: string) => void
 }
 
-export function AdminNavbar({handleNavClick}: AdminNavbarProps) {
-  const {data: session} = useSession()
+export function AdminNavbar({ handleNavClick }: AdminNavbarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
 
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      setUserRole(user?.user_metadata?.role || null)
+    }
+    getUser()
+  }, [])
 
   const items = [
     {
@@ -27,7 +39,7 @@ export function AdminNavbar({handleNavClick}: AdminNavbarProps) {
           href: '/admin',
           icon: Home,
           label: 'Tableau de bord',
-          description: "Vue d'ensemble et statistiques",
+          description: 'Vue d\'ensemble et statistiques',
           shortcut: '⌘ H',
         },
       ],
@@ -53,18 +65,17 @@ export function AdminNavbar({handleNavClick}: AdminNavbarProps) {
     },
   ]
 
-  const isAdmin = session?.user?.role === 'admin'
+  const isAdmin = userRole === 'admin'
 
   function handleItemClick(href: string) {
     setIsMobileOpen(false)
     handleNavClick(href)
   }
 
-  function logoutHandler() {
-    signOut({
-      redirect: true,
-      callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
-    })
+  async function logoutHandler() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
   }
 
   function getButtonClass(variant: 'ghost' | 'secondary') {
@@ -73,6 +84,15 @@ export function AdminNavbar({handleNavClick}: AdminNavbarProps) {
       ? 'hover:bg-red-600 hover:text-white text-white'
       : 'bg-red-600 hover:bg-red-700 text-white'
   }
+
+  // Créer un objet session compatible pour les composants enfants
+  const session = user ? {
+    user: {
+      email: user.email,
+      role: userRole,
+      ...user.user_metadata,
+    },
+  } : null
 
   return (
     <nav

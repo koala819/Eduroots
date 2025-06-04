@@ -1,15 +1,15 @@
 'use client'
 
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {GenderEnum} from '@/types/user'
+import { GenderEnum } from '@/types/user'
 
 interface UserDetailsClientProps {
   gender: GenderEnum
   dateOfBirth?: string | Date
 }
 
-export function UserDetailsClient({gender, dateOfBirth}: UserDetailsClientProps) {
+export function UserDetailsClient({ gender, dateOfBirth }: UserDetailsClientProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>

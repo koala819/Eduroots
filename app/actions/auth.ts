@@ -1,12 +1,14 @@
 'use server'
 
-import {UserRoleEnum} from '@/types/user'
+import { createClient } from '@/utils/supabase/server'
+import { Database } from '@/types/db'
+import { UserRoleEnum } from '@/types/user'
+import { FormSchema } from '@/lib/validation/login-schema'
+import { compare } from 'bcryptjs'
 
-import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {ConnectionLog} from '@/zOLDbackend/models/zOLDconnectionLog'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
-import {FormSchema} from '@/lib/validation/login-schema'
-import {compare} from 'bcryptjs'
+type User = Database['public']['Tables']['users']['Row']
+type ConnectionLog = Database['public']['Tables']['connection_logs']['Row']
+type ConnectionLogInsert = Database['public']['Tables']['connection_logs']['Insert']
 
 export async function loginAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -22,37 +24,60 @@ export async function loginAction(formData: FormData) {
       userAgent,
     })
 
-    await dbConnect()
+    const supabase = await createClient()
 
-    // Création du log
-    const log = new ConnectionLog({
-      user: {
-        _id: null,
-        email,
-        role,
-      },
-      isSuccessful: false,
-      userAgent,
-    })
-    await log.save()
+    // Création du log initial
+    const logData: ConnectionLogInsert = {
+      user_id: null,
+      email,
+      role,
+      firstname: null,
+      lastname: null,
+      is_successful: false,
+      user_agent: userAgent,
+      timestamp: new Date(),
+    }
+
+    const { data: log, error: logError } = await supabase
+      .schema('logs')
+      .from('connection_logs')
+      .insert([logData])
+      .select()
+      .single()
+
+    if (logError) {
+      console.error('Error creating connection log:', logError)
+    }
 
     // Recherche de l'utilisateur
-    let user
+    let userQuery = supabase
+      .schema('education')
+      .from('users')
+      .select('id, email, password_hash, role, firstname, lastname')
+      .eq('email', email)
+      .eq('is_active', true)
 
     if (role === UserRoleEnum.Admin) {
       // Si le rôle est 'admin', chercher un utilisateur avec le rôle 'admin' ou 'bureau'
-      user = await User.findOne({
-        email,
-        role: {$in: [UserRoleEnum.Admin, UserRoleEnum.Bureau]},
-        isActive: true,
-      }).select('+password +role')
+      userQuery = userQuery.in('role', [UserRoleEnum.Admin, UserRoleEnum.Bureau])
     } else {
-      // Pour tous les autres rôles, utiliser la recherche originale
-      user = await User.findOne({email, role, isActive: true}).select('+password +role')
+      // Pour tous les autres rôles, utiliser la recherche exacte
+      userQuery = userQuery.eq('role', role)
+    }
+
+    const { data: user, error: userError } = await userQuery.single()
+
+    if (userError || !user) {
+      console.error('User not found:', userError)
+      return {
+        success: false,
+        error: 'CredentialsSignin',
+        message: 'Identifiants incorrects. Veuillez réessayer',
+      }
     }
 
     // Vérification du mot de passe
-    const isMatch = await compare(pwd, user.password)
+    const isMatch = await compare(pwd, user.password_hash)
 
     if (!isMatch) {
       return {
@@ -63,7 +88,11 @@ export async function loginAction(formData: FormData) {
     }
 
     // Vérification du mot de passe par défaut
-    const defaultPwd = checkDefaultPassword(user)
+    const defaultPwd = checkDefaultPassword({
+      role: user.role as UserRoleEnum,
+      password: user.password_hash,
+    })
+
     if (defaultPwd) {
       return {
         success: true,
@@ -73,32 +102,34 @@ export async function loginAction(formData: FormData) {
       }
     }
 
-    // IMPORTANT: Convertir les documents MongoDB en objets simples
-    // Ne retournez que les données essentielles et pas tout l'objet user
+    // Préparer les données utilisateur
     const userData = {
-      _id: user._id.toString(),
+      id: user.id,
       email: user.email,
       role: user.role,
-      // Autres propriétés essentielles mais pas le document complet
+      firstname: user.firstname,
+      lastname: user.lastname,
     }
 
-    // Mise à jour du log
-    await ConnectionLog.findOneAndUpdate(
-      {'user.email': user.email, isSuccessful: false},
-      {
-        $set: {
-          user: userData, // Utilisez l'objet simplifié ici aussi
-          isSuccessful: true,
-        },
-      },
-      {new: true, sort: {timestamp: -1}},
-    )
+    // Mise à jour du log avec succès
+    if (log) {
+      await supabase
+        .schema('logs')
+        .from('connection_logs')
+        .update({
+          user_id: user.id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          is_successful: true,
+        })
+        .eq('id', log.id)
+    }
 
     return {
       success: true,
       status: 200,
       message: 'Connection successful',
-      user: userData, // Retournez des données sérialisables
+      user: userData,
     }
   } catch (error: any) {
     console.error('Login error:', error)

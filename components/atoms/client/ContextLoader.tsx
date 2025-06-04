@@ -1,18 +1,18 @@
 'use client'
 
-import {Loader} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Loader } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import {useAttendance} from '@/context/Attendances/client'
-import {useBehavior} from '@/context/Behaviors/client'
-import {useCourses} from '@/context/Courses/client'
-import {useGrades} from '@/context/Grades/client'
-import {useHolidays} from '@/context/Holidays/client'
-import {useSchedules} from '@/context/Schedules/client'
-import {useStats} from '@/context/Stats/client'
-import {useStudents} from '@/context/Students/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {motion} from 'framer-motion'
+import { useAttendance } from '@/context/Attendances/client'
+import { useBehavior } from '@/context/Behaviors/client'
+import { useCourses } from '@/context/Courses/client'
+import { useGrades } from '@/context/Grades/client'
+import { useHolidays } from '@/context/Holidays/client'
+import { useSchedules } from '@/context/Schedules/client'
+import { useStats } from '@/context/Stats/client'
+import { useStudents } from '@/context/Students/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { motion } from 'framer-motion'
 
 export default function GlobalLoadingIndicator() {
   const [isAnyLoading, setIsAnyLoading] = useState(true)
@@ -69,12 +69,13 @@ export default function GlobalLoadingIndicator() {
   if (!isAnyLoading) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[500]">
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center
+    justify-center z-[500]">
       <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center space-y-4">
         <motion.div
-          initial={{rotate: 0}}
-          animate={{rotate: 360}}
-          transition={{repeat: Infinity, duration: 1, ease: 'linear'}}
+          initial={{ rotate: 0 }}
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
         >
           <Loader className="h-12 w-12 text-primary" />
         </motion.div>

@@ -1,35 +1,31 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
-import {revalidatePath} from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
-import {ApiResponse} from '@/types/api'
-import {BehaviorRecord, CreateBehaviorPayload, UpdateBehaviorPayload} from '@/types/behavior'
-import {CourseSession} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
+import { ApiResponse } from '@/types/api'
+import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
-import {Behavior} from '@/zOLDbackend/models/zOLDbehavior.model'
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
-import {GlobalStats} from '@/zOLDbackend/models/zOLDglobal-stats.model'
-import {StudentStats} from '@/zOLDbackend/models/zOLDstudent-stats.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {Types} from 'mongoose'
+async function getAuthenticatedUser() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return user
 }
 
 export async function createBehaviorRecord(
   data: CreateBehaviorPayload,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const {course, sessionId, date, records} = data
+    const { course, sessionId, date, records } = data
 
     // Validation des données requises
     if (!course || !date || !Array.isArray(records)) {
@@ -41,14 +37,17 @@ export async function createBehaviorRecord(
     }
 
     // Vérification si un enregistrement existe déjà pour ce cours à cette date
-    const existingBehavior = await Behavior.findOne({
-      course: new Types.ObjectId(course),
-      date: {
-        // On utilise $gte et $lt pour comparer la date sans l'heure
-        $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-        $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
-      },
-    })
+    const startOfDay = new Date(new Date(date).setHours(0, 0, 0, 0)).toISOString()
+    const endOfDay = new Date(new Date(date).setHours(23, 59, 59, 999)).toISOString()
+
+    const { data: existingBehavior } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .select('id')
+      .eq('course_id', course)
+      .gte('date', startOfDay)
+      .lte('date', endOfDay)
+      .single()
 
     if (existingBehavior) {
       return {
@@ -60,139 +59,148 @@ export async function createBehaviorRecord(
 
     // Calcul des statistiques
     const totalStudents = records.length
-    // Moyenne des ratings (sur 100)
     const behaviorRate = records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
 
-    // Mise à jour des stats pour chaque étudiant
+    // Créer l'enregistrement de comportement
+    const { data: behavior, error: behaviorError } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .insert({
+        course_id: course,
+        date: new Date(date).toISOString(),
+        behavior_rate: behaviorRate,
+        total_students: totalStudents,
+        last_update: new Date().toISOString(),
+        is_active: true,
+      })
+      .select()
+      .single()
+
+    if (behaviorError || !behavior) {
+      throw new Error(`Erreur lors de la création du comportement: ${behaviorError?.message}`)
+    }
+
+    // Créer les enregistrements de comportement pour chaque étudiant
+    const behaviorRecords = records.map((record) => ({
+      behavior_id: behavior.id,
+      student_id: record.student,
+      rating: record.rating,
+      comment: record.comment || null,
+    }))
+
+    const { error: recordsError } = await supabase
+      .schema('education')
+      .from('behavior_records')
+      .insert(behaviorRecords)
+
+    if (recordsError) {
+      throw new Error(`Erreur lors de la création des enregistrements: ${recordsError.message}`)
+    }
+
+    // Mise à jour des statistiques étudiants
     const updatePromises = records.map(async (record: any) => {
       const studentId = record.student
 
-      // Récupérer tous les comportements de l'étudiant pour calculer la vraie moyenne
-      const allBehaviors = await Behavior.find({
-        'records.student': new Types.ObjectId(studentId),
-      })
+      // Récupérer toutes les évaluations de comportement de l'étudiant
+      const { data: studentBehaviors } = await supabase
+        .schema('education')
+        .from('behavior_records')
+        .select('rating')
+        .eq('student_id', studentId)
 
-      // Calculer la vraie moyenne
-      let totalRating = 0
-      let totalSessions = 0
+      // Calculer la nouvelle moyenne
+      const allRatings = [...(studentBehaviors?.map((b) => b.rating) || []), record.rating]
+      const behaviorAverage = allRatings
+        .reduce((sum, rating) => sum + rating, 0) / allRatings.length
 
-      allBehaviors.forEach((behavior) => {
-        const studentRecord = behavior.records.find(
-          (r: BehaviorRecord) => r.student.toString() === studentId.toString(),
-        )
-        if (studentRecord?.rating) {
-          totalRating += studentRecord.rating
-          totalSessions++
-        }
-      })
+      // Mettre à jour ou créer les stats de l'étudiant
+      const { data: existingStats } = await supabase
+        .schema('stats')
+        .from('student_stats')
+        .select('*')
+        .eq('user_id', studentId)
+        .single()
 
-      // Ajouter le nouveau record
-      totalRating += record.rating
-      totalSessions++
-
-      const behaviorAverage = totalRating / totalSessions
-
-      await StudentStats.findOneAndUpdate(
-        {
-          userId: new Types.ObjectId(studentId),
-        },
-        {
-          $set: {
-            behaviorAverage,
-            lastActivity: new Date(date),
-            lastUpdate: new Date(),
-          },
-        },
-        {
-          upsert: true,
-          new: true,
-        },
-      )
-    })
-
-    // Créer le behavior record
-    const behavior = new Behavior({
-      course: new Types.ObjectId(course),
-      date: new Date(date),
-      records: records.map((record: any) => ({
-        student: new Types.ObjectId(record.student),
-        rating: record.rating,
-        comment: record.comment,
-      })),
-      stats: {
-        behaviorRate,
-        totalStudents,
-        lastUpdate: new Date(),
-      },
-    })
-
-    await behavior.save()
-
-    // Mise à jour des stats du cours
-    const courseDoc = await Course.findById(course)
-    if (courseDoc) {
-      // Trouver la session correspondante
-      const sessionIndex = courseDoc.sessions.findIndex(
-        (session: CourseSession) => session.id.toString() === sessionId.toString(),
-      )
-
-      if (sessionIndex !== -1) {
-        // Calculer la moyenne de comportement pour cette session
-        const allBehaviors = await Behavior.find({
-          course: course,
-          date: {
-            $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-            $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
-          },
-        })
-
-        const sessionBehaviorRate =
-          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
-          allBehaviors.length
-
-        // Mise à jour des stats de la session
-        await Course.updateOne(
-          {
-            _id: course,
-            'sessions._id': data.sessionId,
-          },
-          {
-            $set: {
-              'sessions.$.stats.averageBehavior': sessionBehaviorRate,
-              'sessions.$.stats.lastUpdated': new Date(),
-            },
-          },
-        )
+      if (existingStats) {
+        await supabase
+          .schema('stats')
+          .from('student_stats')
+          .update({
+            behavior_average: behaviorAverage,
+            last_activity: new Date().toISOString(),
+            last_update: new Date().toISOString(),
+          })
+          .eq('user_id', studentId)
+      } else {
+        await supabase
+          .schema('stats')
+          .from('student_stats')
+          .insert({
+            user_id: studentId,
+            absences_rate: 0,
+            absences_count: 0,
+            behavior_average: behaviorAverage,
+            last_activity: new Date().toISOString(),
+            last_update: new Date().toISOString(),
+          })
       }
-    }
-    // Mise à jour des stats globales
-    const globalStats = await GlobalStats.findOne({})
-    if (globalStats) {
-      // Calculer la nouvelle moyenne globale de comportement
-      const allBehaviors = await Behavior.find({})
-      const totalBehaviorRates = allBehaviors.reduce(
-        (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
-        0,
-      )
-      const averageBehaviorRate =
-        allBehaviors.length > 0 ? totalBehaviorRates / allBehaviors.length : 0
+    })
 
-      // Mise à jour des stats globales
-      await GlobalStats.updateOne(
-        {},
-        {
-          $set: {
-            lastUpdate: new Date(),
-            'statsData.behaviorAverage': averageBehaviorRate,
-          },
-        },
-      )
-    }
-
-    // Attendre que toutes les mises à jour soient terminées
     await Promise.all(updatePromises)
 
-    // Revalidate paths that might be affected
+    // Mise à jour des statistiques de session si sessionId est fourni
+    if (sessionId) {
+      // Calculer la moyenne de comportement pour cette session
+      const { data: sessionBehaviors } = await supabase
+        .schema('education')
+        .from('behaviors')
+        .select('behavior_rate')
+        .eq('course_id', course)
+
+      if (sessionBehaviors && sessionBehaviors.length > 0) {
+        const sessionBehaviorRate = sessionBehaviors
+          .reduce((sum, beh) => sum + beh.behavior_rate, 0) / sessionBehaviors.length
+
+        // Mettre à jour les stats de la session
+        await supabase
+          .schema('education')
+          .from('courses_sessions')
+          .update({
+            stats_average_behavior: sessionBehaviorRate,
+            stats_last_updated: new Date().toISOString(),
+          })
+          .eq('id', sessionId)
+      }
+    }
+
+    // Mise à jour des statistiques globales
+    const { data: allBehaviors } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .select('behavior_rate')
+
+    if (allBehaviors && allBehaviors.length > 0) {
+      const averageBehaviorRate = allBehaviors
+        .reduce((sum, beh) => sum + beh.behavior_rate, 0) / allBehaviors.length
+
+      // Obtenir ou créer les stats globales
+      const { data: globalStats } = await supabase
+        .schema('stats')
+        .from('global_stats')
+        .select('*')
+        .single()
+
+      if (globalStats) {
+        await supabase
+          .schema('stats')
+          .from('global_stats')
+          .update({
+            last_update: new Date().toISOString(),
+          })
+          .eq('id', globalStats.id)
+      }
+    }
+
     revalidatePath('/courses/[courseId]/behavior')
     revalidatePath('/courses/[courseId]')
 
@@ -201,14 +209,15 @@ export async function createBehaviorRecord(
       message: 'Comportement et statistiques enregistrés avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CREATE_BEHAVIOR_RECORD]', error)
     throw new Error('Failed to create behavior record')
   }
 }
 
 export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
     if (!id) {
@@ -219,17 +228,28 @@ export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<Seri
       }
     }
 
-    const deletedBehavior = await Behavior.findByIdAndDelete(id)
+    // Supprimer d'abord les enregistrements liés
+    const { error: recordsError } = await supabase
+      .schema('education')
+      .from('behavior_records')
+      .delete()
+      .eq('behavior_id', id)
 
-    if (!deletedBehavior) {
-      return {
-        success: false,
-        message: 'Comportement non trouvé',
-        data: null,
-      }
+    if (recordsError) {
+      throw new Error(`Erreur lors de la suppression des enregistrements: ${recordsError.message}`)
     }
 
-    // Revalidate paths that might be affected
+    // Puis supprimer l'enregistrement principal
+    const { error: behaviorError } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .delete()
+      .eq('id', id)
+
+    if (behaviorError) {
+      throw new Error(`Erreur lors de la suppression du comportement: ${behaviorError.message}`)
+    }
+
     revalidatePath('/courses/[courseId]/behavior')
     revalidatePath('/courses/[courseId]')
 
@@ -238,24 +258,46 @@ export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<Seri
       message: 'Comportement supprimé avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[DELETE_BEHAVIOR_RECORD]', error)
     throw new Error('Failed to delete behavior record')
   }
 }
+
 export async function fetchBehaviorsByCourse(
   courseId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getServerSession()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const behaviors = await Behavior.find({course: courseId})
+    const { data: behaviors, error } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .select(`
+        *,
+        behavior_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('course_id', courseId)
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
     return {
       success: true,
       data: behaviors ? serializeData(behaviors) : null,
-      message: 'Cours supprimé avec succès',
+      message: 'Comportements récupérés avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[FETCH_BEHAVIORS_BY_COURSE]', error)
     throw new Error('Failed to fetch behaviors')
   }
@@ -265,25 +307,47 @@ export async function getBehaviorByIdAndDate(
   courseId: string,
   date: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const query: any = {course: courseId}
+    let query = supabase
+      .schema('education')
+      .from('behaviors')
+      .select(`
+        *,
+        behavior_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('course_id', courseId)
 
     if (date) {
-      const searchDate = date.split('T')[0] // garde juste YYYY-MM-DD
-      query.$expr = {
-        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, searchDate],
-      }
+      const searchDate = date.split('T')[0]
+      query = query.gte('date', `${searchDate}T00:00:00.000Z`)
+        .lt('date', `${searchDate}T23:59:59.999Z`)
     }
 
-    const behaviors = date ? await Behavior.findOne(query) : await Behavior.find(query)
+    const { data: behaviors, error } = date ?
+      await query.single() :
+      await query
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
     return {
       success: true,
       data: behaviors ? serializeData(behaviors) : null,
       message: 'Comportement récupéré avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_BEHAVIOR_BY_ID]', error)
     throw new Error('Failed to fetch behavior by id')
   }
@@ -292,64 +356,62 @@ export async function getBehaviorByIdAndDate(
 export async function getStudentBehaviorHistory(
   studentId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const behaviors = await Behavior.find({
-      'records.student': studentId,
-    })
-      .populate('records.student')
-      .lean()
-
-    // Pour chaque behavior, trouvons le cours parent
-    const behaviorsWithCourses = await Promise.all(
-      behaviors.map(async (behavior) => {
-        const parentCourse = await Course.findOne({
-          'sessions._id': behavior.course,
-        }).lean()
-
-        if (parentCourse) {
-          // Trouvons la session spécifique
-          const session = parentCourse.sessions.find(
-            (s: CourseDocument) => s._id.toString() === behavior.course.toString(),
+    const { data: behaviors, error } = await supabase
+      .schema('education')
+      .from('behavior_records')
+      .select(`
+        *,
+        behaviors (
+          *,
+          courses_sessions (
+            id,
+            subject,
+            level,
+            course_id,
+            courses (
+              id,
+              academic_year
+            )
           )
+        )
+      `)
+      .eq('student_id', studentId)
 
-          return {
-            _id: behavior._id,
-            id: behavior._id, // Ajout explicite de l'id
-            date: behavior.date,
-            records: behavior.records,
-            stats: behavior.stats,
-            courseDetails: {
-              id: parentCourse._id,
-              academicYear: parentCourse.academicYear,
-              session: session
-                ? {
-                    id: session._id,
-                    subject: session.subject,
-                    level: session.level,
-                    timeSlot: session.timeSlot,
-                  }
-                : null,
-            },
-          }
-        }
-        return behavior
-      }),
-    )
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
-    // console.log('Premier behavior avec détails:', {
-    //   id: behaviorsWithCourses[0]?._id,
-    //   courseId: behaviorsWithCourses[0]?.courseDetails?.id,
-    //   sessionId: behaviorsWithCourses[0]?.courseDetails?.session?.id,
-    //   date: behaviorsWithCourses[0]?.date,
-    // })
+    // Formater les données pour correspondre à l'ancien format
+    const formattedBehaviors = behaviors?.map((record) => ({
+      id: record.behaviors?.id,
+      date: record.behaviors?.date,
+      records: [record], // Le record actuel
+      stats: {
+        behaviorRate: record.behaviors?.behavior_rate,
+        totalStudents: record.behaviors?.total_students,
+        lastUpdate: record.behaviors?.last_update,
+      },
+      courseDetails: {
+        id: record.behaviors?.courses_sessions?.courses?.id,
+        academicYear: record.behaviors?.courses_sessions?.courses?.academic_year,
+        session: {
+          id: record.behaviors?.courses_sessions?.id,
+          subject: record.behaviors?.courses_sessions?.subject,
+          level: record.behaviors?.courses_sessions?.level,
+        },
+      },
+    })) || []
 
     return {
       success: true,
-      data: behaviorsWithCourses ? serializeData(behaviorsWithCourses) : null,
-      message: "Comportement de l'étudiant récupéré avec succès",
+      data: formattedBehaviors ? serializeData(formattedBehaviors) : null,
+      message: 'Comportement de l\'étudiant récupéré avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_STUDENT_BEHAVIOR_HISTORY]', error)
     throw new Error('Erreur lors de la récupération du cours')
   }
@@ -358,10 +420,11 @@ export async function getStudentBehaviorHistory(
 export async function updateBehaviorRecord(
   data: UpdateBehaviorPayload,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const {courseId, records, behaviorId, sessionId, date} = data
+    const { courseId, records, behaviorId, sessionId, date } = data
 
     if (!courseId || !Array.isArray(records) || !behaviorId || !sessionId || !date) {
       return {
@@ -371,10 +434,18 @@ export async function updateBehaviorRecord(
       }
     }
 
-    // Récupérer l'ancien enregistrement pour comparer les changements
-    const oldBehavior = await Behavior.findById(behaviorId)
+    // Récupérer l'ancien enregistrement
+    const { data: oldBehavior, error: fetchError } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .select(`
+        *,
+        behavior_records (*)
+      `)
+      .eq('id', behaviorId)
+      .single()
 
-    if (!oldBehavior) {
+    if (fetchError || !oldBehavior) {
       return {
         success: false,
         message: 'Comportement non trouvé',
@@ -382,156 +453,87 @@ export async function updateBehaviorRecord(
       }
     }
 
-    // Calcul des statistiques
+    // Calculer les nouvelles statistiques
     const totalStudents = records.length
-
     const behaviorRate = records.reduce((acc, record) => acc + record.rating, 0) / totalStudents
 
-    // Créer une map des anciens ratings pour comparaison
-    const oldRatingsMap = new Map(
-      oldBehavior.records.map((record: any) => [record.student.toString(), record.rating]),
-    )
+    // Mettre à jour l'enregistrement principal
+    const { error: updateError } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .update({
+        behavior_rate: behaviorRate,
+        total_students: totalStudents,
+        last_update: new Date().toISOString(),
+      })
+      .eq('id', behaviorId)
 
-    // Mise à jour des stats pour chaque étudiant dont la note a changé
+    if (updateError) {
+      throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`)
+    }
+
+    // Supprimer les anciens enregistrements
+    await supabase
+      .schema('education')
+      .from('behavior_records')
+      .delete()
+      .eq('behavior_id', behaviorId)
+
+    // Créer les nouveaux enregistrements
+    const newRecords = records.map((record: any) => ({
+      behavior_id: behaviorId,
+      student_id: record.student,
+      rating: record.rating,
+      comment: record.comment || null,
+    }))
+
+    const { error: insertError } = await supabase
+      .schema('education')
+      .from('behavior_records')
+      .insert(newRecords)
+
+    if (insertError) {
+      throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
+    }
+
+    // Mettre à jour les statistiques étudiants
     const updatePromises = records.map(async (record: any) => {
       const studentId = record.student
-      const oldRating = oldRatingsMap.get(studentId.toString())
 
-      // Ne mettre à jour que si la note a changé
-      if (oldRating !== record.rating) {
-        // Récupérer tous les comportements de l'étudiant pour recalculer la moyenne
-        const allBehaviors = await Behavior.find({
-          'records.student': new Types.ObjectId(studentId),
-        })
+      // Récupérer toutes les évaluations de comportement de l'étudiant
+      const { data: studentBehaviors } = await supabase
+        .schema('education')
+        .from('behavior_records')
+        .select('rating')
+        .eq('student_id', studentId)
 
-        let totalRating = 0
-        let totalSessions = 0
+      if (studentBehaviors && studentBehaviors.length > 0) {
+        const behaviorAverage = studentBehaviors
+          .reduce((sum, b) => sum + b.rating, 0) / studentBehaviors.length
 
-        allBehaviors.forEach((behavior) => {
-          const studentRecord = behavior.records.find(
-            (r: BehaviorRecord) => r.student.toString() === studentId.toString(),
-          )
-          if (studentRecord?.rating) {
-            totalRating += studentRecord.rating
-            totalSessions++
-          }
-        })
-
-        const behaviorAverage = totalRating / totalSessions
-
-        // Mise à jour directe avec findOneAndUpdate
-        await StudentStats.findOneAndUpdate(
-          {
-            userId: new Types.ObjectId(studentId),
-          },
-          {
-            $set: {
-              behaviorAverage,
-              lastActivity: new Date(),
-              lastUpdate: new Date(),
-            },
-          },
-          {
-            upsert: true,
-            new: true,
-          },
-        )
+        await supabase
+          .schema('stats')
+          .from('student_stats')
+          .update({
+            behavior_average: behaviorAverage,
+            last_activity: new Date().toISOString(),
+            last_update: new Date().toISOString(),
+          })
+          .eq('user_id', studentId)
       }
     })
 
-    // Mise à jour du behavior record
-    const updatedBehavior = await Behavior.findByIdAndUpdate(behaviorId, {
-      course: new Types.ObjectId(courseId),
-      updatedAt: new Date(),
-      records: records.map((record: any) => ({
-        student: new Types.ObjectId(record.student),
-        rating: record.rating,
-        comment: record.comment,
-      })),
-      stats: {
-        behaviorRate,
-        totalStudents,
-        lastUpdate: new Date(),
-      },
-    })
-
-    if (!updatedBehavior) {
-      return {
-        success: false,
-        message: 'Comportement non trouvé',
-        data: null,
-      }
-    }
-
-    // Mise à jour des stats du cours
-    const courseDoc = await Course.findById(courseId)
-    if (courseDoc) {
-      const sessionIndex = courseDoc.sessions.findIndex(
-        (session: CourseSession) => session.id.toString() === sessionId.toString(),
-      )
-
-      if (sessionIndex !== -1) {
-        const allBehaviors = await Behavior.find({
-          course: courseId,
-          date: {
-            $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-            $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
-          },
-        })
-
-        const sessionBehaviorRate =
-          allBehaviors.reduce((sum, beh) => sum + (beh.stats?.behaviorRate || 0), 0) /
-          allBehaviors.length
-
-        // Mise à jour des stats de la session
-        await Course.updateOne(
-          {
-            _id: courseId,
-            'sessions._id': data.sessionId,
-          },
-          {
-            $set: {
-              'sessions.$.stats.averageBehavior': sessionBehaviorRate,
-              'sessions.$.stats.lastUpdated': new Date(),
-            },
-          },
-        )
-      }
-    }
-
-    // Mise à jour des stats globales
-    const globalStats = await GlobalStats.findOne({})
-    if (globalStats) {
-      // Recalculer la moyenne globale de comportement
-      const allBehaviors = await Behavior.find({})
-      const totalBehaviorRates = allBehaviors.reduce(
-        (sum, beh) => sum + (beh.stats?.behaviorRate || 0),
-        0,
-      )
-      const averageBehaviorRate =
-        allBehaviors.length > 0 ? totalBehaviorRates / allBehaviors.length : 0
-
-      // Mettre à jour les stats globales
-      globalStats.lastUpdate = new Date()
-      if (globalStats.statsData) {
-        globalStats.statsData.behaviorAverage = averageBehaviorRate
-      }
-      await globalStats.save()
-    }
-
-    // Attendre que toutes les mises à jour soient terminées
     await Promise.all(updatePromises)
 
-    // Revalidate paths that might be affected
     revalidatePath('/courses/[courseId]/behavior')
     revalidatePath('/courses/[courseId]')
 
     return {
       success: true,
-      message: 'Fiche de comportement et statistiques mises à jour avec succèss',
+      message: 'Fiche de comportement et statistiques mises à jour avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[UPDATE_BEHAVIOR_RECORD]', error)
     throw new Error('Failed to update behavior record')
   }

@@ -122,6 +122,7 @@
     "lint-staged": "15.2.10",
     "postcss": "8.4.38",
     "serwist": "9.0.9",
+    "shadcn-ui": "^0.9.5",
     "tailwindcss": "3.4.4",
     "ts-jest": "29.1.5",
     "ts-prune": "0.10.3",

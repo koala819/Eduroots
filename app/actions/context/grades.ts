@@ -1,74 +1,116 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 
-import {ApiResponse} from '@/types/api'
-import {CreateGradeDTO, PopulatedGrade, PopulatedGradeRecord, UpdateGradeDTO} from '@/types/grade'
-import {GradeDocument} from '@/types/mongoose'
-
-import {Grade as GradeModel} from '@/zOLDbackend/models/zOLDgrade.model'
-import {calculateAndUpdateGradeStats, calculateGradeStats} from '@/lib/api.utils'
-import {SerializedValue, serializeData} from '@/lib/serialization'
+import { ApiResponse } from '@/types/api'
+import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/grade'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
+}
+
+function calculateGradeStats(records: any[]) {
+  const validGrades = records
+    .filter((record) => !record.isAbsent && record.value !== null)
+    .map((record) => record.value)
+
+  if (validGrades.length === 0) {
+    return {
+      stats_average_grade: 0,
+      stats_highest_grade: 0,
+      stats_lowest_grade: 0,
+      stats_absent_count: records.filter((record) => record.isAbsent).length,
+      stats_total_students: records.length,
+    }
+  }
+
+  return {
+    stats_average_grade: validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length,
+    stats_highest_grade: Math.max(...validGrades),
+    stats_lowest_grade: Math.min(...validGrades),
+    stats_absent_count: records.filter((record) => record.isAbsent).length,
+    stats_total_students: records.length,
+  }
 }
 
 export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
-    const grades = await GradeModel.find<GradeDocument>({})
-      .populate({
-        path: 'course',
-        match: {teacher: teacherId},
-        model: 'courseNEW',
-      })
-      .populate('records.student')
-      .lean()
+    // Récupérer les grades avec les cours du professeur
+    const { data: grades, error } = await supabase
+      .schema('education')
+      .from('grades')
+      .select(`
+        *,
+        courses_sessions (
+          *,
+          courses_teacher!inner (
+            teacher_id
+          )
+        ),
+        grades_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('courses_sessions.courses_teacher.teacher_id', teacherId)
 
-    // Filtrer les grades qui correspondent au teacher
-    const teacherGrades = grades.filter((grade) => grade.course)
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
-    const populatedGrades = teacherGrades.map((grade) => ({
-      id: grade._id.toString(),
-      isDraft: grade.isDraft,
-      sessionId: grade.sessionId,
+    const populatedGrades = grades?.map((grade) => ({
+      id: grade.id,
+      isDraft: grade.is_draft,
+      sessionId: grade.course_session_id,
       course: {
-        ...grade.course,
-        id: grade.course._id.toString(),
+        ...grade.courses_sessions,
+        id: grade.courses_sessions?.id,
       },
       date: grade.date,
       type: grade.type,
-      stats: grade.stats,
-      records: grade.records.map((record: PopulatedGradeRecord) => ({
+      stats: {
+        averageGrade: grade.stats_average_grade,
+        highestGrade: grade.stats_highest_grade,
+        lowestGrade: grade.stats_lowest_grade,
+        absentCount: grade.stats_absent_count,
+        totalStudents: grade.stats_total_students,
+      },
+      records: grade.grades_records?.map((record: any) => ({
         value: record.value,
-        isAbsent: record.isAbsent,
+        isAbsent: record.is_absent,
         comment: record.comment,
         student: {
-          ...record.student,
-          id: record.student._id.toString(),
+          ...record.users,
+          id: record.users?.id,
         },
-      })),
-      createdAt: grade.createdAt,
-      updatedAt: grade.updatedAt,
-      isActive: grade.isActive,
-    }))
+      })) || [],
+      createdAt: grade.created_at,
+      updatedAt: grade.updated_at,
+      isActive: grade.is_active,
+    })) || []
 
     return {
       success: true,
       data: populatedGrades ? serializeData(populatedGrades) : null,
-      message: 'Cours récupéré avec succès',
+      message: 'Notes récupérées avec succès',
     }
-
-    // return NextResponse.json({
-    //   status: 200,
-    //   data: populatedGrades,
-    // })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_TEACHER_GRADES]', error)
     throw new Error('Erreur lors de la récupération des grades du prof')
   }
@@ -78,28 +120,55 @@ export async function createGradeRecord(
   data: CreateGradeDTO,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
     const stats = calculateGradeStats(data.records)
 
-    // Création du document avec typage strict
-    // Créer et sauvegarder le document avec les stats en une seule opération
-    const gradeRecord = new GradeModel({
-      course: data.course,
-      sessionId: data.sessionId,
-      date: new Date(data.date),
-      type: data.type,
-      isDraft: data.isDraft,
-      records: data.records,
-      stats: stats,
-    })
+    // Créer le grade principal
+    const { data: grade, error: gradeError } = await supabase
+      .schema('education')
+      .from('grades')
+      .insert({
+        course_session_id: data.course,
+        date: new Date(data.date).toISOString(),
+        type: data.type,
+        is_draft: data.isDraft,
+        ...stats,
+        last_update: new Date().toISOString(),
+        is_active: true,
+      })
+      .select()
+      .single()
 
-    await gradeRecord.save()
+    if (gradeError || !grade) {
+      throw new Error(`Erreur lors de la création du grade: ${gradeError?.message}`)
+    }
+
+    // Créer les enregistrements de notes
+    const gradeRecords = data.records.map((record) => ({
+      grade_id: grade.id,
+      student_id: record.student,
+      value: record.value,
+      is_absent: record.isAbsent,
+      comment: record.comment,
+    }))
+
+    const { error: recordsError } = await supabase
+      .schema('education')
+      .from('grades_records')
+      .insert(gradeRecords)
+
+    if (recordsError) {
+      throw new Error(`Erreur lors de la création des enregistrements: ${recordsError.message}`)
+    }
+
     return {
       success: true,
       message: 'Note enregistrée avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CREATE_GRADE_RECORD]', error)
     throw new Error('Erreur lors de la création du grade')
   }
@@ -110,60 +179,83 @@ export async function refreshGradeData(
   fields?: string,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
     if (id && id !== 'grade') {
-      const grade = await GradeModel.findById(id)
-        .populate({
-          path: 'course',
-          model: 'courseNEW',
-        })
-        .populate({
-          path: 'records.student',
-          model: 'userNEW',
-        })
-        .lean()
+      const { data: grade, error } = await supabase
+        .schema('education')
+        .from('grades')
+        .select(`
+          *,
+          courses_sessions (*),
+          grades_records (
+            *,
+            users:student_id (
+              id,
+              firstname,
+              lastname,
+              email
+            )
+          )
+        `)
+        .eq('id', id)
+        .single()
 
-      if (!grade) {
+      if (error || !grade) {
         return {
           success: false,
-          message: 'Aucune Note non trouvée',
+          message: 'Note non trouvée',
           data: null,
         }
       }
 
       // Si on demande uniquement les stats
       if (fields === 'stats') {
+        const stats = {
+          averageGrade: grade.stats_average_grade,
+          highestGrade: grade.stats_highest_grade,
+          lowestGrade: grade.stats_lowest_grade,
+          absentCount: grade.stats_absent_count,
+          totalStudents: grade.stats_total_students,
+        }
         return {
           success: true,
           message: 'Statistiques récupérées avec succès',
-          data: grade.stats ? serializeData(grade.stats) : null,
+          data: stats ? serializeData(stats) : null,
         }
       }
 
-      // Transformation en PopulatedGrade avec typage strict
+      // Transformation en PopulatedGrade
       const formattedGrade: PopulatedGrade = {
-        id: grade._id.toString(),
-        sessionId: grade.sessionId,
+        id: grade.id,
+        sessionId: grade.course_session_id,
         course: {
-          ...grade.course,
-          id: grade.course?._id?.toString(),
+          ...grade.courses_sessions,
+          id: grade.courses_sessions?.id,
         },
         date: grade.date,
         type: grade.type,
-        isDraft: grade.isDraft,
-        records: grade.records.map((record: PopulatedGradeRecord) => ({
+        isDraft: grade.is_draft,
+        records: grade.grades_records?.map((record: any) => ({
           value: record.value,
-          isAbsent: record.isAbsent,
+          isAbsent: record.is_absent,
           comment: record.comment,
           student: {
-            ...record.student,
-            id: record.student?._id?.toString(),
+            ...record.users,
+            id: record.users?.id,
           },
-        })),
-        stats: grade.stats,
-        createdAt: grade.createdAt,
-        updatedAt: grade.updatedAt,
-        isActive: grade.isActive,
+        })) || [],
+        stats: {
+          averageGrade: grade.stats_average_grade,
+          highestGrade: grade.stats_highest_grade,
+          lowestGrade: grade.stats_lowest_grade,
+          absentCount: grade.stats_absent_count,
+          totalStudents: grade.stats_total_students,
+        },
+        createdAt: grade.created_at,
+        updatedAt: grade.updated_at,
+        isActive: grade.is_active,
       }
 
       return {
@@ -174,48 +266,67 @@ export async function refreshGradeData(
     }
 
     // Si c'est une requête pour toutes les notes
-    const grades = await GradeModel.find()
-      .populate({
-        path: 'course',
-        model: 'courseNEW',
-      })
-      .populate({
-        path: 'records.student',
-        model: 'userNEW',
-      })
-      .lean()
+    const { data: grades, error } = await supabase
+      .schema('education')
+      .from('grades')
+      .select(`
+        *,
+        courses_sessions (*),
+        grades_records (
+          *,
+          student_id,
+          users!grades_records_student_id_fkey (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .limit(50)
 
-    const formattedGrades: PopulatedGrade[] = grades.map((grade) => ({
-      id: grade._id.toString(),
-      sessionId: grade.sessionId,
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
+
+
+    const formattedGrades: PopulatedGrade[] = grades?.map((grade) => ({
+      id: grade.id,
+      sessionId: grade.course_session_id,
       course: {
-        ...grade.course,
-        id: grade.course?._id?.toString(),
+        ...grade.courses_sessions,
+        id: grade.courses_sessions?.id,
       },
       date: grade.date,
       type: grade.type,
-      isDraft: grade.isDraft,
-      records: grade.records.map((record: PopulatedGradeRecord) => ({
+      isDraft: grade.is_draft,
+      records: grade.grades_records?.map((record: any) => ({
         value: record.value,
-        isAbsent: record.isAbsent,
+        isAbsent: record.is_absent,
         comment: record.comment,
         student: {
-          ...record.student,
-          id: record.student?._id?.toString(),
+          ...record.users,
+          id: record.users?.id,
         },
-      })),
-      stats: grade.stats,
-      createdAt: grade.createdAt,
-      updatedAt: grade.updatedAt,
-      isActive: grade.isActive,
-    }))
+      })) || [],
+      stats: {
+        averageGrade: grade.stats_average_grade,
+        highestGrade: grade.stats_highest_grade,
+        lowestGrade: grade.stats_lowest_grade,
+        absentCount: grade.stats_absent_count,
+        totalStudents: grade.stats_total_students,
+      },
+      createdAt: grade.created_at,
+      updatedAt: grade.updated_at,
+      isActive: grade.is_active,
+    })) || []
 
     return {
       success: true,
       data: formattedGrades ? serializeData(formattedGrades) : null,
       message: 'Notes récupérées avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[REFRESH_GRADE_DATA]', error)
     throw new Error('Erreur de la mise à jour des grades')
   }
@@ -226,6 +337,8 @@ export async function updateGradeRecord(
   data: UpdateGradeDTO,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
     // Validation des données reçues
     if (!data.date || !data.type || !Array.isArray(data.records)) {
@@ -236,89 +349,57 @@ export async function updateGradeRecord(
       }
     }
 
-    // Mise à jour de la note
-    const updatedGrade = await GradeModel.findByIdAndUpdate(
-      gradeId,
-      {
-        date: data.date,
+    // Calculer les nouvelles statistiques
+    const stats = calculateGradeStats(data.records)
+
+    // Mise à jour de la note principale
+    const { error: updateError } = await supabase
+      .schema('education')
+      .from('grades')
+      .update({
+        date: new Date(data.date).toISOString(),
         type: data.type,
-        isDraft: data.isDraft,
-        records: data.records,
-        updatedAt: new Date(),
-      },
-      {
-        new: true, // Retourne le document mis à jour
-        runValidators: true, // Exécute les validateurs du schéma
-      },
-    )
-
-    if (!updatedGrade) {
-      return {
-        success: false,
-        message: 'Note non trouvée',
-        data: null,
-      }
-    }
-
-    // Calculer les stats
-    const gradeWithStats = await calculateAndUpdateGradeStats(updatedGrade)
-
-    if (!gradeWithStats) {
-      return {
-        success: false,
-        message: 'Note non trouvée',
-        data: null,
-      }
-    }
-
-    // Maintenant on peut faire le populate et lean
-    const populatedGrade = await GradeModel.findById(gradeWithStats._id)
-      .populate({
-        path: 'course',
-        model: 'courseNEW',
+        is_draft: data.isDraft,
+        ...stats,
+        last_update: new Date().toISOString(),
       })
-      .populate('records.student')
-      .lean()
+      .eq('id', gradeId)
 
-    if (!populatedGrade) {
-      return {
-        success: false,
-        message: 'Note non trouvée',
-        data: null,
-      }
+    if (updateError) {
+      throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`)
     }
 
-    // Formatage de la réponse
-    const formattedGrade = {
-      id: updatedGrade._id.toString(),
-      isDraft: updatedGrade.isDraft,
-      course: {
-        ...updatedGrade.course,
-        id: updatedGrade.course._id.toString(),
-      },
-      date: updatedGrade.date,
-      type: updatedGrade.type,
-      records: updatedGrade.records.map((record: PopulatedGradeRecord) => ({
-        value: record.value,
-        isAbsent: record.isAbsent,
-        comment: record.comment,
-        student: {
-          ...record.student,
-          id: record.student._id.toString(),
-        },
-      })),
-      stats: populatedGrade.stats,
-      createdAt: updatedGrade.createdAt,
-      updatedAt: updatedGrade.updatedAt,
-      isActive: updatedGrade.isActive,
+    // Supprimer les anciens enregistrements
+    await supabase
+      .schema('education')
+      .from('grades_records')
+      .delete()
+      .eq('grade_id', gradeId)
+
+    // Créer les nouveaux enregistrements
+    const newRecords = data.records.map((record) => ({
+      grade_id: gradeId,
+      student_id: record.student,
+      value: record.value,
+      is_absent: record.isAbsent,
+      comment: record.comment,
+    }))
+
+    const { error: insertError } = await supabase
+      .schema('education')
+      .from('grades_records')
+      .insert(newRecords)
+
+    if (insertError) {
+      throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
     }
 
     return {
       success: true,
-      data: formattedGrade ? serializeData(formattedGrade) : null,
+      data: null,
       message: 'Note mise à jour avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[UPDATE_GRADE_RECORD]', error)
     throw new Error('Erreur lors de la mise à jour du grade')
   }

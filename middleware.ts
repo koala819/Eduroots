@@ -15,19 +15,32 @@ const STUDENT_ROUTES = ['/student']
 export async function middleware(req: NextRequest) {
   const { response, supabase } = await createClient(req)
 
-  // Vérifier la session
-  const { data: { session } } = await supabase.auth.getSession()
+  // Vérifier l'utilisateur de manière sécurisée
+  const { data: { user }, error } = await supabase.auth.getUser()
   const pathname = req.nextUrl.pathname
 
-  if (!session) {
+  // console.log('Middleware - pathname:', pathname)
+  // console.log('Middleware - user:', user?.email)
+
+  if (error || !user) {
+    console.log('Middleware - Pas d\'utilisateur authentifié, redirection vers /')
     return NextResponse.redirect(new URL('/', req.url))
   }
 
-  const userRole = session.user.user_metadata.role
+  // Récupérer le rôle depuis les métadonnées utilisateur
+  const userRole = user.user_metadata?.role
+  // console.log('Middleware - userRole from metadata:', userRole)
+
+  if (!userRole) {
+    console.log('Middleware - Aucun rôle trouvé dans les métadonnées')
+    return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
+  }
 
   // Vérification des routes SuperUser (SU)
   if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
+    console.log('Middleware - Route SU détectée')
     if (userRole !== SU_ROLE) {
+      // console.log(`Middleware - Accès refusé SU. Role: ${userRole}, requis: ${SU_ROLE}`)
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
@@ -36,7 +49,9 @@ export async function middleware(req: NextRequest) {
   else if (
     ADMIN_ROUTES.some((route) => pathname.startsWith(route))
   ) {
+    console.log('Middleware - Route ADMIN détectée')
     if (!ADMIN_ROLES.includes(userRole)) {
+      // console.log(`Middleware - Accès refusé ADMIN. Role: ${userRole}`)
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
@@ -45,7 +60,9 @@ export async function middleware(req: NextRequest) {
   else if (
     TEACHER_ROUTES.some((route) => pathname.startsWith(route))
   ) {
+    console.log('Middleware - Route TEACHER détectée')
     if (userRole !== TEACHER_ROLE) {
+      // console.log(`Middleware - Accès refusé TEACHER. Role: ${userRole}`)
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
@@ -54,16 +71,19 @@ export async function middleware(req: NextRequest) {
   else if (
     STUDENT_ROUTES.some((route) => pathname.startsWith(route))
   ) {
+    console.log('Middleware - Route STUDENT détectée')
     if (userRole !== STUDENT_ROLE) {
+      // console.log(`Middleware - Accès refusé STUDENT. Role: ${userRole}`)
       return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
     }
   }
+
+  // console.log('Middleware - Accès autorisé, poursuite de la requête')
 
   // Gérer l'IP
   const ip =
     req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.nextUrl.hostname
   req.headers.set('x-real-ip', ip)
-
 
   return response
 }

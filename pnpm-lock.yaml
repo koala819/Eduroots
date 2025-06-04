@@ -312,6 +312,9 @@ importers:
       serwist:
         specifier: 9.0.9
         version: 9.0.9(typescript@5.4.5)
+      shadcn-ui:
+        specifier: ^0.9.5
+        version: 0.9.5
       tailwindcss:
         specifier: 3.4.4
         version: 3.4.4(ts-node@10.9.2(@types/node@20.14.2)(typescript@5.4.5))
@@ -5890,6 +5893,10 @@ packages:
 
   setprototypeof@1.1.1:
     resolution: {integrity: sha512-JvdAWfbXeIGaZ9cILp38HntZSFSo3mWg6xGcJJsd+d4aRMOqauag1C63dJfDw7OaMYwEbHMOxEZ1lqVRYP2OAw==}
+
+  shadcn-ui@0.9.5:
+    resolution: {integrity: sha512-dsBQWpdLLYCdSdmvOmu53nJhhWnQD1OiblhuhkI4rPYxPKTyfbmZ2NTJHWMu1fXN9PTfN6IVK5vvh+BrjHJx2g==}
+    hasBin: true
 
   sharp@0.33.5:
     resolution: {integrity: sha512-haPVm1EkS9pgvHrQ/F3Xy+hgcuMV0Wm9vfIBSiwZ05k+xgb0PkBQpGsAA/oWdDobNaZTH5ppvHtzCFbnSEwHVw==}
@@ -12861,6 +12868,10 @@ snapshots:
   setimmediate@1.0.5: {}
 
   setprototypeof@1.1.1: {}
+
+  shadcn-ui@0.9.5:
+    dependencies:
+      chalk: 5.4.1
 
   sharp@0.33.5:
     dependencies:

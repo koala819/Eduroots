@@ -1,13 +1,11 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 
-import {ApiResponse} from '@/types/api'
-import {Holiday} from '@/types/holidays'
-
-import {Holidays} from '@/backend/models/holidays.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {createDefaultHolidays} from '@/lib/utils'
+import { ApiResponse } from '@/types/api'
+import { Holiday } from '@/types/holidays'
+import { SerializedValue, serializeData } from '@/lib/serialization'
+import { createDefaultHolidays } from '@/lib/utils'
 
 interface SaveHolidayData {
   updatedBy: string
@@ -15,29 +13,36 @@ interface SaveHolidayData {
 }
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
 }
 
 export async function getCurrentHolidays(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
     // Cherche la config active la plus récente
-    const currentConfig = await Holidays.findOne({
-      isActive: true,
-    }).sort({
-      createdAt: -1,
-    })
+    const { data: currentConfig, error } = await supabase
+      .schema('education')
+      .from('holidays')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
     // Si on trouve une config, on la renvoie
-    if (currentConfig) {
+    if (currentConfig && !error) {
       return {
         success: true,
-        data: currentConfig ? serializeData(currentConfig) : null,
+        data: serializeData(currentConfig),
         message: 'Vacances récupérées avec succès',
       }
     }
@@ -48,7 +53,7 @@ export async function getCurrentHolidays(userId: string): Promise<ApiResponse<Se
 
     return {
       success: true,
-      data: defaultConfig ? serializeData(defaultConfig) : null,
+      data: serializeData(defaultConfig),
       message: 'Création de la config de vacances avec succès',
     }
   } catch (error) {
@@ -61,18 +66,12 @@ export async function saveHolidays(
   holidayData: SaveHolidayData,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
   const currentYear = new Date().getFullYear().toString()
   const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
 
-  const payload = {
-    academicYear,
-    holidays: holidayData.holidays,
-    isActive: true,
-    updatedBy: holidayData.updatedBy,
-  }
-
   try {
-    const {holidays, updatedBy} = payload
+    const { holidays, updatedBy } = holidayData
 
     if (!holidays || !updatedBy) {
       return {
@@ -82,22 +81,34 @@ export async function saveHolidays(
       }
     }
 
-    // Cherche et met à jour la configuration existante ou en crée une nouvelle
-    const holidaySchedule = await Holidays.findOneAndUpdate(
-      {academicYear, isActive: true},
-      {
-        holidays,
-        updatedBy,
-      },
-      {
-        new: true, // Retourne le document mis à jour
-        upsert: true, // Crée un nouveau document si aucun n'est trouvé
-        runValidators: true, // Active la validation du schéma pour l'update
-      },
-    )
+    // D'abord désactiver les anciennes configs
+    await supabase
+      .schema('education')
+      .from('holidays')
+      .update({ is_active: false })
+      .eq('academic_year', academicYear)
+
+    // Puis créer/mettre à jour la nouvelle config
+    const { data: holidaySchedule, error } = await supabase
+      .schema('education')
+      .from('holidays')
+      .upsert({
+        academic_year: academicYear,
+        holidays_data: holidays,
+        is_active: true,
+        updated_by: updatedBy,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Erreur lors de la sauvegarde: ${error.message}`)
+    }
+
     return {
       success: true,
-      data: holidaySchedule ? serializeData(holidaySchedule) : null,
+      data: serializeData(holidaySchedule),
       message: 'Configuration des vacances enregistrée avec succès',
     }
   } catch (error) {

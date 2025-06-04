@@ -1,27 +1,27 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 
-import {ApiResponse} from '@/types/api'
-import {Student} from '@/types/user'
-
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {isValidObjectId} from 'mongoose'
+import { ApiResponse } from '@/types/api'
+import { Student } from '@/types/user'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
 }
 
 export async function createStudent(
   studentData: Omit<Student, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
     const validation = validateRequiredFields('student', studentData)
@@ -34,29 +34,47 @@ export async function createStudent(
       }
     }
 
-    const newUser = await User.create(studentData)
-    if (!newUser) {
+    const { data: newUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .insert({
+        email: studentData.email,
+        firstname: studentData.firstname,
+        lastname: studentData.lastname,
+        password: studentData.password,
+        role: 'student',
+        type: (studentData as any).type,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error || !newUser) {
       return {
         success: false,
         message: 'Etudiant non créé',
         data: null,
       }
     }
+
     return {
       success: true,
-      data: serializeData({id: newUser._id}),
+      data: serializeData({ id: newUser.id }),
       message: 'Etudiant créé avec succès',
     }
   } catch (error) {
     console.error('[CREATE_STUDENT]', error)
-    throw new Error("Erreur lors de la création de l'étudiant")
+    throw new Error('Erreur lors de la création de l\'étudiant')
   }
 }
 
 export async function deleteStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
-    if (!studentId || !isValidObjectId(studentId)) {
+    if (!studentId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -64,20 +82,20 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse<Seri
       }
     }
 
-    const deletedUser = await User.findOneAndUpdate(
-      {
-        _id: studentId,
-        role: 'student',
-        isActive: true,
-      },
-      {
-        isActive: false,
-        deletedAt: new Date(),
-      },
-      {new: true},
-    ).select('-password')
+    const { data: deletedUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', studentId)
+      .eq('role', 'student')
+      .eq('is_active', true)
+      .select('id, firstname, lastname, email')
+      .single()
 
-    if (!deletedUser) {
+    if (error || !deletedUser) {
       return {
         success: false,
         message: 'Etudiant non trouvé',
@@ -92,30 +110,65 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse<Seri
     }
   } catch (error) {
     console.error('[DELETE_STUDENT]', error)
-    throw new Error("Erreur lors de la suppression de l'étudiant")
+    throw new Error('Erreur lors de la suppression de l\'étudiant')
   }
 }
 
 export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
-  try {
-    const users = await User.find({
-      isActive: true,
-      role: 'student',
-    })
-      .select('-password')
-      .sort({firstname: 1, lastname: 1})
+  const supabase = await createClient()
 
-    if (!users) {
+  try {
+
+    // Utiliser getUser() au lieu de getSession()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('❌ Erreur lors de la récupération de l\'utilisateur:', userError)
+      throw new Error('Erreur d\'authentification')
+    }
+
+
+
+    // Récupérer le rôle depuis la table education.users pour information
+    const { data: userData, error: userDataError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('role')
+      .eq('id', user?.id)
+      .single()
+
+    if (userDataError) {
+      console.error('❌ Erreur lors de la récupération du rôle:', userDataError)
+      throw new Error('Erreur lors de la récupération du rôle')
+    }
+
+
+    // La requête utilisera automatiquement les politiques RLS qui vérifient le rôle
+    const { data: users, error } = await supabase
+      .schema('education')
+      .from('users')
+      .select('*')
+      .eq('role', 'student')
+      .eq('is_active', true)
+      .order('firstname', { ascending: true })
+      .order('lastname', { ascending: true })
+
+    if (error) {
+      console.error('❌ Erreur Supabase:', error)
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
+
+    if (!users || users.length === 0) {
       return {
         success: false,
         message: 'Etudiants non trouvés',
         data: null,
       }
     }
+
     return {
       success: true,
-      data: users ? serializeData(users) : null,
+      data: serializeData(users),
       message: 'Tous les Etudiants récupérés avec succès',
     }
   } catch (error) {
@@ -126,8 +179,10 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
 
 export async function getOneStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
-    if (!isValidObjectId(studentId)) {
+    if (!studentId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -135,40 +190,75 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Seri
       }
     }
 
-    const user = await User.findOne({
-      isActive: true,
-      role: 'student',
-      _id: studentId,
-    }).select('-password')
+    const { data: user, error } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .eq('is_active', true)
+      .eq('role', 'student')
+      .eq('id', studentId)
+      .single()
 
-    if (!user) {
+    if (error || !user) {
       return {
         success: false,
         message: 'Etudiant non trouvé',
         data: null,
       }
     }
+
     return {
       success: true,
-      data: user ? serializeData(user) : null,
+      data: serializeData(user),
       message: 'Etudiant récupéré avec succès',
     }
   } catch (error) {
     console.error('[GET_ONE_STUDENT]', error)
-    throw new Error("Erreur lors de la récupération de l'étudiant")
+    throw new Error('Erreur lors de la récupération de l\'étudiant')
   }
 }
 
 export async function getTeachersForStudent(
   studentId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  try {
-    const studentCourses = await Course.find({
-      'sessions.students': studentId,
-      isActive: true,
-    })
+  await getSessionServer()
+  const supabase = await createClient()
 
-    if (!studentCourses || studentCourses.length === 0) {
+  try {
+    if (!studentId) {
+      return {
+        success: false,
+        message: 'Id étudiant manquant',
+        data: null,
+      }
+    }
+
+    // Récupérer les cours de l'étudiant
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .select(`
+        courses_sessions (
+          courses (
+            courses_teacher (
+              users:teacher_id (
+                id,
+                email,
+                firstname,
+                lastname,
+                subjects
+              )
+            )
+          )
+        )
+      `)
+      .eq('student_id', studentId)
+
+    if (enrollmentError) {
+      throw new Error(`Erreur lors de la récupération des cours: ${enrollmentError.message}`)
+    }
+
+    if (!enrollments || enrollments.length === 0) {
       return {
         success: false,
         message: 'Aucun cours trouvé pour cet étudiant',
@@ -176,24 +266,23 @@ export async function getTeachersForStudent(
       }
     }
 
-    // Extraire les IDs des professeurs
-    const teacherIds = studentCourses.flatMap((course) => course.teacher)
-
-    if (teacherIds.length === 0) {
-      return {
-        success: false,
-        message: 'Aucun professeur trouvé pour cet étudiant',
-        data: null,
+    // Extraire les professeurs uniques
+    const teachersMap = new Map()
+    enrollments.forEach((enrollment: any) => {
+      const session = enrollment.courses_sessions
+      if (session?.courses?.courses_teacher) {
+        session.courses.courses_teacher.forEach((teacherLink: any) => {
+          const teacher = teacherLink.users
+          if (teacher) {
+            teachersMap.set(teacher.id, teacher)
+          }
+        })
       }
-    }
+    })
 
-    const teachers = await User.find({
-      _id: {$in: teacherIds},
-      role: 'teacher',
-      isActive: true,
-    }).select('-password')
+    const teachers = Array.from(teachersMap.values())
 
-    if (!teachers || teachers.length === 0) {
+    if (teachers.length === 0) {
       return {
         success: false,
         message: 'Aucun professeur trouvé',
@@ -203,8 +292,8 @@ export async function getTeachersForStudent(
 
     return {
       success: true,
-      data: teachers ? serializeData(teachers) : null,
-      message: 'Professeur récupéré avec succès',
+      data: serializeData(teachers),
+      message: 'Professeurs récupérés avec succès',
     }
   } catch (error) {
     console.error('[GET_TEACHERS_FOR_STUDENT]', error)
@@ -221,8 +310,10 @@ export async function updateStudent(
   studentData: Partial<Student>,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
+
   try {
-    if (!studentId || !isValidObjectId(studentId)) {
+    if (!studentId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -230,17 +321,20 @@ export async function updateStudent(
       }
     }
 
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        _id: studentId,
-        role: 'student',
-        isActive: true,
-      },
-      {$set: studentData},
-      {new: true},
-    ).select('-password')
+    const { data: updatedUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .update({
+        ...studentData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', studentId)
+      .eq('role', 'student')
+      .eq('is_active', true)
+      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .single()
 
-    if (!updatedUser) {
+    if (error || !updatedUser) {
       return {
         success: false,
         message: 'Etudiant non trouvé',
@@ -250,12 +344,12 @@ export async function updateStudent(
 
     return {
       success: true,
-      data: updatedUser ? serializeData(updatedUser) : null,
+      data: serializeData(updatedUser),
       message: 'Etudiant mis à jour avec succès',
     }
   } catch (error) {
     console.error('[UPDATE_STUDENT]', error)
-    throw new Error("Erreur lors de la mise à jour de l'étudiant")
+    throw new Error('Erreur lors de la mise à jour de l\'étudiant')
   }
 }
 
@@ -267,8 +361,8 @@ function validateRequiredFields(type: string, data: any): {isValid: boolean; mes
 
   return missingFields.length > 0
     ? {
-        isValid: false,
-        message: `Champs manquants: ${missingFields.join(', ')}`,
-      }
-    : {isValid: true}
+      isValid: false,
+      message: `Champs manquants: ${missingFields.join(', ')}`,
+    }
+    : { isValid: true }
 }

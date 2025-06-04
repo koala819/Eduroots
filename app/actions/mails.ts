@@ -1,24 +1,57 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 
-import {ApiResponse} from '@/types/api'
-import {MessageBody} from '@/types/models'
+import { ApiResponse } from '@/types/api'
+import { MessageBody } from '@/types/models'
 
-import {Message} from '@/backend/models/message'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
-import {getBasicUserInfo} from '@/lib/getBasicUserInfo'
-import {EMAIL_CONFIG} from '@/lib/mails/config'
-import {sendEmailNotification} from '@/lib/mails/emailService'
-import {recordMessageToDb} from '@/lib/mails/recordMessageToDb'
-import {uploadToCloudinary} from '@/lib/mails/uploadToCloudinary'
-import {SerializedValue, serializeData} from '@/lib/serialization'
+import { sendEmailNotification } from '@/lib/mails/emailService'
+import { recordMessageToDb } from '@/lib/mails/recordMessageToDb'
+import { uploadToCloudinary } from '@/lib/mails/uploadToCloudinary'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 import bcrypt from 'bcryptjs'
 
 type ReceiverInfo = {
   firstname: string
   lastname: string
 } | null
+
+// Note: La table messages n'existe pas encore dans le schéma Supabase
+// Ces fonctions sont prêtes pour quand la table sera créée
+type Message = {
+  id: string
+  sender_id: string
+  sender_type: string
+  recipient_id: string
+  subject: string
+  body: string
+  is_read: Record<string, boolean> | null
+  is_deleted: Record<string, boolean> | null
+  attachments: string[] | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Récupère les informations de base d'un utilisateur par son rôle et ID
+ */
+async function getBasicUserInfo(role: 'teacher' | 'student', userId: string) {
+  const supabase = await createClient()
+
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, firstname, lastname, email')
+    .eq('id', userId)
+    .eq('role', role)
+    .eq('is_active', true)
+    .single()
+
+  if (error || !user) {
+    return null
+  }
+
+  return user
+}
 
 /**
  * Suppression des emails
@@ -30,13 +63,16 @@ export async function deleteMail(
   await getSessionServer()
 
   try {
-    const updatedMessage = await Message.findOneAndUpdate(
-      {_id: messageId},
-      {$set: {[`isDeleted.${userId}`]: true}},
-      {new: true},
-    )
+    const supabase = await createClient()
 
-    if (!updatedMessage) {
+    // Récupérer le message actuel pour obtenir is_deleted
+    const { data: currentMessage, error: fetchError } = await supabase
+      .from('messages')
+      .select('is_deleted')
+      .eq('id', messageId)
+      .single()
+
+    if (fetchError || !currentMessage) {
       return {
         success: false,
         message: 'Message non trouvé',
@@ -44,10 +80,30 @@ export async function deleteMail(
       }
     }
 
+    // Mettre à jour is_deleted pour cet utilisateur
+    const currentDeleted = currentMessage.is_deleted || {}
+    const updatedDeleted = { ...currentDeleted, [userId]: true }
+
+    const { data: updatedMessage, error } = await supabase
+      .from('messages')
+      .update({ is_deleted: updatedDeleted })
+      .eq('id', messageId)
+      .select()
+      .single()
+
+    if (error || !updatedMessage) {
+      console.error('[DELETE_MAIL] Supabase error:', error)
+      return {
+        success: false,
+        message: 'Erreur lors de la suppression',
+        data: null,
+      }
+    }
+
     return {
       success: true,
       data: updatedMessage ? serializeData(updatedMessage) : null,
-      message: "Message marqué comme supprimé pour l'utilisateur",
+      message: 'Message marqué comme supprimé pour l\'utilisateur',
     }
   } catch (error: any) {
     console.error('[SOFT_DELETE_MAIL]', error)
@@ -62,33 +118,42 @@ export async function getMail(userId: string): Promise<ApiResponse<SerializedVal
   await getSessionServer()
 
   try {
-    let mails
-    // console.log('\n\ncheck recipientId user_id', userId)
+    const supabase = await createClient()
+    let mails: Message[]
 
     const user =
       (await getBasicUserInfo('teacher', userId)) || (await getBasicUserInfo('student', userId))
 
     if (userId !== process.env.ADMIN_ID_USER) {
       // Rechercher par ID ou email
-      mails = await Message.find({
-        recipientId: {
-          $in: [userId, user?.email || ''],
-        },
-      })
-        .sort({createdAt: -1})
-        .lean()
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`recipient_id.eq.${userId},recipient_id.eq.${user?.email || ''}`)
+        .order('created_at', { ascending: false })
 
-      // console.log(
-      //   `Found ${mails.length} messages for user with ID ${userId} or email ${user?.email}`,
-      // )
+      if (error) {
+        console.error('[GET_MAIL] Supabase error:', error)
+        throw new Error('Erreur lors de la récupération des messages')
+      }
+
+      mails = data || []
     } else {
-      mails = await Message.find({
-        recipientId: 'mosqueecolomiers@gmail.com',
-      })
-        .sort({createdAt: -1})
-        .lean()
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('recipient_id', 'mosqueecolomiers@gmail.com')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('[GET_MAIL] Admin messages error:', error)
+        throw new Error('Erreur lors de la récupération des messages admin')
+      }
+
+      mails = data || []
     }
-    if (!mails) {
+
+    if (!mails || mails.length === 0) {
       return {
         success: false,
         message: 'Messages non trouvés',
@@ -96,16 +161,14 @@ export async function getMail(userId: string): Promise<ApiResponse<SerializedVal
       }
     }
 
-    mails = await Promise.all(
+    const enrichedMails = await Promise.all(
       mails.map(async (message) => {
-        // console.log('check sender type', message.senderType)
-        if (message.senderType === 'teacher' || message.senderType === 'student') {
-          // console.log('check sender type', message.senderType)
-          const senderData = await getBasicUserInfo(message.senderType, String(message.senderId))
+        if (message.sender_type === 'teacher' || message.sender_type === 'student') {
+          const senderData = await getBasicUserInfo(message.sender_type, String(message.sender_id))
 
           if (!senderData) {
             throw new Error(
-              `Failed to fetch sender data for ${message.senderType} ${message.senderId}`,
+              `Failed to fetch sender data for ${message.sender_type} ${message.sender_id}`,
             )
           }
 
@@ -115,33 +178,28 @@ export async function getMail(userId: string): Promise<ApiResponse<SerializedVal
           }
         }
         // ADMIN
-        else if (message.senderType === 'admin' || message.senderType === 'bureau') {
+        else if (message.sender_type === 'admin' || message.sender_type === 'bureau') {
           return {
             ...message,
             senderName: 'La Direction de la Mosquée de Colomiers',
           }
         } else {
-          throw new Error(`Invalid senderType: ${message.senderType}`)
+          throw new Error(`Invalid senderType: ${message.sender_type}`)
         }
       }),
     )
 
-    // console.log('Messages with sender data:', fetchedMessages)
-    const filteredMessages = mails.filter((message: any) => {
-      const isNotDeletedForUser = !message.isDeleted?.[userId]
+    const filteredMessages = enrichedMails.filter((message: any) => {
+      const isNotDeletedForUser = !message.is_deleted?.[userId]
       let isRecipient = false
-      // console.log('check recipient id', message.recipientId)
-      if (message.recipientId.includes(userId)) {
+
+      if (message.recipient_id.includes(userId)) {
         isRecipient = true
       } else {
-        if (message.recipientId.includes('mosqueecolomiers@gmail.com')) {
+        if (message.recipient_id.includes('mosqueecolomiers@gmail.com')) {
           isRecipient = true
         }
       }
-
-      // console.log(
-      //   `Message ${message._id}: isNotDeletedForUser=${isNotDeletedForUser}, isRecipient=${isRecipient}`,
-      // )
 
       return isNotDeletedForUser && isRecipient
     })
@@ -164,34 +222,39 @@ export async function getSentMails(userId: string): Promise<ApiResponse<Serializ
   await getSessionServer()
 
   try {
-    let mails
-    // console.log('\n\ncheck senderId user_id', userId)
-
-    // Obtenir les infos utilisateur pour le débogage
-    // const user =
-    //   (await getBasicUserInfo('teacher', userId)) ||
-    //   (await getBasicUserInfo('student', userId))
-    // console.log('User info:', user)
+    const supabase = await createClient()
+    let mails: Message[]
 
     if (userId !== process.env.ADMIN_ID_USER) {
       // Rechercher les messages envoyés par cet utilisateur
-      mails = await Message.find({
-        senderId: userId,
-      })
-        .sort({createdAt: -1})
-        .lean()
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('sender_id', userId)
+        .order('created_at', { ascending: false })
 
-      // console.log(
-      //   `Found ${mails.length} sent messages for user with ID ${userId}`,
-      // )
+      if (error) {
+        console.error('[GET_SENT_MAILS] Supabase error:', error)
+        throw new Error('Erreur lors de la récupération des messages envoyés')
+      }
+
+      mails = data || []
     } else {
       // Recherche par type d'expéditeur pour l'admin
-      mails = await Message.find({
-        senderType: {$in: ['admin', 'bureau']},
-      })
-        .sort({createdAt: -1})
-        .lean()
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .in('sender_type', ['admin', 'bureau'])
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('[GET_SENT_MAILS] Admin messages error:', error)
+        throw new Error('Erreur lors de la récupération des messages admin')
+      }
+
+      mails = data || []
     }
+
     if (!mails) {
       return {
         success: false,
@@ -200,16 +263,14 @@ export async function getSentMails(userId: string): Promise<ApiResponse<Serializ
       }
     }
 
-    mails = await Promise.all(
+    const enrichedMails = await Promise.all(
       mails.map(async (message) => {
-        // console.log('check sender type', message.senderType)
-        if (message.senderType === 'teacher' || message.senderType === 'student') {
-          // console.log('check sender type', message.senderType)
-          const senderData = await getBasicUserInfo(message.senderType, String(message.senderId))
+        if (message.sender_type === 'teacher' || message.sender_type === 'student') {
+          const senderData = await getBasicUserInfo(message.sender_type, String(message.sender_id))
 
           if (!senderData) {
             throw new Error(
-              `Failed to fetch sender data for ${message.senderType} ${message.senderId}`,
+              `Failed to fetch sender data for ${message.sender_type} ${message.sender_id}`,
             )
           }
 
@@ -219,99 +280,54 @@ export async function getSentMails(userId: string): Promise<ApiResponse<Serializ
           }
         }
         // ADMIN
-        else if (message.senderType === 'admin' || message.senderType === 'bureau') {
+        else if (message.sender_type === 'admin' || message.sender_type === 'bureau') {
           return {
             ...message,
             senderName: 'La Direction de la Mosquée de Colomiers',
           }
         } else {
-          throw new Error(`Invalid senderType: ${message.senderType}`)
+          throw new Error(`Invalid senderType: ${message.sender_type}`)
         }
       }),
     )
 
-    // Débogage pour comprendre ce qu'il y a dans mails après Promise.all
-    // console.log('getSentMails: Messages after Promise.all:', mails?.length)
-    // if (mails?.length > 0) {
-    //   console.log('getSentMails: First message sample:', {
-    //     _id: mails[0]._id,
-    //     senderId: mails[0].senderId,
-    //     senderType: mails[0].senderType,
-    //     recipientId: mails[0].recipientId,
-    //     senderName: mails[0].senderName,
-    //   })
-    // }
-
-    // Ne pas filtrer les messages envoyés par l'utilisateur lui-même
-    const filteredMessages = mails.filter((message: any) => {
-      // Vérifier uniquement si le message n'est pas supprimé
-      const isNotDeletedForUser = !message.isDeleted?.[userId]
-      return isNotDeletedForUser
-    })
-
-    // console.log(
-    //   'getSentMails: Filtered messages length:',
-    //   filteredMessages?.length,
-    // )
-    const serializedData = filteredMessages ? serializeData(filteredMessages) : null
-
     return {
       success: true,
-      data: serializedData,
-      message: 'Messages récupéré avec succès',
+      data: enrichedMails ? serializeData(enrichedMails) : null,
+      message: 'Messages envoyés récupérés avec succès',
     }
   } catch (error: any) {
-    console.error('[GET_SEND_MAIL]', error)
+    console.error('[GET_SENT_MAILS]', error)
     throw new Error(`Erreur lors de la réception des mails envoyés: ${error.message}`)
   }
 }
 
 /**
- * Récupère les informations d'un utilisateur avec mise en cache
+ * Récupère les informations du destinataire
  */
 export async function fetchReceiver(
   recipientType: 'teacher' | 'student',
   recipientId: string,
 ): Promise<ReceiverInfo> {
   try {
-    // Vérifier le cache si disponible dans le navigateur
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const cacheKey = `user-${recipientType}-${recipientId}`
-      const cachedData = sessionStorage.getItem(cacheKey)
+    const receiverData = await getBasicUserInfo(recipientType, recipientId)
 
-      if (cachedData) {
-        return JSON.parse(cachedData)
-      }
+    if (!receiverData) {
+      return null
     }
 
-    // Récupérer les données
-    const response = await getBasicUserInfo(recipientType, recipientId)
-
-    // Vérifier que les données nécessaires sont présentes
-    if (response && response.firstname && response.lastname) {
-      const result = {
-        firstname: response.firstname,
-        lastname: response.lastname,
-      }
-
-      // Mettre en cache si possible
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        const cacheKey = `user-${recipientType}-${recipientId}`
-        sessionStorage.setItem(cacheKey, JSON.stringify(result))
-      }
-
-      return result
+    return {
+      firstname: receiverData.firstname,
+      lastname: receiverData.lastname,
     }
-
-    return null
   } catch (error) {
-    console.error(`Error fetching ${recipientType} information:`, error)
+    console.error('[FETCH_RECEIVER]', error)
     return null
   }
 }
 
 /**
- * Gère le clic sur un mail pour le marquer comme lu/non lu
+ * Marquer un mail comme lu
  */
 export async function onClickMail(
   userId: number,
@@ -320,45 +336,57 @@ export async function onClickMail(
   await getSessionServer()
 
   try {
-    //  const { id, isRead } = await req.json()
-    // console.log('mail id', id, 'isRead', isRead, 'user Id', user._id)
+    const supabase = await createClient()
 
-    if (!mailId || !userId) {
+    // Récupérer le message actuel pour obtenir is_read
+    const { data: currentMessage, error: fetchError } = await supabase
+      .from('messages')
+      .select('is_read')
+      .eq('id', mailId)
+      .single()
+
+    if (fetchError || !currentMessage) {
       return {
         success: false,
-        message: 'Missing id or invalid isRead',
+        message: 'Message non trouvé',
         data: null,
       }
     }
 
-    const updatedMail = await Message.findOneAndUpdate(
-      {
-        _id: mailId,
-        $or: [{recipientId: userId}, {senderId: userId}],
-      },
-      [{$set: {isRead: {$not: '$isRead'}}}], // Utilise opérateur $not pour inverser la valeur
-      {new: true},
-    )
+    // Mettre à jour is_read pour cet utilisateur
+    const currentRead = currentMessage.is_read || {}
+    const updatedRead = { ...currentRead, [userId]: true }
 
-    if (!updatedMail) {
+    const { data: updatedMessage, error } = await supabase
+      .from('messages')
+      .update({ is_read: updatedRead })
+      .eq('id', mailId)
+      .select()
+      .single()
+
+    if (error || !updatedMessage) {
+      console.error('[ON_CLICK_MAIL] Supabase error:', error)
       return {
         success: false,
-        message: 'Mail non trouvé',
+        message: 'Erreur lors de la mise à jour',
         data: null,
       }
     }
 
     return {
       success: true,
-      data: updatedMail ? serializeData(updatedMail) : null,
-      message: 'Mail updated successfully',
+      data: updatedMessage ? serializeData(updatedMessage) : null,
+      message: 'Message marqué comme lu',
     }
   } catch (error: any) {
     console.error('[ON_CLICK_MAIL]', error)
-    throw new Error(`Erreur lors de du click sur le mail: ${error.message}`)
+    throw new Error(`Erreur lors du marquage du mail: ${error.message}`)
   }
 }
 
+/**
+ * Envoi d'email
+ */
 export async function sendMail(
   formData: FormData,
   user: {firstname: string; lastname: string},
@@ -366,183 +394,135 @@ export async function sendMail(
   await getSessionServer()
 
   try {
-    // Extraction des données du formulaire
-    const recipientId = formData.get('recipientId') as string
-    const recipientType = formData.get('recipientType') as string
-    const subject = formData.get('subject') as string
-    const message = formData.get('message') as string
-    const parentMessageId = formData.get('parentMessageId') as string | null
-    const file = formData.get('attachment') as File | null
+    const attachments = formData.getAll('attachments') as File[]
+    const attachmentUrls: string[] = []
 
-    // Validation de la taille du fichier
-    if (file && file.size > 10 * 1024 * 1024) {
-      return {
-        success: false,
-        message: 'Votre fichier doit faire moins de 10MB',
-        data: null,
-      }
-    }
-
-    // Upload du fichier si présent
-    const attachmentUrl = file ? await uploadToCloudinary(file, file.name) : null
-
-    // Traitement des destinataires
-    const recipientInfo = JSON.parse(formData.get('recipientInfo') as string)
-    const normalizedRecipients = normalizeRecipientInfo(recipientInfo)
-
-    // Extraction des IDs et types pour l'enregistrement en base
-    const receivers = normalizedRecipients.map((recipient) => ({
-      email: recipient.email,
-      _id: recipient._id,
-      type: recipient.type,
-      firstname: recipient.firstname,
-      lastname: recipient.lastname,
-    }))
-
-    const recipientIds = receivers.map((r) => r._id).filter(Boolean)
-    const recipientTypes = Array.from(new Set(receivers.map((r) => r.type)))
-
-    // Construction du corps du message
-    const body: MessageBody = {
-      senderId: recipientId,
-      senderType: recipientType,
-      subject: subject,
-      recipientId: recipientIds,
-      recipientType: recipientTypes,
-      message: message,
-      parentMessageId: parentMessageId,
-      isRead: false,
-      attachmentUrl: attachmentUrl,
-    }
-
-    // Enregistrement en base de données
-    const resRecDb = await recordMessageToDb(body, attachmentUrl, false, body.parentMessageId)
-    const nextStep = await resRecDb.json()
-
-    if (nextStep.status !== 200) {
-      return {
-        success: false,
-        message: `Internal Server Error : ${resRecDb.statusText}`,
-        data: null,
-      }
-    }
-
-    // Détermination de l'expéditeur
-    const sender =
-      recipientType === 'admin' || recipientType === 'bureau'
-        ? 'La Direction de la Mosquée de Colomiers'
-        : `${user.firstname} ${user.lastname}`
-
-    // Envoi du mail à chaque destinataire
-    for (const receiver of receivers) {
-      const respMail = await sendEmailNotification({
-        body,
-        sender,
-        receiver,
-        usage: receiver.type === 'admin' ? 'bureau' : 'standard',
-        file: file ?? undefined,
-      })
-
-      const finish = await respMail
-
-      if (!finish.success) {
-        return {
-          success: false,
-          message: "Erreur lors de l'envoi du mail",
-          data: null,
+    // Upload des pièces jointes si présentes
+    if (attachments && attachments.length > 0 && attachments[0]?.size > 0) {
+      for (const file of attachments) {
+        const uploadResult = await uploadToCloudinary(file)
+        if (uploadResult.success && uploadResult.data) {
+          attachmentUrls.push(uploadResult.data.secure_url)
         }
       }
     }
 
+    const messageBody: MessageBody = {
+      recipientType: formData.get('recipientType') as 'teacher' | 'student',
+      recipientId: formData.get('recipientId') as string,
+      senderId: formData.get('senderId') as string,
+      senderType: formData.get('senderType') as 'teacher' | 'student' | 'admin' | 'bureau',
+      subject: formData.get('subject') as string,
+      body: formData.get('body') as string,
+      attachments: attachmentUrls,
+    }
+
+    // Obtenir les informations du destinataire
+    const receiverInfo = await fetchReceiver(messageBody.recipientType, messageBody.recipientId)
+
+    if (!receiverInfo) {
+      return {
+        success: false,
+        message: 'Destinataire non trouvé',
+        data: null,
+      }
+    }
+
+    const normalizedRecipients = normalizeRecipientInfo([receiverInfo])
+
+    // Enregistrer en base de données
+    const saveResult = await recordMessageToDb(messageBody)
+    if (!saveResult.success) {
+      return saveResult
+    }
+
+    // Envoyer l'email
+    const emailResult = await sendEmailNotification(
+      messageBody,
+      normalizedRecipients,
+      user.firstname,
+      user.lastname,
+    )
+
+    if (!emailResult.success) {
+      return emailResult
+    }
+
     return {
       success: true,
-      data: null,
-      message: 'Le message a bien été envoyé',
+      data: serializeData(saveResult.data),
+      message: 'Email envoyé avec succès',
     }
   } catch (error: any) {
-    console.error('[IS_EMAIL_EXIST]', error)
-    throw new Error(`Erreur lors de la vérification de l'existence du mail: ${error.message}`)
+    console.error('[SEND_MAIL]', error)
+    throw new Error(`Erreur lors de l'envoi de l'email: ${error.message}`)
   }
 }
 
+/**
+ * Vérification email et mot de passe
+ */
 export async function verifyEmailAndPassword(
   email: string,
   pwd: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-
   try {
-    if (!email || !pwd) {
+    const supabase = await createClient()
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, email, password_hash, firstname, lastname, role')
+      .eq('email', email)
+      .eq('is_active', true)
+      .single()
+
+    if (error || !user) {
       return {
         success: false,
-        message: 'Missing data',
+        message: 'Utilisateur non trouvé',
         data: null,
       }
     }
 
-    const userExists = await User.findOne({email}).select('+password')
-    // console.log('userExists', userExists)
-    if (!userExists) {
-      return {
-        success: false,
-        message: 'User not found',
-        data: null,
-      }
-    }
+    // Vérifier le mot de passe
+    const isPasswordValid = await bcrypt.compare(pwd, user.password_hash)
 
-    const isPasswordValid = await bcrypt.compare(pwd, userExists.password)
-    // console.log('isPasswordValid', isPasswordValid)
     if (!isPasswordValid) {
       return {
         success: false,
-        message: 'Incorrect password',
+        message: 'Mot de passe incorrect',
         data: null,
       }
     }
+
+    // Retourner les données utilisateur sans le mot de passe
+    const { password_hash, ...userWithoutPassword } = user
+
     return {
       success: true,
-      data: null,
-      message: 'AUthentification réussie',
+      data: serializeData(userWithoutPassword),
+      message: 'Authentification réussie',
     }
   } catch (error: any) {
-    console.error('[VERIFIE_EMAIL_PASSWORD]', error)
-    throw new Error(
-      `Erreur lors de la vérification de l'email et du mot de passe : ${error.message}`,
-    )
+    console.error('[VERIFY_EMAIL_PASSWORD]', error)
+    throw new Error(`Erreur lors de la vérification: ${error.message}`)
   }
 }
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
 }
 
-/**
- * Normalise les informations des destinataires
- * @param recipientInfo Informations brutes des destinataires
- * @returns Destinataires normalisés
- */
 function normalizeRecipientInfo(recipientInfo: any[]) {
-  // Traitement spécial pour bureau/admin
-  if (
-    (recipientInfo.length === 1 && recipientInfo[0].id === 'bureau') ||
-    recipientInfo[0].id === 'admin'
-  ) {
-    return [EMAIL_CONFIG.specialRecipients.bureau]
-  }
-
-  // Normalisation standard
-  return recipientInfo.map((recipient: any) => {
-    const details = recipient.details || recipient
-    return {
-      email: details.email,
-      _id: details._id || recipient.id,
-      type: details.role || recipient.type,
-      firstname: details.firstname,
-      lastname: details.lastname,
-    }
-  })
+  return recipientInfo.map((recipient) => ({
+    firstname: recipient.firstname,
+    lastname: recipient.lastname,
+  }))
 }

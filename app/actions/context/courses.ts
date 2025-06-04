@@ -1,24 +1,21 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
-import {revalidatePath} from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
-import {ApiResponse} from '@/types/api'
-import {CourseSession, CourseSessionModel, TimeSlot} from '@/types/course'
-import {GradeRecord} from '@/types/grade'
-import {CourseDocument, GradeDocument} from '@/types/mongoose'
+import { ApiResponse } from '@/types/api'
+import { CourseSession, TimeSlot } from '@/types/course'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
-import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {Types} from 'mongoose'
+async function getAuthenticatedUser() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return user
 }
 
 export async function addStudentToCourse(
@@ -31,51 +28,68 @@ export async function addStudentToCourse(
     subject: string
   },
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const {dayOfWeek, startTime, endTime, subject} = timeSlot
+    const { dayOfWeek, startTime, endTime, subject } = timeSlot
 
-    // Utiliser findOneAndUpdate au lieu de findById + save
-    const updatedCourse = await Course.findOneAndUpdate(
-      {
-        _id: courseId,
-        'sessions.timeSlot.dayOfWeek': dayOfWeek,
-        'sessions.timeSlot.startTime': startTime,
-        'sessions.timeSlot.endTime': endTime,
-        'sessions.subject': subject,
-      },
-      {
-        $addToSet: {
-          'sessions.$.students': new Types.ObjectId(studentId),
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
+    // Trouver la session correspondante
+    const { data: session, error: sessionError } = await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .select('*')
+      .eq('course_id', courseId)
+      .eq('subject', subject)
+      .single()
 
-    if (!updatedCourse) {
-      // Add this line to revalidate affected paths
+    if (sessionError || !session) {
       revalidatePath(`/courses/${courseId}`)
-
       return {
         success: false,
-        message: 'Cours ou session non trouvé',
+        message: 'Session non trouvée',
         data: null,
       }
     }
 
-    // Add this line to revalidate affected paths
+    // Vérifier si l'étudiant est déjà inscrit
+    const { data: existingEnrollment } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .select('id')
+      .eq('course_sessions_id', session.id)
+      .eq('student_id', studentId)
+      .single()
+
+    if (existingEnrollment) {
+      return {
+        success: false,
+        message: 'Étudiant déjà inscrit à cette session',
+        data: null,
+      }
+    }
+
+    // Ajouter l'étudiant à la session
+    const { error: enrollError } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .insert({
+        course_sessions_id: session.id,
+        student_id: studentId,
+      })
+
+    if (enrollError) {
+      throw new Error(`Erreur lors de l'inscription: ${enrollError.message}`)
+    }
+
     revalidatePath(`/courses/${courseId}`)
 
     return {
       success: true,
-      data: updatedCourse ? serializeData(updatedCourse) : null,
+      data: null,
       message: 'Étudiant ajouté avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[ADD_STUDENT_TO_COURSE]', error)
     throw new Error('Failed to add student to course')
   }
@@ -86,41 +100,52 @@ export async function checkTimeSlotOverlap(
   userId: string,
   excludeCourseId?: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    // 1. Trouvons tous les cours du prof pour ce jour
-    const teacherCoursesQuery = {
-      _id: {$ne: excludeCourseId},
-      isActive: true,
-      teacher: {$in: [userId]},
-      'sessions.timeSlot.dayOfWeek': timeSlot.dayOfWeek,
+    // Récupérer tous les créneaux du professeur pour ce jour
+    let query = supabase
+      .schema('education')
+      .from('courses_sessions_timeslot')
+      .select(`
+        *,
+        courses_sessions (
+          *,
+          courses_teacher!inner (
+            teacher_id
+          )
+        )
+      `)
+      .eq('day_of_week', timeSlot.dayOfWeek)
+      .eq('courses_sessions.courses_teacher.teacher_id', userId)
+
+    if (excludeCourseId) {
+      query = query.neq('courses_sessions.course_id', excludeCourseId)
     }
 
-    const teacherCourses = await Course.find(teacherCoursesQuery)
+    const { data: existingSlots, error } = await query
 
-    // 2. Vérifions les chevauchements
-    const hasOverlap = false
+    if (error) {
+      throw new Error(`Erreur lors de la vérification: ${error.message}`)
+    }
+
+    // Vérifier les chevauchements
     const newStartTime = timeToMinutes(timeSlot.startTime)
     const newEndTime = timeToMinutes(timeSlot.endTime)
 
-    for (const course of teacherCourses) {
-      const existingStartTime = timeToMinutes(course.sessions[0].timeSlot.startTime)
-      const existingEndTime = timeToMinutes(course.sessions[0].timeSlot.endTime)
+    for (const slot of existingSlots || []) {
+      const existingStartTime = timeToMinutes(slot.start_time)
+      const existingEndTime = timeToMinutes(slot.end_time)
 
       // Il y a chevauchement si :
       // le nouveau cours commence avant la fin d'un cours existant
       // ET se termine après le début d'un cours existant
       if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
-        // console.log('Chevauchement détecté avec le cours:', {
-        //   courseId: course._id,
-        //   existingTime: `${course.sessions[0].timeSlot.startTime}-${course.sessions[0].timeSlot.endTime}`,
-        //   newTime: `${timeSlot.startTime}-${timeSlot.endTime}`,
-        // })
         return {
           success: false,
-          message: 'Ce crédneau horaire est déjà occupé',
-          data: {hasOverlap: true},
+          message: 'Ce créneau horaire est déjà occupé',
+          data: { hasOverlap: true },
         }
       }
     }
@@ -130,45 +155,132 @@ export async function checkTimeSlotOverlap(
       message: 'Aucun chevauchement rencontré',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CHECK_TIME_SLOT_OVERLAPS]', error)
     throw new Error('Failed to check time slot overlaps')
   }
 }
 
 export async function createCourse(
-  courseData: Omit<CourseDocument, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
+  courseData: {
+    academicYear: string
+    sessions: Array<{
+      subject: string
+      level: string
+      timeSlots: Array<{
+        dayOfWeek: string
+        startTime: string
+        endTime: string
+        classroomNumber?: string
+      }>
+    }>
+    teacherIds: string[]
+  },
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    // Vérification des créneaux avant création
-    const course = new Course(courseData)
-    await Course.create(course)
+    // Créer le cours principal
+    const { data: course, error: courseError } = await supabase
+      .schema('education')
+      .from('courses')
+      .insert({
+        academic_year: courseData.academicYear,
+        is_active: true,
+      })
+      .select()
+      .single()
+
+    if (courseError || !course) {
+      throw new Error(`Erreur lors de la création du cours: ${courseError?.message}`)
+    }
+
+    // Associer les professeurs au cours
+    const teacherInserts = courseData.teacherIds.map((teacherId) => ({
+      course_id: course.id,
+      teacher_id: teacherId,
+    }))
+
+    if (teacherInserts.length > 0) {
+      const { error: teacherError } = await supabase
+        .schema('education')
+        .from('courses_teacher')
+        .insert(teacherInserts)
+
+      if (teacherError) {
+        throw new Error(`Erreur lors de l'association des professeurs: ${teacherError.message}`)
+      }
+    }
+
+    // Créer les sessions et leurs créneaux
+    for (const sessionData of courseData.sessions) {
+      const { data: session, error: sessionError } = await supabase
+        .schema('education')
+        .from('courses_sessions')
+        .insert({
+          course_id: course.id,
+          subject: sessionData.subject,
+          level: sessionData.level,
+          stats_average_attendance: 0,
+          stats_average_grade: 0,
+          stats_average_behavior: 0,
+          stats_last_updated: new Date().toISOString(),
+        })
+        .select()
+        .single()
+
+      if (sessionError || !session) {
+        throw new Error(`Erreur lors de la création de la session: ${sessionError?.message}`)
+      }
+
+      // Créer les créneaux horaires pour cette session
+      const timeslotInserts = sessionData.timeSlots.map((timeSlot) => ({
+        course_sessions_id: session.id,
+        day_of_week: timeSlot.dayOfWeek,
+        start_time: timeSlot.startTime,
+        end_time: timeSlot.endTime,
+        classroom_number: timeSlot.classroomNumber || null,
+      }))
+
+      const { error: timeslotError } = await supabase
+        .schema('education')
+        .from('courses_sessions_timeslot')
+        .insert(timeslotInserts)
+
+      if (timeslotError) {
+        throw new Error(`Erreur lors de la création des créneaux: ${timeslotError.message}`)
+      }
+    }
 
     return {
       success: true,
       message: 'Cours ajouté avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CREATE_COURSE]', error)
     throw new Error('Failed to create course')
   }
 }
 
 export async function deleteCourse(courseId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const deletedCourse = await Course.findByIdAndDelete(courseId)
+    // Marquer le cours comme inactif (soft delete)
+    const { error } = await supabase
+      .schema('education')
+      .from('courses')
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', courseId)
 
-    if (!deletedCourse) {
-      return {
-        success: false,
-        message: 'Cours non trouvé',
-        data: null,
-      }
+    if (error) {
+      throw new Error(`Erreur lors de la suppression: ${error.message}`)
     }
 
     return {
@@ -176,7 +288,7 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse<Serial
       message: 'Cours supprimé avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[DELETE_COURSE]', error)
     throw new Error('Failed to delete course')
   }
@@ -186,24 +298,40 @@ export async function getCourseById(
   id: string,
   fields?: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const course = await Course.findOne({'sessions._id': id})
-      .select({
-        teacher: 1,
-        'sessions.$': 1,
-      })
-      .populate({
-        path: 'sessions.students',
-        model: 'userNEW',
-      })
-      .populate({
-        path: 'teacher',
-        model: 'userNEW',
-      })
+    // Récupérer la session avec le cours et les données associées
+    const { data: session, error } = await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .select(`
+        *,
+        courses (
+          *,
+          courses_teacher (
+            users:teacher_id (
+              id,
+              firstname,
+              lastname,
+              email
+            )
+          )
+        ),
+        courses_sessions_students (
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('id', id)
+      .single()
 
-    if (!course) {
+    if (error || !session) {
       return {
         success: false,
         message: 'Cours non trouvé',
@@ -211,50 +339,62 @@ export async function getCourseById(
       }
     }
 
-    // If stats are requested, calculate and return them
+    // Si on demande uniquement les stats
     if (fields === 'stats') {
       const stats = await calculateCourseStats(id)
       return {
         success: true,
         data: stats ? serializeData(stats) : null,
-        message: 'Cours récupéré avec succès',
+        message: 'Statistiques récupérées avec succès',
       }
     }
 
     return {
       success: true,
-      data: course ? serializeData(course) : null,
+      data: session ? serializeData(session) : null,
       message: 'Cours récupéré avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_COURSE_BY_ID]', error)
     throw new Error('Failed to fetch course by id')
   }
 }
 
 export async function getStudentCourses(studentId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    // Convertir le studentId en ObjectId
-    const studentObjectId = new Types.ObjectId(studentId)
+    // Récupérer tous les cours auxquels l'étudiant est inscrit
+    const { data: enrollments, error } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .select(`
+        *,
+        courses_sessions (
+          *,
+          courses (
+            *,
+            courses_teacher (
+              users:teacher_id (
+                id,
+                firstname,
+                lastname,
+                email,
+                subjects
+              )
+            )
+          )
+        )
+      `)
+      .eq('student_id', studentId)
+      .eq('courses_sessions.courses.is_active', true)
 
-    const courses = await Course.find({
-      'sessions.students': studentObjectId,
-      isActive: true,
-    })
-      .populate({
-        path: 'teacher',
-        select: 'firstname lastname email subjects',
-      })
-      .populate({
-        path: 'sessions.students',
-        model: 'userNEW', // Utiliser le bon nom de modèle
-        select: 'firstname lastname email', // Sélectionner uniquement les champs nécessaires
-      })
-      .lean() // Pour de meilleures performances
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
-    if (!courses || courses.length === 0) {
+    if (!enrollments || enrollments.length === 0) {
       return {
         success: false,
         message: 'Aucun cours trouvé pour cet étudiant',
@@ -264,35 +404,54 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse<
 
     return {
       success: true,
-      data: courses ? serializeData(courses) : null,
-      message: 'Cours récupéré avec succès',
+      data: enrollments ? serializeData(enrollments) : null,
+      message: 'Cours récupérés avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_STUDENT_COURSES]', error)
     throw new Error('Failed to get student courses')
   }
 }
 
 export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const courses = await Course.find({
-      teacher: teacherId,
-      isActive: true,
-    })
-      .populate('teacher')
-      .populate({
-        path: 'sessions.students',
-        model: 'userNEW',
-      })
+    // Récupérer tous les cours du professeur
+    const { data: courses, error } = await supabase
+      .schema('education')
+      .from('courses_teacher')
+      .select(`
+        *,
+        courses (
+          *,
+          courses_sessions (
+            *,
+            courses_sessions_students (
+              users:student_id (
+                id,
+                firstname,
+                lastname,
+                email
+              )
+            )
+          )
+        )
+      `)
+      .eq('teacher_id', teacherId)
+      .eq('courses.is_active', true)
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
     return {
       success: true,
       data: courses ? serializeData(courses) : null,
-      message: 'Cours du prof récupéré avec succès',
+      message: 'Cours du prof récupérés avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_TEACHER_COURSES]', error)
     throw new Error('Failed to get teacher courses')
   }
@@ -302,36 +461,41 @@ export async function removeStudentFromCourse(
   courseId: string,
   studentId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  try {
-    const course = await Course.findById(courseId)
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
-    if (!course) {
-      return {
-        success: false,
-        message: 'Cours non trouvé',
-        data: null,
-      }
+  try {
+    // Récupérer les IDs des sessions du cours
+    const { data: sessions, error: sessionsError } = await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .select('id')
+      .eq('course_id', courseId)
+
+    if (sessionsError || !sessions?.length) {
+      throw new Error(`Erreur lors de la récupération des sessions: ${sessionsError?.message}`)
     }
 
-    const studentObjectId = new Types.ObjectId(studentId)
+    const sessionIds = sessions.map((s) => s.id)
 
-    // Retirer l'étudiant de toutes les sessions
-    course.sessions.forEach((session: CourseSessionModel) => {
-      const studentIndex = session.students.findIndex((sid) => sid.equals(studentObjectId))
-      if (studentIndex !== -1) {
-        session.students.splice(studentIndex, 1)
-      }
-    })
+    // Supprimer l'étudiant de toutes les sessions du cours
+    const { error } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .delete()
+      .in('course_sessions_id', sessionIds)
+      .eq('student_id', studentId)
 
-    await course.save()
-    // await course.updateStats()
+    if (error) {
+      throw new Error(`Erreur lors de la suppression: ${error.message}`)
+    }
+
     return {
       success: true,
-      message: 'Session supprimé avec success',
+      message: 'Étudiant retiré du cours avec succès',
       data: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[REMOVE_STUDENT_FROM_COURSE]', error)
     throw new Error('Failed to remove student from course')
   }
@@ -339,97 +503,65 @@ export async function removeStudentFromCourse(
 
 export async function updateCourse(
   courseId: string,
-  courseData: Omit<CourseDocument, 'students' | 'stats'>,
+  courseData: {
+    sessions: Array<{
+      id: string
+      subject: string
+      level: string
+      timeSlot: {
+        dayOfWeek: string
+        startTime: string
+        endTime: string
+        classroomNumber?: string
+      }
+    }>
+  },
   sameStudents: boolean,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const sessionIds = courseData.sessions.map((session: CourseSession) => session.id)
-    // console.log('🚀 ~ sessionIds:', sessionIds)
-    // console.log(
-    //   '🚀 ~ classroom Number:',
-    //   courseData.sessions[0].timeSlot.classroomNumber,
-    // )
+    // Mettre à jour chaque session
+    for (const sessionData of courseData.sessions) {
+      // Mettre à jour la session
+      const { error: sessionError } = await supabase
+        .schema('education')
+        .from('courses_sessions')
+        .update({
+          subject: sessionData.subject,
+          level: sessionData.level,
+          stats_last_updated: new Date().toISOString(),
+        })
+        .eq('id', sessionData.id)
 
-    if (!courseData) {
-      return {
-        success: false,
-        message: 'Données de cours invalides',
-        data: null,
+      if (sessionError) {
+        throw new Error(`Erreur lors de la mise à jour de la session: ${sessionError.message}`)
+      }
+
+      // Mettre à jour les créneaux horaires
+      const { error: timeslotError } = await supabase
+        .schema('education')
+        .from('courses_sessions_timeslot')
+        .update({
+          day_of_week: sessionData.timeSlot.dayOfWeek,
+          start_time: sessionData.timeSlot.startTime,
+          end_time: sessionData.timeSlot.endTime,
+          classroom_number: sessionData.timeSlot.classroomNumber || null,
+        })
+        .eq('course_sessions_id', sessionData.id)
+
+      if (timeslotError) {
+        throw new Error(`Erreur lors de la mise à jour du créneau: ${timeslotError.message}`)
       }
     }
-    //todo teacher with courseID ???
-    const existingCourse = await Course.findOne({
-      teacher: courseId,
-    })
-
-    if (!existingCourse) {
-      return {
-        success: false,
-        message: 'Cours non trouvé',
-        data: null,
-      }
-    }
-
-    // Trouver l'index de la session à mettre à jour
-    // const sessionIndex = existingCourse.sessions.findIndex(
-    //   (session: CourseSession) => {
-    //     console.log('🚀 ~ session:', session.id)
-    //     return session.id === params.id
-    //   },
-    // )
-    // console.log('🚀 ~ sessionIndex:', sessionIndex)
-
-    // if (sessionIndex === -1) {
-    //   return NextResponse.json({
-    //     status: 404,
-    //     statusText: 'Session non trouvée dans le cours',
-    //   })
-    // }
-
-    // Mise à jour des sessions existantes
-    existingCourse.sessions = existingCourse.sessions.map((session: CourseSession) => {
-      if (sessionIds.includes(session.id)) {
-        const newSessionData = courseData.sessions.find((s: CourseSession) => s.id === session.id)
-        return {
-          ...session,
-          timeSlot: {...session.timeSlot, ...newSessionData.timeSlot},
-          subject: newSessionData.subject,
-          level: newSessionData.level,
-          sameStudents: sameStudents,
-          stats: {...session.stats, lastUpdated: new Date()},
-        }
-      }
-      return session
-    })
-
-    // // Met à jour la session spécifique avec les nouvelles données
-    // existingCourse.sessions[sessionIndex] = {
-    //   ...existingCourse.sessions[sessionIndex],
-    //   timeSlot: {
-    //     ...existingCourse.sessions[sessionIndex].timeSlot,
-    //     ...courseData.timeSlot,
-    //   },
-    //   subject: courseData.subject,
-    //   level: courseData.level,
-    //   students: existingCourse.sessions[sessionIndex].students,
-    //   sameStudents: sameStudents,
-    //   stats: {
-    //     ...existingCourse.sessions[sessionIndex].stats,
-    //     lastUpdated: new Date(),
-    //   },
-    // }
-
-    // Sauvegarde les modifications
-    const savedCourse = await existingCourse.save()
 
     return {
       success: true,
-      data: savedCourse ? serializeData(savedCourse) : null,
+      data: null,
       message: 'Cours mis à jour avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[UPDATE_COURSE]', error)
     throw new Error('Failed to update course')
   }
@@ -439,41 +571,82 @@ export async function updateCourses(
   role: string,
   userId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
     let courses
-    // if (role === 'teacher') {
-    //   courses = await Course.find({ teacher: userId, isActive: true })
-    //     .populate('teacher')
-    //     .populate({
-    //       path: 'sessions.students',
-    //       model: 'userNEW',
-    //     })
-    // } else
+
     if (['admin', 'bureau'].includes(role)) {
-      courses = await Course.find().populate('teacher').populate({
-        path: 'sessions.students',
-        model: 'userNEW',
-      })
+      // Admin peut voir tous les cours
+      const { data: allCourses, error } = await supabase
+        .schema('education')
+        .from('courses')
+        .select(`
+          *,
+          courses_teacher (
+            users:teacher_id (
+              id,
+              firstname,
+              lastname,
+              email
+            )
+          ),
+          courses_sessions (
+            *,
+            courses_sessions_students (
+              users:student_id (
+                id,
+                firstname,
+                lastname,
+                email
+              )
+            )
+          )
+        `)
+        .eq('is_active', true)
+
+      if (error) {
+        throw new Error(`Erreur lors de la récupération: ${error.message}`)
+      }
+      courses = allCourses
     } else {
-      courses = await Course.find({teacher: userId, isActive: true}).populate('teacher').populate({
-        path: 'sessions.students',
-        model: 'userNEW',
-      })
-      // return {
-      //   success: false,
-      //   message: "Vous n'avez pas les droits nécessaires",
-      //   data: null,
-      // }
+      // Professeur ne voit que ses cours
+      const { data: teacherCourses, error } = await supabase
+        .schema('education')
+        .from('courses_teacher')
+        .select(`
+          *,
+          courses (
+            *,
+            courses_sessions (
+              *,
+              courses_sessions_students (
+                users:student_id (
+                  id,
+                  firstname,
+                  lastname,
+                  email
+                )
+              )
+            )
+          )
+        `)
+        .eq('teacher_id', userId)
+        .eq('courses.is_active', true)
+
+      if (error) {
+        throw new Error(`Erreur lors de la récupération: ${error.message}`)
+      }
+      courses = teacherCourses?.map((tc) => tc.courses) || []
     }
 
     return {
       success: true,
       data: courses ? serializeData(courses) : null,
-      message: 'Cours récupéré avec succès',
+      message: 'Cours récupérés avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[UPDATE_COURSES]', error)
     throw new Error('Failed to update courses')
   }
@@ -486,12 +659,23 @@ export async function updateCourseSession(
   role: string,
   userId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const course = await Course.findById(courseId)
+    // Vérifier que le cours existe et récupérer ses sessions
+    const { data: course, error: courseError } = await supabase
+      .schema('education')
+      .from('courses')
+      .select(`
+        *,
+        courses_teacher (teacher_id),
+        courses_sessions (*)
+      `)
+      .eq('id', courseId)
+      .single()
 
-    if (!course) {
+    if (courseError || !course) {
       return {
         success: false,
         message: 'Cours non trouvé',
@@ -500,84 +684,113 @@ export async function updateCourseSession(
     }
 
     // Vérifier les permissions
-    if (role === 'teacher' && !course.teacher.includes(userId)) {
-      return {
-        success: false,
-        message: "Vous n'avez pas les droits pour modifier ce cours",
-        data: null,
+    if (role === 'teacher') {
+      const isTeacher = course.courses_teacher.some((ct: any) => ct.teacher_id === userId)
+      if (!isTeacher) {
+        return {
+          success: false,
+          message: 'Vous n\'avez pas les droits pour modifier ce cours',
+          data: null,
+        }
       }
     }
 
     if (!['admin', 'bureau', 'teacher'].includes(role)) {
       return {
         success: false,
-        message: "Vous n'avez pas les droits nécessaires",
+        message: 'Vous n\'avez pas les droits nécessaires',
         data: null,
       }
     }
 
-    if (!course.sessions[sessionIndex]) {
+    // Vérifier que la session existe
+    if (!course.courses_sessions[sessionIndex]) {
       return {
         success: false,
-        message: 'Session non trouvé',
+        message: 'Session non trouvée',
         data: null,
       }
     }
 
-    // Mettre à jour la session
-    Object.assign(course.sessions[sessionIndex], sessionData)
-    await course.save()
+    const sessionId = course.courses_sessions[sessionIndex].id
 
-    const updatedCourse = await Course.findById(courseId).populate('teacher').populate({
-      path: 'sessions.students',
-      model: 'userNEW',
-    })
+    // Mettre à jour la session
+    const { error: updateError } = await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .update({
+        ...sessionData,
+        stats_last_updated: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+
+    if (updateError) {
+      throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`)
+    }
 
     return {
       success: true,
-      data: updatedCourse ? serializeData(updatedCourse) : null,
-      message: 'Cours mis à jour avec succès',
+      data: null,
+      message: 'Session mise à jour avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[UPDATE_COURSE_SESSION]', error)
     throw new Error('Failed to update course session')
   }
 }
 
-async function calculateCourseStats(courseId: string) {
-  // Fetch all grades associated with this course
-  const grades = await Grade.find({course: courseId}).populate('records').lean()
+async function calculateCourseStats(sessionId: string) {
+  const supabase = await createClient()
 
-  if (!grades || grades.length === 0) {
+  try {
+    // Récupérer toutes les notes associées à cette session
+    const { data: grades, error } = await supabase
+      .schema('education')
+      .from('grades')
+      .select(`
+        *,
+        grades_records (*)
+      `)
+      .eq('course_session_id', sessionId)
+
+    if (error || !grades || grades.length === 0) {
+      return {
+        averageGrade: 0,
+        totalAbsences: 0,
+        participationRate: 0,
+      }
+    }
+
+    // Calculer les statistiques
+    let totalGrades = 0
+    let totalStudents = 0
+    let totalAbsences = 0
+    let totalParticipation = 0
+
+    grades.forEach((grade) => {
+      grade.grades_records?.forEach((record: any) => {
+        if (record.is_absent) {
+          totalAbsences++
+        } else {
+          totalGrades += record.value || 0
+          totalParticipation++
+        }
+        totalStudents++
+      })
+    })
+
+    return {
+      averageGrade: totalParticipation > 0 ? totalGrades / totalParticipation : 0,
+      totalAbsences,
+      participationRate: totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
+    }
+  } catch (error) {
+    console.error('Error calculating course stats:', error)
     return {
       averageGrade: 0,
       totalAbsences: 0,
       participationRate: 0,
     }
-  }
-
-  // Calculate statistics
-  let totalGrades = 0
-  let totalStudents = 0
-  let totalAbsences = 0
-  let totalParticipation = 0
-
-  grades.forEach((grade: GradeDocument) => {
-    grade.records.forEach((record: GradeRecord) => {
-      if (record.isAbsent) {
-        totalAbsences++
-      } else {
-        totalGrades += record.value
-        totalParticipation++
-      }
-      totalStudents++
-    })
-  })
-
-  return {
-    averageGrade: totalParticipation > 0 ? totalGrades / totalParticipation : 0,
-    totalAbsences,
-    participationRate: totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
   }
 }
 

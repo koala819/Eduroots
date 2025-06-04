@@ -1,45 +1,56 @@
-import {BehaviorRecord} from '@/types/behavior'
-import {SubjectNameEnum} from '@/types/course'
-import {GradeRecord} from '@/types/grade'
+import { createClient } from '@/utils/supabase/server'
+import { Database } from '@/types/db'
+import { SubjectNameEnum } from '@/types/course'
 
-import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
-import {Behavior} from '@/zOLDbackend/models/zOLDbehavior.model'
-import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
-import {StudentStats} from '@/zOLDbackend/models/zOLDstudent-stats.model'
+type User = Database['public']['Tables']['users']['Row']
+type AttendanceRecord = Database['public']['Tables']['attendance_records']['Row']
+type BehaviorRecordDB = Database['public']['Tables']['behavior_records']['Row']
+type GradeRecordDB = Database['public']['Tables']['grades_records']['Row']
+type StudentStats = Database['public']['Tables']['student_stats']['Row']
 
 export async function calculateStudentAttendanceRate(studentId: string) {
   try {
-    // Ensure database connection
-    await dbConnect()
+    const supabase = await createClient()
 
     // Récupérer tous les enregistrements de présence pour cet étudiant
-    const attendanceRecords = await Attendance.find({
-      'records.student': studentId,
-    }).sort({date: -1})
+    const { data: attendanceRecords, error } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .select(`
+        *,
+        attendances (
+          id,
+          date,
+          course_id,
+          courses (
+            id,
+            academic_year
+          )
+        )
+      `)
+      .eq('student_id', studentId)
+      .order('attendances.date', { ascending: false })
 
-    console.log('📊 Enregistrements de présence trouvés:', attendanceRecords.length)
+    if (error) {
+      console.error('Erreur lors de la récupération des présences:', error)
+      throw error
+    }
+
+    console.log('📊 Enregistrements de présence trouvés:', attendanceRecords?.length || 0)
 
     // Calculer les statistiques de présence
     let totalSessions = 0
     let absencesCount = 0
     const absences: {date: Date; course: string}[] = []
 
-    attendanceRecords.forEach((attendance) => {
-      // Filtrer uniquement les enregistrements de ce student
-      const studentRecord = attendance.records.find(
-        (r: {student: {toString: () => string}}) => r.student.toString() === studentId,
-      )
-
-      if (studentRecord) {
-        totalSessions++
-        if (!studentRecord.isPresent) {
-          absencesCount++
-          absences.push({
-            date: attendance.date,
-            course: attendance.course.toString(),
-          })
-        }
+    attendanceRecords?.forEach((record) => {
+      totalSessions++
+      if (!record.is_present) {
+        absencesCount++
+        absences.push({
+          date: new Date(record.attendances.date),
+          course: record.attendances.course_id,
+        })
       }
     })
 
@@ -47,23 +58,26 @@ export async function calculateStudentAttendanceRate(studentId: string) {
     const absencesRate = totalSessions > 0 ? (absencesCount / totalSessions) * 100 : 0
 
     // Récupérer la dernière date d'activité
-    const lastActivity =
-      attendanceRecords.length > 0
-        ? attendanceRecords[0].date // Puisque nous avons trié par date décroissante
-        : null
+    const lastActivity = attendanceRecords && attendanceRecords.length > 0
+      ? new Date(attendanceRecords[0].attendances.date)
+      : null
 
     // Récupérer les statistiques existantes
-    const existingStats = await StudentStats.findOne({userId: studentId})
+    const { data: existingStats } = await supabase
+      .schema('stats')
+      .from('student_stats')
+      .select('*')
+      .eq('user_id', studentId)
+      .single()
 
     // Vérifier si les statistiques sont déjà à jour
     if (
       existingStats &&
-      existingStats.absencesCount === absencesCount &&
-      existingStats.absencesRate === absencesRate &&
-      existingStats.absences.length === absences.length &&
-      existingStats.lastActivity?.getTime() === lastActivity?.getTime()
+      existingStats.absences_count === absencesCount &&
+      existingStats.absences_rate === absencesRate &&
+      existingStats.last_activity?.getTime() === lastActivity?.getTime()
     ) {
-      console.log("📊 Statistiques déjà à jour pour l'étudiant:", studentId)
+      console.log('📊 Statistiques déjà à jour pour l\'étudiant:', studentId)
       return {
         studentId,
         totalSessions,
@@ -75,22 +89,50 @@ export async function calculateStudentAttendanceRate(studentId: string) {
     }
 
     // Mettre à jour les statistiques de l'étudiant
-    await StudentStats.findOneAndUpdate(
-      {userId: studentId},
-      {
-        $set: {
-          absencesRate,
-          absencesCount,
-          absences,
-          lastActivity,
-          lastUpdate: new Date(),
-          // Préserver les champs existants
-          behaviorAverage: existingStats?.behaviorAverage || 0,
-          grades: existingStats?.grades || {overallAverage: 0},
-        },
-      },
-      {upsert: true, new: true},
-    )
+    const statsData = {
+      user_id: studentId,
+      absences_rate: absencesRate,
+      absences_count: absencesCount,
+      last_activity: lastActivity?.toISOString(),
+      last_update: new Date().toISOString(),
+      behavior_average: existingStats?.behavior_average || 0,
+    }
+
+    if (existingStats) {
+      await supabase
+        .schema('stats')
+        .from('student_stats')
+        .update(statsData)
+        .eq('user_id', studentId)
+    } else {
+      await supabase
+        .schema('stats')
+        .from('student_stats')
+        .insert([statsData])
+    }
+
+    // Gérer les absences individuelles
+    if (absences.length > 0) {
+      // Supprimer les anciennes absences
+      await supabase
+        .schema('stats')
+        .from('student_stats_absences')
+        .delete()
+        .eq('student_stats_id', existingStats?.id || studentId)
+
+      // Insérer les nouvelles absences
+      const absenceRecords = absences.map((absence) => ({
+        student_stats_id: existingStats?.id || studentId,
+        date: absence.date.toISOString(),
+        course_session_id: absence.course,
+        reason: 'absent',
+      }))
+
+      await supabase
+        .schema('stats')
+        .from('student_stats_absences')
+        .insert(absenceRecords)
+    }
 
     console.log('📊 Statistiques mises à jour:', {
       studentId,
@@ -120,17 +162,26 @@ export async function calculateStudentAttendanceRate(studentId: string) {
 
 export async function calculateStudentBehaviorRate(studentId: string) {
   try {
-    // Ensure database connection
-    await dbConnect()
+    const supabase = await createClient()
 
     // Récupérer tous les enregistrements de comportement pour cet étudiant
-    const behaviorRecords = await Behavior.find({
-      records: {
-        $elemMatch: {
-          student: studentId,
-        },
-      },
-    })
+    const { data: behaviorRecords, error } = await supabase
+      .schema('education')
+      .from('behavior_records')
+      .select(`
+        *,
+        behaviors (
+          id,
+          date,
+          course_id
+        )
+      `)
+      .eq('student_id', studentId)
+
+    if (error) {
+      console.error('Erreur lors de la récupération des comportements:', error)
+      throw error
+    }
 
     // Objet pour tracker les dates uniques et leurs enregistrements
     const uniqueBehaviors: {[key: string]: any} = {}
@@ -139,25 +190,18 @@ export async function calculateStudentBehaviorRate(studentId: string) {
     let totalSessions = 0
     let totalRatingSum = 0
 
-    behaviorRecords.forEach((behavior) => {
-      // Filtrer uniquement les enregistrements de ce student
-      const studentRecord = behavior.records.find(
-        (r: BehaviorRecord) => r.student.toString() === studentId,
-      )
+    behaviorRecords?.forEach((record) => {
+      // Convertir la date en chaîne pour comparaison
+      const dateString = new Date(record.behaviors.date).toISOString().split('T')[0]
 
-      if (studentRecord) {
-        // Convertir la date en chaîne pour comparaison
-        const dateString = behavior.date.toISOString().split('T')[0]
+      // Vérifier si cette date a déjà été vue
+      if (!uniqueBehaviors[dateString]) {
+        uniqueBehaviors[dateString] = record.behaviors
+        totalSessions++
 
-        // Vérifier si cette date a déjà été vue
-        if (!uniqueBehaviors[dateString]) {
-          uniqueBehaviors[dateString] = behavior
-          totalSessions++
-
-          // Si l'étudiant a reçu une note sur son comportement
-          if (studentRecord.rating) {
-            totalRatingSum += studentRecord.rating
-          }
+        // Si l'étudiant a reçu une note sur son comportement
+        if (record.rating) {
+          totalRatingSum += record.rating
         }
       }
     })
@@ -166,16 +210,16 @@ export async function calculateStudentBehaviorRate(studentId: string) {
     const uniqueBehaviorRecords = Object.values(uniqueBehaviors)
 
     // Récupérer la dernière date de session
-    const lastActivity =
-      uniqueBehaviorRecords.length > 0
-        ? uniqueBehaviorRecords.reduce((latest, current) =>
-            current.date > latest.date ? current : latest,
-          ).date
-        : null
+    const lastActivity = uniqueBehaviorRecords.length > 0
+      ? uniqueBehaviorRecords.reduce((latest, current) =>
+        new Date(current.date) > new Date(latest.date) ? current : latest,
+      ).date
+      : null
 
     // Calculer la moyenne de comportement
-    const behaviorAverage =
-      totalSessions > 0 ? Number((totalRatingSum / totalSessions).toFixed(2)) : 0
+    const behaviorAverage = totalSessions > 0
+      ? Number((totalRatingSum / totalSessions).toFixed(2))
+      : 0
 
     return {
       studentId,
@@ -190,23 +234,36 @@ export async function calculateStudentBehaviorRate(studentId: string) {
 }
 
 export async function calculateStudentGrade(studentId: string) {
-  await dbConnect()
+  const supabase = await createClient()
 
   // 1. Récupérer tous les enregistrements de notes
-  const recordsGradeCollection = await Grade.find({
-    records: {
-      $elemMatch: {
-        student: studentId,
-        isAbsent: false,
-      },
-    },
-  }).populate({
-    path: 'course',
-    select: 'sessions',
-  })
+  const { data: gradeRecords, error } = await supabase
+    .schema('education')
+    .from('grades_records')
+    .select(`
+      *,
+      grades (
+        id,
+        course_session_id,
+        date,
+        is_draft,
+        courses_sessions (
+          id,
+          subject,
+          course_id
+        )
+      )
+    `)
+    .eq('student_id', studentId)
+    .eq('is_absent', false)
+
+  if (error) {
+    console.error('Erreur lors de la récupération des notes:', error)
+    throw error
+  }
 
   // 2. Vérifier si l'étudiant a des notes
-  const hasGrades = recordsGradeCollection.length > 0
+  const hasGrades = gradeRecords && gradeRecords.length > 0
 
   // Structure pour stocker les notes par matière
   const subjectGrades: {
@@ -218,7 +275,7 @@ export async function calculateStudentGrade(studentId: string) {
 
   // Initialiser les matières
   Object.values(SubjectNameEnum).forEach((subject) => {
-    subjectGrades[subject] = {grades: []}
+    subjectGrades[subject] = { grades: [] }
   })
 
   const studentGrades: {
@@ -233,33 +290,24 @@ export async function calculateStudentGrade(studentId: string) {
 
   // 3. Collecter les notes de l'étudiant
   if (hasGrades) {
-    recordsGradeCollection.forEach((grade) => {
+    gradeRecords.forEach((record) => {
       if (!courseId) {
-        courseId = grade.course?.id
+        courseId = record.grades.courses_sessions.course_id
       }
 
-      const studentRecord = grade.records.find(
-        (r: GradeRecord) => r.student.toString() === studentId,
-      )
-
-      if (studentRecord && !studentRecord.isAbsent && !grade.isDraft) {
-        // Find the specific session using sessionId
-        const matchingSession = grade.course?.sessions.find(
-          (session: any) => session._id.toString() === grade.sessionId,
-        )
-
-        const subject = matchingSession?.subject || 'Unknown'
+      if (record.value && !record.is_absent && !record.grades.is_draft) {
+        const subject = record.grades.courses_sessions.subject || 'Unknown'
 
         studentGrades.push({
-          sessionId: grade.sessionId,
+          sessionId: record.grades.course_session_id,
           student: studentId,
-          grade: studentRecord.value,
+          grade: record.value,
           subject: subject,
         })
 
         // Populate subject grades
         if (subjectGrades[subject as SubjectNameEnum]) {
-          subjectGrades[subject as SubjectNameEnum]?.grades.push(studentRecord.value)
+          subjectGrades[subject as SubjectNameEnum]?.grades.push(record.value)
         }
       }
     })
@@ -286,7 +334,7 @@ export async function calculateStudentGrade(studentId: string) {
       studentId,
       hasGrades,
       courseId,
-      totalGradeRecords: recordsGradeCollection.length,
+      totalGradeRecords: gradeRecords.length,
       grades: {
         details: studentGrades,
         bySubject: subjectGrades,

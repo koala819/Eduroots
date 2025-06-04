@@ -1,4 +1,4 @@
-import {getSession} from 'next-auth/react'
+import { createClient } from '@/utils/supabase/server'
 
 export async function fetchWithAuth(
   url: string | URL,
@@ -15,9 +15,10 @@ export async function fetchWithAuth(
   },
 ) {
   try {
-    const session = await getSession()
+    const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
 
-    if (!skipAuthCheck && (!session || !session.user)) {
+    if (!skipAuthCheck && !session) {
       console.error('Session non authentifiée')
       return null
     }
@@ -26,7 +27,8 @@ export async function fetchWithAuth(
       url instanceof URL ? url : new URL(`${process.env.NEXT_PUBLIC_CLIENT_URL}${url}`)
 
     const headers: Record<string, string> = {
-      ...(noHeader ? {} : {'Content-Type': 'application/json'}),
+      ...(noHeader ? {} : { 'Content-Type': 'application/json' }),
+      ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
     }
 
     const options = {

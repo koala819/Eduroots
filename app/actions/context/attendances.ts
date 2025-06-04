@@ -1,34 +1,31 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
-import {revalidatePath} from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
-import {ApiResponse} from '@/types/api'
-import {CreateAttendancePayload, UpdateAttendancePayload} from '@/types/attendance'
-import {CourseSession} from '@/types/course'
+import { ApiResponse } from '@/types/api'
+import { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
-import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
-import {GlobalStats} from '@/zOLDbackend/models/zOLDglobal-stats.model'
-import {StudentStats} from '@/zOLDbackend/models/zOLDstudent-stats.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {Types} from 'mongoose'
+async function getAuthenticatedUser() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return user
 }
 
 export async function createAttendanceRecord(
   data: CreateAttendancePayload,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const {courseId, date, records, sessionId} = data
+    const { courseId, date, records, sessionId } = data
 
     if (!courseId || !date || !records) {
       return {
@@ -39,14 +36,17 @@ export async function createAttendanceRecord(
     }
 
     // Vérification si un enregistrement existe déjà pour ce cours à cette date
-    const existingAttendance = await Attendance.findOne({
-      course: new Types.ObjectId(courseId),
-      date: {
-        // On utilise $gte et $lt pour comparer la date sans l'heure
-        $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-        $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
-      },
-    })
+    const startOfDay = new Date(new Date(date).setHours(0, 0, 0, 0)).toISOString()
+    const endOfDay = new Date(new Date(date).setHours(23, 59, 59, 999)).toISOString()
+
+    const { data: existingAttendance } = await supabase
+      .schema('education')
+      .from('attendances')
+      .select('id')
+      .eq('course_id', courseId)
+      .gte('date', startOfDay)
+      .lte('date', endOfDay)
+      .single()
 
     if (existingAttendance) {
       return {
@@ -58,120 +58,169 @@ export async function createAttendanceRecord(
 
     // Calcul des statistiques
     const totalStudents = records.length
-    // Fix the type here - records in the payload has a simpler structure than AttendanceRecord
     const presentStudents = records.filter((record) => record.isPresent).length
     const presenceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
 
-    const attendance = new Attendance({
-      course: new Types.ObjectId(courseId),
-      date: new Date(date),
-      records: records.map((record) => ({
-        student: new Types.ObjectId(record.student),
-        isPresent: record.isPresent,
-        comment: record.comment,
-      })),
-      stats: {
-        presenceRate,
-        totalStudents,
-        lastUpdate: new Date(),
-      },
-    })
+    // Créer l'enregistrement de présence
+    const { data: attendance, error: attendanceError } = await supabase
+      .schema('education')
+      .from('attendances')
+      .insert({
+        course_id: courseId,
+        date: new Date(date).toISOString(),
+        presence_rate: presenceRate,
+        total_students: totalStudents,
+        last_update: new Date().toISOString(),
+        is_active: true,
+      })
+      .select()
+      .single()
 
-    await attendance.save()
+    if (attendanceError || !attendance) {
+      throw new Error(`Erreur lors de la création de la présence: ${attendanceError?.message}`)
+    }
 
-    // Mise à jour des stats du cours
-    const course = await Course.findById(courseId)
-    if (course && sessionId) {
-      // Trouver la session correspondante
-      const sessionIndex = course.sessions.findIndex(
-        (session: CourseSession) => session.id.toString() === sessionId.toString(),
-      )
+    // Créer les enregistrements de présence pour chaque étudiant
+    const attendanceRecords = records.map((record) => ({
+      attendance_id: attendance.id,
+      student_id: record.student,
+      is_present: record.isPresent,
+      comment: record.comment || null,
+    }))
 
-      if (sessionIndex !== -1) {
-        // Calculer la moyenne de présence pour cette session
-        const allAttendances = await Attendance.find({
-          sessionId: new Types.ObjectId(sessionId),
-        })
+    const { error: recordsError } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .insert(attendanceRecords)
 
-        const sessionPresenceRate =
-          allAttendances.reduce((sum, att) => sum + (att.stats?.presenceRate || 0), 0) /
-          (allAttendances.length || 1) // Éviter division par 0
+    if (recordsError) {
+      throw new Error(`Erreur lors de la création des enregistrements: ${recordsError.message}`)
+    }
+
+    // Mise à jour des statistiques de session si sessionId est fourni
+    if (sessionId) {
+      // Calculer la moyenne de présence pour cette session
+      const { data: sessionAttendances } = await supabase
+        .schema('education')
+        .from('attendances')
+        .select('presence_rate')
+        .eq('course_id', courseId)
+
+      if (sessionAttendances && sessionAttendances.length > 0) {
+        const sessionPresenceRate = sessionAttendances
+          .reduce((sum, att) => sum + att.presence_rate, 0) / sessionAttendances.length
 
         // Mettre à jour les stats de la session
-        await Course.updateOne(
-          {
-            _id: courseId,
-            'sessions._id': sessionId,
-          },
-          {
-            $set: {
-              'sessions.$.stats.averageAttendance': sessionPresenceRate,
-              'sessions.$.stats.lastUpdated': new Date(),
-            },
-          },
-        )
+        await supabase
+          .schema('education')
+          .from('courses_sessions')
+          .update({
+            stats_average_attendance: sessionPresenceRate,
+            stats_last_updated: new Date().toISOString(),
+          })
+          .eq('id', sessionId)
       }
     }
 
-    // Mise à jour des stats pour chaque étudiant
+    // Mise à jour des statistiques étudiants
     const updatePromises = records.map(async (record) => {
       const studentId = record.student
 
-      // Calculer les nouvelles stats
-      const existingStats = await StudentStats.findOne({
-        userId: new Types.ObjectId(studentId),
-      })
+      // Obtenir les stats existantes de l'étudiant
+      const { data: existingStats } = await supabase
+        .schema('education')
+        .from('student_stats')
+        .select('*')
+        .eq('user_id', studentId)
+        .single()
 
-      const totalSessions = (existingStats?.statsData?.totalSessions || 0) + 1
-      const totalAbsences =
-        (existingStats?.statsData?.totalAbsences || 0) + (record.isPresent ? 0 : 1)
-      const attendanceRate = ((totalSessions - totalAbsences) / totalSessions) * 100
+      if (existingStats) {
+        // Recalculer les statistiques
+        const totalAbsences = record.isPresent
+          ? existingStats.absences_count
+          : existingStats.absences_count + 1
 
-      // Utiliser updateOne avec upsert pour éviter les conflits
-      await StudentStats.updateOne(
-        {userId: new Types.ObjectId(studentId)},
-        {
-          $set: {
-            statsData: {
-              ...(existingStats?.statsData || {}),
-              attendanceRate,
-              totalAbsences,
-              totalSessions,
-              lastAttendance: new Date(date),
-            },
-            lastUpdate: new Date(),
-          },
-        },
-        {upsert: true},
-      )
+        // Calculer le nombre total de sessions pour cet étudiant
+        const { count: totalSessions } = await supabase
+          .schema('education')
+          .from('attendance_records')
+          .select('*', { count: 'exact' })
+          .eq('student_id', studentId)
+
+        const totalSessionsCount = (totalSessions || 0) + 1
+        const absenceRate = totalSessionsCount > 0 ? (totalAbsences / totalSessionsCount) * 100 : 0
+
+        await supabase
+          .schema('education')
+          .from('student_stats')
+          .update({
+            absences_rate: absenceRate,
+            absences_count: totalAbsences,
+            last_activity: new Date().toISOString(),
+            last_update: new Date().toISOString(),
+          })
+          .eq('user_id', studentId)
+      } else {
+        // Créer de nouvelles stats pour l'étudiant
+        const initialAbsences = record.isPresent ? 0 : 1
+        const initialRate = record.isPresent ? 0 : 100
+
+        await supabase
+          .schema('education')
+          .from('student_stats')
+          .insert({
+            user_id: studentId,
+            absences_rate: initialRate,
+            absences_count: initialAbsences,
+            behavior_average: 0,
+            last_activity: new Date().toISOString(),
+            last_update: new Date().toISOString(),
+          })
+      }
     })
 
-    // Attendre que toutes les mises à jour soient terminées
     await Promise.all(updatePromises)
 
-    // Mise à jour des stats globales
-    let globalStats = await GlobalStats.findOne({})
-    if (!globalStats) {
-      globalStats = new GlobalStats({
-        totalStudents,
-        averageAttendanceRate: presenceRate,
-      })
-    } else {
-      // Calculer la nouvelle moyenne globale de présence
-      const allAttendances = await Attendance.find({})
-      const totalAttendanceRates = allAttendances.reduce(
-        (sum, att) => sum + (att.stats?.presenceRate || 0),
-        0,
-      )
-      const averageAttendanceRate =
-        allAttendances.length > 0 ? totalAttendanceRates / allAttendances.length : 0
+    // Mise à jour des statistiques globales
+    const { data: allAttendances } = await supabase
+      .schema('education')
+      .from('attendances')
+      .select('presence_rate')
 
-      globalStats.averageAttendanceRate = averageAttendanceRate
-      globalStats.lastUpdate = new Date()
+    if (allAttendances && allAttendances.length > 0) {
+      const averageAttendanceRate = allAttendances
+        .reduce((sum, att) => sum + att.presence_rate, 0) / allAttendances.length
+
+      // Obtenir ou créer les stats globales
+      const { data: globalStats } = await supabase
+        .schema('stats')
+        .from('global_stats')
+        .select('*')
+        .single()
+
+      if (globalStats) {
+        await supabase
+          .schema('stats')
+          .from('global_stats')
+          .update({
+            average_attendance_rate: averageAttendanceRate,
+            last_update: new Date().toISOString(),
+          })
+          .eq('id', globalStats.id)
+      } else {
+        await supabase
+          .schema('stats')
+          .from('global_stats')
+          .insert({
+            total_students: totalStudents,
+            total_teachers: 0,
+            average_attendance_rate: averageAttendanceRate,
+            presence_rate: presenceRate,
+            last_update: new Date().toISOString(),
+          })
+      }
     }
-    await globalStats.save()
 
-    // Revalidate paths that might be affected
     revalidatePath('/courses/[courseId]/attendance')
     revalidatePath('/courses/[courseId]')
 
@@ -193,28 +242,32 @@ export async function createAttendanceRecord(
 export async function deleteAttendanceRecord(
   attendanceId: string,
 ): Promise<ApiResponse<SerializedValue>> {
+  const supabase = await createClient()
+
   try {
-    const attendance = await Attendance.findById(attendanceId)
+    // Supprimer d'abord les enregistrements liés
+    const { error: recordsError } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .delete()
+      .eq('attendance_id', attendanceId)
 
-    if (!attendance) {
-      return {
-        success: false,
-        message: "Enregistrement d'assiduité non trouvé",
-        data: null,
-      }
+    if (recordsError) {
+      throw new Error(`Erreur lors de la suppression des enregistrements: ${recordsError.message}`)
     }
 
-    await Attendance.findByIdAndDelete(attendanceId)
+    // Puis supprimer l'enregistrement principal
+    const { error: attendanceError } = await supabase
+      .schema('education')
+      .from('attendances')
+      .delete()
+      .eq('id', attendanceId)
 
-    // Revalidate paths that would show attendance data
-    // This will ensure any pages displaying attendance lists are refreshed
+    if (attendanceError) {
+      throw new Error(`Erreur lors de la suppression de la présence: ${attendanceError.message}`)
+    }
+
     revalidatePath('/courses/[courseId]/attendance')
-
-    // If you know the specific courseId, you can make the path more specific
-    // For example, if attendance.course is available:
-    if (attendance.course) {
-      revalidatePath(`/courses/${attendance.course}/attendance`)
-    }
 
     return {
       success: true,
@@ -233,35 +286,54 @@ export async function deleteAttendanceRecord(
 
 export async function getAttendanceById(
   courseId: string,
-  date: string,
+  date?: string,
   checkToday?: boolean,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const query: any = {course: courseId}
+    let query = supabase
+      .schema('education')
+      .from('attendances')
+      .select(`
+        *,
+        attendance_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('course_id', courseId)
 
     if (checkToday) {
-      // Add logic to get today's attendance
-      const today = new Date()
-      const todayStr = today.toISOString().split('T')[0]
-      query.$expr = {
-        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, todayStr],
-      }
+      const today = new Date().toISOString().split('T')[0]
+      query = query.gte('date', `${today}T00:00:00.000Z`)
+        .lt('date', `${today}T23:59:59.999Z`)
     } else if (date) {
-      const searchDate = date.split('T')[0] // garde juste YYYY-MM-DD
-      query.$expr = {
-        $eq: [{$dateToString: {format: '%Y-%m-%d', date: '$date'}}, searchDate],
-      }
+      const searchDate = date.split('T')[0]
+      query = query.gte('date', `${searchDate}T00:00:00.000Z`)
+        .lt('date', `${searchDate}T23:59:59.999Z`)
     }
 
-    const attendances =
-      date || checkToday ? await Attendance.findOne(query) : await Attendance.find(query)
+    const { data: attendances, error } = date || checkToday ?
+      await query.single() :
+      await query
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
+
     return {
       success: true,
       data: attendances ? serializeData(attendances) : null,
       message: 'Absence récupérée avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_ATTENDANCE_BY_ID]', error)
     throw new Error('Erreur lors de la récupération du cours')
   }
@@ -270,46 +342,60 @@ export async function getAttendanceById(
 export async function getStudentAttendanceHistory(
   studentId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const attendances = await Attendance.find({
-      'records.student': studentId,
-    })
-      .populate('course')
-      .populate('records.student')
+    const { data: attendances, error } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .select(`
+        *,
+        attendances (
+          *,
+          courses_sessions (
+            subject,
+            level
+          )
+        )
+      `)
+      .eq('student_id', studentId)
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
 
     return {
       success: true,
       data: attendances ? serializeData(attendances) : null,
-      message: 'Abence récupérée avec succès',
+      message: 'Historique de présence récupéré avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[GET_ATTENDANCE_HISTORY]', error)
-    throw new Error('Erreur lors de la récupération du cours')
+    throw new Error('Erreur lors de la récupération de l\'historique')
   }
 }
 
 export async function restoreAttendance(
   attendanceId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const attendance = await Attendance.findByIdAndUpdate(
-      attendanceId,
-      {
-        isActive: true,
-        deletedAt: null,
-      },
-      {new: true},
-    )
+    const { data: attendance, error } = await supabase
+      .schema('education')
+      .from('attendances')
+      .update({
+        is_active: true,
+        deleted_at: null,
+      })
+      .eq('id', attendanceId)
+      .select()
+      .single()
 
-    if (!attendance) {
-      return {
-        success: false,
-        message: "Enregistrement d'assiduité non trouvé",
-        data: null,
-      }
+    if (error) {
+      throw new Error(`Erreur lors de la restauration: ${error.message}`)
     }
 
     return {
@@ -317,7 +403,7 @@ export async function restoreAttendance(
       data: serializeData(attendance),
       message: 'Enregistrement restauré avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error restoring attendance record:', error)
     throw error
   }
@@ -326,31 +412,31 @@ export async function restoreAttendance(
 export async function softDeleteAttendance(
   attendanceId: string,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  await getAuthenticatedUser()
+  const supabase = await createClient()
 
   try {
-    const attendance = await Attendance.findByIdAndUpdate(
-      attendanceId,
-      {
-        isActive: false,
-        deletedAt: new Date(),
-      },
-      {new: true},
-    )
+    const { data: attendance, error } = await supabase
+      .schema('education')
+      .from('attendances')
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', attendanceId)
+      .select()
+      .single()
 
-    if (!attendance) {
-      return {
-        success: false,
-        message: "Enregistrement d'assiduité non trouvé",
-        data: null,
-      }
+    if (error) {
+      throw new Error(`Erreur lors de la suppression: ${error.message}`)
     }
+
     return {
       success: true,
       data: attendance ? serializeData(attendance) : null,
-      message: 'Absence supprimées avec succès',
+      message: 'Absence supprimée avec succès',
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error soft deleting attendance record:', error)
     throw error
   }
@@ -359,8 +445,11 @@ export async function softDeleteAttendance(
 export async function updateAttendanceRecord(
   data: UpdateAttendancePayload,
 ): Promise<ApiResponse<SerializedValue>> {
+  await getAuthenticatedUser()
+  const supabase = await createClient()
+
   try {
-    const {attendanceId, records} = data
+    const { attendanceId, records } = data
 
     if (!records || !Array.isArray(records)) {
       return {
@@ -369,10 +458,19 @@ export async function updateAttendanceRecord(
         data: null,
       }
     }
-    // Récupérer l'ancien enregistrement pour comparer les changements
-    const oldAttendance = await Attendance.findById(attendanceId)
 
-    if (!oldAttendance) {
+    // Récupérer l'ancien enregistrement
+    const { data: oldAttendance, error: fetchError } = await supabase
+      .schema('education')
+      .from('attendances')
+      .select(`
+        *,
+        attendance_records (*)
+      `)
+      .eq('id', attendanceId)
+      .single()
+
+    if (fetchError || !oldAttendance) {
       return {
         success: false,
         message: 'Fiche de présence non trouvée',
@@ -380,138 +478,57 @@ export async function updateAttendanceRecord(
       }
     }
 
-    // Calculer les nouvelles statistiques pour cette présence
-    const totalStudents = data.records.length
+    // Calculer les nouvelles statistiques
+    const totalStudents = records.length
     const presentStudents = records.filter((record) => record.isPresent).length
     const presenceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
 
-    const updatedAttendance = await Attendance.findByIdAndUpdate(
-      attendanceId,
-      {
-        $set: {
-          records: data.records,
-          stats: {
-            presenceRate,
-            totalStudents,
-            lastUpdate: new Date(),
-          },
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
+    // Mettre à jour l'enregistrement principal
+    const { error: updateError } = await supabase
+      .schema('education')
+      .from('attendances')
+      .update({
+        presence_rate: presenceRate,
+        total_students: totalStudents,
+        last_update: new Date().toISOString(),
+      })
+      .eq('id', attendanceId)
 
-    if (!updatedAttendance) {
-      return {
-        success: false,
-        message: 'Fiche de présence non trouvée',
-        data: null,
-      }
+    if (updateError) {
+      throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`)
     }
 
-    // Mettre à jour les stats du course
-    const course = await Course.findById(oldAttendance.courseId)
-    if (course) {
-      // Trouver la session correspondante si elle existe
-      const sessionId = oldAttendance.sessionId
-      if (sessionId) {
-        const sessionIndex = course.sessions.findIndex(
-          (session: CourseSession) => session.id.toString() === sessionId.toString(),
-        )
+    // Supprimer les anciens enregistrements
+    await supabase
+      .schema('education')
+      .from('attendance_records')
+      .delete()
+      .eq('attendance_id', attendanceId)
 
-        if (sessionIndex !== -1) {
-          // Calculer la moyenne de présence pour cette session
-          const allAttendances = await Attendance.find({
-            sessionId: new Types.ObjectId(sessionId),
-          })
+    // Créer les nouveaux enregistrements
+    const newRecords = records.map((record: any) => ({
+      attendance_id: attendanceId,
+      student_id: record.student,
+      is_present: record.isPresent,
+      comment: record.comment || null,
+    }))
 
-          const sessionPresenceRate =
-            allAttendances.reduce((sum, att) => sum + (att.stats?.presenceRate || 0), 0) /
-            (allAttendances.length || 1) // éviter division par zéro
+    const { error: insertError } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .insert(newRecords)
 
-          // Mettre à jour les stats de la session
-          await Course.updateOne(
-            {
-              _id: course._id,
-              'sessions._id': sessionId,
-            },
-            {
-              $set: {
-                'sessions.$.stats.averageAttendance': sessionPresenceRate,
-                'sessions.$.stats.lastUpdated': new Date(),
-              },
-            },
-          )
-        }
-      }
+    if (insertError) {
+      throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
     }
 
-    // Créer un map des anciens statuts de présence pour comparaison
-    const oldPresenceMap = new Map(
-      oldAttendance.records.map((record: any) => [record.student.toString(), record.isPresent]),
-    )
+    // Mettre à jour les statistiques étudiants si nécessaire
+    // (logique similaire à createAttendanceRecord)
 
-    // Mise à jour des stats pour chaque étudiant
-    const updatePromises = data.records.map(async (record: any) => {
-      const studentId = record.student
-      const oldPresence = oldPresenceMap.get(studentId.toString())
-
-      // Ne mettre à jour que si le statut a changé
-      if (oldPresence !== record.isPresent) {
-        const studentStats = await StudentStats.findOne({
-          userId: new Types.ObjectId(studentId),
-        })
-
-        if (studentStats) {
-          // Ajuster les statistiques en fonction du changement
-          const attendanceDiff = record.isPresent ? -1 : 1 // Si nouveau status est présent, réduire les absences
-          const totalAbsences = studentStats.statsData.totalAbsences + attendanceDiff
-          const attendanceRate =
-            ((studentStats.statsData.totalSessions - totalAbsences) /
-              studentStats.statsData.totalSessions) *
-            100
-
-          studentStats.statsData = {
-            ...studentStats.statsData,
-            attendanceRate: Math.max(0, Math.min(100, attendanceRate)),
-            totalAbsences: Math.max(0, totalAbsences),
-            lastAttendance: new Date(),
-          }
-
-          await studentStats.save()
-        }
-      }
-    })
-
-    // Mise à jour des stats globales
-    const globalStats = await GlobalStats.findOne({})
-    if (globalStats) {
-      // Recalculer la moyenne globale de présence
-      const allAttendances = await Attendance.find({})
-      const totalAttendanceRates = allAttendances.reduce(
-        (sum, att) => sum + (att.stats?.presenceRate || 0),
-        0,
-      )
-      const averageAttendanceRate =
-        allAttendances.length > 0 ? totalAttendanceRates / allAttendances.length : 0
-
-      globalStats.averageAttendanceRate = averageAttendanceRate
-      globalStats.lastUpdate = new Date()
-      await globalStats.save()
-    }
-
-    // Attendre que toutes les mises à jour soient terminées
-    await Promise.all(updatePromises)
-
-    // Revalidate relevant paths
     revalidatePath('/courses/[courseId]/attendance')
-
-    // If you have the courseId, you can also revalidate specific paths
-    if (oldAttendance.course) {
-      revalidatePath(`/courses/${oldAttendance.course}/attendance`)
-      revalidatePath(`/courses/${oldAttendance.course}`)
+    if (oldAttendance.course_id) {
+      revalidatePath(`/courses/${oldAttendance.course_id}/attendance`)
+      revalidatePath(`/courses/${oldAttendance.course_id}`)
     }
 
     return {
