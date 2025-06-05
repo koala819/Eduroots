@@ -129,10 +129,9 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
 
 
 
-    // Récupérer le rôle depuis la table education.users pour information
+    // Récupérer le rôle depuis la table profiles
     const { data: userData, error: userDataError } = await supabase
-      .schema('education')
-      .from('users')
+      .from('profiles')
       .select('role')
       .eq('id', user?.id)
       .single()
@@ -145,11 +144,9 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
 
     // La requête utilisera automatiquement les politiques RLS qui vérifient le rôle
     const { data: users, error } = await supabase
-      .schema('education')
-      .from('users')
+      .from('profiles')
       .select('*')
       .eq('role', 'student')
-      .eq('is_active', true)
       .order('firstname', { ascending: true })
       .order('lastname', { ascending: true })
 

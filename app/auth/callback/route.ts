@@ -26,14 +26,16 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error && data.user) {
+    const data_from_auth = data.user
+
+    if (!error && data_from_auth) {
 
       // Vérifier si l'email existe dans education.users
       const { data: find_user_in_education_users } = await supabase
         .schema('education')
         .from('users')
         .select('id, role, firstname, lastname')
-        .eq('email', data.user.email)
+        .eq('email', data_from_auth.email)
         .single()
 
       if (find_user_in_education_users) {
@@ -48,13 +50,14 @@ export async function GET(request: Request) {
           .schema('public')
           .from('profiles')
           .upsert({
-            id: data.user.id,
+            id: data_from_auth.id,
             education_user_id: find_user_in_education_users.id,
             firstname: find_user_in_education_users.firstname,
             lastname: find_user_in_education_users.lastname,
             role: find_user_in_education_users.role,
+            email: data_from_auth.email,
           })
-          .eq('id', data.user.id)
+          .eq('id', data_from_auth.id)
 
         if (profileError) {
           console.error('Error updating profile:', profileError)
@@ -64,8 +67,8 @@ export async function GET(request: Request) {
 
 
         // console.log('redirection vers link-account avec le role', role,
-        //   'et l\'email', data.user.email)
-        // const email = encodeURIComponent(data.user.email || '')
+        //   'et l\'email', data_from_auth.email)
+        // const email = encodeURIComponent(data_from_auth.email || '')
         // const roleParam = encodeURIComponent(role || '')
         // redirect(`/link-account?email=${email}&role=${roleParam}`)
       }

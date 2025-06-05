@@ -51,11 +51,9 @@ export async function loginAction(formData: FormData) {
 
     // Recherche de l'utilisateur
     let userQuery = supabase
-      .schema('education')
-      .from('users')
+      .from('profiles')
       .select('id, email, password_hash, role, firstname, lastname')
       .eq('email', email)
-      .eq('is_active', true)
 
     if (role === UserRoleEnum.Admin) {
       // Si le rôle est 'admin', chercher un utilisateur avec le rôle 'admin' ou 'bureau'
