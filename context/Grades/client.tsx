@@ -11,9 +11,9 @@ import {
   useRef,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {CreateGradeDTO, PopulatedGrade, UpdateGradeDTO} from '@/types/grade'
+import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/grade'
 
 import {
   createGradeRecord,
@@ -45,47 +45,47 @@ type GradeAction =
 
 function gradeReducer(state: GradeState, action: GradeAction): GradeState {
   switch (action.type) {
-    case 'SET_GRADES':
-      return {
-        ...state,
-        grades: action.payload || [],
-      }
-    case 'SET_TEACHER_GRADES':
-      return {
-        ...state,
-        teacherGrades: action.payload,
-      }
-    case 'SET_ERROR':
-      return {
-        ...state,
-        error: action.payload,
-      }
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload,
-      }
-    case 'UPDATE_GRADE':
-      return {
-        ...state,
-        grades: state.grades.map((grade) =>
-          grade.id === action.payload.id ? action.payload : grade,
-        ),
-      }
-    case 'DELETE_GRADE':
-      return {
-        ...state,
-        grades: state.grades.filter((grade) => grade.id !== action.payload) || [],
-      }
+  case 'SET_GRADES':
+    return {
+      ...state,
+      grades: action.payload || [],
+    }
+  case 'SET_TEACHER_GRADES':
+    return {
+      ...state,
+      teacherGrades: action.payload,
+    }
+  case 'SET_ERROR':
+    return {
+      ...state,
+      error: action.payload,
+    }
+  case 'SET_LOADING':
+    return {
+      ...state,
+      isLoading: action.payload,
+    }
+  case 'UPDATE_GRADE':
+    return {
+      ...state,
+      grades: state.grades.map((grade) =>
+        grade.id === action.payload.id ? action.payload : grade,
+      ),
+    }
+  case 'DELETE_GRADE':
+    return {
+      ...state,
+      grades: state.grades.filter((grade) => grade.id !== action.payload) || [],
+    }
 
-    case 'REFRESH_DATA':
-      return {
-        ...state,
-        grades: action.payload || [],
-        error: null,
-      }
-    default:
-      return state
+  case 'REFRESH_DATA':
+    return {
+      ...state,
+      grades: action.payload || [],
+      error: null,
+    }
+  default:
+    return state
   }
 }
 
@@ -100,8 +100,8 @@ interface GradeContextType extends Omit<GradeState, 'isLoading' | 'error'> {
 
 const GradeContext = createContext<GradeContextType | null>(null)
 
-export const GradesProvider = ({children, initialGradeData = null}: GradeProviderProps) => {
-  const {toast} = useToast()
+export const GradesProvider = ({ children, initialGradeData = null }: GradeProviderProps) => {
+  const { toast } = useToast()
 
   const initialState: GradeState = {
     grades: initialGradeData || [],
@@ -110,15 +110,17 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
     isLoading: !initialGradeData,
   }
 
+
   const [state, dispatch] = useReducer(gradeReducer, initialState)
   const isInitialMount = useRef(true)
+
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Grade Error:', error)
       const errorMessage = customMessage || error.message
       console.error('Grade Error:', error)
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -131,7 +133,7 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
 
   const handleCreateGradeRecord = useCallback(
     async (data: CreateGradeDTO) => {
-      dispatch({type: 'SET_LOADING', payload: true})
+      dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await createGradeRecord(data)
 
@@ -145,7 +147,7 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
         handleError(error as Error, 'Erreur lors de la création de la note')
         return 0
       } finally {
-        dispatch({type: 'SET_LOADING', payload: false})
+        dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
     [handleError],
@@ -153,12 +155,13 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
 
   const handleGetTeacherGrades = useCallback(
     async (teacherId: string) => {
+
       // Ne pas charger si on a déjà les données et que c'est le même enseignant
       if (initialGradeData && state.teacherGrades) {
         return state.teacherGrades
       }
 
-      dispatch({type: 'SET_LOADING', payload: true})
+      dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await getTeacherGrades(teacherId)
 
@@ -177,14 +180,14 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
         handleError(error as Error, 'Erreur lors de la création de la note')
         return []
       } finally {
-        dispatch({type: 'SET_LOADING', payload: false})
+        dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError],
+    [handleError, initialGradeData, state.teacherGrades],
   )
 
   const handleRefreshGradeData = useCallback(async () => {
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const response = await refreshGradeData()
 
@@ -192,20 +195,22 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
         throw new Error(response.error || 'Erreur lors de la création de la présence')
       }
 
+      const grades = (response.data as unknown as PopulatedGrade[]) || []
+
       dispatch({
         type: 'REFRESH_DATA',
-        payload: (response.data as unknown as PopulatedGrade[]) || [],
+        payload: grades,
       })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des notes')
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
   }, [handleError])
 
   const handleUpdateGradeRecord = useCallback(
     async (id: string, data: UpdateGradeDTO) => {
-      dispatch({type: 'SET_LOADING', payload: true})
+      dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await updateGradeRecord(id, data)
 
@@ -220,18 +225,25 @@ export const GradesProvider = ({children, initialGradeData = null}: GradeProvide
         handleError(error as Error, 'Erreur lors de la mise à jour de la note')
         return 0
       } finally {
-        dispatch({type: 'SET_LOADING', payload: false})
+        dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
     [handleError, toast],
   )
 
   useEffect(() => {
-    // Ne pas recharger les données si on a déjà initialGradeData
-    if (isInitialMount.current && !initialGradeData) {
+    if (isInitialMount.current) {
       isInitialMount.current = false
-      handleRefreshGradeData()
+      // Ne pas return ici - laisser le useEffect continuer pour charger les données
     }
+
+    // Si nous avons déjà des données initiales, ne chargeons pas à nouveau
+    if (initialGradeData && initialGradeData.length > 0) {
+      return
+    }
+
+    // Charger automatiquement les données si pas de données initiales
+    handleRefreshGradeData()
   }, [handleRefreshGradeData, initialGradeData])
 
   const value = useMemo(

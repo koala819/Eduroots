@@ -1,6 +1,6 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
 import {
   ReactNode,
   createContext,
@@ -10,14 +10,15 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {TimeSlotEnum} from '@/types/course'
-import {DaySchedule, Period} from '@/types/schedule'
+import { TimeSlotEnum } from '@/types/course'
+import { DaySchedule, Period } from '@/types/schedule'
 
-import {getCurrentSchedule, saveSchedules} from '@/app/actions/context/schedules'
+import { getCurrentSchedule, saveSchedules } from '@/app/actions/context/schedules'
 
 interface ScheduleState {
   schedules: {
@@ -46,33 +47,33 @@ type ScheduleAction =
 
 function scheduleReducer(state: ScheduleState, action: ScheduleAction): ScheduleState {
   switch (action.type) {
-    case 'SET_SCHEDULES':
-      return {
-        ...state,
-        schedules: action.payload,
-      }
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload,
-      }
-    case 'SET_ERROR':
-      return {
-        ...state,
-        error: action.payload,
-      }
-    case 'UPDATE_DAY_SCHEDULE':
-      return {
-        ...state,
-        schedules: {
-          ...state.schedules,
-          [action.payload.dayType]: {
-            periods: action.payload.periods,
-          },
+  case 'SET_SCHEDULES':
+    return {
+      ...state,
+      schedules: action.payload,
+    }
+  case 'SET_LOADING':
+    return {
+      ...state,
+      isLoading: action.payload,
+    }
+  case 'SET_ERROR':
+    return {
+      ...state,
+      error: action.payload,
+    }
+  case 'UPDATE_DAY_SCHEDULE':
+    return {
+      ...state,
+      schedules: {
+        ...state.schedules,
+        [action.payload.dayType]: {
+          periods: action.payload.periods,
         },
-      }
-    default:
-      return state
+      },
+    }
+  default:
+    return state
   }
 }
 
@@ -92,7 +93,7 @@ export const SchedulesProvider = ({
   children,
   initialSchedulesData = null,
 }: SchedulesProviderProps) => {
-  const {toast} = useToast()
+  const { toast } = useToast()
 
   // Convertir les données initiales en format attendu par l'état
   const convertInitialData = (): {[key in TimeSlotEnum]?: DaySchedule} => {
@@ -132,15 +133,61 @@ export const SchedulesProvider = ({
   }
 
   const [state, dispatch] = useReducer(scheduleReducer, initialState)
-  const {data: session} = useSession()
+
+  // État Supabase
+  const [user, setUser] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+
   // Utilisez une ref pour suivre si nous avons déjà fait le chargement
   const hasLoadedRef = useRef(!!initialSchedulesData)
+
+  // Effet pour gérer l'authentification Supabase
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (user && !error) {
+          setUser(user)
+          setIsAuthenticated(true)
+        } else {
+          setUser(null)
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error('Erreur récupération utilisateur:', error)
+        setUser(null)
+        setIsAuthenticated(false)
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    getUser()
+
+    // Écouter les changements d'authentification
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        setIsAuthenticated(true)
+      } else {
+        setUser(null)
+        setIsAuthenticated(false)
+      }
+      setAuthLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Schedule Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -155,13 +202,13 @@ export const SchedulesProvider = ({
     // Référence locale à hasLoadedRef pour éviter de dépendre du state
     if (hasLoadedRef.current) return
 
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      if (!session || !session.user) {
+      if (!isAuthenticated || !user) {
         throw new Error('Non authentifié')
       }
 
-      const response = await getCurrentSchedule(session.user._id)
+      const response = await getCurrentSchedule(user.id)
 
       if (!response.success) {
         throw new Error(response.message || 'Échec de la récupération des horaires')
@@ -199,9 +246,9 @@ export const SchedulesProvider = ({
     } catch (error) {
       handleError(error as Error)
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [handleError, session])
+  }, [handleError, user, isAuthenticated])
 
   const handleSaveSchedules = useCallback(
     async (scheduleData: SaveScheduleData) => {
@@ -209,7 +256,7 @@ export const SchedulesProvider = ({
         const response = await saveSchedules(scheduleData)
 
         if (!response.success) {
-          throw new Error(response.message || "Échec de l'enregistrement des horaires")
+          throw new Error(response.message || 'Échec de l\'enregistrement des horaires')
         }
 
         // console.log('Save response data:', response.data)
@@ -251,11 +298,11 @@ export const SchedulesProvider = ({
   )
 
   useEffect(() => {
-    // Seulement charger si pas encore chargé et session disponible
-    if (!hasLoadedRef.current && session?.user?._id) {
+    // Seulement charger si pas encore chargé et utilisateur disponible
+    if (!hasLoadedRef.current && !authLoading && isAuthenticated && user?.id) {
       handleGetCurrentSchedule()
     }
-  }, [handleGetCurrentSchedule, session])
+  }, [handleGetCurrentSchedule, user, isAuthenticated, authLoading])
 
   const value = useMemo(
     () => ({

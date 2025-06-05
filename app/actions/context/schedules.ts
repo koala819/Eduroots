@@ -1,12 +1,10 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 
-import {ApiResponse} from '@/types/api'
-
-import {ScheduleConfig} from '@/backend/models/schedule-config.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {createDefaultSchedule} from '@/lib/utils'
+import { ApiResponse } from '@/types/api'
+import { SerializedValue, serializeData } from '@/lib/serialization'
+import { createDefaultSchedule } from '@/lib/utils'
 
 interface SaveScheduleData {
   updatedBy: string
@@ -14,25 +12,36 @@ interface SaveScheduleData {
 }
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
 }
 
 export async function getCurrentSchedule(userId: string): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
     // Cherche la config active la plus récente
-    const currentConfig = await ScheduleConfig.findOne({isActive: true}).sort({createdAt: -1})
+    const { data: currentConfig, error } = await supabase
+      .schema('education')
+      .from('schedule_configs')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
     // Si on trouve une config, on la renvoie
-    if (currentConfig) {
+    if (currentConfig && !error) {
       return {
         success: true,
-        data: currentConfig ? serializeData(currentConfig) : null,
+        data: serializeData(currentConfig),
         message: 'Schedule récupéré avec succès',
       }
     }
@@ -44,7 +53,7 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse<Se
 
     return {
       success: true,
-      data: defaultConfig ? serializeData(defaultConfig) : null,
+      data: serializeData(defaultConfig),
       message: 'Schedule créé avec valeurs par défaut',
     }
   } catch (error) {
@@ -55,21 +64,17 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse<Se
 
 export async function saveSchedules(scheduleData: SaveScheduleData) {
   await getSessionServer()
+  const supabase = await createClient()
 
   const currentYear = new Date().getFullYear().toString()
   const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
 
-  const payload = {
-    academicYear,
-    daySchedules: Object.fromEntries(
+  const daySchedules = Object.fromEntries(
       Object.entries(scheduleData).filter(([key]) => key !== 'updatedBy'),
-    ),
-
-    updatedBy: scheduleData.updatedBy,
-  }
+  )
 
   try {
-    const {academicYear, daySchedules, updatedBy} = payload
+    const { updatedBy } = scheduleData
 
     if (!daySchedules || !updatedBy) {
       return {
@@ -79,23 +84,34 @@ export async function saveSchedules(scheduleData: SaveScheduleData) {
       }
     }
 
-    // Cherche et met à jour la configuration existante ou en crée une nouvelle
-    const scheduleConfig = await ScheduleConfig.findOneAndUpdate(
-      {academicYear, isActive: true},
-      {
-        daySchedules,
-        updatedBy,
-      },
-      {
-        new: true, // Retourne le document mis à jour
-        upsert: true, // Crée un nouveau document si aucun n'est trouvé
-        runValidators: true, // Active la validation du schéma pour l'update
-      },
-    )
+    // D'abord désactiver les anciennes configs
+    await supabase
+      .schema('education')
+      .from('schedule_configs')
+      .update({ is_active: false })
+      .eq('academic_year', academicYear)
+
+    // Puis créer/mettre à jour la nouvelle config
+    const { data: scheduleConfig, error } = await supabase
+      .schema('education')
+      .from('schedule_configs')
+      .upsert({
+        academic_year: academicYear,
+        day_schedules: daySchedules,
+        is_active: true,
+        updated_by: updatedBy,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Erreur lors de la sauvegarde: ${error.message}`)
+    }
 
     return {
       success: true,
-      data: scheduleConfig ? serializeData(scheduleConfig) : null,
+      data: serializeData(scheduleConfig),
       message: 'Configuration des horaires enregistrée avec succès',
     }
   } catch (error) {

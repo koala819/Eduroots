@@ -1,6 +1,6 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
 import {
   ReactNode,
   createContext,
@@ -9,11 +9,12 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useState,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {CourseSession, PopulatedCourse, TimeSlot} from '@/types/course'
+import { CourseSession, PopulatedCourse, TimeSlot } from '@/types/course'
 
 import useCourseStore from '@/stores/useCourseStore'
 
@@ -58,77 +59,77 @@ type CourseAction =
 
 function courseReducer(state: CourseState, action: CourseAction): CourseState {
   switch (action.type) {
-    case 'SET_LOADING_COURSE':
-      return {
-        ...state,
-        isLoadingCourse: action.payload,
-      }
+  case 'SET_LOADING_COURSE':
+    return {
+      ...state,
+      isLoadingCourse: action.payload,
+    }
 
-    case 'SET_COURSES':
-      return {
-        ...state,
-        courses: action.payload,
-      }
+  case 'SET_COURSES':
+    return {
+      ...state,
+      courses: action.payload,
+    }
 
-    case 'SET_TEACHER_COURSES':
-      return {
-        ...state,
-        teacherCourses: action.payload || null,
-      }
+  case 'SET_TEACHER_COURSES':
+    return {
+      ...state,
+      teacherCourses: action.payload || null,
+    }
 
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload,
-      }
+  case 'SET_LOADING':
+    return {
+      ...state,
+      isLoading: action.payload,
+    }
 
-    case 'SET_ERROR':
-      return {
-        ...state,
-        error: action.payload,
-      }
+  case 'SET_ERROR':
+    return {
+      ...state,
+      error: action.payload,
+    }
 
-    case 'ADD_COURSE':
-      return {
-        ...state,
-        courses: [...state.courses, action.payload],
-      }
+  case 'ADD_COURSE':
+    return {
+      ...state,
+      courses: [...state.courses, action.payload],
+    }
 
-    case 'UPDATE_COURSE':
-      if (!state.courses) return state // Protection contre undefined
-      return {
-        ...state,
-        courses: state.courses
-          .map((course) => (course?.id === action?.payload?.id ? action.payload : course))
-          .filter(Boolean), // Filtrer les valeurs null/undefined
-        teacherCourses:
+  case 'UPDATE_COURSE':
+    if (!state.courses) return state // Protection contre undefined
+    return {
+      ...state,
+      courses: state.courses
+        .map((course) => (course?.id === action?.payload?.id ? action.payload : course))
+        .filter(Boolean), // Filtrer les valeurs null/undefined
+      teacherCourses:
           state.teacherCourses?.id === action?.payload?.id ? action.payload : state.teacherCourses,
-      }
+    }
 
-    case 'DELETE_COURSE':
-      return {
-        ...state,
-        courses: state.courses.filter((course) => course.id !== action.payload),
-      }
+  case 'DELETE_COURSE':
+    return {
+      ...state,
+      courses: state.courses.filter((course) => course.id !== action.payload),
+    }
 
-    case 'ADD_STUDENT_TO_COURSE':
-    case 'REMOVE_STUDENT_FROM_COURSE':
-      if (!state.courses) return state // Protection contre undefined
-      return {
-        ...state,
-        courses: state.courses
-          .map((course) =>
-            course?.id === action.payload?.courseId ? action.payload.course : course,
-          )
-          .filter(Boolean),
-        teacherCourses:
+  case 'ADD_STUDENT_TO_COURSE':
+  case 'REMOVE_STUDENT_FROM_COURSE':
+    if (!state.courses) return state // Protection contre undefined
+    return {
+      ...state,
+      courses: state.courses
+        .map((course) =>
+          course?.id === action.payload?.courseId ? action.payload.course : course,
+        )
+        .filter(Boolean),
+      teacherCourses:
           state.teacherCourses?.id === action.payload?.courseId
             ? action.payload.course
             : state.teacherCourses,
-      }
+    }
 
-    default:
-      return state
+  default:
+    return state
   }
 }
 
@@ -188,16 +189,62 @@ export const CoursesProvider = ({
   children: ReactNode
   initialCourseData?: PopulatedCourse[] | null
 }) => {
-  const {toast} = useToast()
+  const { toast } = useToast()
   const [state, dispatch] = useReducer(courseReducer, getInitialState(initialCourseData))
-  const {data: session, status} = useSession()
-  const {fetchTeacherCourses} = useCourseStore()
+
+  // État Supabase
+  const [user, setUser] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  const { fetchTeacherCourses } = useCourseStore()
+
+  // Effet pour gérer l'authentification Supabase
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (user && !error) {
+          setUser(user)
+          setIsAuthenticated(true)
+        } else {
+          setUser(null)
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error)
+        setUser(null)
+        setIsAuthenticated(false)
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    getUser()
+
+    // Écouter les changements d'authentification
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        setIsAuthenticated(true)
+      } else {
+        setUser(null)
+        setIsAuthenticated(false)
+      }
+      setAuthLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Course Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -210,7 +257,7 @@ export const CoursesProvider = ({
 
   const getCourseById = useCallback(
     async (id: string): Promise<PopulatedCourse | null> => {
-      dispatch({type: 'SET_LOADING_COURSE', payload: true})
+      dispatch({ type: 'SET_LOADING_COURSE', payload: true })
       try {
         const response = await getCourseByIdAction(id)
 
@@ -223,7 +270,7 @@ export const CoursesProvider = ({
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
       } finally {
-        dispatch({type: 'SET_LOADING_COURSE', payload: false})
+        dispatch({ type: 'SET_LOADING_COURSE', payload: false })
       }
     },
     [handleError],
@@ -269,12 +316,12 @@ export const CoursesProvider = ({
 
         dispatch({
           type: 'ADD_STUDENT_TO_COURSE',
-          payload: {courseId, course: courseData},
+          payload: { courseId, course: courseData },
         })
 
         return courseData
       } catch (error) {
-        handleError(error as Error, "Erreur lors de l'ajout de l'étudiant")
+        handleError(error as Error, 'Erreur lors de l\'ajout de l\'étudiant')
         throw error
       }
     },
@@ -314,7 +361,7 @@ export const CoursesProvider = ({
 
         return response.data as unknown as PopulatedCourse[]
       } catch (error) {
-        handleError(error as Error, "Erreur lors de la récupération des cours de l'étudiant")
+        handleError(error as Error, 'Erreur lors de la récupération des cours de l\'étudiant')
         return []
       }
     },
@@ -334,7 +381,7 @@ export const CoursesProvider = ({
 
         const newCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'ADD_COURSE', payload: newCourse})
+        dispatch({ type: 'ADD_COURSE', payload: newCourse })
 
         toast({
           title: 'Succès',
@@ -362,7 +409,7 @@ export const CoursesProvider = ({
 
         const deletedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'DELETE_COURSE', payload: courseId})
+        dispatch({ type: 'DELETE_COURSE', payload: courseId })
 
         toast({
           title: 'Succès',
@@ -406,7 +453,7 @@ export const CoursesProvider = ({
 
         dispatch({
           type: 'REMOVE_STUDENT_FROM_COURSE',
-          payload: {courseId, course: courseData},
+          payload: { courseId, course: courseData },
         })
 
         toast({
@@ -416,7 +463,7 @@ export const CoursesProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(error as Error, "Erreur lors du retrait de l'étudiant")
+        handleError(error as Error, 'Erreur lors du retrait de l\'étudiant')
       }
     },
     [handleError, toast],
@@ -437,7 +484,7 @@ export const CoursesProvider = ({
 
         const updatedCourse = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'UPDATE_COURSE', payload: updatedCourse})
+        dispatch({ type: 'UPDATE_COURSE', payload: updatedCourse })
 
         toast({
           title: 'Succès',
@@ -456,15 +503,18 @@ export const CoursesProvider = ({
   )
 
   const updateCourses = useCallback(async (): Promise<void> => {
-    // Only attempt to update if we have an authenticated session
-    if (status !== 'authenticated' || !session || !session.user) {
+    // Only attempt to update if we have an authenticated user
+    if (!isAuthenticated || !user) {
       // console.log('Skipping updateCourses - not authenticated yet')
       return
     }
 
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      const response = await updateCoursesAction(session.user.role, session.user._id)
+      const userRole = user.user_metadata?.role
+      const userId = user.id
+
+      const response = await updateCoursesAction(userRole, userId)
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to update courses')
@@ -472,14 +522,14 @@ export const CoursesProvider = ({
 
       const courseData = response.data as unknown as PopulatedCourse[]
       // console.log('Loaded courses data:', courseData.length)
-      dispatch({type: 'SET_COURSES', payload: courseData})
+      dispatch({ type: 'SET_COURSES', payload: courseData })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des cours')
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
-      dispatch({type: 'SET_LOADING_COURSE', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
+      dispatch({ type: 'SET_LOADING_COURSE', payload: false })
     }
-  }, [handleError, session, status])
+  }, [handleError, user, isAuthenticated])
 
   const updateCourseSession = useCallback(
     async (
@@ -487,18 +537,21 @@ export const CoursesProvider = ({
       sessionIndex: number,
       sessionData: Partial<CourseSession>,
     ): Promise<void> => {
-      if (status !== 'authenticated' || !session || !session.user) {
+      if (!isAuthenticated || !user) {
         console.log('Cannot update course session - not authenticated')
         return
       }
 
       try {
+        const userRole = user.user_metadata?.role
+        const userId = user.id
+
         const response = await updateCourseSessionAction(
           courseId,
           sessionIndex,
           sessionData,
-          session.user.role,
-          session.user._id,
+          userRole,
+          userId,
         )
 
         if (!response.success) {
@@ -507,7 +560,7 @@ export const CoursesProvider = ({
 
         const courseData = response.data as unknown as PopulatedCourse
 
-        dispatch({type: 'UPDATE_COURSE', payload: courseData})
+        dispatch({ type: 'UPDATE_COURSE', payload: courseData })
 
         toast({
           title: 'Succès',
@@ -518,7 +571,7 @@ export const CoursesProvider = ({
         handleError(error as Error, 'Erreur lors de la mise à jour de la session')
       }
     },
-    [handleError, toast, session, status],
+    [handleError, toast, user, isAuthenticated],
   )
 
   // Effect for initializing data
@@ -529,15 +582,15 @@ export const CoursesProvider = ({
       return
     }
 
-    // Only load when authentication is ready
-    if (status === 'authenticated' && session?.user) {
-      // console.log('Session authenticated, loading courses data')
+    // Only load when authentication is ready and user is authenticated
+    if (!authLoading && isAuthenticated && user) {
+      // console.log('User authenticated, loading courses data')
       updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
-      fetchTeacherCourses(session.user.id)
-    } else if (status === 'loading') {
-      // console.log('Auth session is still loading')
+      fetchTeacherCourses(user.id)
+    } else if (authLoading) {
+      // console.log('Auth is still loading')
     }
-  }, [initialCourseData, session, status, fetchTeacherCourses, updateCourses])
+  }, [initialCourseData, user, isAuthenticated, authLoading, fetchTeacherCourses, updateCourses])
 
   const value = useMemo(
     () => ({

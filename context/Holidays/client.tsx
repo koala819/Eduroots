@@ -1,6 +1,6 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
 import {
   ReactNode,
   createContext,
@@ -10,13 +10,14 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {Holiday} from '@/types/holidays'
+import { Holiday } from '@/types/holidays'
 
-import {getCurrentHolidays, saveHolidays} from '@/app/actions/context/holidays'
+import { getCurrentHolidays, saveHolidays } from '@/app/actions/context/holidays'
 
 interface HolidayState {
   holidays: Holiday[]
@@ -36,23 +37,23 @@ type HolidayAction =
 
 function holidayReducer(state: HolidayState, action: HolidayAction): HolidayState {
   switch (action.type) {
-    case 'SET_HOLIDAYS':
-      return {
-        ...state,
-        holidays: action.payload,
-      }
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload,
-      }
-    case 'SET_ERROR':
-      return {
-        ...state,
-        error: action.payload,
-      }
-    default:
-      return state
+  case 'SET_HOLIDAYS':
+    return {
+      ...state,
+      holidays: action.payload,
+    }
+  case 'SET_LOADING':
+    return {
+      ...state,
+      isLoading: action.payload,
+    }
+  case 'SET_ERROR':
+    return {
+      ...state,
+      error: action.payload,
+    }
+  default:
+    return state
   }
 }
 
@@ -68,8 +69,11 @@ interface HolidayContextType extends HolidayState {
 
 const HolidayContext = createContext<HolidayContextType | null>(null)
 
-export const HolidaysProvider = ({children, initialHolidaysData = null}: HolidaysProviderProps) => {
-  const {toast} = useToast()
+export const HolidaysProvider = ({
+  children,
+  initialHolidaysData = null,
+}: HolidaysProviderProps) => {
+  const { toast } = useToast()
 
   // Utiliser les données initiales si disponibles
   const initialState: HolidayState = {
@@ -79,13 +83,58 @@ export const HolidaysProvider = ({children, initialHolidaysData = null}: Holiday
   }
 
   const [state, dispatch] = useReducer(holidayReducer, initialState)
-  const {data: session} = useSession()
+
+  // État Supabase
+  const [user, setUser] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  // Effet pour gérer l'authentification Supabase
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (user && !error) {
+          setUser(user)
+          setIsAuthenticated(true)
+        } else {
+          setUser(null)
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error('Erreur récupération utilisateur:', error)
+        setUser(null)
+        setIsAuthenticated(false)
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    getUser()
+
+    // Écouter les changements d'authentification
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        setIsAuthenticated(true)
+      } else {
+        setUser(null)
+        setIsAuthenticated(false)
+      }
+      setAuthLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Holiday Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -102,14 +151,14 @@ export const HolidaysProvider = ({children, initialHolidaysData = null}: Holiday
       return
     }
 
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
 
     try {
-      if (!session || !session.user) {
+      if (!isAuthenticated || !user) {
         throw new Error('Non authentifié')
       }
 
-      const response = await getCurrentHolidays(session.user._id)
+      const response = await getCurrentHolidays(user.id)
 
       if (!response.success) {
         throw new Error(response.message || 'Échec de la récupération des vacances')
@@ -126,9 +175,9 @@ export const HolidaysProvider = ({children, initialHolidaysData = null}: Holiday
     } catch (error) {
       handleError(error as Error)
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [handleError, initialHolidaysData, session, state.isLoading])
+  }, [handleError, initialHolidaysData, user, isAuthenticated, state.isLoading])
 
   const handleSaveHolidays = useCallback(
     async (holidayData: SaveHolidayData) => {
@@ -164,12 +213,13 @@ export const HolidaysProvider = ({children, initialHolidaysData = null}: Holiday
   const hasLoadedRef = useRef(!!initialHolidaysData)
 
   useEffect(() => {
-    // Seulement charger si pas encore chargé et session disponible
-    if (!initialHolidaysData && !hasLoadedRef.current && session?.user?._id) {
+    // Seulement charger si pas encore chargé et utilisateur disponible
+    if (!initialHolidaysData && !hasLoadedRef.current &&
+        !authLoading && isAuthenticated && user?.id) {
       handleGetCurrentHolidays()
       hasLoadedRef.current = true
     }
-  }, [session, initialHolidaysData, handleGetCurrentHolidays])
+  }, [user, isAuthenticated, authLoading, initialHolidaysData, handleGetCurrentHolidays])
 
   const value = useMemo(
     () => ({

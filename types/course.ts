@@ -1,9 +1,9 @@
-import {CourseDocument, StudentDocument} from '@/types/mongoose'
+import { CourseDocument, StudentDocument } from '@/types/mongoose'
 
-import {RootEntity} from './root'
-import {Student, Teacher} from './user'
+import { RootEntity } from './root'
+import { Student, Teacher } from './user'
 
-import {Types} from 'mongoose'
+import { Types } from 'mongoose'
 
 export enum SubjectNameEnum {
   Arabe = 'Arabe',

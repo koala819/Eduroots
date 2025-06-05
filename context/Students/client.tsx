@@ -10,9 +10,9 @@ import {
   useReducer,
 } from 'react'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {Student, Teacher} from '@/types/user'
+import { Student, Teacher } from '@/types/user'
 
 import {
   createStudent as createStudentAction,
@@ -22,8 +22,8 @@ import {
   getTeachersForStudent,
   updateStudent as updateStudentAction,
 } from '@/app/actions/context/students'
-import {useCourses} from '@/context/Courses/client'
-import {differenceInYears} from 'date-fns'
+import { useCourses } from '@/context/Courses/client'
+import { differenceInYears } from 'date-fns'
 
 interface StudentState {
   students: Student[]
@@ -46,31 +46,31 @@ type StudentAction =
 
 function studentReducer(state: StudentState, action: StudentAction): StudentState {
   switch (action.type) {
-    case 'SET_STUDENTS':
-      return {...state, students: action.payload}
-    case 'SET_LOADING':
-      return {...state, isLoading: action.payload}
-    case 'SET_ERROR':
-      return {...state, error: action.payload}
-    case 'ADD_STUDENT':
-      return {
-        ...state,
-        students: [...state.students, action.payload],
-      }
-    case 'UPDATE_STUDENT':
-      return {
-        ...state,
-        students: state.students.map((student) =>
-          student.id === action.payload.id ? action.payload : student,
-        ),
-      }
-    case 'DELETE_STUDENT':
-      return {
-        ...state,
-        students: state.students.filter((student) => student.id !== action.payload),
-      }
-    default:
-      return state
+  case 'SET_STUDENTS':
+    return { ...state, students: action.payload }
+  case 'SET_LOADING':
+    return { ...state, isLoading: action.payload }
+  case 'SET_ERROR':
+    return { ...state, error: action.payload }
+  case 'ADD_STUDENT':
+    return {
+      ...state,
+      students: [...state.students, action.payload],
+    }
+  case 'UPDATE_STUDENT':
+    return {
+      ...state,
+      students: state.students.map((student) =>
+        student.id === action.payload.id ? action.payload : student,
+      ),
+    }
+  case 'DELETE_STUDENT':
+    return {
+      ...state,
+      students: state.students.filter((student) => student.id !== action.payload),
+    }
+  default:
+    return state
   }
 }
 
@@ -89,9 +89,12 @@ interface StudentContextType extends StudentState {
 
 const StudentContext = createContext<StudentContextType | null>(null)
 
-export const StudentProvider = ({children, initialStudentsData = null}: StudentsProviderProps) => {
-  const {toast} = useToast()
-  const {courses} = useCourses()
+export const StudentProvider = ({
+  children,
+  initialStudentsData = null,
+}: StudentsProviderProps) => {
+  const { toast } = useToast()
+  const { courses } = useCourses()
 
   // Utiliser les données initiales si disponibles
   const initialState: StudentState = {
@@ -106,7 +109,7 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
     (error: Error, customMessage?: string) => {
       console.error('Student Error:', error)
       const errorMessage = customMessage || error.message
-      dispatch({type: 'SET_ERROR', payload: errorMessage})
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -132,16 +135,16 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
         const response = await getOneStudent(studentId)
 
         if (!response.success) {
-          throw new Error(response.message || "Erreur lors de la récupération de l'étudiant")
+          throw new Error(response.message || 'Erreur lors de la récupération de l\'étudiant')
         }
 
         // Extraire l'étudiant de la réponse
         const student = response.data as unknown as Student
 
-        dispatch({type: 'UPDATE_STUDENT', payload: student})
+        dispatch({ type: 'UPDATE_STUDENT', payload: student })
         return student
       } catch (error) {
-        handleError(error as Error, "Erreur lors de la récupération de l'étudiant")
+        handleError(error as Error, 'Erreur lors de la récupération de l\'étudiant')
         throw error
       }
     },
@@ -169,11 +172,11 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
 
   const handleGetAllStudents = useCallback(async (): Promise<void> => {
     // Si nous avons déjà des données initiales, ne chargeons pas à nouveau
-    if (initialStudentsData && !state.isLoading) {
+    if (initialStudentsData) {
       return
     }
 
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const response = await getAllStudents()
 
@@ -185,13 +188,13 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
       const data = response.data as any
       const students = data || []
 
-      dispatch({type: 'SET_STUDENTS', payload: students as Student[]})
+      dispatch({ type: 'SET_STUDENTS', payload: students as Student[] })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la récupération des étudiants')
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [handleError, initialStudentsData, state.isLoading])
+  }, [handleError, initialStudentsData])
 
   const handleCreateStudent = useCallback(
     async (
@@ -201,13 +204,13 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
         const response = await createStudentAction(studentData)
 
         if (!response.success) {
-          throw new Error(response.message || "Erreur lors de la création de l'étudiant")
+          throw new Error(response.message || 'Erreur lors de la création de l\'étudiant')
         }
 
         // Extraire l'étudiant de la réponse
         const newStudent = response.data as unknown as Student
 
-        dispatch({type: 'ADD_STUDENT', payload: newStudent})
+        dispatch({ type: 'ADD_STUDENT', payload: newStudent })
 
         toast({
           title: 'Succès',
@@ -218,7 +221,7 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
 
         return newStudent
       } catch (error) {
-        handleError(error as Error, "Erreur lors de la création de l'étudiant")
+        handleError(error as Error, 'Erreur lors de la création de l\'étudiant')
         throw error
       }
     },
@@ -231,13 +234,13 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
         const response = await updateStudentAction(id, studentData)
 
         if (!response.success) {
-          throw new Error(response.message || "Erreur lors de la mise à jour de l'étudiant")
+          throw new Error(response.message || 'Erreur lors de la mise à jour de l\'étudiant')
         }
 
         // Extraire l'étudiant de la réponse
         const updatedStudent = response.data as unknown as Student
 
-        dispatch({type: 'UPDATE_STUDENT', payload: updatedStudent})
+        dispatch({ type: 'UPDATE_STUDENT', payload: updatedStudent })
 
         toast({
           title: 'Succès',
@@ -248,7 +251,7 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
 
         return updatedStudent
       } catch (error) {
-        handleError(error as Error, "Erreur lors de la mise à jour de l'étudiant")
+        handleError(error as Error, 'Erreur lors de la mise à jour de l\'étudiant')
         throw error
       }
     },
@@ -261,10 +264,10 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
         const response = await deleteStudentAction(id)
 
         if (!response.success) {
-          throw new Error(response.message || "Erreur lors de la suppression de l'étudiant")
+          throw new Error(response.message || 'Erreur lors de la suppression de l\'étudiant')
         }
 
-        dispatch({type: 'DELETE_STUDENT', payload: id})
+        dispatch({ type: 'DELETE_STUDENT', payload: id })
 
         toast({
           title: 'Succès',
@@ -272,14 +275,14 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
           duration: 3000,
         })
       } catch (error) {
-        handleError(error as Error, "Erreur lors de la suppression de l'étudiant")
+        handleError(error as Error, 'Erreur lors de la suppression de l\'étudiant')
         throw error
       }
     },
     [handleError, toast],
   )
   const getStudentsWithoutCourses = useCallback(async (): Promise<Student[]> => {
-    dispatch({type: 'SET_LOADING', payload: true})
+    dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const allStudents = state.students
       // Pour chaque étudiant, vérifier qu'il n'est dans AUCUNE session de AUCUN cours
@@ -308,7 +311,7 @@ export const StudentProvider = ({children, initialStudentsData = null}: Students
       handleError(error as Error)
       return []
     } finally {
-      dispatch({type: 'SET_LOADING', payload: false})
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
   }, [state.students, courses, handleError])
 

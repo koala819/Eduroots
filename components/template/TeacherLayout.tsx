@@ -1,9 +1,9 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 
 import Image from 'next/image'
-import {usePathname, useRouter} from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import FooterTeacher from '@/components/atoms/FooterTeacher'
 
@@ -11,7 +11,7 @@ interface ClientLayoutProps {
   children: React.ReactNode
 }
 
-export function ClientLayout({children}: ClientLayoutProps) {
+export function ClientLayout({ children }: ClientLayoutProps) {
   const [isNavigating, setIsNavigating] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
