@@ -27,12 +27,12 @@ export async function fetchWithAuth<T = any>(
 
     if (authError) {
       console.error('Erreur d\'authentification:', authError.message)
-      return { data: null, error: 'Erreur d\'authentification' }
+      return { data: null, error: 'Erreur lors de la vérification de l\'authentification' }
     }
 
     if (!skipAuthCheck && !user) {
       console.error('Session non authentifiée')
-      return { data: null, error: 'Session non authentifiée' }
+      return { data: null, error: 'Veuillez vous connecter pour accéder à cette fonctionnalité' }
     }
 
     const finalUrl =
@@ -57,7 +57,7 @@ export async function fetchWithAuth<T = any>(
       console.error(`Erreur HTTP ${res.status}:`, errorText)
       return {
         data: null,
-        error: `Erreur ${res.status}: ${errorText || res.statusText}`,
+        error: `Erreur lors de la requête: ${errorText || res.statusText}`,
       }
     }
 
@@ -69,7 +69,7 @@ export async function fetchWithAuth<T = any>(
     console.error('Erreur lors de la requête:', error)
     return {
       data: null,
-      error: error.message || 'Erreur inconnue lors de la requête',
+      error: 'Une erreur est survenue lors de la requête. Veuillez réessayer.',
     }
   }
 }

@@ -215,9 +215,9 @@ export const LoginClient = () => {
 
           if (loginError) {
             toast({
-              variant: 'destructive',
-              title: 'Erreur de connexion',
-              description: 'Compte créé mais impossible de se connecter',
+              variant: 'default',
+              title: 'Vérification requise',
+              description: 'Veuillez vérifier votre boîte mail pour activer votre compte.',
             })
             return
           }
