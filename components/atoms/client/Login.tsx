@@ -75,7 +75,7 @@ export const LoginClient = () => {
     case 'famille':
       return '/student'
     default:
-      return '/home'
+      return '/'
     }
   }
 
@@ -88,10 +88,11 @@ export const LoginClient = () => {
     setLoading(true)
     try {
       const supabase = await createClient()
+      console.log('role', role)
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback`,
           queryParams: { role },
         },
       })
@@ -540,9 +541,7 @@ export const LoginClient = () => {
                             <Input
                               {...field}
                               type="email"
-                              placeholder={
-                                !form.watch('role') ? 'Choisissez d\'abord votre profil' : ' '
-                              }
+                              placeholder="Entrez votre email"
                               className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
                                 border border-gray-200 text-gray-900 lg:text-base
                                 focus:border-[#375073] focus:outline-none focus:ring-2
@@ -551,6 +550,11 @@ export const LoginClient = () => {
                               disabled={loading || !form.watch('role')}
                             />
                           </FormControl>
+                          {!form.watch('role') && (
+                            <p className="text-sm text-[#375073] mt-1">
+                              Sélectionnez d'abord votre profil
+                            </p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -569,9 +573,7 @@ export const LoginClient = () => {
                               <Input
                                 {...field}
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder={
-                                  !form.watch('role') ? 'Choisissez d\'abord votre profil' : ' '
-                                }
+                                placeholder="Entrez votre mot de passe"
                                 className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
                                 border border-gray-200 text-gray-900 lg:text-base
                                 focus:border-[#375073] focus:outline-none focus:ring-2
@@ -583,7 +585,9 @@ export const LoginClient = () => {
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-2.5 lg:right-3 top-2.5 lg:top-3
-                                text-gray-400 hover:text-[#375073] transition-colors"
+                                text-gray-400 hover:text-[#375073] transition-colors
+                                disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={loading || !form.watch('role')}
                               >
                                 {showPassword ? (
                                   <EyeSlashIcon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -593,6 +597,11 @@ export const LoginClient = () => {
                               </button>
                             </div>
                           </FormControl>
+                          {!form.watch('role') && (
+                            <p className="text-sm text-[#375073] mt-1">
+                              Sélectionnez d'abord votre profil
+                            </p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}

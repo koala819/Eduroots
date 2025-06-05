@@ -6,13 +6,14 @@ import { redirect } from 'next/navigation'
 function getRedirectUrl(role: string) {
   switch (role) {
   case 'bureau':
+  case 'admin':
     return '/admin'
-  case 'enseignant':
+  case 'teacher':
     return '/teacher'
-  case 'famille':
+  case 'student':
     return '/student'
   default:
-    return '/home'
+    return '/link-account'
   }
 }
 
@@ -26,39 +27,47 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
+
       // Vérifier si l'email existe dans education.users
-      const { data: educationUser } = await supabase
+      const { data: find_user_in_education_users } = await supabase
         .schema('education')
         .from('users')
-        .select('*')
+        .select('id, role, firstname, lastname')
         .eq('email', data.user.email)
         .single()
 
-      if (educationUser) {
-        // Mettre à jour education.users avec l'auth_id
-        await supabase
-          .schema('education')
-          .from('users')
-          .update({
-            auth_id: data.user.id,
-          })
-          .eq('id', educationUser.id)
-
-        // IMPORTANT: Stocker le rôle dans les métadonnées utilisateur Supabase
+      if (find_user_in_education_users) {
         await supabase.auth.updateUser({
           data: {
-            role: educationUser.role, // Utiliser le rôle de education.users
-            firstname: educationUser.firstname,
-            lastname: educationUser.lastname,
+            firstname: find_user_in_education_users.firstname,
+            lastname: find_user_in_education_users.lastname,
           },
         })
 
-        // Redirection selon le rôle du profil sélectionné
-        const redirectPath = getRedirectUrl(role || 'default')
+        const { error: profileError } = await supabase
+          .schema('public')
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            education_user_id: find_user_in_education_users.id,
+            firstname: find_user_in_education_users.firstname,
+            lastname: find_user_in_education_users.lastname,
+            role: find_user_in_education_users.role,
+          })
+          .eq('id', data.user.id)
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError)
+        }
+        const redirectPath = getRedirectUrl(find_user_in_education_users.role)
         redirect(redirectPath)
-      } else {
-        // Rediriger vers une page de liaison de compte
-        redirect(`/link-account?email=${data.user.email}&role=${role}`)
+
+
+        // console.log('redirection vers link-account avec le role', role,
+        //   'et l\'email', data.user.email)
+        // const email = encodeURIComponent(data.user.email || '')
+        // const roleParam = encodeURIComponent(role || '')
+        // redirect(`/link-account?email=${email}&role=${roleParam}`)
       }
     }
   }
