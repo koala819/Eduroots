@@ -1,17 +1,12 @@
 'use client'
 
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
-import { useState } from 'react'
-
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/hooks/use-toast'
-
 import { ProfileSection } from '@/components/molecules/server/ProfileSection'
-
 import { useStats } from '@/context/Stats/client'
+import { createClient } from '@/utils/supabase/client'
 
 // Déclaration du type OneSignal
 declare global {
@@ -38,17 +33,32 @@ export type MenuItem = {
 
 const ProfilePage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   const { toast } = useToast()
   const { refreshTeacherStudentsStats, refreshGlobalStats } = useStats()
 
-  function logoutHandler() {
-    signOut({
-      redirect: true,
-      callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
-    })
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true)
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    }
+    fetchUser()
+  }, [])
+
+  async function logoutHandler() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = process.env.NEXT_PUBLIC_CLIENT_URL || '/'
   }
 
   const actions: MenuItem[] = [
@@ -88,7 +98,9 @@ const ProfilePage = () => {
           toast({
             variant: 'destructive',
             title: 'Mise à jour impossible',
-            description: `Veuillez attendre ${Math.ceil((MIN_UPDATE_INTERVAL - timeSinceLastUpdate) / 1000 / 60)} minutes avant la prochaine mise à jour`,
+            description: `Veuillez attendre
+            ${Math.ceil((MIN_UPDATE_INTERVAL - timeSinceLastUpdate) / 1000 / 60)}
+            minutes avant la prochaine mise à jour`,
             duration: 3000,
           })
           return
@@ -151,7 +163,7 @@ const ProfilePage = () => {
     },
   ]
 
-  if (!session) {
+  if (loading) {
     return (
       <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
         <div className="flex items-center justify-center gap-2">
@@ -169,11 +181,19 @@ const ProfilePage = () => {
     )
   }
 
+  if (!user) {
+    return (
+      <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
+        <div className="text-gray-500">Non authentifié</div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="hidden md:block mb-8 text-center">
         <h1 className="text-2xl font-bold text-gray-900 space-x-4">
-          {session.user.firstname + ' ' + session.user.lastname}
+          {user.user_metadata?.firstname + ' ' + user.user_metadata?.lastname}
         </h1>
         <p className="text-gray-500">Professeur de Al&apos;Ihsane</p>
       </div>
