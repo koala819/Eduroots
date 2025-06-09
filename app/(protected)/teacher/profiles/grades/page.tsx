@@ -1,16 +1,11 @@
 'use client'
 
 import { ChevronRight, CircleArrowLeft, Plus, Trophy } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/hooks/use-toast'
-
 import { SubjectNameEnum } from '@/types/course'
 import { GradeTypeEnum, PopulatedGrade } from '@/types/grade'
-
 import {
   Accordion,
   AccordionContent,
@@ -20,31 +15,44 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
 import { useGrades } from '@/context/Grades/client'
 import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClient } from '@/utils/supabase/client'
 
 const GradesPage = () => {
   const { toast } = useToast()
-  const { data: session } = useSession()
   const { getTeacherGrades, isLoading, teacherGrades } = useGrades()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      }
+    }
+    getUser()
+  }, [])
 
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        if (session?.user?.id) {
-          await getTeacherGrades(session.user.id)
+        if (user?.id) {
+          await getTeacherGrades(user.id)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Une erreur est survenue')
       }
     }
     fetchGrades()
-  }, [session?.user?.id, getTeacherGrades])
+  }, [user?.id, getTeacherGrades])
 
   // Filtrer et trier les évaluations
   const filteredAndSortedGrades = useMemo(() => {
@@ -145,36 +153,36 @@ const GradesPage = () => {
 
   const getSubjectColor = (subject: string) => {
     switch (subject) {
-      case SubjectNameEnum.Arabe:
-        return 'border-l-blue-500'
-      case SubjectNameEnum.EducationCulturelle:
-        return 'border-l-green-500'
-      default:
-        return 'border-l-gray-500'
+    case SubjectNameEnum.Arabe:
+      return 'border-l-blue-500'
+    case SubjectNameEnum.EducationCulturelle:
+      return 'border-l-green-500'
+    default:
+      return 'border-l-gray-500'
     }
   }
 
   const getSubjectBackgroundColor = (subject: string) => {
     switch (subject) {
-      case SubjectNameEnum.Arabe:
-        return 'bg-blue-100 text-blue-600'
-      case SubjectNameEnum.EducationCulturelle:
-        return 'bg-green-100 text-green-600'
-      default:
-        return 'bg-gray-100 text-gray-600'
+    case SubjectNameEnum.Arabe:
+      return 'bg-blue-100 text-blue-600'
+    case SubjectNameEnum.EducationCulturelle:
+      return 'bg-green-100 text-green-600'
+    default:
+      return 'bg-gray-100 text-gray-600'
     }
   }
 
   const getTypeBackgroundColor = (type: GradeTypeEnum) => {
     switch (type) {
-      case GradeTypeEnum.Controle:
-        return 'bg-purple-100 text-purple-600'
-      case GradeTypeEnum.Devoir:
-        return 'bg-yellow-100 text-yellow-600'
-      case GradeTypeEnum.Examen:
-        return 'bg-blue-100 text-blue-600'
-      default:
-        return 'bg-gray-100 text-gray-600'
+    case GradeTypeEnum.Controle:
+      return 'bg-purple-100 text-purple-600'
+    case GradeTypeEnum.Devoir:
+      return 'bg-yellow-100 text-yellow-600'
+    case GradeTypeEnum.Examen:
+      return 'bg-blue-100 text-blue-600'
+    default:
+      return 'bg-gray-100 text-gray-600'
     }
   }
 
@@ -184,7 +192,10 @@ const GradesPage = () => {
         <div className="flex items-center justify-between">
           <Button
             variant="link"
-            className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
+            className={`
+              p-0 text-gray-500 hover:text-blue-600 -ml-1.5
+              transition-colors
+            `}
             onClick={() => router.push('/teacher/profiles')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
@@ -192,7 +203,10 @@ const GradesPage = () => {
           </Button>
 
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div className={`
+              h-8 w-8 flex items-center justify-center rounded-full
+              bg-blue-100 text-blue-600
+            `}>
               <span className="text-xs font-medium">
                 {teacherGrades?.length || 0}
               </span>
@@ -205,11 +219,15 @@ const GradesPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Évaluations</h1>
         </div>
 
-        {/* Filtres par matière - mobile first avec scroll horizontal */}
-        <div className="space-y-2 sm:space-y-0 md:flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+        <div className={`
+          space-y-2 sm:space-y-0 md:flex overflow-x-auto gap-2
+          pb-2 scrollbar-hide
+        `}>
           <Button
             variant={selectedSubject === 'all' ? 'default' : 'outline'}
-            className="rounded-full text-sm whitespace-nowrap w-full"
+            className={`
+              rounded-full text-sm whitespace-nowrap w-full
+            `}
             onClick={() => setSelectedSubject('all')}
           >
             Toutes ({teacherGrades?.length || 0})
@@ -219,14 +237,15 @@ const GradesPage = () => {
             <Button
               key={subject}
               variant={selectedSubject === subject ? 'default' : 'outline'}
-              className={`rounded-full text-sm whitespace-nowrap w-full ${
-                selectedSubject === subject
-                  ? ''
-                  : getSubjectBackgroundColor(subject).replace(
-                      'text-',
-                      'hover:text-',
-                    )
-              }`}
+              className={`
+                rounded-full text-sm whitespace-nowrap w-full
+                ${selectedSubject === subject
+              ? ''
+              : getSubjectBackgroundColor(subject).replace(
+                'text-',
+                'hover:text-',
+              )}
+              `}
               onClick={() => setSelectedSubject(subject)}
             >
               {subject} ({subjectCounts[subject] || 0})
@@ -235,7 +254,10 @@ const GradesPage = () => {
 
           <Button
             variant="outline"
-            className="rounded-full text-sm whitespace-nowrap bg-blue-50 hover:bg-blue-100 border-blue-200 ml-auto w-full"
+            className={`
+              rounded-full text-sm whitespace-nowrap bg-blue-50
+              hover:bg-blue-100 border-blue-200 ml-auto w-full
+            `}
             onClick={() => {
               router.push('/teacher/profiles/grades/create')
             }}
@@ -261,10 +283,13 @@ const GradesPage = () => {
                 return (
                   <Card
                     key={grade.id}
-                    className={`shadow-sm border-l-4 ${getSubjectColor(subject)}
-                    border-t-0 border-r-0 border-b-0 overflow-hidden rounded-lg animate-fadeIn
-                    ${grade.isDraft ? 'bg-gray-50' : 'bg-white'}
-                    hover:shadow-md transition-all cursor-pointer`}
+                    className={`
+                      shadow-sm border-l-4 ${getSubjectColor(subject)}
+                      border-t-0 border-r-0 border-b-0 overflow-hidden
+                      rounded-lg animate-fadeIn
+                      ${grade.isDraft ? 'bg-gray-50' : 'bg-white'}
+                      hover:shadow-md transition-all cursor-pointer
+                    `}
                     onClick={() => {
                       router.push(`/teacher/profiles/grades/${grade.id}`)
                     }}
@@ -282,26 +307,29 @@ const GradesPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-2 pb-3 px-4">
-                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors duration-200">
+                      <div className={`
+                        bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100
+                        transition-colors duration-200
+                      `}>
                         <div className="flex flex-wrap gap-2 mb-3">
-                          <div
-                            className={`h-7 px-3 rounded-full flex items-center justify-center ${getTypeBackgroundColor(grade.type)} text-xs font-medium`}
-                          >
+                          <div className={`
+                            h-7 px-3 rounded-full flex items-center justify-center
+                            ${getTypeBackgroundColor(grade.type)} text-xs font-medium
+                          `}>
                             {grade.type}
                           </div>
-                          <div
-                            className={`h-7 px-3 rounded-full flex items-center justify-center ${
-                              grade.isDraft
-                                ? 'bg-red-100 text-red-600'
-                                : 'bg-green-100 text-green-600'
-                            } text-xs font-medium`}
-                          >
+                          <div className={`
+                            h-7 px-3 rounded-full flex items-center justify-center
+                            ${grade.isDraft
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-green-100 text-green-600'
+                  } text-xs font-medium
+                          `}>
                             {grade.isDraft ? 'En cours' : 'Terminé'}
                           </div>
                         </div>
 
                         <div className="space-y-3">
-                          {/* Informations principales - affichées en grille responsive */}
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             <div className="space-y-1">
                               <span className="text-xs text-gray-500">
@@ -317,7 +345,8 @@ const GradesPage = () => {
                                 Élèves notés
                               </span>
                               <div className="font-medium text-gray-900">
-                                {`${grade.stats.totalStudents - grade.stats.absentCount}/${grade.stats.totalStudents}`}
+                                {`${grade.stats.totalStudents - grade.stats.absentCount}
+                                /${grade.stats.totalStudents}`}
                               </div>
                             </div>
 
@@ -331,13 +360,15 @@ const GradesPage = () => {
                             </div>
                           </div>
 
-                          {/* Bouton ou Accordéon en bas */}
                           <div className="pt-2 flex justify-end">
                             {grade.isDraft ? (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2"
+                                className={`
+                                  text-blue-600 hover:text-blue-800
+                                  hover:bg-blue-50 p-2
+                                `}
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   router.push(
@@ -360,18 +391,28 @@ const GradesPage = () => {
                                   className="border-0"
                                 >
                                   <div className="flex justify-end">
-                                    <AccordionTrigger className="py-0 px-2 hover:no-underline text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md">
+                                    <AccordionTrigger className={`
+                                      py-0 px-2 hover:no-underline
+                                      text-blue-600 hover:text-blue-800
+                                      hover:bg-blue-50 rounded-md
+                                    `}>
                                       <span className="text-sm font-medium">
                                         Voir détails
                                       </span>
                                     </AccordionTrigger>
                                   </div>
                                   <AccordionContent>
-                                    <div className="pt-3 border-t mt-3 border-gray-100">
-                                      {/* Statistiques supplémentaires */}
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-4">
+                                    <div className={`
+                                      pt-3 border-t mt-3 border-gray-100
+                                    `}>
+                                      <div className={`
+                                        grid grid-cols-2 sm:grid-cols-3
+                                        gap-3 text-sm mb-4
+                                      `}>
                                         <div>
-                                          <span className="text-gray-500 block text-xs">
+                                          <span className={`
+                                            text-gray-500 block text-xs
+                                          `}>
                                             Note la plus haute
                                           </span>
                                           <span className="font-medium">
@@ -379,7 +420,9 @@ const GradesPage = () => {
                                           </span>
                                         </div>
                                         <div>
-                                          <span className="text-gray-500 block text-xs">
+                                          <span className={`
+                                            text-gray-500 block text-xs
+                                          `}>
                                             Note la plus basse
                                           </span>
                                           <span className="font-medium">
@@ -387,7 +430,9 @@ const GradesPage = () => {
                                           </span>
                                         </div>
                                         <div>
-                                          <span className="text-gray-500 block text-xs">
+                                          <span className={`
+                                            text-gray-500 block text-xs
+                                          `}>
                                             Créée le
                                           </span>
                                           <span className="font-medium">
@@ -402,21 +447,29 @@ const GradesPage = () => {
                                         </div>
                                       </div>
 
-                                      {/* Liste des élèves avec leurs notes */}
                                       <div className="mt-3">
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                        <h4 className={`
+                                          text-sm font-medium text-gray-700
+                                          mb-2
+                                        `}>
                                           Notes des élèves
                                         </h4>
-                                        <div className="max-h-60 overflow-y-auto rounded-md border border-gray-200">
+                                        <div className={`
+                                          max-h-60 overflow-y-auto rounded-md
+                                          border border-gray-200
+                                        `}>
                                           {grade.records.map(
                                             (record, index) => (
                                               <div
                                                 key={record.student.id}
-                                                className={`p-2 text-sm flex justify-between items-center ${
-                                                  index % 2 === 0
-                                                    ? 'bg-gray-50'
-                                                    : 'bg-white'
-                                                }`}
+                                                className={`
+                                                  p-2 text-sm flex justify-between
+                                                  items-center
+                                                  ${index % 2 === 0
+                                                ? 'bg-gray-50'
+                                                : 'bg-white'
+                                              }
+                                                `}
                                               >
                                                 <div className="font-medium">
                                                   {record.student.firstname}{' '}
@@ -426,7 +479,10 @@ const GradesPage = () => {
                                                   {record.isAbsent ? (
                                                     <Badge
                                                       variant="outline"
-                                                      className="bg-red-100 text-red-600"
+                                                      className={`
+                                                        bg-red-100
+                                                        text-red-600
+                                                      `}
                                                     >
                                                       Absent
                                                     </Badge>
@@ -458,7 +514,8 @@ const GradesPage = () => {
         ))}
 
         {Object.keys(groupedByMonth).length === 0 && !isLoading && (
-          <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-sm">
+          <div className="flex flex-col items-center justify-center p-8
+           bg-white rounded-lg shadow-sm">
             <div className="text-gray-400 mb-3">
               <Trophy className="w-12 h-12 mx-auto opacity-50" />
             </div>
@@ -467,7 +524,7 @@ const GradesPage = () => {
             </h3>
             <p className="text-gray-500 text-center mb-4">
               {selectedSubject === 'all'
-                ? "Vous n'avez pas encore créé d'évaluations."
+                ? 'Vous n\'avez pas encore créé d\'évaluations.'
                 : `Aucune évaluation pour la matière "${selectedSubject}" n'a été trouvée.`}
             </p>
             <Button

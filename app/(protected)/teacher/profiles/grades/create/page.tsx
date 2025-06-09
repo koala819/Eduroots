@@ -1,17 +1,12 @@
 'use client'
 
 import { CalendarIcon, CircleArrowLeft, ClipboardEdit } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/hooks/use-toast'
-
 import { SubjectNameEnum } from '@/types/course'
 import { CreateGradeDTO, GradeRecord, GradeTypeEnum } from '@/types/grade'
 import { Student } from '@/types/user'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,21 +21,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
 import { useCourses } from '@/context/Courses/client'
 import { useGrades } from '@/context/Grades/client'
 import { formatDayOfWeek } from '@/lib/utils'
 import useCourseStore from '@/stores/useCourseStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClient } from '@/utils/supabase/client'
 
 export default function CreateGradePage() {
   const { teacherCourses, isLoading } = useCourses()
   const { fetchTeacherCourses } = useCourseStore()
   const { createGradeRecord, isLoading: isLoadingGrade } = useGrades()
   const router = useRouter()
-  const { data: session } = useSession()
   const { toast } = useToast()
+  const [user, setUser] = useState<any>(null)
 
   const [error, setError] = useState<string | null>(null)
   const [date, setDate] = useState<Date>()
@@ -60,6 +55,33 @@ export default function CreateGradePage() {
     subject?: SubjectNameEnum
   } | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      }
+    }
+    getUser()
+  }, [])
+
+  // Charger les cours dès que possible
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        if (user?.id) {
+          await fetchTeacherCourses(user.id)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      }
+    }
+    fetchCourses()
+  }, [user?.id, fetchTeacherCourses])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -108,20 +130,6 @@ export default function CreateGradePage() {
       }
     })
   }, [teacherCourses])
-
-  // Charger les cours dès que possible
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        if (session?.user?.id) {
-          await fetchTeacherCourses(session.user.id)
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      }
-    }
-    fetchCourses()
-  }, [session?.user?.id, fetchTeacherCourses])
 
   const handleSelectSession = useCallback(
     (sessionId: string) => {
@@ -216,7 +224,7 @@ export default function CreateGradePage() {
           variant: 'destructive',
           title: 'Erreur',
           description:
-            "Une erreur est survenue lors de l'enregistrement des notes",
+            'Une erreur est survenue lors de l\'enregistrement des notes',
           duration: 3000,
         })
       }
@@ -238,14 +246,14 @@ export default function CreateGradePage() {
     if (!type) return 'bg-gray-100 text-gray-600'
 
     switch (type) {
-      case GradeTypeEnum.Controle:
-        return 'bg-purple-100 text-purple-600'
-      case GradeTypeEnum.Devoir:
-        return 'bg-yellow-100 text-yellow-600'
-      case GradeTypeEnum.Examen:
-        return 'bg-blue-100 text-blue-600'
-      default:
-        return 'bg-gray-100 text-gray-600'
+    case GradeTypeEnum.Controle:
+      return 'bg-purple-100 text-purple-600'
+    case GradeTypeEnum.Devoir:
+      return 'bg-yellow-100 text-yellow-600'
+    case GradeTypeEnum.Examen:
+      return 'bg-blue-100 text-blue-600'
+    default:
+      return 'bg-gray-100 text-gray-600'
     }
   }
 
@@ -254,12 +262,12 @@ export default function CreateGradePage() {
     if (!subject) return 'bg-gray-100 text-gray-600'
 
     switch (subject) {
-      case SubjectNameEnum.Arabe:
-        return 'bg-emerald-100 text-emerald-600'
-      case SubjectNameEnum.EducationCulturelle:
-        return 'bg-blue-100 text-blue-600'
-      default:
-        return 'bg-gray-100 text-gray-600'
+    case SubjectNameEnum.Arabe:
+      return 'bg-emerald-100 text-emerald-600'
+    case SubjectNameEnum.EducationCulturelle:
+      return 'bg-blue-100 text-blue-600'
+    default:
+      return 'bg-gray-100 text-gray-600'
     }
   }
 
@@ -285,7 +293,10 @@ export default function CreateGradePage() {
         <div className="flex items-center justify-between">
           <Button
             variant="link"
-            className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
+            className={`
+              p-0 text-gray-500 hover:text-blue-600 -ml-1.5
+              transition-colors
+            `}
             onClick={() => router.push('/teacher/profiles/grades')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
@@ -293,7 +304,10 @@ export default function CreateGradePage() {
           </Button>
 
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div className={`
+              h-8 w-8 flex items-center justify-center rounded-full
+              bg-blue-100 text-blue-600
+            `}>
               <span className="text-xs font-medium">
                 {gradeEntries.students.length}
               </span>
@@ -354,7 +368,10 @@ export default function CreateGradePage() {
                   className="opacity-0 absolute pointer-events-none"
                 />
                 <div
-                  className="w-full h-10 border rounded-md flex items-center px-3 cursor-pointer hover:border-blue-500 transition-colors"
+                  className={`
+                    w-full h-10 border rounded-md flex items-center px-3
+                    cursor-pointer hover:border-blue-500 transition-colors
+                  `}
                   onClick={() =>
                     (
                       document.getElementById('grade-date') as HTMLInputElement
@@ -393,7 +410,8 @@ export default function CreateGradePage() {
                 <SelectContent>
                   {allSessions.map((session) => (
                     <SelectItem key={session.id} value={session.id}>
-                      {`${session.name} - Niveau ${session.level} - ${formatDayOfWeek(session.timeSlot.dayOfWeek)}`}
+                      {`${session.name} - Niveau ${session.level} -
+                        ${formatDayOfWeek(session.timeSlot.dayOfWeek)}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -416,16 +434,22 @@ export default function CreateGradePage() {
               return (
                 <Card
                   key={student.id}
-                  className={`shadow-sm border-l-4 overflow-hidden rounded-lg animate-fadeIn transition-all ${
-                    record?.isAbsent
-                      ? 'border-l-red-400 bg-red-50/30'
-                      : isGraded
-                        ? 'border-l-green-500'
-                        : 'border-l-yellow-400'
-                  }`}
+                  className={`
+                    shadow-sm border-l-4 overflow-hidden rounded-lg
+                    animate-fadeIn transition-all
+                    ${record?.isAbsent
+                  ? 'border-l-red-400 bg-red-50/30'
+                  : isGraded
+                    ? 'border-l-green-500'
+                    : 'border-l-yellow-400'
+                }
+                  `}
                 >
                   <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className={`
+                      flex flex-col sm:flex-row sm:items-center
+                      sm:justify-between gap-4
+                    `}>
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">
                           {student.firstname} {student.lastname}
@@ -454,7 +478,9 @@ export default function CreateGradePage() {
                           {record?.isAbsent && (
                             <Badge
                               variant="outline"
-                              className="bg-red-100 text-red-600 text-xs"
+                              className={`
+                                bg-red-100 text-red-600 text-xs
+                              `}
                             >
                               Absent
                             </Badge>
@@ -462,7 +488,9 @@ export default function CreateGradePage() {
                           {isGraded && (
                             <Badge
                               variant="outline"
-                              className="bg-green-100 text-green-600 text-xs"
+                              className={`
+                                bg-green-100 text-green-600 text-xs
+                              `}
                             >
                               Noté
                             </Badge>
@@ -548,38 +576,38 @@ export default function CreateGradePage() {
         selectedSession &&
         selectedType &&
         date && (
-          <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex flex-wrap gap-3 mb-3">
-              {selectedType && (
-                <Badge variant="outline" className={getTypeColor(selectedType)}>
-                  {selectedType}
-                </Badge>
-              )}
-              {selectedSession.subject && (
-                <Badge
-                  variant="outline"
-                  className={getSubjectColor(selectedSession.subject)}
-                >
-                  {selectedSession.subject}
-                </Badge>
-              )}
-              {date && (
-                <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                  {format(date, 'dd MMMM', { locale: fr })}
-                </Badge>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>
-                  Progression: {stats.completed}/{stats.total} élèves notés
-                </span>
-                <span>Moyenne: {stats.average}/20</span>
-              </div>
-              <Progress value={stats.percent} className="h-2" />
-            </div>
+        <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <div className="flex flex-wrap gap-3 mb-3">
+            {selectedType && (
+              <Badge variant="outline" className={getTypeColor(selectedType)}>
+                {selectedType}
+              </Badge>
+            )}
+            {selectedSession.subject && (
+              <Badge
+                variant="outline"
+                className={getSubjectColor(selectedSession.subject)}
+              >
+                {selectedSession.subject}
+              </Badge>
+            )}
+            {date && (
+              <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                {format(date, 'dd MMMM', { locale: fr })}
+              </Badge>
+            )}
           </div>
-        )}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>
+                  Progression: {stats.completed}/{stats.total} élèves notés
+              </span>
+              <span>Moyenne: {stats.average}/20</span>
+            </div>
+            <Progress value={stats.percent} className="h-2" />
+          </div>
+        </div>
+      )}
 
       {/* Boutons d'action */}
       {gradeEntries.students.length > 0 && (
@@ -607,7 +635,11 @@ export default function CreateGradePage() {
       )}
 
       {error && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center justify-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg shadow-md z-50">
+        <div className={`
+          fixed top-4 left-1/2 transform -translate-x-1/2
+          flex items-center justify-center gap-2 text-red-600
+          bg-red-50 px-4 py-3 rounded-lg shadow-md z-50
+        `}>
           <div className="h-2 w-2 rounded-full bg-red-500" />
           <span className="text-sm font-medium">{error}</span>
         </div>

@@ -1,17 +1,12 @@
 'use client'
 
 import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/hooks/use-toast'
-
 import { SubjectNameEnum, TimeSlotEnum } from '@/types/course'
 import { GradeRecord, GradeTypeEnum, UpdateGradeDTO } from '@/types/grade'
 import { Student } from '@/types/user'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,14 +14,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-
 import { useGrades } from '@/context/Grades/client'
 import { formatDayOfWeek } from '@/lib/utils'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClient } from '@/utils/supabase/client'
 
 export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
-
   const {
     teacherGrades,
     updateGradeRecord,
@@ -34,8 +28,8 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     getTeacherGrades,
   } = useGrades()
   const router = useRouter()
-  const { data: session } = useSession()
   const { toast } = useToast()
+  const [user, setUser] = useState<any>(null)
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -57,12 +51,25 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     records: [],
   })
 
+  useEffect(() => {
+    const supabase = createClient()
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      }
+    }
+    getUser()
+  }, [])
+
   // Charger les données du grade
   useEffect(() => {
     const fetchGradeData = async () => {
       try {
-        if (session?.user?.id && !teacherGrades) {
-          await getTeacherGrades(session.user.id)
+        if (user?.id && !teacherGrades) {
+          await getTeacherGrades(user.id)
         }
 
         if (teacherGrades) {
@@ -115,7 +122,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     }
 
     fetchGradeData()
-  }, [session?.user?.id, gradeId, teacherGrades, getTeacherGrades])
+  }, [user?.id, gradeId, teacherGrades, getTeacherGrades])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -282,7 +289,9 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
         <div className="flex items-center justify-between">
           <Button
             variant="link"
-            className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
+            className={`
+              p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors
+            `}
             onClick={() => router.push('/teacher/profiles/grades')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
@@ -290,8 +299,10 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
           </Button>
 
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 flex items-center justify-center rounded-full
-            bg-blue-100 text-blue-600">
+            <div className={`
+              h-8 w-8 flex items-center justify-center rounded-full
+              bg-blue-100 text-blue-600
+            `}>
               <span className="text-xs font-medium">
                 {gradeEntries.students.length}
               </span>
@@ -376,19 +387,22 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
               return (
                 <Card
                   key={student.id}
-                  className={`shadow-sm border-l-4 overflow-hidden rounded-lg
+                  className={`
+                    shadow-sm border-l-4 overflow-hidden rounded-lg
                     animate-fadeIn transition-all
                     ${record?.isAbsent
                   ? 'border-l-red-400 bg-red-50/30'
                   : isGraded
                     ? 'border-l-green-500'
                     : 'border-l-yellow-400'
-                }`}
+                }
+                  `}
                 >
                   <CardContent className="p-4">
-                    <div
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                    >
+                    <div className={`
+                      flex flex-col sm:flex-row sm:items-center
+                      sm:justify-between gap-4
+                    `}>
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">
                           {student.firstname} {student.lastname}
@@ -509,7 +523,9 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
 
       {/* Statistiques récapitulatives avant les boutons d'action */}
       {gradeEntries.students.length > 0 && (
-        <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+        <div className={`
+          mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm
+        `}>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>
@@ -524,7 +540,10 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
 
       {/* Boutons d'action */}
       {gradeEntries.students.length > 0 && (
-        <div className="mt-6 sticky bottom-0 left-0 right-0 bg-white border-t p-4 shadow-md z-10">
+        <div className={`
+          mt-6 sticky bottom-0 left-0 right-0 bg-white border-t p-4
+          shadow-md z-10
+        `}>
           <div className="space-y-2 sm:space-y-0 md:flex gap-4">
             <Button
               variant="outline"
@@ -546,8 +565,11 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
       )}
 
       {error && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center
-        justify-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg shadow-md z-50">
+        <div className={`
+          fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center
+          justify-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg
+          shadow-md z-50
+        `}>
           <div className="h-2 w-2 rounded-full bg-red-500" />
           <span className="text-sm font-medium">{error}</span>
         </div>
