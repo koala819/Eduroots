@@ -93,8 +93,9 @@ export const LoginClient = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback?role=${role}`,
+          redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
           queryParams: {
+            role: role,
             next: getRedirectUrl(role),
           },
         },

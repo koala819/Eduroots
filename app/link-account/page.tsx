@@ -43,39 +43,60 @@ function LinkAccountContent() {
     setLoading(true)
     try {
       const { exists, user } = await checkUserExists(baseEmail, role!)
-      console.log('user', user)
-      console.log('Utilisateur existe:', exists)
+      console.log('Vérification utilisateur:', {
+        email: baseEmail,
+        role,
+        exists,
+        user,
+      })
 
-      // if (!exists) {
-      //   toast({
-      //     title: 'Email non trouvé',
-      //     description: 'Cet email n\'existe pas dans notre base.',
-      //     variant: 'destructive',
-      //   })
-      //   await new Promise((resolve) => setTimeout(resolve, 5000))
-      //   router.push('/unauthorized?error=EmailNotFound')
-      //   return
-      // }
+      if (!exists) {
+        toast({
+          title: 'Email non trouvé',
+          description: 'Cet email n\'existe pas dans notre base.',
+          variant: 'destructive',
+        })
+        return
+      }
 
-      // Générer et envoyer le code
-      // const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-      // await supabase
-      //   .from('system.verification_codes')
-      //   .insert({
-      //     email: baseEmail,
-      //     code: code,
-      //     expires_at: new Date(Date.now() + 15 * 60000),
-      //   })
+      // Générer et envoyer le code via OTP Supabase
+      const supabase = createClient()
+      console.log('Envoi du code OTP avec les données:', {
+        email: baseEmail,
+        role: user.role,
+        authId,
+        provider,
+        googleEmail,
+      })
 
-      // await supabase.functions.invoke('send-verification-code', {
-      //   body: { email: baseEmail, code },
-      // })
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: baseEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/link-account`,
+          data: {
+            role: user.role,
+            auth_id: authId,
+            provider: provider,
+            google_email: googleEmail,
+          },
+        },
+      })
 
-      // setIsCodeSent(true)
-      // toast({
-      //   title: 'Code envoyé',
-      //   description: 'Un code de vérification a été envoyé à votre adresse email.',
-      // })
+      if (otpError) {
+        console.error('Erreur lors de l\'envoi du code:', otpError)
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de l\'envoi du code.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      setIsCodeSent(true)
+      toast({
+        title: 'Email envoyé',
+        description: 'Un email de vérification a été envoyé à votre adresse email.',
+      })
     } catch (error) {
       console.error('Erreur lors de l\'envoi du code:', error)
       toast({
