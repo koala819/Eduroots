@@ -88,15 +88,25 @@ export const LoginClient = () => {
     setLoading(true)
     try {
       const supabase = await createClient()
-      console.log('role', role)
-      await supabase.auth.signInWithOAuth({
+      console.log('Tentative de connexion Google avec le rôle:', role)
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback`,
-          queryParams: { role },
+          queryParams: {
+            role,
+            next: getRedirectUrl(role),
+          },
         },
       })
+
+      if (error) {
+        console.error('Erreur lors de la connexion Google:', error)
+        setError(`Erreur lors de la connexion avec Google: ${error.message}`)
+      }
     } catch (error) {
+      console.error('Exception lors de la connexion Google:', error)
       setError(`Erreur lors de la connexion avec Google: ${error}`)
     } finally {
       setLoading(false)

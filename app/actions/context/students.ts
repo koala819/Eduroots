@@ -10,8 +10,16 @@ async function getSessionServer() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (error || !user) {
-    throw new Error('Non authentifié')
+  if (error) {
+    throw new Error('Erreur d\'authentification')
+  }
+
+  if (!user) {
+    throw new Error('Utilisateur non authentifié')
+  }
+
+  if (user.app_metadata?.provider === 'anonymous') {
+    throw new Error('Accès refusé aux utilisateurs anonymes')
   }
 
   return { user }
@@ -115,36 +123,12 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse<Seri
 }
 
 export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
   const supabase = await createClient()
 
   try {
-
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError) {
-      console.error('❌ Erreur lors de la récupération de l\'utilisateur:', userError)
-      throw new Error('Erreur d\'authentification')
-    }
-
-
-
-    // Récupérer le rôle depuis la table profiles
-    const { data: userData, error: userDataError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user?.id)
-      .single()
-
-    if (userDataError) {
-      console.error('❌ Erreur lors de la récupération du rôle:', userDataError)
-      throw new Error('Erreur lors de la récupération du rôle')
-    }
-
-
-    // La requête utilisera automatiquement les politiques RLS qui vérifient le rôle
     const { data: users, error } = await supabase
-      .from('profiles')
+      .schema('education')
+      .from('users')
       .select('*')
       .eq('role', 'student')
       .order('firstname', { ascending: true })
