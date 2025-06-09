@@ -14,10 +14,16 @@ const STUDENT_ROUTES = ['/student']
 
 export async function middleware(req: NextRequest) {
   const { response, supabase } = await createClient(req)
+  const pathname = req.nextUrl.pathname
+
+  // Si c'est la page d'accueil, on laisse passer
+  if (pathname === '/') {
+    return response
+  }
 
   // Vérifier l'utilisateur de manière sécurisée
   const { data: { user }, error } = await supabase.auth.getUser()
-  const pathname = req.nextUrl.pathname
+  // const pathname = req.nextUrl.pathname
 
   // console.log('Middleware - pathname:', pathname)
   // console.log('Middleware - user:', user?.email)
@@ -81,8 +87,9 @@ export async function middleware(req: NextRequest) {
   // console.log('Middleware - Accès autorisé, poursuite de la requête')
 
   // Gérer l'IP
-  const ip =
-    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.nextUrl.hostname
+  const ip = req.headers.get('x-forwarded-for')
+    || req.headers.get('x-real-ip')
+    || req.nextUrl.hostname
   req.headers.set('x-real-ip', ip)
 
   return response
@@ -90,9 +97,13 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/teacher/:path*',
-    '/student/:path*',
-    '/admin/logs',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 }
