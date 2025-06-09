@@ -32,7 +32,10 @@ export async function addStudentToCourse(
   const supabase = await createClient()
 
   try {
-    const { dayOfWeek, startTime, endTime, subject } = timeSlot
+    const {
+      // dayOfWeek, startTime, endTime,
+      subject,
+    } = timeSlot
 
     // Trouver la session correspondante
     const { data: session, error: sessionError } = await supabase

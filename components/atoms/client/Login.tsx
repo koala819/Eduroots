@@ -90,7 +90,7 @@ export const LoginClient = () => {
       const supabase = await createClient()
       console.log('Tentative de connexion Google avec le rôle:', role)
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback`,

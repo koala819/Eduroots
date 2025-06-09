@@ -180,8 +180,8 @@ export async function createBehaviorRecord(
       .select('behavior_rate')
 
     if (allBehaviors && allBehaviors.length > 0) {
-      const averageBehaviorRate = allBehaviors
-        .reduce((sum, beh) => sum + beh.behavior_rate, 0) / allBehaviors.length
+      // const averageBehaviorRate = allBehaviors
+      //   .reduce((sum, beh) => sum + beh.behavior_rate, 0) / allBehaviors.length
 
       // Obtenir ou créer les stats globales
       const { data: globalStats } = await supabase
