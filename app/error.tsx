@@ -1,18 +1,32 @@
 'use client'
 
-import { NextPageContext } from 'next'
+import { useEffect } from 'react'
 
-function Error({ statusCode }: any) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    // Log the error to an error reporting service
+    console.error(error)
+  }, [error])
+
   return (
-    <p>
-      {statusCode ? `An error ${statusCode} occurred on server` : 'An error occurred on client'}
-    </p>
+    <div className="flex min-h-screen flex-col items-center justify-center">
+      <h2 className="text-2xl font-bold mb-4">Une erreur est survenue</h2>
+      <p className="text-gray-600 mb-4">
+        {error.message || 'Une erreur inattendue s\'est produite'}
+      </p>
+      <button
+        onClick={() => reset()}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Réessayer
+      </button>
+    </div>
   )
 }
 
-Error.getInitialProps = ({ res, err }: NextPageContext) => {
-  const statusCode = res ? res.statusCode : err ? err.statusCode : 404
-  return { statusCode }
-}
-
-export default Error

@@ -5,10 +5,21 @@ import { Database } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
 import { FormSchema } from '@/lib/validation/login-schema'
 import { compare } from 'bcryptjs'
+import { createClient as supabaseClient } from '@supabase/supabase-js'
 
-type User = Database['public']['Tables']['users']['Row']
-type ConnectionLog = Database['public']['Tables']['connection_logs']['Row']
+
 type ConnectionLogInsert = Database['public']['Tables']['connection_logs']['Insert']
+
+const supabaseAdmin = supabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  },
+)
 
 export async function loginAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -146,4 +157,34 @@ function checkDefaultPassword(user: {role: UserRoleEnum; password: string}): boo
     return true
   }
   return false
+}
+
+export async function checkUserExists(email: string, role: string) {
+
+  const rolesInEnglish = {
+    enseignant: 'teacher',
+    famille: 'student',
+    bureau: 'bureau',
+  }
+  const roleInEnglish = rolesInEnglish[role as keyof typeof rolesInEnglish]
+  console.log('roleInEnglish', roleInEnglish)
+
+
+
+  const { data: users, error } = await supabaseAdmin
+    .schema('education')
+    .from('users')
+    .select('id, email, role')
+    .or(`email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`)
+    .eq('role', roleInEnglish)
+
+  if (error) {
+    console.error('Erreur Supabase:', error)
+    throw new Error('Erreur lors de la vérification de l\'email')
+  }
+
+  return {
+    exists: users && users.length > 0,
+    user: users?.[0],
+  }
 }

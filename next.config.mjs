@@ -45,6 +45,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     MONGODB_URI: process.env.MONGODB_URI,
     NEXT_PUBLIC_SUPABASE_URI: process.env.NEXT_PUBLIC_SUPABASE_URI,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
   images: {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

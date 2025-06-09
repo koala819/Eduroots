@@ -7,6 +7,9 @@ const ADMIN_ROLES = ['admin', 'bureau']
 const TEACHER_ROLE = 'teacher'
 const STUDENT_ROLE = 'student'
 
+// Routes qui ne nécessitent pas d'authentification
+const PUBLIC_ROUTES = ['/', '/link-account', '/auth/callback']
+
 const SU_ROUTES = ['/admin/root/logs']
 const ADMIN_ROUTES = ['/admin', '/admin/register', '/admin/student', '/admin/teacher']
 const TEACHER_ROUTES = ['/teacher', '/teacher/attendance']
@@ -16,8 +19,8 @@ export async function middleware(req: NextRequest) {
   const { response, supabase } = await createClient(req)
   const pathname = req.nextUrl.pathname
 
-  // Si c'est la page d'accueil, on laisse passer
-  if (pathname === '/') {
+  // Si c'est une route publique, on laisse passer
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
     return response
   }
 
@@ -87,9 +90,8 @@ export async function middleware(req: NextRequest) {
   // console.log('Middleware - Accès autorisé, poursuite de la requête')
 
   // Gérer l'IP
-  const ip = req.headers.get('x-forwarded-for')
-    || req.headers.get('x-real-ip')
-    || req.nextUrl.hostname
+  const ip =
+    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.nextUrl.hostname
   req.headers.set('x-real-ip', ip)
 
   return response

@@ -8,139 +8,74 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { motion } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { checkUserExists } from '@/app/actions/auth'
 
 function LinkAccountContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const googleEmail = searchParams.get('email')
+  const provider = searchParams.get('provider')
+  const authId = searchParams.get('auth_id')
   const role = searchParams.get('role')
 
   const [baseEmail, setBaseEmail] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [isCodeSent, setIsCodeSent] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [emailExists, setEmailExists] = useState<boolean | null>(null)
+
   const { toast } = useToast()
 
-  // Vérifier si l'email Google existe dans la base
+  // Vérifier si nous avons les informations nécessaires
   useEffect(() => {
-    console.log('URL params:', {
-      email: googleEmail,
-      role: role,
-      rawUrl: window.location.href,
-      allParams: Array.from(searchParams.entries()),
-    })
-
-    let isMounted = true
-
-    const checkEmail = async () => {
-      if (!googleEmail) {
-        console.error('Email Google manquant')
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de connexion',
-          description: 'Impossible de récupérer votre email Google. Veuillez réessayer.',
-        })
-        return
-      }
-
-      try {
-        const supabase = createClient()
-        const { data: user } = await supabase
-          .schema('education')
-          .from('users')
-          .select('*')
-          .eq('email', googleEmail)
-          .single()
-
-        console.log('Vérification email Google:', { googleEmail, user })
-
-        if (user && isMounted) {
-          // Lier automatiquement le compte
-          const { data: { user: authUser } } = await supabase.auth.getUser()
-          console.log('Auth user:', authUser)
-
-          await supabase
-            .schema('education')
-            .from('users')
-            .update({
-              auth_id: authUser?.id,
-              role: role,
-            })
-            .eq('email', googleEmail)
-
-          toast({
-            title: 'Compte lié avec succès',
-            description: 'Votre compte Google a été lié avec succès.',
-          })
-          // router.push('/')
-        } else if (isMounted) {
-          setEmailExists(false)
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification:', error)
-        if (isMounted) {
-          toast({
-            variant: 'destructive',
-            title: 'Erreur',
-            description: 'Une erreur est survenue lors de la vérification.',
-          })
-        }
-      }
+    if (!googleEmail || !provider || !authId || !role) {
+      console.error('Informations manquantes:', { googleEmail, provider, authId, role })
+      toast({
+        variant: 'destructive',
+        title: 'Erreur de connexion',
+        description: 'Informations d\'authentification manquantes. Veuillez réessayer.',
+      })
+      router.push('/')
+      return
     }
-
-    if (emailExists === null && googleEmail) {
-      checkEmail()
-    }
-
-    return () => {
-      isMounted = false
-    }
-  }, [googleEmail, role, emailExists, router, toast, searchParams])
+  }, [googleEmail, provider, authId, role, router, toast, searchParams])
 
   const sendVerificationCode = async () => {
     setLoading(true)
     try {
-      const supabase = createClient()
+      const { exists, user } = await checkUserExists(baseEmail, role!)
+      console.log('user', user)
+      console.log('Utilisateur existe:', exists)
 
-      // Vérifier si l'email existe dans la base
-      const { data: user } = await supabase
-        .schema('education')
-        .from('users')
-        .select('*')
-        .eq('email', baseEmail)
-        .single()
-
-      console.log('Vérification email base:', { baseEmail, user })
-
-      if (!user) {
-        toast({
-          variant: 'destructive',
-          title: 'Email non trouvé',
-          description: 'Cet email n\'existe pas dans notre base. Si vous avez oublié votre email, veuillez contacter le support.',
-        })
-        return
-      }
+      // if (!exists) {
+      //   toast({
+      //     title: 'Email non trouvé',
+      //     description: 'Cet email n\'existe pas dans notre base.',
+      //     variant: 'destructive',
+      //   })
+      //   await new Promise((resolve) => setTimeout(resolve, 5000))
+      //   router.push('/unauthorized?error=EmailNotFound')
+      //   return
+      // }
 
       // Générer et envoyer le code
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-      await supabase
-        .from('system.verification_codes')
-        .insert({
-          email: baseEmail,
-          code: code,
-          expires_at: new Date(Date.now() + 15 * 60000),
-        })
+      // const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+      // await supabase
+      //   .from('system.verification_codes')
+      //   .insert({
+      //     email: baseEmail,
+      //     code: code,
+      //     expires_at: new Date(Date.now() + 15 * 60000),
+      //   })
 
-      await supabase.functions.invoke('send-verification-code', {
-        body: { email: baseEmail, code },
-      })
+      // await supabase.functions.invoke('send-verification-code', {
+      //   body: { email: baseEmail, code },
+      // })
 
-      setIsCodeSent(true)
-      toast({
-        title: 'Code envoyé',
-        description: 'Un code de vérification a été envoyé à votre adresse email.',
-      })
+      // setIsCodeSent(true)
+      // toast({
+      //   title: 'Code envoyé',
+      //   description: 'Un code de vérification a été envoyé à votre adresse email.',
+      // })
     } catch (error) {
       console.error('Erreur lors de l\'envoi du code:', error)
       toast({
@@ -174,12 +109,12 @@ function LinkAccountContent() {
         return
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
+      // Mettre à jour l'utilisateur avec l'auth_id et le rôle
       await supabase
         .schema('education')
         .from('users')
         .update({
-          auth_id: user?.id,
+          auth_id: authId,
           role: role,
         })
         .eq('email', baseEmail)
@@ -194,7 +129,9 @@ function LinkAccountContent() {
         description: 'Votre compte a été lié avec succès.',
       })
 
-      // router.push('/')
+      // Rediriger vers la page appropriée selon le rôle
+      // const redirectPath = getRedirectUrl(role)
+      // router.push(redirectPath)
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -206,27 +143,21 @@ function LinkAccountContent() {
     }
   }
 
-  if (emailExists === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#375073] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Vérification de votre compte...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+    <div className="flex min-h-screen flex-col items-center
+    justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-8 p-6 sm:p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl"
+        className="max-w-md w-full space-y-8 p-6 sm:p-8
+        bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl"
       >
         <div className="text-center space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#375073] to-[#4a6b95] bg-clip-text text-transparent">
-            Connexion avec Google
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r
+          from-[#375073] to-[#4a6b95] bg-clip-text text-transparent">
+            Rôle
+            <span className='ml-2 uppercase font-bolder'>{role}</span>
           </h2>
           <div className="space-y-2">
             <p className="text-gray-600">
@@ -250,10 +181,11 @@ function LinkAccountContent() {
               </label>
               <Input
                 type="email"
+                disabled={loading}
                 value={baseEmail}
                 onChange={(e) => setBaseEmail(e.target.value)}
                 placeholder="Entrez votre email habituel"
-                className="w-full"
+                className='w-full'
               />
               <p className="text-xs text-gray-500">
                 Si vous avez oublié votre email, veuillez contacter le support.

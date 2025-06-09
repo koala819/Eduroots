@@ -93,9 +93,8 @@ export const LoginClient = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback`,
+          redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/callback?role=${role}`,
           queryParams: {
-            role,
             next: getRedirectUrl(role),
           },
         },
@@ -175,7 +174,7 @@ export const LoginClient = () => {
       }
 
       // Essayer de se connecter
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       })
