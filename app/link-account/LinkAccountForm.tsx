@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast'
 import { motion } from 'framer-motion'
 import { linkAccount } from '@/app/link-account/actions'
 import { useRouter } from 'next/navigation'
+import { getRoleName } from '@/utils/supabase/redirects'
 
 interface LinkAccountFormProps {
   googleEmail: string
@@ -58,6 +59,7 @@ export default function LinkAccountForm({
         description: 'Veuillez vérifier votre boîte mail pour confirmer la liaison de votre'+
         'compte.',
       })
+
       setCodeSended(true)
     } catch (error) {
       console.error('Erreur lors de la liaison du compte:', error)
@@ -88,7 +90,7 @@ export default function LinkAccountForm({
           >
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900">
-            Liaison de compte
+            Liaison de compte {getRoleName(role)}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
             Vous êtes connecté avec {googleEmail} via {provider}

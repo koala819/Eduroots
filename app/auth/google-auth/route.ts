@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     redirect('/error')
   }
 
-  const existingLinkedUser = await existingUser(supabase, data_from_auth.id, request)
+  const existingLinkedUser = await existingUser(supabase, data_from_auth.id, role!, request)
 
   if (existingLinkedUser) {
     await handleUserUpdate(supabase, data_from_auth, existingLinkedUser)
@@ -125,12 +125,13 @@ async function findUserInDatabase(supabase: any, email: string, role: string) {
 }
 
 
-async function existingUser(supabase: any, auth_id: string, request: Request) {
+async function existingUser(supabase: any, auth_id: string, role: string, request: Request) {
   const { data: existingLinkedUser, error: linkedUserError } = await supabase
     .schema('education')
     .from('users')
     .select('*')
     .eq('auth_id', auth_id)
+    .eq('role', role)
     .maybeSingle()
 
   if (linkedUserError) {
