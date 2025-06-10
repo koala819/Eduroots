@@ -264,11 +264,12 @@ export type TeacherStatsGenderDistribution = {
 }
 
 export type User = {
-  id: string
+  id: string //uuid
+  auth_id: string //uuid
   firstname: string
   lastname: string
   email: string
-  secondaryEmail: string | null
+  secondary_mail: string | null
   is_active: boolean
   deleted_at: Date | null
   date_of_birth: Date | null
@@ -277,28 +278,32 @@ export type User = {
   subjects: string[] | null
   school_year: string | null
   stats_model: string | null
-  student_stats_id: string | null
-  teacher_stats_id: string | null
+  student_stats_id: string | null //uuid
+  teacher_stats_id: string | null //uuid
   role: string
   phone: string | null
   created_at: Date | null
   updated_at: Date | null
-  hasInvalidEmail: boolean
+  has_invalid_email: boolean
 }
 
 export type Database = {
-  public: {
+  config: {
     Tables: {
-      app_config: {
+       app_config: {
         Row: AppConfig
         Insert: Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>>
       }
-      app_config_theme: {
+      theme: {
         Row: AppConfigTheme
         Insert: Omit<AppConfigTheme, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<AppConfigTheme, 'id' | 'created_at' | 'updated_at'>>
       }
+    }
+  }
+  education: {
+    Tables: {
       attendances: {
         Row: Attendance
         Insert: Omit<Attendance, 'id' | 'created_at' | 'updated_at'>
@@ -318,11 +323,6 @@ export type Database = {
         Row: BehaviorRecord
         Insert: Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<BehaviorRecord, 'id' | 'created_at' | 'updated_at'>>
-      }
-      connection_logs: {
-        Row: ConnectionLog
-        Insert: Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>>
       }
       courses: {
         Row: Course
@@ -348,11 +348,6 @@ export type Database = {
         Row: CourseTeacher
         Insert: Omit<CourseTeacher, 'created_at'>
         Update: Partial<Omit<CourseTeacher, 'created_at'>>
-      }
-      global_stats: {
-        Row: GlobalStats
-        Insert: Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>>
       }
       grades: {
         Row: Grade
@@ -384,6 +379,29 @@ export type Database = {
         Insert: Omit<ScheduleDay, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<ScheduleDay, 'id' | 'created_at' | 'updated_at'>>
       }
+      users: {
+        Row: User
+        Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
+      }
+    }
+  }
+  logs: {
+    Tables: {
+      connection_logs: {
+        Row: ConnectionLog
+        Insert: Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ConnectionLog, 'id' | 'created_at' | 'updated_at'>>
+      }
+    }
+  }
+  stats: {
+    Tables: {
+    global_stats: {
+        Row: GlobalStats
+        Insert: Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<GlobalStats, 'id' | 'created_at' | 'updated_at'>>
+      }
       student_stats: {
         Row: StatsStudent
         Insert: Omit<StatsStudent, 'id' | 'created_at' | 'updated_at'>
@@ -408,11 +426,6 @@ export type Database = {
         Row: TeacherStatsGenderDistribution
         Insert: Omit<TeacherStatsGenderDistribution, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<TeacherStatsGenderDistribution, 'id' | 'created_at' | 'updated_at'>>
-      }
-      users: {
-        Row: User
-        Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
       }
     }
   }

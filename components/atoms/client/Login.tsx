@@ -51,34 +51,6 @@ export const LoginClient = () => {
     },
   })
 
-  // Fonction utilitaire pour obtenir le nom du rôle pour le message toast
-  function getRoleName(role: string) {
-    switch (role) {
-    case 'bureau':
-      return 'Bureau'
-    case 'enseignant':
-      return 'Enseignant'
-    case 'famille':
-      return 'Parent'
-    default:
-      return 'Accueil'
-    }
-  }
-
-  // Fonction utilitaire pour obtenir l'URL de redirection
-  function getRedirectUrl(role: string) {
-    switch (role) {
-    case 'bureau':
-      return '/admin'
-    case 'enseignant':
-      return '/teacher'
-    case 'famille':
-      return '/student'
-    default:
-      return '/'
-    }
-  }
-
   async function signInWithGoogle() {
     const role = form.getValues('role')
     if (!role) {
@@ -87,16 +59,16 @@ export const LoginClient = () => {
     }
     setLoading(true)
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
       console.log('Tentative de connexion Google avec le rôle:', role)
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
+          redirectTo: `${window.location.origin}/auth/google-auth?role=${role}`,
           queryParams: {
             role: role,
-            next: getRedirectUrl(role),
+            next: `/${role}`,
           },
         },
       })
@@ -118,24 +90,16 @@ export const LoginClient = () => {
     setError('')
 
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
 
-      // Vérifier la configuration Supabase
-      console.log('Configuration Supabase:', {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Définie' : 'Manquante',
-        key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Définie' : 'Manquante',
-      })
-
-      console.log('Tentative de connexion avec email:', values.email)
-
-      // Vérifier si l'utilisateur existe dans education.users (toutes les données)
       const { data: existingUsers, error: userError } = await supabase
         .schema('education')
         .from('users')
         .select('*')
         .eq('email', values.email)
 
-      console.log('Utilisateur trouvé:', existingUsers && existingUsers.length > 0 ? 'Oui' : 'Non')
+      // console.log('Utilisateur trouvé:', existingUsers
+      // && existingUsers.length > 0 ? 'Oui' : 'Non')
 
       if (userError) {
         console.error('Erreur détaillée:', {
@@ -154,8 +118,6 @@ export const LoginClient = () => {
       }
 
       const existingUser = existingUsers[0]
-
-      // Vérifier si le rôle correspond au profil sélectionné
       const selectedRole = values.role
       const userRole = existingUser.role
 
@@ -216,10 +178,10 @@ export const LoginClient = () => {
             return
           }
 
-          console.log('Compte créé et lié avec succès!')
+          // console.log('Compte créé et lié avec succès!')
 
           // Maintenant se connecter avec le nouveau compte
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          const { error: loginError } = await supabase.auth.signInWithPassword({
             email: values.email,
             password: values.password,
           })
@@ -233,7 +195,7 @@ export const LoginClient = () => {
             return
           }
 
-          console.log('Connexion réussie après création!')
+          // console.log('Connexion réussie après création!')
 
           // Mettre à jour les métadonnées utilisateur après création
           await supabase.auth.updateUser({
@@ -244,14 +206,13 @@ export const LoginClient = () => {
             },
           })
 
-          // Connexion réussie après création
           toast({
             variant: 'default',
             title: 'Compte créé et connecté',
-            description: `Redirection vers ${getRoleName(values.role)}...`,
+            description: `Redirection vers ${values.role}...`,
           })
 
-          const path = getRedirectUrl(values.role)
+          const path = `/${values.role}`
           setTimeout(() => {
             router.push(path)
             setTimeout(() => {
@@ -269,11 +230,8 @@ export const LoginClient = () => {
         }
         return
       }
+      // console.log('Connexion réussie!')
 
-      // Connexion réussie
-      console.log('Connexion réussie!')
-
-      // Mettre à jour les métadonnées utilisateur avec les données de education.users
       await supabase.auth.updateUser({
         data: {
           role: existingUser.role,
@@ -282,22 +240,17 @@ export const LoginClient = () => {
         },
       })
 
-      // Notification et redirection
       toast({
         variant: 'default',
         title: 'Connexion réussie',
-        description: `Redirection vers ${getRoleName(values.role)}...`,
+        description: `Redirection vers ${values.role}...`,
       })
 
-      // Redirection en fonction du rôle
-      const path = getRedirectUrl(values.role)
-      console.log('Redirection vers:', path)
+      const path = `/${values.role}`
 
-      // Attendre un court instant pour que la session soit complètement établie
       setTimeout(() => {
         router.push(path)
 
-        // Si après un court délai nous sommes toujours sur la même page, forcer la redirection
         setTimeout(() => {
           if (window.location.pathname === '/') {
             console.log('Forcing navigation with window.location')
@@ -338,11 +291,11 @@ export const LoginClient = () => {
       </div>
 
       {/* Main Container */}
-      <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16
+      <main className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16
         items-center relative z-10">
 
         {/* Left Side - Branding */}
-        <div className="hidden lg:flex flex-col space-y-8 text-center lg:text-left">
+        <aside className="hidden lg:flex flex-col space-y-8 text-center lg:text-left">
           <div className="space-y-6">
             <div className="inline-flex items-center justify-center lg:justify-start">
               <div className="w-16 h-16 bg-gradient-to-br from-[#375073] to-[#4a6b95]
@@ -378,10 +331,10 @@ export const LoginClient = () => {
               <span className="text-sm">Interface moderne</span>
             </div>
           </div>
-        </div>
+        </aside>
 
         {/* Right Side - Login Form */}
-        <div className="w-full max-w-md mx-auto lg:max-w-none">
+        <aside className="w-full max-w-md mx-auto lg:max-w-none">
           <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
             border border-white/30 dark:border-gray-700/30 rounded-3xl
             shadow-2xl p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8
@@ -438,12 +391,12 @@ export const LoginClient = () => {
                           type="button"
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
-                            ${field.value === 'enseignant'
+                            ${field.value === 'teacher'
                       ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
                       : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'}
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange('enseignant')}
-                          aria-pressed={field.value === 'enseignant'}
+                          onClick={() => field.onChange('teacher')}
+                          aria-pressed={field.value === 'teacher'}
                         >
                           <AcademicCapIcon className="w-7 h-7 mb-1" />
                           <span className="font-medium text-xs sm:text-sm">Enseignant</span>
@@ -452,12 +405,12 @@ export const LoginClient = () => {
                           type="button"
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
-                            ${field.value === 'famille'
+                            ${field.value === 'student'
                       ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
                       : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'}
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange('famille')}
-                          aria-pressed={field.value === 'famille'}
+                          onClick={() => field.onChange('student')}
+                          aria-pressed={field.value === 'student'}
                         >
                           <HomeIcon className="w-7 h-7 mb-1" />
                           <span className="font-medium text-xs sm:text-sm">Famille</span>
@@ -669,8 +622,8 @@ export const LoginClient = () => {
               <PWAButtonClient />
             </div>
           </div>
-        </div>
-      </div>
+        </aside>
+      </main>
     </motion.div>
   )
 }

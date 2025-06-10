@@ -1,43 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
-// Fonction utilitaire pour obtenir l'URL de redirection selon le rôle
-function getRedirectUrl(role: string) {
-  switch (role) {
-  case 'bureau':
-  case 'admin':
-    return '/admin'
-  case 'teacher':
-    return '/teacher'
-  case 'student':
-    return '/student'
-  default:
-    return '/link-account'
-  }
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const role = searchParams.get('role')
-  const error = searchParams.get('error')
-  const errorDescription = searchParams.get('error_description')
+  // const role = searchParams.get('role')
+  // const error = searchParams.get('error')
+  // const errorDescription = searchParams.get('error_description')
 
-  console.log('Link Account - Paramètres reçus:', {
-    code: code ? 'présent' : 'absent',
-    role,
-    error,
-    errorDescription,
-  })
 
-  if (error) {
-    console.error('Erreur Supabase:', {
-      error,
-      errorDescription,
-      errorCode: searchParams.get('error_code'),
-    })
-    return NextResponse.redirect(new URL('/error', request.url))
-  }
 
   if (code) {
     const supabase = await createClient()
@@ -55,75 +26,54 @@ export async function GET(request: Request) {
       )
     }
 
-    // Récupérer l'auth_id et le rôle depuis les métadonnées
+    // Récupération des métadonnées
     const auth_id = data.user.user_metadata.auth_id
     const role = data.user.user_metadata.role
 
-    console.log('Link Account - Données utilisateur:', {
-      email: data.user.email,
-      metadata: data.user.user_metadata,
+    console.log('Link Account - Paramètres reçus:', {
+      code: code ? 'présent' : 'absent',
+      role,
+      auth_id,
+      'Données utilisateur': {
+        email: data.user.email,
+        metadata: data.user.user_metadata,
+      },
     })
 
-    // Vérifier si l'utilisateur existe dans la base de données
-    const { data: users, error: find_user_in_education_users_error } =
-      await supabase
-        .schema('education')
-        .from('users')
-        .select('*')
-        .eq('email', data.user.email)
-        .eq('role', role)
+    // inserer auth_id dans auth_id de education.users
 
-    console.log('Link Account - Recherche utilisateur:', {
-      email: data.user.email,
-      role: role,
-      usersFound: users?.length || 0,
-      error: find_user_in_education_users_error,
-    })
+    const { data: user, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select()
+      .or(`email.eq.${data.user.email},secondary_email.eq.${data.user.email}`)
+      .eq('role', role)
+      .single()
 
-    if (find_user_in_education_users_error) {
-      console.error('Erreur lors de la recherche de l\'utilisateur:',
-        find_user_in_education_users_error)
+    console.log('find user in link account', user)
+    console.log('auth id', auth_id)
+    console.log('user id', user?.id)
+
+
+    if (userError) {
+      console.error('Erreur lors de la recherche de l\'utilisateur:', userError)
       return NextResponse.redirect(
         new URL('/error?message=Erreur lors de la vérification du compte', request.url),
       )
     }
 
-    if (!users || users.length === 0) {
-      console.error('Utilisateur non trouvé dans la base de données:', {
-        email: data.user.email,
-        role: role,
-      })
-      return NextResponse.redirect(
-        new URL('/error?message=Utilisateur non trouvé avec ce rôle', request.url),
-      )
-    }
-
-    // On ne devrait avoir qu'un seul utilisateur maintenant
-    const user = users[0]
-    console.log('Utilisateur sélectionné:', {
-      email: user.email,
-      role: user.role,
-      id: user.id,
-    })
-
-    // Vérification de sécurité supplémentaire
-    if (user.role !== role) {
-      console.error('Incohérence de rôle:', {
-        expected: role,
-        found: user.role,
-      })
-      return NextResponse.redirect(
-        new URL('/error?message=Incohérence de rôle détectée', request.url),
-      )
-    }
-
-    // Mettre à jour l'utilisateur avec l'auth_id
-    const { error: updateError } = await supabase
+    // Puis faire l'update sur l'ID trouvé
+    const { data: updateData, error: updateError } = await supabase
       .schema('education')
       .from('users')
       .update({ auth_id: auth_id })
       .eq('id', user.id)
+      .select() // optionnel, pour récupérer les données mises à jour
 
+
+    console.log('update data in link account', updateData)
+
+    // Après l'update de auth_id
     if (updateError) {
       console.error('Erreur lors de la mise à jour de l\'utilisateur:', updateError)
       return NextResponse.redirect(
@@ -131,7 +81,7 @@ export async function GET(request: Request) {
       )
     }
 
-    // Mettre à jour les métadonnées utilisateur
+    // Mise à jour des métadonnées de l'utilisateur Supabase
     const { error: updateUserError } = await supabase.auth.updateUser({
       data: {
         firstname: user.firstname,
@@ -147,11 +97,7 @@ export async function GET(request: Request) {
       )
     }
 
-    // Rediriger vers la page appropriée selon le rôle
-    const redirectPath = getRedirectUrl(user.role)
-    return NextResponse.redirect(new URL(redirectPath, request.url))
+    // Redirection vers la page appropriée selon le rôle
+    return NextResponse.redirect(new URL(`/${role}`, request.url))
   }
-
-  // Si pas de code ou erreur, rediriger vers la page d'erreur
-  return NextResponse.redirect(new URL('/error', request.url))
 }
