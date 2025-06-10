@@ -50,11 +50,6 @@ export async function GET(request: Request) {
       .eq('role', role)
       .single()
 
-    console.log('find user in link account', user)
-    console.log('auth id', auth_id)
-    console.log('user id', user?.id)
-
-
     if (userError) {
       console.error('Erreur lors de la recherche de l\'utilisateur:', userError)
       return NextResponse.redirect(
@@ -68,10 +63,7 @@ export async function GET(request: Request) {
       .from('users')
       .update({ auth_id: auth_id })
       .eq('id', user.id)
-      .select() // optionnel, pour récupérer les données mises à jour
-
-
-    console.log('update data in link account', updateData)
+      // .select() // optionnel, pour récupérer les données mises à jour
 
     // Après l'update de auth_id
     if (updateError) {

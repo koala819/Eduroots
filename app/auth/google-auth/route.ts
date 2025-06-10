@@ -33,6 +33,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient()
+
   const { data, error: authError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (authError) {
@@ -43,6 +44,13 @@ export async function GET(request: Request) {
   const data_from_auth = data.user
   if (!data_from_auth) {
     redirect('/error')
+  }
+
+  const existingLinkedUser = await existingUser(supabase, data_from_auth.id, request)
+
+  if (existingLinkedUser) {
+    await handleUserUpdate(supabase, data_from_auth, existingLinkedUser)
+    redirect(`/${existingLinkedUser.role}`)
   }
 
   const { data: find_user_in_education_users, error: findError } =
@@ -114,4 +122,23 @@ async function findUserInDatabase(supabase: any, email: string, role: string) {
   }
 
   return { data }
+}
+
+
+async function existingUser(supabase: any, auth_id: string, request: Request) {
+  const { data: existingLinkedUser, error: linkedUserError } = await supabase
+    .schema('education')
+    .from('users')
+    .select('*')
+    .eq('auth_id', auth_id)
+    .maybeSingle()
+
+  if (linkedUserError) {
+    console.error('Erreur lors de la vérification du lien:', linkedUserError)
+    return NextResponse.redirect(
+      new URL('/error?message=Erreur lors de la vérification du compte', request.url),
+    )
+  }
+
+  return existingLinkedUser
 }
