@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { loginAction } from '@/app/actions/auth'
 
 
 
@@ -91,167 +92,26 @@ export const LoginClient = () => {
     setError('')
 
     try {
-      const supabase = createClient()
+      const formData = new FormData()
+      formData.append('email', values.email)
+      formData.append('pwd', values.password)
+      formData.append('role', values.role)
+      formData.append('userAgent', navigator.userAgent)
 
-      const { data: existingUsers, error: userError } = await supabase
-        .schema('education')
-        .from('users')
-        .select('*')
-        .eq('email', values.email)
+      const result = await loginAction(formData)
 
-      // console.log('Utilisateur trouvé:', existingUsers
-      // && existingUsers.length > 0 ? 'Oui' : 'Non')
+      console.log('result', result)
+      if (result.success) {
 
-      if (userError) {
-        console.error('Erreur détaillée:', {
-          message: userError.message,
-          details: userError.details,
-          hint: userError.hint,
-          code: userError.code,
+        router.push(`/${result.user?.role}`)
+        toast({
+          variant: 'success',
+          title: 'Succès',
+          description: 'Vous êtes connecté',
         })
-        setError('Une erreur est survenue lors de la vérification du compte')
-        return
       }
-
-      if (!existingUsers || existingUsers.length === 0) {
-        setError('Aucun compte trouvé avec cet email')
-        return
-      }
-
-      const existingUser = existingUsers[0]
-      const selectedRole = values.role
-      const userRole = existingUser.role
-
-      let roleMatch = false
-
-      if (selectedRole === 'bureau' && (userRole === 'bureau' || userRole === 'admin')) {
-        roleMatch = true
-      } else if (selectedRole === 'enseignant' && userRole === 'teacher') {
-        roleMatch = true
-      } else if (selectedRole === 'famille' && userRole === 'student') {
-        roleMatch = true
-      }
-
-      if (!roleMatch) {
-        setError('Ce profil ne correspond pas à votre rôle. Veuillez sélectionner le bon profil.')
-        return
-      }
-
-      // Essayer de se connecter
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      })
-
-      if (authError) {
-        // Si l'erreur est "Invalid login credentials", on crée un nouveau compte Supabase Auth
-        if (authError.message === 'Invalid login credentials') {
-          console.log('Création du compte Supabase Auth pour cet utilisateur...')
-
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: values.email,
-            password: values.password,
-          })
-
-          if (signUpError) {
-            console.error('Erreur signUp détaillée:', signUpError)
-            toast({
-              variant: 'destructive',
-              title: 'Erreur de création',
-              description: signUpError.message,
-            })
-            return
-          }
-
-          // Lier le compte Supabase Auth avec education.users
-          const { error: updateError } = await supabase
-            .schema('education')
-            .from('users')
-            .update({ id: signUpData.user?.id })
-            .eq('email', values.email)
-
-          if (updateError) {
-            toast({
-              variant: 'destructive',
-              title: 'Erreur de liaison',
-              description: 'Impossible de lier les comptes',
-            })
-            return
-          }
-
-          // console.log('Compte créé et lié avec succès!')
-
-          // Maintenant se connecter avec le nouveau compte
-          const { error: loginError } = await supabase.auth.signInWithPassword({
-            email: values.email,
-            password: values.password,
-          })
-
-          if (loginError) {
-            toast({
-              variant: 'default',
-              title: 'Vérification requise',
-              description: 'Veuillez vérifier votre boîte mail pour activer votre compte.',
-            })
-            return
-          }
-
-          // console.log('Connexion réussie après création!')
-
-          // Mettre à jour les métadonnées utilisateur après création
-          await supabase.auth.updateUser({
-            data: {
-              role: existingUser.role,
-              firstname: existingUser.firstname,
-              lastname: existingUser.lastname,
-            },
-          })
-
-          toast({
-            variant: 'default',
-            title: 'Compte créé et connecté',
-            description: `Redirection vers ${values.role}...`,
-          })
-
-          const path = `/${values.role}`
-          router.push(path)
-
-        } else {
-          toast({
-            variant: 'destructive',
-            title: 'Erreur de connexion',
-            description: 'Email ou mot de passe incorrect',
-          })
-        }
-        return
-      }
-      // console.log('Connexion réussie!')
-
-      await supabase.auth.updateUser({
-        data: {
-          role: existingUser.role,
-          firstname: existingUser.firstname,
-          lastname: existingUser.lastname,
-        },
-      })
-
-      toast({
-        variant: 'default',
-        title: 'Connexion réussie',
-        description: `Redirection vers ${values.role}...`,
-      })
-
-
-      const path = `/${values.role}`
-      router.push(path)
-
-    } catch (error) {
-      console.error('Error during login:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la connexion',
-      })
+    } catch (error: any) {
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -560,7 +420,7 @@ export const LoginClient = () => {
                     <div className="flex justify-end">
                       {form.watch('role') ? (
                         <Link
-                          href="/forgot-password"
+                          href={`/forgot-password?role=${form.watch('role')}`}
                           className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
         transition-colors font-medium"
                         >
