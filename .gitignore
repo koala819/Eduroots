@@ -8,7 +8,9 @@ app/admin/compare-students/données_pour_comparaison.json
 
 # Backup before migration
 backup/
-utils
+utils/@dejaFait
+utils/script
+utils/tuto
 
 # Report after migration and/or update
 reports/
