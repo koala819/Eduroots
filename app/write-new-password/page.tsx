@@ -1,9 +1,8 @@
-// app/write-new-password/page.tsx
 'use client'
 
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,26 +13,6 @@ export default function WriteNewPassword() {
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
-
-  useEffect(() => {
-    // Écouter l'événement PASSWORD_RECOVERY
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          // L'utilisateur a cliqué sur le lien de réinitialisation
-          // On peut récupérer les données de session
-          const role = session?.user?.user_metadata?.role
-          if (role) {
-            router.push(`/${role}`)
-          }
-        }
-      },
-    )
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

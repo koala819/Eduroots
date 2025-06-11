@@ -22,37 +22,72 @@ export async function forgotPassword(formData: FormData, role: string) {
 
   try {
     // Vérifier si l'email existe dans education.users
-    const { data: user, error: userError } = await supabase
+    const { data: users, error: userError } = await supabase
       .schema('education')
       .from('users')
       .select('id, email, role, firstname, lastname, secondary_email')
-      // .eq('email', email)
       .or(`email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`)
       .eq('role', role)
       .eq('is_active', true)
-      .limit(1)
 
 
-    if (userError || !user || user.length === 0) {
+    if (userError || !users || users.length === 0) {
       return {
         success: true,
         message: 'Si votre email est enregistré, vous recevrez un lien de réinitialisation',
       }
     }
 
-    const sendEmail = user[0].email === email ? user[0].email : user[0].secondary_email
+    const firstUser = users[0]
+    const sendEmail = firstUser.email === email ? firstUser.email : firstUser.secondary_email
 
     // Créer l'utilisateur dans auth.users
-    await serviceClient.auth.admin.createUser({
+    const { data: authUser, error: createError } = await serviceClient.auth.admin.createUser({
       email: sendEmail,
       email_confirm: true,
       user_metadata: {
-        firstname: user[0].firstname,
-        lastname: user[0].lastname,
-        role: user[0].role,
+        firstname: firstUser.firstname,
+        lastname: firstUser.lastname,
+        role: firstUser.role,
       },
     })
 
+    if (createError) {
+      console.error('Erreur lors de la création de l\'utilisateur:', createError)
+      return {
+        success: false,
+        message: 'Une erreur est survenue',
+      }
+    }
+
+
+    // Utilisateur déjà existant
+    if (authUser.user === null) {
+      await supabase.auth.resetPasswordForEmail(sendEmail, {
+        redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}write-new-password`,
+      })
+      return {
+        success: true,
+        message: 'Un email de réinitialisation a été envoyé',
+      }
+    }
+
+    // Si c'est un nouvel utilisateur, mettre à jour education.users
+    for (const user of users) {
+      if (sendEmail === user.email) {
+        await supabase
+          .schema('education')
+          .from('users')
+          .update({ auth_id: authUser.user.id })
+          .eq('id', user.id)
+      }
+      await supabase
+        .schema('education')
+        .from('users')
+        .update({ parent2_auth_id: authUser.user.id })
+        .eq('id', user.id)
+
+    }
     // 2. Envoyer l'email de réinitialisation
     await supabase.auth.resetPasswordForEmail(
       sendEmail,

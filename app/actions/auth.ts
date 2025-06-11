@@ -58,7 +58,7 @@ export async function loginAction(formData: FormData) {
 
     // 2. Créer le log avec les informations de l'utilisateur
     const logData: ConnectionLogInsert = {
-      user_id: user.auth_id,
+      user_id: user.auth_id ?? null,
       email,
       role,
       firstname: user.firstname,
