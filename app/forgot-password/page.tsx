@@ -178,19 +178,16 @@ export default function ForgotPasswordForm() {
                 Retour à la connexion
               </Button>
 
-              {!emailSent && (
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEmailSent(false)
-                    setEmail('')
-                  }}
-                  className="w-full"
-                >
+              {/* <Button
+                variant="outline"
+                onClick={() => {
+                  setEmailSent(false)
+                  setEmail('')
+                }}
+                className="w-full"
+              >
                 Renvoyer un email
-                </Button>
-              )}
+              </Button> */}
             </div>
           </motion.div>
         </div>
