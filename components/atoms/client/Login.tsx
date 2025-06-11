@@ -99,17 +99,23 @@ export const LoginClient = () => {
       formData.append('userAgent', navigator.userAgent)
 
       const result = await loginAction(formData)
+      console.log('result', result.success)
 
-      console.log('result', result)
-      if (result.success) {
-
-        router.push(`/${result.user?.role}`)
+      if (result.success === false) {
         toast({
-          variant: 'success',
-          title: 'Succès',
-          description: 'Vous êtes connecté',
+          variant: 'destructive',
+          title: 'Erreur',
+          description: result.message,
         })
+        return
       }
+
+      router.push(`/${result.role}`)
+      toast({
+        variant: 'success',
+        title: 'Succès',
+        description: 'Vous êtes connecté',
+      })
     } catch (error: any) {
       setError(error.message)
     } finally {

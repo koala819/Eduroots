@@ -40,8 +40,8 @@ export async function loginAction(formData: FormData) {
     const { data: users, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select('id, email, role, firstname, lastname, auth_id')
-      .eq('email', email)
+      .select('id, email, role, firstname, lastname, auth_id, secondary_email, parent2_auth_id')
+      .or(`email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`)
       .eq('role', role)
       .eq('is_active', true)
       .limit(1)
@@ -79,6 +79,19 @@ export async function loginAction(formData: FormData) {
       console.error('Error creating connection log:', logError)
     }
 
+    // Déterminer quel auth_id utiliser
+    const authId = email.toLowerCase() === user.email.toLowerCase()
+      ? user.auth_id
+      : user.parent2_auth_id
+
+    if (!authId) {
+      return {
+        success: false,
+        error: 'CredentialsSignin',
+        message: 'Compte non lié. Veuillez réinitialiser votre mot de passe',
+      }
+    }
+
     // 3. Authentification avec Supabase
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -94,32 +107,19 @@ export async function loginAction(formData: FormData) {
     }
 
     // 4. Mise à jour du log avec succès
-
-
-    const { data: updatedLog, error: updateError } = await supabase
+    await supabase
       .schema('logs')
       .from('connection_logs')
       .update({
         is_successful: true,
       })
       .eq('id', log.id)
-    console.log('updatedLog', updatedLog)
-    console.log('updateError', updateError)
-
-
-
 
     return {
       success: true,
       status: 200,
       message: 'Connection successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstname: user.firstname,
-        lastname: user.lastname,
-      },
+      role: user.role,
     }
   } catch (error: any) {
     console.error('Login error:', error)
