@@ -99,7 +99,6 @@ export const LoginClient = () => {
       formData.append('userAgent', navigator.userAgent)
 
       const result = await loginAction(formData)
-      console.log('result', result.success)
 
       if (result.success === false) {
         toast({
