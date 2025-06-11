@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import Link from 'next/link'
 
 
 
@@ -213,14 +214,8 @@ export const LoginClient = () => {
           })
 
           const path = `/${values.role}`
-          setTimeout(() => {
-            router.push(path)
-            setTimeout(() => {
-              if (window.location.pathname === '/') {
-                window.location.href = path
-              }
-            }, 1000)
-          }, 300)
+          router.push(path)
+
         } else {
           toast({
             variant: 'destructive',
@@ -246,18 +241,10 @@ export const LoginClient = () => {
         description: `Redirection vers ${values.role}...`,
       })
 
+
       const path = `/${values.role}`
+      router.push(path)
 
-      setTimeout(() => {
-        router.push(path)
-
-        setTimeout(() => {
-          if (window.location.pathname === '/') {
-            console.log('Forcing navigation with window.location')
-            window.location.href = path
-          }
-        }, 1000)
-      }, 300)
     } catch (error) {
       console.error('Error during login:', error)
       toast({
@@ -514,7 +501,7 @@ export const LoginClient = () => {
                             />
                           </FormControl>
                           {!form.watch('role') && (
-                            <p className="text-sm text-[#375073] mt-1">
+                            <p className="text-sm text-red-500 t-1">
                               Sélectionnez d'abord votre profil
                             </p>
                           )}
@@ -561,7 +548,7 @@ export const LoginClient = () => {
                             </div>
                           </FormControl>
                           {!form.watch('role') && (
-                            <p className="text-sm text-[#375073] mt-1">
+                            <p className="text-sm text-red-500 mt-1">
                               Sélectionnez d'abord votre profil
                             </p>
                           )}
@@ -571,13 +558,19 @@ export const LoginClient = () => {
                     />
 
                     <div className="flex justify-end">
-                      <a
-                        href="/forgot-password"
-                        className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
-                          transition-colors font-medium"
-                      >
-                        Mot de passe oublié ?
-                      </a>
+                      {form.watch('role') ? (
+                        <Link
+                          href="/forgot-password"
+                          className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
+        transition-colors font-medium"
+                        >
+                          Mot de passe oublié ?
+                        </Link>
+                      ) : (
+                        <p className="text-xs lg:text-sm text-red-500">
+                            Sélectionnez d'abord votre profil
+                        </p>
+                      )}
                     </div>
 
                     <Button
@@ -611,9 +604,9 @@ export const LoginClient = () => {
             <div className="pt-3 lg:pt-4 border-t border-gray-200 dark:border-gray-600">
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 En vous connectant, vous acceptez nos
-                <a href="/terms" className="text-[#375073] hover:underline ml-1">
+                <Link href="/terms" className="text-[#375073] hover:underline ml-1">
                   conditions d'utilisation
-                </a>
+                </Link>
               </p>
             </div>
 
