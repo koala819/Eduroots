@@ -56,7 +56,7 @@ export default function LinkAccountForm({
 
       toast({
         title: 'Email envoyé',
-        description: 'Veuillez vérifier votre boîte mail pour confirmer la liaison de votre'+
+        description: 'Veuillez vérifier votre boîte mail pour confirmer la liaison de votre '+
         'compte.',
       })
 

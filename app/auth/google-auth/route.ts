@@ -1,3 +1,4 @@
+import { getRedirectUrl } from '@/utils/supabase/redirects'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'
@@ -50,7 +51,10 @@ export async function GET(request: Request) {
 
   if (existingLinkedUser) {
     await handleUserUpdate(supabase, data_from_auth, existingLinkedUser)
-    redirect(`/${existingLinkedUser.role}`)
+
+    const redirectUrl = getRedirectUrl(existingLinkedUser.role)
+
+    redirect(redirectUrl)
   }
 
   const { data: find_user_in_education_users, error: findError } =

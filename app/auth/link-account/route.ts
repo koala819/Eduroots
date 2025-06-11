@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  // const role = searchParams.get('role')
   // const error = searchParams.get('error')
   // const errorDescription = searchParams.get('error_description')
 
@@ -30,15 +29,15 @@ export async function GET(request: Request) {
     const auth_id = data.user.user_metadata.auth_id
     const role = data.user.user_metadata.role
 
-    console.log('Link Account - Paramètres reçus:', {
-      code: code ? 'présent' : 'absent',
-      role,
-      auth_id,
-      'Données utilisateur': {
-        email: data.user.email,
-        metadata: data.user.user_metadata,
-      },
-    })
+    // console.log('Link Account - Paramètres reçus:', {
+    //   code: code ? 'présent' : 'absent',
+    //   role,
+    //   auth_id,
+    //   'Données utilisateur': {
+    //     email: data.user.email,
+    //     metadata: data.user.user_metadata,
+    //   },
+    // })
 
     // inserer auth_id dans auth_id de education.users
 
@@ -58,7 +57,7 @@ export async function GET(request: Request) {
     }
 
     // Puis faire l'update sur l'ID trouvé
-    const { data: updateData, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .schema('education')
       .from('users')
       .update({ auth_id: auth_id })
