@@ -1,6 +1,7 @@
 import { CustomLayout } from '@/components/template/CustomLayout'
+import { createClient } from '@/utils/supabase/server'
 
-export default function TeacherLayout({
+export default async function TeacherLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
@@ -27,9 +28,17 @@ export default function TeacherLayout({
       Icon: 'Settings',
     },
   ]
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const teacher = {
+    firstname: user?.user_metadata?.firstname || '',
+    lastname: user?.user_metadata?.lastname || '',
+    email: user?.email || '',
+  }
 
   return (
-    <CustomLayout navItems={navItems}>
+    <CustomLayout navItems={navItems} teacher={teacher}>
       <div className="flex flex-col relative bg-gray-50  h-full">{children}</div>
     </CustomLayout>
   )

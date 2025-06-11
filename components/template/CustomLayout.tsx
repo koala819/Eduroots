@@ -9,9 +9,19 @@ interface ClientLayoutProps {
   children: React.ReactNode
   navItems: { href: string; label: string; Icon: string }[]
   isAdmin?: boolean
+  teacher?: {
+    firstname: string
+    lastname: string
+    email: string
+  }
 }
 
-export function CustomLayout({ children, navItems, isAdmin = false }: ClientLayoutProps) {
+export function CustomLayout({
+  children,
+  navItems,
+  isAdmin = false,
+  teacher }: Readonly<ClientLayoutProps>)
+{
   const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -43,7 +53,8 @@ export function CustomLayout({ children, navItems, isAdmin = false }: ClientLayo
         handleNavClick={handleNavClick}
         pathname={pathname}
         navItems={navItems}
-        isAdmin={isAdmin} />
+        isAdmin={isAdmin}
+        teacher={teacher} />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0">

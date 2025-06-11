@@ -10,15 +10,20 @@ type SidebarMenuProps = {
   pathname: string
   navItems: { href: string; label: string; Icon: string }[]
   isAdmin?: boolean
+  teacher?: {
+    firstname: string
+    lastname: string
+    email: string
+  }
 }
 
 export default function SidebarMenu({
   handleNavClick,
   pathname,
   navItems,
-  isAdmin = false }: SidebarMenuProps) {
-
-
+  isAdmin = false,
+  teacher }: Readonly<SidebarMenuProps>)
+{
   function isActive (path: string) {
     return pathname === path
   }
@@ -33,9 +38,13 @@ export default function SidebarMenu({
         ${isAdmin ? 'bg-red-500' : 'bg-[#375073]'} text-white w-64 py-6 px-4 h-screen`}>
         {/* Logo */}
         <div>
-          <div className="flex items-center mb-8">
+          <div className="flex items-center">
             <Image src={EdurootsLogo} alt="Eduroots" className="h-24 w-24 mr-2" />
             <span className="font-bold text-xl">Eduroots</span>
+          </div>
+          <div className="flex flex-col mb-8 text-center text-white">
+            <span className="font-bold text-lg">{teacher?.firstname} {teacher?.lastname}</span>
+            <span className="font-bold text-xs">{teacher?.email}</span>
           </div>
 
         </div>
