@@ -578,11 +578,9 @@ export default function CreateGradePage() {
         date && (
         <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
           <div className="flex flex-wrap gap-3 mb-3">
-            {selectedType && (
-              <Badge variant="outline" className={getTypeColor(selectedType)}>
-                {selectedType}
-              </Badge>
-            )}
+            <Badge variant="outline" className={getTypeColor(selectedType)}>
+              {selectedType}
+            </Badge>
             {selectedSession.subject && (
               <Badge
                 variant="outline"
@@ -591,11 +589,9 @@ export default function CreateGradePage() {
                 {selectedSession.subject}
               </Badge>
             )}
-            {date && (
-              <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                {format(date, 'dd MMMM', { locale: fr })}
-              </Badge>
-            )}
+            <Badge variant="outline" className="bg-gray-100 text-gray-700">
+              {format(date, 'dd MMMM', { locale: fr })}
+            </Badge>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
