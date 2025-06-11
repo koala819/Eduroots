@@ -126,7 +126,7 @@
     "tailwindcss": "3.4.4",
     "ts-jest": "29.3.4",
     "ts-prune": "0.10.3",
-    "typescript": "5.4.5",
+    "typescript": "5.8.3",
     "util": "0.12.5"
   },
   "pnpm": {
