@@ -1,23 +1,23 @@
 'use client'
 
-import {useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {CourseDocument} from '@/types/mongoose'
-import {Teacher, UserRoleEnum} from '@/types/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
+import { CourseDocument } from '@/types/mongoose'
+import { Teacher, UserRoleEnum } from '@/types/user'
 
 import StepOne from '@/components/root/NewTeacherStep1'
 import StepTwo from '@/components/root/NewTeacherStep2'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Form} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Form } from '@/components/ui/form'
 
-import {useCourses} from '@/context/Courses/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useCourses } from '@/context/Courses/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const teacherSchema = z.object({
@@ -45,9 +45,9 @@ const teacherSchema = z.object({
 export type FormData = z.infer<typeof teacherSchema>
 
 const NewTeacherForm = () => {
-  const {createCourse} = useCourses()
-  const {createTeacher} = useTeachers()
-  const {toast} = useToast()
+  const { createCourse } = useCourses()
+  const { createTeacher } = useTeachers()
+  const { toast } = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -63,8 +63,8 @@ const NewTeacherForm = () => {
   })
 
   const steps = [
-    {number: 1, label: 'Informations personnelles'},
-    {number: 2, label: 'Matières enseignées'},
+    { number: 1, label: 'Informations personnelles' },
+    { number: 2, label: 'Matières enseignées' },
   ]
 
   const validateStep1 = () => {
@@ -123,7 +123,7 @@ const NewTeacherForm = () => {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.email,
-        password: process.env.TEACHER_PWD as string,
+        password: '',
         role: UserRoleEnum.Teacher,
         subjects: [SubjectNameEnum.Arabe, SubjectNameEnum.EducationCulturelle],
         schoolYear: '2024-2025',
@@ -176,7 +176,7 @@ const NewTeacherForm = () => {
       form.reset()
       setCurrentStep(1)
     } catch (error: any) {
-      console.error(`Erreur lors de l'ajout du professeur :`, error)
+      console.error('Erreur lors de l\'ajout du professeur :', error)
       toast({
         variant: 'destructive',
         title: 'Erreur',
@@ -198,12 +198,12 @@ const NewTeacherForm = () => {
               <div
                 className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
                   ${
-                    currentStep === step.number
-                      ? 'bg-blue-500 text-white'
-                      : currentStep > step.number
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200'
-                  }`}
+            currentStep === step.number
+              ? 'bg-blue-500 text-white'
+              : currentStep > step.number
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200'
+            }`}
               >
                 {step.number}
               </div>
@@ -238,7 +238,7 @@ const NewTeacherForm = () => {
                 {isLoading
                   ? 'Chargement...'
                   : currentStep === 2
-                    ? "Valider l'inscription"
+                    ? 'Valider l\'inscription'
                     : 'Suivant'}
               </Button>
             </div>

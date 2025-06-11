@@ -8,7 +8,7 @@ import { compare } from 'bcryptjs'
 import { createClient as supabaseClient } from '@supabase/supabase-js'
 
 
-type ConnectionLogInsert = Database['public']['Tables']['connection_logs']['Insert']
+type ConnectionLogInsert = Database['logs']['Tables']['connection_logs']['Insert']
 
 const supabaseAdmin = supabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,21 +96,6 @@ export async function loginAction(formData: FormData) {
       }
     }
 
-    // Vérification du mot de passe par défaut
-    const defaultPwd = checkDefaultPassword({
-      role: user.role as UserRoleEnum,
-      password: user.password_hash,
-    })
-
-    if (defaultPwd) {
-      return {
-        success: true,
-        forcePasswordChange: true,
-        redirectUrl: '/rstPwd?forceChange=true',
-        message: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
-      }
-    }
-
     // Préparer les données utilisateur
     const userData = {
       id: user.id,
@@ -144,19 +129,10 @@ export async function loginAction(formData: FormData) {
     console.error('Login error:', error)
     return {
       success: false,
-      error: error.name || 'UnknownError',
-      message: error.message || 'Une erreur est survenue',
+      error: error.name ?? 'UnknownError',
+      message: error.message ?? 'Une erreur est survenue',
     }
   }
-}
-
-function checkDefaultPassword(user: {role: UserRoleEnum; password: string}): boolean {
-  if (user.role === 'teacher' && user.password === process.env.TEACHER_PWD) {
-    return true
-  } else if (user.role === 'student' && user.password === process.env.STUDENT_PWD) {
-    return true
-  }
-  return false
 }
 
 export async function checkUserExists(email: string, role: string) {

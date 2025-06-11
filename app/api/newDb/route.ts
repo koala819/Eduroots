@@ -12,7 +12,6 @@ import type {
   StudentDataType,
   TeacherDataType,
 } from '@/lib/import'
-import bcrypt from 'bcryptjs'
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
@@ -68,7 +67,7 @@ export async function POST(req: NextRequest) {
           return acc
         },
         {},
-      ) || {}
+      ) ??{}
 
     // Debug: Afficher les profs et leurs étudiants
     // console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
@@ -103,7 +102,8 @@ export async function POST(req: NextRequest) {
             const sanitizedOriginalId = originalId.replace(/[\n\r]/g, '')
             const sanitizedMergedId = mergedId.replace(/[\n\r]/g, '')
             console.warn(
-              `ID de professeur invalide ignoré dans la fusion: originalId=${sanitizedOriginalId}, mergedId=${sanitizedMergedId}`,
+              `ID de professeur invalide ignoré dans la fusion: originalId
+              =${sanitizedOriginalId}, mergedId=${sanitizedMergedId}`,
             )
             return acc
           }
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
           return acc
         },
         {},
-      ) || {}
+      ) ?? {}
 
     // console.log('\n=== DEBUG: FUSION DES PROFESSEURS ===')
     // console.log('mergedTeachers:', mergedTeachers)
@@ -131,11 +131,7 @@ export async function POST(req: NextRequest) {
       //   teachers.length,
       // )
 
-      // Hacher les mots de passe avant l'insertion
-      const hashedPassword = await bcrypt.hash(
-        process.env.TEACHER_PWD || '@changer!',
-        10,
-      )
+
 
       // Créer un Set pour stocker les IDs uniques des enseignants de Excel
       const uniqueTeacherIdFromExcel = new Set<string>(
@@ -165,20 +161,20 @@ export async function POST(req: NextRequest) {
               return c.teacherId === id
             })
             .map((c: CourseSessionDataType) => c.subject)
-            .filter(Boolean) || []
+            .filter(Boolean) ?? []
 
         // les matières sont uniques
         const uniqueSubjects = Array.from(new Set(teacherSubjects))
         // console.log('\n\n\nteacherSubjects pour', id, ':', teacherSubjects)
         return {
           id: id,
-          email: teacher?.email?.toLowerCase() || 'user@mail.fr',
+          email: teacher?.email?.toLowerCase() ?? 'user@mail.fr',
           firstname: teacher?.firstname,
           lastname: teacher?.lastname,
-          password: hashedPassword,
+          password: '',
           role: UserRoleEnum.Teacher,
           gender,
-          phone: teacher?.phone || '0123456789',
+          phone: teacher?.phone ?? '0123456789',
           isActive: true,
           deletedAt: null,
           subjects: uniqueSubjects,
@@ -218,10 +214,7 @@ export async function POST(req: NextRequest) {
       //   '[IMPORT] Début insertion étudiants, nombre:',
       //   students.length,
       // )
-      const hashedPassword = await bcrypt.hash(
-        process.env.STUDENT_PWD || 'changeme',
-        10,
-      )
+
 
       const studentDataFormats: Student[] = students.map((s: any) => {
         let gender: GenderEnum = GenderEnum.Masculin
@@ -231,17 +224,17 @@ export async function POST(req: NextRequest) {
           gender = GenderEnum.Masculin
         return {
           id: s.id,
-          email: s.email?.toLowerCase() || '',
+          email: s.email?.toLowerCase() ?? '',
           firstname: s.firstname,
           lastname: s.lastname,
-          password: hashedPassword,
+          password: '',
           role: UserRoleEnum.Student,
           gender,
-          phone: s.phone || '',
+          phone: s.phone ?? '',
           isActive: true,
           deletedAt: null,
           type: UserType.Student,
-          dateOfBirth: s.dateOfBirth || undefined,
+          dateOfBirth: s.dateOfBirth ?? undefined,
         } as Student
       })
 
@@ -284,7 +277,7 @@ export async function POST(req: NextRequest) {
         (acc: any, c: CourseSessionDataType) => {
           // console.log('c', c)
           // Convertir l'ID Excel en ID MongoDB
-          const originalTeacherId = mergedTeacherMap[c.teacherId] || c.teacherId
+          const originalTeacherId = mergedTeacherMap[c.teacherId] ?? c.teacherId
           const teacherMongoId = teacherIdMap[originalTeacherId]
 
           // console.log('\n=== DEBUG: CONVERSION ID PROFESSEUR ===')
@@ -322,7 +315,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Récupérer les étudiants de ce professeur et convertir leurs IDs
-          // const teacherStudents = studentsByTeacher[c.teacherId] || []
+          // const teacherStudents = studentsByTeacher[c.teacherId] ?? []
           // console.log('\n=== DEBUG: ÉTUDIANTS DU PROFESSEUR ===')
           // console.log('ID Prof Excel:', c.teacherId)
           // console.log('Étudiants trouvés:', teacherStudents.length)
@@ -363,7 +356,7 @@ export async function POST(req: NextRequest) {
                 existingSession.timeSlot.endTime === TimeEnum.MorningEnd
               ) {
                 // Récupérer les étudiants de ce professeur
-                const teacherStudents = studentsByTeacher[c.teacherId] || []
+                const teacherStudents = studentsByTeacher[c.teacherId] ?? []
                 const studentIds = teacherStudents
                   .map((s: Student) => {
                     const id = validateId(s.id)
@@ -381,7 +374,7 @@ export async function POST(req: NextRequest) {
                     dayOfWeek: c.dayOfWeek,
                     startTime: TimeEnum.MorningPause,
                     endTime: TimeEnum.MorningEnd,
-                    classroomNumber: parseInt(c.classroomNumber) || 1,
+                    classroomNumber: parseInt(c.classroomNumber) ?? 1,
                   },
                   subject: c.subject,
                   level: c.level,
@@ -398,7 +391,7 @@ export async function POST(req: NextRequest) {
                 existingSession.timeSlot.endTime === TimeEnum.AfternoonEnd
               ) {
                 // Récupérer les étudiants de ce professeur
-                const teacherStudents = studentsByTeacher[c.teacherId] || []
+                const teacherStudents = studentsByTeacher[c.teacherId] ?? []
                 const studentIds = teacherStudents
                   .map((s: Student) => {
                     const id = validateId(s.id)
@@ -416,7 +409,7 @@ export async function POST(req: NextRequest) {
                     dayOfWeek: c.dayOfWeek,
                     startTime: TimeEnum.AfternoonPause,
                     endTime: TimeEnum.AfternoonEnd,
-                    classroomNumber: parseInt(c.classroomNumber) || 1,
+                    classroomNumber: parseInt(c.classroomNumber) ?? 1,
                   },
                   subject: c.subject,
                   level: c.level,
@@ -429,7 +422,7 @@ export async function POST(req: NextRequest) {
           } else {
             // Si aucune session similaire n'existe, on ajoute la session normale
             // Récupérer les étudiants de ce professeur
-            const teacherStudents = studentsByTeacher[c.teacherId] || []
+            const teacherStudents = studentsByTeacher[c.teacherId] ?? []
             const studentIds = teacherStudents
               .map((s: Student) => {
                 const id = validateId(s.id)
@@ -442,7 +435,7 @@ export async function POST(req: NextRequest) {
                 dayOfWeek: c.dayOfWeek,
                 startTime: c.startTime,
                 endTime: c.endTime,
-                classroomNumber: parseInt(c.classroomNumber) || 1,
+                classroomNumber: parseInt(c.classroomNumber) ?? 1,
               },
               subject: c.subject,
               level: c.level,
@@ -475,7 +468,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Erreur lors de la création de la base:', error)
     return NextResponse.json(
-      { success: false, error: error.message || error, stack: error.stack },
+      { success: false, error: error.message ?? error, stack: error.stack },
       { status: 500 },
     )
   }

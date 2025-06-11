@@ -30,8 +30,6 @@ const nextConfig = {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXT_PUBLIC_CLIENT_URL: process.env.NEXT_PUBLIC_CLIENT_URL,
     START_YEAR: process.env.START_YEAR,
-    STUDENT_PWD: process.env.STUDENT_PWD,
-    TEACHER_PWD: process.env.TEACHER_PWD,
     MIGRATION_SECRET: process.env.MIGRATION_SECRET,
     DEFAULT_SENDER: process.env.DEFAULT_SENDER,
     TECH_SUPPORT_EMAIL: process.env.TECH_SUPPORT_EMAIL,

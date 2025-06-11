@@ -1,26 +1,26 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {CourseSession, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {GenderEnum, Student, UserRoleEnum, UserType} from '@/types/user'
+import { CourseSession, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
+import { GenderEnum, Student, UserRoleEnum, UserType } from '@/types/user'
 
 import StepOne from '@/components/admin/atoms/client/NewStudentStep1'
 import StepThree from '@/components/admin/atoms/client/NewStudentStep3'
 import StepTwo from '@/components/admin/molecules/client/NewStudentStep2'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Form} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Form } from '@/components/ui/form'
 
-import {useCourses} from '@/context/Courses/client'
-import {useStudents} from '@/context/Students/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useCourses } from '@/context/Courses/client'
+import { useStudents } from '@/context/Students/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import useCourseStore from '@/stores/useCourseStore'
 
@@ -30,11 +30,11 @@ const studentSchema = z.object({
   parentEmail1: z.string().email('Email invalide').optional().default('user@mail.fr'),
   parentEmail2: z.string().email('Email invalide').optional().default('user@mail.fr'),
   gender: z.nativeEnum(GenderEnum, {
-    errorMap: () => ({message: 'Veuillez sélectionner un genre'}),
+    errorMap: () => ({ message: 'Veuillez sélectionner un genre' }),
   }),
   dateOfBirth: z.string().optional(),
   timeSlot: z.nativeEnum(TimeSlotEnum, {
-    errorMap: () => ({message: 'Veuillez sélectionner un créneau'}),
+    errorMap: () => ({ message: 'Veuillez sélectionner un créneau' }),
   }),
   selections: z.array(
     z.object({
@@ -52,12 +52,12 @@ const studentSchema = z.object({
 export type FormData = z.infer<typeof studentSchema>
 
 const NewStudentForm = () => {
-  const {addStudentToCourse} = useCourses()
-  const {courses} = useCourseStore()
+  const { addStudentToCourse } = useCourses()
+  const { courses } = useCourseStore()
   const router = useRouter()
-  const {createStudent} = useStudents()
-  const {teachers, getAllTeachers} = useTeachers()
-  const {toast} = useToast()
+  const { createStudent } = useStudents()
+  const { teachers, getAllTeachers } = useTeachers()
+  const { toast } = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -81,9 +81,9 @@ const NewStudentForm = () => {
   }, [getAllTeachers])
 
   const steps = [
-    {number: 1, label: 'Informations personnelles'},
-    {number: 2, label: "Choix de l'enseignant"},
-    {number: 3, label: 'Confirmation'},
+    { number: 1, label: 'Informations personnelles' },
+    { number: 2, label: 'Choix de l\'enseignant' },
+    { number: 3, label: 'Confirmation' },
   ]
 
   // Validation des étapes
@@ -106,15 +106,15 @@ const NewStudentForm = () => {
     let isValid = false
 
     switch (currentStep) {
-      case 1:
-        isValid = await validateStep1()
-        break
-      case 2:
-        isValid = await validateStep2()
-        break
-      case 3:
-        await form.handleSubmit(onSubmit)()
-        return
+    case 1:
+      isValid = await validateStep1()
+      break
+    case 2:
+      isValid = await validateStep2()
+      break
+    case 3:
+      await form.handleSubmit(onSubmit)()
+      return
     }
 
     if (isValid && currentStep < 3) {
@@ -157,7 +157,7 @@ const NewStudentForm = () => {
         email: values.parentEmail1,
         hasInvalidEmail: values.parentEmail1 === 'user@mail.fr',
         secondaryEmail: values.parentEmail2,
-        password: process.env.STUDENT_PWD as string,
+        password: '',
         role: UserRoleEnum.Student,
         gender: values.gender,
         dateOfBirth: values.dateOfBirth,
@@ -172,9 +172,9 @@ const NewStudentForm = () => {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: "Une erreur est survenue lors de la création de l'étudiant",
+          description: 'Une erreur est survenue lors de la création de l\'étudiant',
         })
-        throw new Error("Erreur lors de la création de l'étudiant")
+        throw new Error('Erreur lors de la création de l\'étudiant')
       }
 
       for (const selection of values.selections) {
@@ -192,7 +192,7 @@ const NewStudentForm = () => {
               title: 'Erreur',
               description: 'Aucun cours trouvé pour le professeur',
             })
-            throw new Error(`Aucun cours trouvé pour le professeur`)
+            throw new Error('Aucun cours trouvé pour le professeur')
           }
 
           // 2. Trouver la bonne session qui correspond à la sélection
@@ -227,7 +227,7 @@ const NewStudentForm = () => {
           toast({
             title: 'Succès',
             variant: 'success',
-            description: "L'étudiant a été créé avec succès",
+            description: 'L\'étudiant a été créé avec succès',
           })
         } catch (error) {
           console.error(`Erreur lors de l'ajout au cours ${selection.subject}:`, error)
@@ -243,7 +243,7 @@ const NewStudentForm = () => {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error.message || "Une erreur est survenue lors de la création de l'étudiant",
+        description: error.message || 'Une erreur est survenue lors de la création de l\'étudiant',
       })
     } finally {
       setIsLoading(false)
@@ -268,12 +268,12 @@ const NewStudentForm = () => {
               <div
                 className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
                   ${
-                    currentStep === step.number
-                      ? 'bg-blue-500 text-white'
-                      : currentStep > step.number
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200'
-                  }`}
+            currentStep === step.number
+              ? 'bg-blue-500 text-white'
+              : currentStep > step.number
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200'
+            }`}
               >
                 {step.number}
               </div>
@@ -311,7 +311,7 @@ const NewStudentForm = () => {
                 {isLoading
                   ? 'Chargement...'
                   : currentStep === 3
-                    ? "Valider l'inscription"
+                    ? 'Valider l\'inscription'
                     : 'Suivant'}
               </Button>
             </div>
