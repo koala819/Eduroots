@@ -1,12 +1,11 @@
 'use client'
 
-import {Calendar, MenuIcon} from 'lucide-react'
-import {CheckCircle2} from 'lucide-react'
+import { CheckCircle2, Calendar, MenuIcon } from 'lucide-react'
 
-import {Course, CourseSession} from '@/types/course'
+import { CourseSession, CourseSessionTimeslot, TeacherCourseResponse } from '@/types/supabase/db'
 
-import {Button} from '@/components/ui/button'
-import {Card} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Sheet,
   SheetClose,
@@ -16,24 +15,48 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { formatDayOfWeek } from '@/lib/utils'
 
-import {formatDayOfWeek} from '@/lib/utils'
+type SessionWithTimeslot = CourseSession & {
+  timeslot?: CourseSessionTimeslot
+}
+
 
 export const CourseMenu = ({
   courses,
   currentCourseId,
   onCourseSelect,
 }: {
-  courses: Course[]
+  courses: TeacherCourseResponse[] | null
   currentCourseId: string
   onCourseSelect: (id: string) => void
-}) => {
-  // Récupérer toutes les sessions de tous les cours
-  const allSessions = courses.flatMap((course) => course.sessions)
+  }) => {
+  if (!courses) return null
+ console.log('courses complet:', courses)
 
-  // Find sessions that have sameStudents set to true
-  const sameStudentsCourses = allSessions.filter((session) => session.sameStudents)
+  // On récupère toutes les sessions avec leurs timeslots
+  const allSessions = courses.flatMap((course) => {
+    console.log('course.courses:', course.courses)
+    console.log('course.courses.courses_sessions:', course.courses.courses_sessions)
 
+    return course.courses.courses_sessions.map(session => {
+      console.log('session complète:', session)
+      console.log('session.courses_sessions_timeslot:', session.courses_sessions_timeslot)
+
+      // Vérification de sécurité pour les timeslots
+      const timeslot = session.courses_sessions_timeslot?.[0]
+      if (!timeslot) {
+        console.warn('Pas de timeslot trouvé pour la session:', session.id)
+      }
+
+      return {
+        ...session,
+        timeslot
+      }
+    })
+  })
+
+  console.log('allSessions final:', allSessions)
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -51,59 +74,25 @@ export const CourseMenu = ({
         <div className="flex flex-col h-full">
           {/* Course List */}
           <div className="flex-1 overflow-auto px-4 pt-4 space-y-3 custom-scrollbar">
-            {/* Render only one combined entry if there are courses with sameStudents true */}
-            {sameStudentsCourses.length >= 2 && (
-              <SheetClose asChild key={'combined-same-students'}>
-                <Card
-                  className={`
-                  cursor-pointer transition-all duration-200
-                  ${
-                    currentCourseId === sameStudentsCourses[0].id
-                      ? 'ring-2 ring-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
-                      : 'hover:bg-gray-50 hover:shadow-md'
-                  }
-                `}
-                  onClick={() => onCourseSelect(sameStudentsCourses[0].id!)}
-                >
-                  <div className="p-4 relative">
-                    {currentCourseId === sameStudentsCourses[0].id && (
-                      <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-blue-500" />
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-800 truncate max-w-[180px]">
-                        {sameStudentsCourses[0].subject} - {sameStudentsCourses[1].subject}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                      <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
-                      <span className="truncate">
-                        {formatDayOfWeek(sameStudentsCourses[0].timeSlot.dayOfWeek)}{' '}
-                        {sameStudentsCourses[0].timeSlot.startTime} -{' '}
-                        {sameStudentsCourses[1].timeSlot.endTime}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </SheetClose>
-            )}
-
             {/* Render other courses regularly */}
-            {allSessions.map((session: CourseSession) => {
-              if (session.sameStudents) return null // Skip individual rendering of sameStudents courses
-
+            {allSessions.map((session: SessionWithTimeslot) => {
+              if (!session) return null
+              console.log('session', session)
               const isSelected = session.id === currentCourseId
+              const timeslot = session.timeslot
+
               return (
                 <SheetClose asChild key={session.id}>
                   <Card
                     className={`
                     cursor-pointer transition-all duration-200
                     ${
-                      isSelected
-                        ? 'ring-2 ring-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
-                        : 'hover:bg-gray-50 hover:shadow-md'
-                    }
+                isSelected
+                  ? 'ring-2 ring-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
+                  : 'hover:bg-gray-50 hover:shadow-md'
+                }
                   `}
-                    onClick={() => onCourseSelect(session.id!)}
+                    onClick={() => onCourseSelect(session.id)}
                   >
                     <div className="p-4 relative">
                       {isSelected && (
@@ -114,16 +103,27 @@ export const CourseMenu = ({
                           {session.subject}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                        <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
-                        <span className="truncate">
-                          {formatDayOfWeek(session.timeSlot.dayOfWeek)} {session.timeSlot.startTime}{' '}
-                          - {session.timeSlot.endTime}
-                        </span>
-                      </div>
+                     <div className="flex flex-col gap-1 text-sm text-gray-600 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
+                      <span className="truncate">
+                        {timeslot ? formatDayOfWeek(timeslot.day_of_week) : 'Pas de jour défini'}
+                      </span>
                     </div>
-                  </Card>
-                </SheetClose>
+                    <div className="flex items-center gap-2 ml-6">
+                      <span className="truncate">
+                        {timeslot ? `${timeslot.start_time} - ${timeslot.end_time}` : 'Pas d\'horaire défini'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-6">
+                      <span className="truncate">
+                        Niveau: {session.level}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </SheetClose>
               )
             })}
           </div>

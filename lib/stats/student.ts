@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Database } from '@/types/db'
+import { Database } from '@/types/supabase/db'
 import { SubjectNameEnum } from '@/types/course'
 
 type User = Database['public']['Tables']['users']['Row']

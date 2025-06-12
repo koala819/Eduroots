@@ -1,20 +1,17 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
-import React, {useEffect, useState} from 'react'
-
+import {useEffect, useState} from 'react'
 import {Student} from '@/types/user'
-
 import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
 import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
 import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
 import {Card, CardContent} from '@/components/ui/card'
 import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
-
 import {useAttendance} from '@/context/Attendances/client'
 import {useCourses} from '@/context/Courses/client'
 import {AnimatePresence} from 'framer-motion'
 import useCourseStore from '@/stores/useCourseStore'
+import { createClient } from '@/utils/supabase/client'
 
 export const DashboardAttendanceT = ({
   courseId,
@@ -24,10 +21,9 @@ export const DashboardAttendanceT = ({
   courseId: string
   students: Student[]
   courseDates: Date[]
-}) => {
-  const {data: session} = useSession()
-
-  const {isLoading: isLoadingCourses, error: errorCourses} = useCourses()
+  }) => {
+  const [user, setUser] = useState<any>(null)
+  const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
   const {fetchTeacherCourses} = useCourseStore()
   const {allAttendance, fetchAttendances, error} = useAttendance()
 
@@ -37,13 +33,25 @@ export const DashboardAttendanceT = ({
   const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
 
+    useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      }
+    }
+    getUser()
+    }, [])
+
+
   useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id || !courseId) return
+      if (user?.id || !courseId) return
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(session.user.id)])
+        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -52,7 +60,7 @@ export const DashboardAttendanceT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchTeacherCourses, user?.id])
 
   function handleCreateAttendance(date: string) {
     setSelectedDate(date)

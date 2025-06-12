@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Database } from '@/types/db'
+import { Database } from '@/types/supabase/db'
 import fs from 'fs/promises'
 import path from 'path'
 

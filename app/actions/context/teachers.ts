@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { Database } from '@/types/db'
+import { Database } from '@/types/supabase/db'
 import { ApiResponse } from '@/types/api'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 

@@ -4,6 +4,7 @@ import { RootEntity } from './root'
 import { Student, Teacher } from './user'
 
 import { Types } from 'mongoose'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 export enum SubjectNameEnum {
   Arabe = 'Arabe',
@@ -25,11 +26,6 @@ export enum LevelEnum {
   Six = '6',
 }
 
-export enum TimeSlotEnum {
-  SATURDAY_MORNING = 'saturday_morning',
-  SATURDAY_AFTERNOON = 'saturday_afternoon',
-  SUNDAY_MORNING = 'sunday_morning',
-}
 
 export const enum TimeEnum {
   MorningStart = '09:00',

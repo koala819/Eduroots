@@ -1,6 +1,7 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
+
 import React, {useEffect, useState} from 'react'
 
 import {AttendanceRecord} from '@/types/attendance'
@@ -24,7 +25,7 @@ export const DashboardBehaviorT = ({
   courseId: string
   courseDates: Date[]
 }) => {
-  const {data: session} = useSession()
+  const [user, setUser] = useState<any>(null)
 
   const {error: errorCourses} = useCourses()
   const {allAttendance, fetchAttendances, getAttendanceById} = useAttendance()
@@ -39,13 +40,25 @@ export const DashboardBehaviorT = ({
   const [isLoadingBehavior, setIsLoadingBehavior] = useState<boolean>(true)
 
   useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      }
+    }
+    getUser()
+  }, [])
+
+
+  useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id || !courseId) return
+      if (!user?.id || !courseId) return
 
       try {
         setIsLoadingBehavior(true)
         await Promise.all([
-          fetchTeacherCourses(session.user.id),
+          fetchTeacherCourses(user.id),
           fetchAttendances({courseId}),
           fetchBehaviors({courseId}),
         ])
@@ -57,7 +70,7 @@ export const DashboardBehaviorT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -130,7 +143,7 @@ export const DashboardBehaviorT = ({
     setSelectedDate(null)
 
     // Puis rafraîchir les données
-    if (courseId && session?.user?.id) {
+    if (courseId && user?.id) {
       try {
         setIsLoadingBehavior(true)
         // Recharger les données de comportement uniquement

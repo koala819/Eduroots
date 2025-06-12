@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
 
 import { Course, PopulatedCourse } from '@/types/course'
 
@@ -24,19 +24,30 @@ export const TeacherCourses = ({
   sortedStudents,
 }: CourseDetailsPageProps) => {
 
-  const { data: session } = useSession()
+  const [user, setUser] = useState<any>(null)
   const { courses, fetchTeacherCourses } = useCourseStore()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [courseData, setCourseData] = useState<PopulatedCourse | null>(null)
 
   useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      }
+    }
+    getUser()
+    }, [])
+
+  useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id) return
+      if (!user?.id) return
 
       try {
         // Charger tous les cours du professeur
-        await fetchTeacherCourses(session.user.id)
+        await fetchTeacherCourses(user.id)
 
         // Charger les détails du cours spécifique
         const response = await getCourseById(courseId)
@@ -52,7 +63,7 @@ export const TeacherCourses = ({
     }
 
     loadData()
-  }, [courseId, session, fetchTeacherCourses])
+  }, [courseId, user?.id, fetchTeacherCourses])
 
   if (isLoading) {
     return (

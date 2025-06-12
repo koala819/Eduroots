@@ -14,7 +14,6 @@ async function getAuthenticatedUser() {
   if (error || !user) {
     throw new Error('Non authentifié')
   }
-
   return user
 }
 
@@ -421,23 +420,23 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
   const supabase = await createClient()
 
   try {
-    // Récupérer tous les cours du professeur
+    // Version simplifiée de la requête
     const { data: courses, error } = await supabase
       .schema('education')
       .from('courses_teacher')
       .select(`
-        *,
+        course_id,
         courses (
-          *,
+          id,
+          is_active,
           courses_sessions (
-            *,
-            courses_sessions_students (
-              users:student_id (
-                id,
-                firstname,
-                lastname,
-                email
-              )
+            id,
+            subject,
+            level,
+            courses_sessions_timeslot (
+              day_of_week,
+              start_time,
+              end_time
             )
           )
         )

@@ -1,4 +1,4 @@
-import { TimeSlotEnum } from '@/types/course'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 import { ButtonVariant, ThemeConfig } from '@/types/models'
 import { PeriodTypeEnum } from '@/types/schedule'
 import { SerializableDate } from '@/types/stats'

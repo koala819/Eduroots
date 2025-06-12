@@ -1,3 +1,5 @@
+import { TimeSlotEnum } from "@/types/supabase/courses"
+
 export type AppConfig = {
   id: string
   academic_year_start: Date
@@ -108,7 +110,7 @@ export type CourseSessionStudent = {
 export type CourseSessionTimeslot = {
   id: string
   course_sessions_id: string
-  day_of_week: string
+  day_of_week: TimeSlotEnum
   start_time: string
   end_time: string
   classroom_number: string | null
@@ -235,6 +237,17 @@ export type StatsStudentGrade = {
   average: number
   created_at: Date
   updated_at: Date
+}
+
+export type TeacherCourseResponse = {
+  teacher_id: string
+  created_at: string
+  course_id: string
+  courses: Course & {
+    courses_sessions: (CourseSession & {
+      courses_sessions_timeslot: CourseSessionTimeslot[]
+    })[]
+  }
 }
 
 export type TeacherStats = {
