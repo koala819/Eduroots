@@ -80,6 +80,7 @@ export type ConnectionLog = {
 
 export type Course = {
   id: string
+  mongo_id: string
   is_active: boolean
   deleted_at: Date | null
   created_at: Date
@@ -89,6 +90,7 @@ export type Course = {
 
 export type CourseSession = {
   id: string
+  mongo_id: string
   course_id: string
   subject: string
   level: string
@@ -102,6 +104,7 @@ export type CourseSession = {
 
 export type CourseSessionStudent = {
   id: string
+  mongo_id: string
   course_sessions_id: string
   student_id: string
   created_at: Date
@@ -109,6 +112,7 @@ export type CourseSessionStudent = {
 
 export type CourseSessionTimeslot = {
   id: string
+  mongo_id: string
   course_sessions_id: string
   day_of_week: TimeSlotEnum
   start_time: string
@@ -120,6 +124,7 @@ export type CourseSessionTimeslot = {
 
 export type CourseTeacher = {
   course_id: string
+  mongo_id: string
   teacher_id: string
   created_at: Date
 }
@@ -279,6 +284,7 @@ export type TeacherStatsGenderDistribution = {
 export type User = {
   id: string //uuid
   auth_id: string //uuid
+  parent2_auth_id: string | null //uuid
   firstname: string
   lastname: string
   email: string
