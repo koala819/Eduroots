@@ -1,20 +1,8 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
-
 import { ApiResponse } from '@/types/supabase/api'
-import { Grade, GradeRecord, User, CourseSession, Database } from '@/types/supabase/db'
-
-async function getSessionServer() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return { user }
-}
+import { Grade, GradeRecord, Database } from '@/types/supabase/db'
+import { getSessionServer } from '@/utils/server-helpers'
 
 function calculateGradeStats(records: GradeRecord[]) {
   const validGrades = records
@@ -41,8 +29,7 @@ function calculateGradeStats(records: GradeRecord[]) {
 }
 
 export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> {
-  await getSessionServer()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     // Récupérer les grades avec les cours du professeur
@@ -87,8 +74,7 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
 export async function createGradeRecord(
   data: Database['education']['Tables']['grades']['Insert']
 ): Promise<ApiResponse<null>> {
-    await getSessionServer()
-    const supabase = await createClient()
+    const { supabase } = await getSessionServer()
 
     try {
       const stats = calculateGradeStats(data.records)
@@ -146,12 +132,10 @@ export async function refreshGradeData(
   id?: string,
   fields?: string,
 ): Promise<ApiResponse<Grade | Grade[] | { stats_average_grade: number, stats_highest_grade: number, stats_lowest_grade: number, stats_absent_count: number, stats_total_students: number }>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     if (id && id !== 'grade') {
-      console.log('🔍 Requête pour une note spécifique:', id)
       const { data: grades, error } = await supabase
         .schema('education')
         .from('grades')
@@ -170,9 +154,6 @@ export async function refreshGradeData(
         `)
         .eq('id', id)
         .single()
-
-      console.log('📦 Données reçues:', grades)
-      console.log('❌ Erreur si présente:', error)
 
       if (error || !grades) {
         return {
@@ -206,7 +187,6 @@ export async function refreshGradeData(
     }
 
     // Si c'est une requête pour toutes les notes
-   console.log('🔍 Requête pour toutes les notes')
     const { data: grades, error } = await supabase
       .schema('education')
       .from('grades')
@@ -225,8 +205,6 @@ export async function refreshGradeData(
       `)
       .limit(50)
 
-    console.log('📦 Données reçues:', grades)
-    console.log('❌ Erreur si présente:', error)
     if (error) {
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
@@ -246,8 +224,7 @@ export async function updateGradeRecord(
   gradeId: string,
   data: Database['education']['Tables']['grades']['Insert']
 ): Promise<ApiResponse<null>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     // Validation des données reçues

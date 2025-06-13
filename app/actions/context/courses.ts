@@ -1,44 +1,23 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { getSessionServer } from '@/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
-
 import { ApiResponse } from '@/types/supabase/api'
-import { CourseSession, TimeSlot } from '@/types/course'
-import { SerializedValue, serializeData } from '@/lib/serialization'
-import { TeacherCourseResponse } from '@/types/supabase/db'
+import { Course, CourseSession, CourseSessionTimeslot, Database } from '@/types/supabase/db'
 import { TimeSlotEnum } from '@/types/supabase/courses'
-
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-  return user
-}
 
 export async function addStudentToCourse(
   courseId: string,
   studentId: string,
-  timeSlot: {
-    dayOfWeek: string
-    startTime: string
-    endTime: string
+  timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time'> & {
     subject: string
   },
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    const {
-      // dayOfWeek, startTime, endTime,
-      subject,
-    } = timeSlot
+    const { subject } = timeSlot
 
-    // Trouver la session correspondante
     const { data: session, error: sessionError } = await supabase
       .schema('education')
       .from('courses_sessions')
@@ -56,7 +35,6 @@ export async function addStudentToCourse(
       }
     }
 
-    // Vérifier si l'étudiant est déjà inscrit
     const { data: existingEnrollment } = await supabase
       .schema('education')
       .from('courses_sessions_students')
@@ -73,7 +51,6 @@ export async function addStudentToCourse(
       }
     }
 
-    // Ajouter l'étudiant à la session
     const { error: enrollError } = await supabase
       .schema('education')
       .from('courses_sessions_students')
@@ -100,15 +77,13 @@ export async function addStudentToCourse(
 }
 
 export async function checkTimeSlotOverlap(
-  timeSlot: TimeSlot,
+  timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time'>,
   userId: string,
   excludeCourseId?: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer tous les créneaux du professeur pour ce jour
     let query = supabase
       .schema('education')
       .from('courses_sessions_timeslot')
@@ -121,7 +96,7 @@ export async function checkTimeSlotOverlap(
           )
         )
       `)
-      .eq('day_of_week', timeSlot.dayOfWeek)
+      .eq('day_of_week', timeSlot.day_of_week)
       .eq('courses_sessions.courses_teacher.teacher_id', userId)
 
     if (excludeCourseId) {
@@ -134,17 +109,13 @@ export async function checkTimeSlotOverlap(
       throw new Error(`Erreur lors de la vérification: ${error.message}`)
     }
 
-    // Vérifier les chevauchements
-    const newStartTime = timeToMinutes(timeSlot.startTime)
-    const newEndTime = timeToMinutes(timeSlot.endTime)
+    const newStartTime = timeToMinutes(timeSlot.start_time)
+    const newEndTime = timeToMinutes(timeSlot.end_time)
 
     for (const slot of existingSlots || []) {
       const existingStartTime = timeToMinutes(slot.start_time)
       const existingEndTime = timeToMinutes(slot.end_time)
 
-      // Il y a chevauchement si :
-      // le nouveau cours commence avant la fin d'un cours existant
-      // ET se termine après le début d'un cours existant
       if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
         return {
           success: false,
@@ -166,33 +137,28 @@ export async function checkTimeSlotOverlap(
 }
 
 export async function createCourse(
-  courseData: {
-    academicYear: string
+  courseData: Database['education']['Tables']['courses']['Insert'] & {
+    teacherIds: string[]
     sessions: Array<{
       subject: string
       level: string
       timeSlots: Array<{
-        dayOfWeek: string
-        startTime: string
-        endTime: string
-        classroomNumber?: string
+        day_of_week: TimeSlotEnum
+        start_time: string
+        end_time: string
+        classroom_number: string | null
       }>
     }>
-    teacherIds: string[]
-  },
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+  }
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Créer le cours principal
+    // 1. Insérer le cours
     const { data: course, error: courseError } = await supabase
       .schema('education')
       .from('courses')
-      .insert({
-        academic_year: courseData.academicYear,
-        is_active: true,
-      })
+      .insert(courseData)
       .select()
       .single()
 
@@ -200,24 +166,24 @@ export async function createCourse(
       throw new Error(`Erreur lors de la création du cours: ${courseError?.message}`)
     }
 
-    // Associer les professeurs au cours
-    const teacherInserts = courseData.teacherIds.map((teacherId) => ({
+    // 2. Insérer les relations profs-cours
+    const teacherRelations = courseData.teacherIds.map(teacherId => ({
       course_id: course.id,
-      teacher_id: teacherId,
+      teacher_id: teacherId
     }))
 
-    if (teacherInserts.length > 0) {
+    if (teacherRelations.length > 0) {
       const { error: teacherError } = await supabase
         .schema('education')
         .from('courses_teacher')
-        .insert(teacherInserts)
+        .insert(teacherRelations)
 
       if (teacherError) {
         throw new Error(`Erreur lors de l'association des professeurs: ${teacherError.message}`)
       }
     }
 
-    // Créer les sessions et leurs créneaux
+    // 3. Insérer les sessions et leurs créneaux
     for (const sessionData of courseData.sessions) {
       const { data: session, error: sessionError } = await supabase
         .schema('education')
@@ -238,19 +204,19 @@ export async function createCourse(
         throw new Error(`Erreur lors de la création de la session: ${sessionError?.message}`)
       }
 
-      // Créer les créneaux horaires pour cette session
-      const timeslotInserts = sessionData.timeSlots.map((timeSlot) => ({
+      // Insérer les créneaux
+      const timeSlots = sessionData.timeSlots.map(slot => ({
         course_sessions_id: session.id,
-        day_of_week: timeSlot.dayOfWeek,
-        start_time: timeSlot.startTime,
-        end_time: timeSlot.endTime,
-        classroom_number: timeSlot.classroomNumber || null,
+        day_of_week: slot.day_of_week,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        classroom_number: slot.classroom_number
       }))
 
       const { error: timeslotError } = await supabase
         .schema('education')
         .from('courses_sessions_timeslot')
-        .insert(timeslotInserts)
+        .insert(timeSlots)
 
       if (timeslotError) {
         throw new Error(`Erreur lors de la création des créneaux: ${timeslotError.message}`)
@@ -268,12 +234,10 @@ export async function createCourse(
   }
 }
 
-export async function deleteCourse(courseId: string): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+export async function deleteCourse(courseId: string): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Marquer le cours comme inactif (soft delete)
     const { error } = await supabase
       .schema('education')
       .from('courses')
@@ -301,12 +265,10 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse<Serial
 export async function getCourseById(
   id: string,
   fields?: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer la session avec le cours et les données associées
     const { data: session, error } = await supabase
       .schema('education')
       .from('courses_sessions')
@@ -343,19 +305,18 @@ export async function getCourseById(
       }
     }
 
-    // Si on demande uniquement les stats
     if (fields === 'stats') {
       const stats = await calculateCourseStats(id)
       return {
         success: true,
-        data: stats ? serializeData(stats) : null,
+        data: stats,
         message: 'Statistiques récupérées avec succès',
       }
     }
 
     return {
       success: true,
-      data: session ? serializeData(session) : null,
+      data: session,
       message: 'Cours récupéré avec succès',
     }
   } catch (error: any) {
@@ -364,12 +325,10 @@ export async function getCourseById(
   }
 }
 
-export async function getStudentCourses(studentId: string): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+export async function getStudentCourses(studentId: string): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer tous les cours auxquels l'étudiant est inscrit
     const { data: enrollments, error } = await supabase
       .schema('education')
       .from('courses_sessions_students')
@@ -408,7 +367,7 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse<
 
     return {
       success: true,
-      data: enrollments ? serializeData(enrollments) : null,
+      data: enrollments,
       message: 'Cours récupérés avec succès',
     }
   } catch (error: any) {
@@ -417,69 +376,39 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse<
   }
 }
 
-export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<TeacherCourseResponse[]>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<Course[]>> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Version simplifiée de la requête
     const { data: courses, error } = await supabase
       .schema('education')
-      .from('courses_teacher')
+      .from('courses')
       .select(`
-        course_id,
-        courses (
+        *,
+        courses_teacher!inner (
+          teacher_id
+        ),
+        courses_sessions (
           id,
-          is_active,
-          courses_sessions (
-            id,
-            subject,
-            level,
-            courses_sessions_timeslot (
-              day_of_week,
-              start_time,
-              end_time
-            )
+          subject,
+          level,
+          courses_sessions_timeslot (
+            day_of_week,
+            start_time,
+            end_time
           )
         )
       `)
-      .eq('teacher_id', teacherId)
-      .eq('courses.is_active', true)
+      .eq('is_active', true)
+      .eq('courses_teacher.teacher_id', teacherId)
 
     if (error) {
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
 
-    // Tri des sessions
-    const timeSlotOrder = {
-      [TimeSlotEnum.SATURDAY_MORNING]: 0,
-      [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
-      [TimeSlotEnum.SUNDAY_MORNING]: 2
-    }
-
-    const sortTimeSlots = (a: { day_of_week: string }, b: { day_of_week: string }) =>
-      timeSlotOrder[a.day_of_week as keyof typeof timeSlotOrder] - timeSlotOrder[b.day_of_week as keyof typeof timeSlotOrder]
-
-    const sortSessionTimeslots = (session: any) => ({
-      ...session,
-      courses_sessions_timeslot: session.courses_sessions_timeslot.toSorted(sortTimeSlots)
-    })
-
-    const sortCourseSessions = (course: any) => ({
-      ...course,
-      courses_sessions: course.courses_sessions.map(sortSessionTimeslots)
-    })
-
-    const sortCourse = (course: any) => ({
-      ...course,
-      courses: course.courses.map(sortCourseSessions)
-    })
-
-    const coursesWithSortedSessions = courses?.map(sortCourse) || []
-
     return {
       success: true,
-      data: coursesWithSortedSessions || [],
+      data: courses || [],
       message: 'Cours du prof récupérés avec succès',
     }
   } catch (error: any) {
@@ -491,12 +420,10 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
 export async function removeStudentFromCourse(
   courseId: string,
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer les IDs des sessions du cours
     const { data: sessions, error: sessionsError } = await supabase
       .schema('education')
       .from('courses_sessions')
@@ -509,7 +436,6 @@ export async function removeStudentFromCourse(
 
     const sessionIds = sessions.map((s) => s.id)
 
-    // Supprimer l'étudiant de toutes les sessions du cours
     const { error } = await supabase
       .schema('education')
       .from('courses_sessions_students')
@@ -533,29 +459,19 @@ export async function removeStudentFromCourse(
 }
 
 export async function updateCourse(
-  courseId: string,
   courseData: {
     sessions: Array<{
       id: string
       subject: string
       level: string
-      timeSlot: {
-        dayOfWeek: string
-        startTime: string
-        endTime: string
-        classroomNumber?: string
-      }
+      timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time' | 'classroom_number'>
     }>
   },
-  sameStudents: boolean,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+ const { supabase } = await getSessionServer()
 
   try {
-    // Mettre à jour chaque session
     for (const sessionData of courseData.sessions) {
-      // Mettre à jour la session
       const { error: sessionError } = await supabase
         .schema('education')
         .from('courses_sessions')
@@ -570,15 +486,14 @@ export async function updateCourse(
         throw new Error(`Erreur lors de la mise à jour de la session: ${sessionError.message}`)
       }
 
-      // Mettre à jour les créneaux horaires
       const { error: timeslotError } = await supabase
         .schema('education')
         .from('courses_sessions_timeslot')
         .update({
-          day_of_week: sessionData.timeSlot.dayOfWeek,
-          start_time: sessionData.timeSlot.startTime,
-          end_time: sessionData.timeSlot.endTime,
-          classroom_number: sessionData.timeSlot.classroomNumber || null,
+          day_of_week: sessionData.timeSlot.day_of_week,
+          start_time: sessionData.timeSlot.start_time,
+          end_time: sessionData.timeSlot.end_time,
+          classroom_number: sessionData.timeSlot.classroom_number || null,
         })
         .eq('course_sessions_id', sessionData.id)
 
@@ -601,15 +516,13 @@ export async function updateCourse(
 export async function updateCourses(
   role: string,
   userId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
     let courses
 
     if (['admin', 'bureau'].includes(role)) {
-      // Admin peut voir tous les cours
       const { data: allCourses, error } = await supabase
         .schema('education')
         .from('courses')
@@ -642,7 +555,6 @@ export async function updateCourses(
       }
       courses = allCourses
     } else {
-      // Professeur ne voit que ses cours
       const { data: teacherCourses, error } = await supabase
         .schema('education')
         .from('courses_teacher')
@@ -674,7 +586,7 @@ export async function updateCourses(
 
     return {
       success: true,
-      data: courses ? serializeData(courses) : null,
+      data: courses,
       message: 'Cours récupérés avec succès',
     }
   } catch (error: any) {
@@ -689,12 +601,10 @@ export async function updateCourseSession(
   sessionData: Partial<CourseSession>,
   role: string,
   userId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getAuthenticatedUser()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  const { supabase } = await getSessionServer()
 
   try {
-    // Vérifier que le cours existe et récupérer ses sessions
     const { data: course, error: courseError } = await supabase
       .schema('education')
       .from('courses')
@@ -714,7 +624,6 @@ export async function updateCourseSession(
       }
     }
 
-    // Vérifier les permissions
     if (role === 'teacher') {
       const isTeacher = course.courses_teacher.some((ct: any) => ct.teacher_id === userId)
       if (!isTeacher) {
@@ -734,7 +643,6 @@ export async function updateCourseSession(
       }
     }
 
-    // Vérifier que la session existe
     if (!course.courses_sessions[sessionIndex]) {
       return {
         success: false,
@@ -745,7 +653,6 @@ export async function updateCourseSession(
 
     const sessionId = course.courses_sessions[sessionIndex].id
 
-    // Mettre à jour la session
     const { error: updateError } = await supabase
       .schema('education')
       .from('courses_sessions')
@@ -771,10 +678,9 @@ export async function updateCourseSession(
 }
 
 async function calculateCourseStats(sessionId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer toutes les notes associées à cette session
     const { data: grades, error } = await supabase
       .schema('education')
       .from('grades')
@@ -792,7 +698,6 @@ async function calculateCourseStats(sessionId: string) {
       }
     }
 
-    // Calculer les statistiques
     let totalGrades = 0
     let totalStudents = 0
     let totalAbsences = 0
