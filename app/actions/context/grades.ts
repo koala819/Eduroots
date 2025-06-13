@@ -151,6 +151,7 @@ export async function refreshGradeData(
 
   try {
     if (id && id !== 'grade') {
+      console.log('🔍 Requête pour une note spécifique:', id)
       const { data: grades, error } = await supabase
         .schema('education')
         .from('grades')
@@ -169,6 +170,9 @@ export async function refreshGradeData(
         `)
         .eq('id', id)
         .single()
+
+      console.log('📦 Données reçues:', grades)
+      console.log('❌ Erreur si présente:', error)
 
       if (error || !grades) {
         return {
@@ -202,6 +206,7 @@ export async function refreshGradeData(
     }
 
     // Si c'est une requête pour toutes les notes
+   console.log('🔍 Requête pour toutes les notes')
     const { data: grades, error } = await supabase
       .schema('education')
       .from('grades')
@@ -210,8 +215,7 @@ export async function refreshGradeData(
         courses_sessions (*),
         grades_records (
           *,
-          student_id,
-          users!grades_records_student_id_fkey (
+          users:student_id (
             id,
             firstname,
             lastname,
@@ -221,6 +225,8 @@ export async function refreshGradeData(
       `)
       .limit(50)
 
+    console.log('📦 Données reçues:', grades)
+    console.log('❌ Erreur si présente:', error)
     if (error) {
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
