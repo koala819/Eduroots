@@ -288,7 +288,7 @@ export type User = {
   firstname: string
   lastname: string
   email: string
-  secondary_mail: string | null
+  secondary_email: string | null
   is_active: boolean
   deleted_at: Date | null
   date_of_birth: Date | null
