@@ -2,9 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server'
 
-import { ApiResponse } from '@/types/api'
-import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/grade'
-import { SerializedValue, serializeData } from '@/lib/serialization'
+import { ApiResponse } from '@/types/supabase/api'
+import { Grade, GradeRecord, User, CourseSession, Database } from '@/types/supabase/db'
 
 async function getSessionServer() {
   const supabase = await createClient()
@@ -17,17 +16,17 @@ async function getSessionServer() {
   return { user }
 }
 
-function calculateGradeStats(records: any[]) {
+function calculateGradeStats(records: GradeRecord[]) {
   const validGrades = records
-    .filter((record) => !record.isAbsent && record.value !== null)
-    .map((record) => record.value)
+    .filter((record) => !record.is_absent && record.value !== null)
+    .map((record) => record.value as number)
 
   if (validGrades.length === 0) {
     return {
       stats_average_grade: 0,
       stats_highest_grade: 0,
       stats_lowest_grade: 0,
-      stats_absent_count: records.filter((record) => record.isAbsent).length,
+      stats_absent_count: records.filter((record) => record.is_absent).length,
       stats_total_students: records.length,
     }
   }
@@ -36,12 +35,12 @@ function calculateGradeStats(records: any[]) {
     stats_average_grade: validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length,
     stats_highest_grade: Math.max(...validGrades),
     stats_lowest_grade: Math.min(...validGrades),
-    stats_absent_count: records.filter((record) => record.isAbsent).length,
+    stats_absent_count: records.filter((record) => record.is_absent).length,
     stats_total_students: records.length,
   }
 }
 
-export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> {
   await getSessionServer()
   const supabase = await createClient()
 
@@ -74,40 +73,9 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<S
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
 
-    const populatedGrades = grades?.map((grade) => ({
-      id: grade.id,
-      isDraft: grade.is_draft,
-      sessionId: grade.course_session_id,
-      course: {
-        ...grade.courses_sessions,
-        id: grade.courses_sessions?.id,
-      },
-      date: grade.date,
-      type: grade.type,
-      stats: {
-        averageGrade: grade.stats_average_grade,
-        highestGrade: grade.stats_highest_grade,
-        lowestGrade: grade.stats_lowest_grade,
-        absentCount: grade.stats_absent_count,
-        totalStudents: grade.stats_total_students,
-      },
-      records: grade.grades_records?.map((record: any) => ({
-        value: record.value,
-        isAbsent: record.is_absent,
-        comment: record.comment,
-        student: {
-          ...record.users,
-          id: record.users?.id,
-        },
-      })) || [],
-      createdAt: grade.created_at,
-      updatedAt: grade.updated_at,
-      isActive: grade.is_active,
-    })) || []
-
     return {
       success: true,
-      data: populatedGrades ? serializeData(populatedGrades) : null,
+      data: grades,
       message: 'Notes récupérées avec succès',
     }
   } catch (error: any) {
@@ -117,23 +85,23 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse<S
 }
 
 export async function createGradeRecord(
-  data: CreateGradeDTO,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  data: Database['education']['Tables']['grades']['Insert']
+): Promise<ApiResponse<null>> {
+    await getSessionServer()
+    const supabase = await createClient()
 
-  try {
-    const stats = calculateGradeStats(data.records)
+    try {
+      const stats = calculateGradeStats(data.records)
 
     // Créer le grade principal
     const { data: grade, error: gradeError } = await supabase
       .schema('education')
       .from('grades')
       .insert({
-        course_session_id: data.course,
+        course_session_id: data.course_session_id,
         date: new Date(data.date).toISOString(),
         type: data.type,
-        is_draft: data.isDraft,
+        is_draft: data.is_draft,
         ...stats,
         last_update: new Date().toISOString(),
         is_active: true,
@@ -148,9 +116,9 @@ export async function createGradeRecord(
     // Créer les enregistrements de notes
     const gradeRecords = data.records.map((record) => ({
       grade_id: grade.id,
-      student_id: record.student,
+      student_id: record.student_id,
       value: record.value,
-      is_absent: record.isAbsent,
+      is_absent: record.is_absent,
       comment: record.comment,
     }))
 
@@ -177,13 +145,13 @@ export async function createGradeRecord(
 export async function refreshGradeData(
   id?: string,
   fields?: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse<Grade | Grade[] | { stats_average_grade: number, stats_highest_grade: number, stats_lowest_grade: number, stats_absent_count: number, stats_total_students: number }>> {
   await getSessionServer()
   const supabase = await createClient()
 
   try {
     if (id && id !== 'grade') {
-      const { data: grade, error } = await supabase
+      const { data: grades, error } = await supabase
         .schema('education')
         .from('grades')
         .select(`
@@ -202,7 +170,7 @@ export async function refreshGradeData(
         .eq('id', id)
         .single()
 
-      if (error || !grade) {
+      if (error || !grades) {
         return {
           success: false,
           message: 'Note non trouvée',
@@ -213,54 +181,22 @@ export async function refreshGradeData(
       // Si on demande uniquement les stats
       if (fields === 'stats') {
         const stats = {
-          averageGrade: grade.stats_average_grade,
-          highestGrade: grade.stats_highest_grade,
-          lowestGrade: grade.stats_lowest_grade,
-          absentCount: grade.stats_absent_count,
-          totalStudents: grade.stats_total_students,
+          stats_average_grade: grades.stats_average_grade,
+          stats_highest_grade: grades.stats_highest_grade,
+          stats_lowest_grade: grades.stats_lowest_grade,
+          stats_absent_count: grades.stats_absent_count,
+          stats_total_students: grades.stats_total_students,
         }
         return {
           success: true,
           message: 'Statistiques récupérées avec succès',
-          data: stats ? serializeData(stats) : null,
+          data: stats,
         }
-      }
-
-      // Transformation en PopulatedGrade
-      const formattedGrade: PopulatedGrade = {
-        id: grade.id,
-        sessionId: grade.course_session_id,
-        course: {
-          ...grade.courses_sessions,
-          id: grade.courses_sessions?.id,
-        },
-        date: grade.date,
-        type: grade.type,
-        isDraft: grade.is_draft,
-        records: grade.grades_records?.map((record: any) => ({
-          value: record.value,
-          isAbsent: record.is_absent,
-          comment: record.comment,
-          student: {
-            ...record.users,
-            id: record.users?.id,
-          },
-        })) || [],
-        stats: {
-          averageGrade: grade.stats_average_grade,
-          highestGrade: grade.stats_highest_grade,
-          lowestGrade: grade.stats_lowest_grade,
-          absentCount: grade.stats_absent_count,
-          totalStudents: grade.stats_total_students,
-        },
-        createdAt: grade.created_at,
-        updatedAt: grade.updated_at,
-        isActive: grade.is_active,
       }
 
       return {
         success: true,
-        data: formattedGrade ? serializeData(formattedGrade) : null,
+        data: grades,
         message: 'Notes récupérées avec succès',
       }
     }
@@ -289,41 +225,9 @@ export async function refreshGradeData(
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
 
-
-    const formattedGrades: PopulatedGrade[] = grades?.map((grade) => ({
-      id: grade.id,
-      sessionId: grade.course_session_id,
-      course: {
-        ...grade.courses_sessions,
-        id: grade.courses_sessions?.id,
-      },
-      date: grade.date,
-      type: grade.type,
-      isDraft: grade.is_draft,
-      records: grade.grades_records?.map((record: any) => ({
-        value: record.value,
-        isAbsent: record.is_absent,
-        comment: record.comment,
-        student: {
-          ...record.users,
-          id: record.users?.id,
-        },
-      })) || [],
-      stats: {
-        averageGrade: grade.stats_average_grade,
-        highestGrade: grade.stats_highest_grade,
-        lowestGrade: grade.stats_lowest_grade,
-        absentCount: grade.stats_absent_count,
-        totalStudents: grade.stats_total_students,
-      },
-      createdAt: grade.created_at,
-      updatedAt: grade.updated_at,
-      isActive: grade.is_active,
-    })) || []
-
     return {
       success: true,
-      data: formattedGrades ? serializeData(formattedGrades) : null,
+      data: grades,
       message: 'Notes récupérées avec succès',
     }
   } catch (error: any) {
@@ -334,8 +238,8 @@ export async function refreshGradeData(
 
 export async function updateGradeRecord(
   gradeId: string,
-  data: UpdateGradeDTO,
-): Promise<ApiResponse<SerializedValue>> {
+  data: Database['education']['Tables']['grades']['Insert']
+): Promise<ApiResponse<null>> {
   await getSessionServer()
   const supabase = await createClient()
 
@@ -359,7 +263,7 @@ export async function updateGradeRecord(
       .update({
         date: new Date(data.date).toISOString(),
         type: data.type,
-        is_draft: data.isDraft,
+        is_draft: data.is_draft,
         ...stats,
         last_update: new Date().toISOString(),
       })
@@ -379,9 +283,9 @@ export async function updateGradeRecord(
     // Créer les nouveaux enregistrements
     const newRecords = data.records.map((record) => ({
       grade_id: gradeId,
-      student_id: record.student,
+      student_id: record.student_id,
       value: record.value,
-      is_absent: record.isAbsent,
+      is_absent: record.is_absent,
       comment: record.comment,
     }))
 
