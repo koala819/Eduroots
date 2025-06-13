@@ -12,6 +12,8 @@ utils/@dejaFait
 utils/script
 utils/tuto
 utils/compare
+utils/db_migration/.env
+utils/db_migration/mongo_to_supabase_ids.json
 
 # Report after migration and/or update
 reports/
