@@ -3,9 +3,11 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-import { ApiResponse } from '@/types/api'
+import { ApiResponse } from '@/types/supabase/api'
 import { CourseSession, TimeSlot } from '@/types/course'
 import { SerializedValue, serializeData } from '@/lib/serialization'
+import { TeacherCourseResponse } from '@/types/supabase/db'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 async function getAuthenticatedUser() {
   const supabase = await createClient()
@@ -415,7 +417,7 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse<
   }
 }
 
-export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<TeacherCourseResponse[]>> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -448,9 +450,36 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
     }
 
+    // Tri des sessions
+    const timeSlotOrder = {
+      [TimeSlotEnum.SATURDAY_MORNING]: 0,
+      [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
+      [TimeSlotEnum.SUNDAY_MORNING]: 2
+    }
+
+    const sortTimeSlots = (a: { day_of_week: string }, b: { day_of_week: string }) =>
+      timeSlotOrder[a.day_of_week as keyof typeof timeSlotOrder] - timeSlotOrder[b.day_of_week as keyof typeof timeSlotOrder]
+
+    const sortSessionTimeslots = (session: any) => ({
+      ...session,
+      courses_sessions_timeslot: session.courses_sessions_timeslot.toSorted(sortTimeSlots)
+    })
+
+    const sortCourseSessions = (course: any) => ({
+      ...course,
+      courses_sessions: course.courses_sessions.map(sortSessionTimeslots)
+    })
+
+    const sortCourse = (course: any) => ({
+      ...course,
+      courses: course.courses.map(sortCourseSessions)
+    })
+
+    const coursesWithSortedSessions = courses?.map(sortCourse) || []
+
     return {
       success: true,
-      data: courses ? serializeData(courses) : null,
+      data: coursesWithSortedSessions || [],
       message: 'Cours du prof récupérés avec succès',
     }
   } catch (error: any) {
