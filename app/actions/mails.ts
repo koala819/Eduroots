@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 
 import { ApiResponse } from '@/types/supabase/api'
-import { MessageBody } from '@/types/models'
+import { MessageBody } from '@/types/mongo/models'
 
 import { sendEmailNotification } from '@/lib/mails/emailService'
 import { recordMessageToDb } from '@/lib/mails/recordMessageToDb'

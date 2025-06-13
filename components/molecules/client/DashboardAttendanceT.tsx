@@ -1,7 +1,7 @@
 'use client'
 
 import {useEffect, useState} from 'react'
-import {Student} from '@/types/user'
+import {Student} from '@/types/mongo/user'
 import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
 import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
 import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'

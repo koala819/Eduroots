@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { Database } from '@/types/supabase/db'
-import { SubjectNameEnum } from '@/types/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
 type User = Database['public']['Tables']['users']['Row']
 type AttendanceRecord = Database['public']['Tables']['attendance_records']['Row']

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { Database } from '@/types/supabase/db'
-import { UserRoleEnum } from '@/types/user'
+import { UserRoleEnum } from '@/types/mongo/user'
 import { FormSchema } from '@/lib/validation/login-schema'
 import { createClient as supabaseClient } from '@supabase/supabase-js'
 

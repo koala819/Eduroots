@@ -4,7 +4,7 @@ import {useCallback, useEffect, useState} from 'react'
 
 import {useToast} from '@/hooks/use-toast'
 
-import {AppConfig, ButtonVariant, ThemeConfig} from '@/types/models'
+import {AppConfig, ButtonVariant, ThemeConfig} from '@/types/mongo/models'
 
 import {PasswordInput} from '@/components/root/PasswordInput'
 import {ThemeSection} from '@/components/root/ThemeSection'

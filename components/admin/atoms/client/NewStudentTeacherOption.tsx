@@ -2,7 +2,7 @@
 
 import {BiFemale, BiMale} from 'react-icons/bi'
 
-import {GenderEnum, Teacher} from '@/types/user'
+import {GenderEnum, Teacher} from '@/types/mongo/user'
 
 interface TeacherStats {
   totalStudents: number

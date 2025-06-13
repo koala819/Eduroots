@@ -1,5 +1,5 @@
-import { SubjectNameEnum } from '@/types/course'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import { SubjectNameEnum } from '@/types/mongo/course'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/mongo/user'
 
 import { rootOptions } from './root.model'
 

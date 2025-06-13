@@ -1,6 +1,6 @@
 'use server'
 
-import {BehaviorDocument} from '@/types/mongoose'
+import {BehaviorDocument} from '@/types/mongo/mongoose'
 
 import {fetchBehaviorsByCourse} from '@/app/actions/context/behaviors'
 import {BehaviorProvider} from '@/context/Behaviors/client'

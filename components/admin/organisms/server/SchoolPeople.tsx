@@ -1,4 +1,4 @@
-import {Student, Teacher} from '@/types/user'
+import {Student, Teacher} from '@/types/mongo/user'
 
 import {SchoolPeopleClient} from '@/components/admin/organisms/client/SchoolPeople'
 

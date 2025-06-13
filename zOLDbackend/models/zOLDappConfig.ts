@@ -1,4 +1,4 @@
-import { AppConfigDocument, ThemeConfig } from '@/types/models'
+import { AppConfigDocument, ThemeConfig } from '@/types/mongo/models'
 
 import bcrypt from 'bcryptjs'
 import { Schema, model, models } from 'mongoose'

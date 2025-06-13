@@ -4,7 +4,7 @@ import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/compon
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
-import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/course'
+import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/mongo/course'
 import {useState} from 'react'
 import {UseFormReturn} from 'react-hook-form'
 

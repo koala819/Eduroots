@@ -1,4 +1,4 @@
-import {SubjectNameEnum} from '@/types/course'
+import {SubjectNameEnum} from '@/types/mongo/course'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'

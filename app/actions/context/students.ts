@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 
 import { ApiResponse } from '@/types/supabase/api'
-import { Student } from '@/types/user'
+import { Student } from '@/types/mongo/user'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 
 async function getSessionServer() {

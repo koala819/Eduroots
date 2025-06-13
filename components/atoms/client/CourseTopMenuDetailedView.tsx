@@ -2,7 +2,7 @@
 
 import {BarChart2, Book, Calendar, ChevronDown, ChevronUp, Clock, GraduationCap} from 'lucide-react'
 
-import {CourseSession} from '@/types/course'
+import {CourseSession} from '@/types/mongo/course'
 
 import {Card, CardContent, CardHeader} from '@/components/ui/card'
 

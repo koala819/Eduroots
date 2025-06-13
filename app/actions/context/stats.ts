@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 import { ApiResponse } from '@/types/supabase/api'
-import { EntityStats, StudentStats, TeacherStats } from '@/types/stats'
+import { EntityStats, StudentStats, TeacherStats } from '@/types/mongo/stats'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 import {
   calculateStudentAttendanceRate,

@@ -1,6 +1,6 @@
 'use client'
 
-import {GlobalStats} from '@/types/stats'
+import {GlobalStats} from '@/types/mongo/stats'
 
 import {Progress} from '@/components/ui/progress'
 

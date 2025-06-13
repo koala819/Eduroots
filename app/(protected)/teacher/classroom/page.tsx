@@ -8,8 +8,7 @@ import {
   ErrorContent,
 } from '@/components/molecules/client/CourseDisplay'
 import { Suspense } from 'react'
-import { TeacherCourseResponse } from '@/types/supabase/db'
-
+import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
 
 export const metadata: Metadata = {
   title: 'Gestion des cours',
@@ -19,38 +18,38 @@ export const metadata: Metadata = {
 }
 
 export default async function ClassroomPage() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  // Récupérer l'utilisateur auth
-  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-  if (authError || !authUser) {
-    return <ErrorContent message="Erreur d'authentification" />
+    const { isAuthenticated, role, educationUserId, error: authError } =
+      await getAuthenticatedEducationUser(user)
+
+    if (!isAuthenticated || !educationUserId || role !== 'teacher') {
+      return <ErrorContent message={authError || "Vous n'avez pas les droits nécessaires"} />
+    }
+
+    const coursesResponse = await getTeacherCourses(educationUserId)
+
+    if (!coursesResponse.success) {
+      return <ErrorContent message={coursesResponse.message} />
+    }
+
+    const coursesData = coursesResponse.data
+
+    return (
+      <Suspense fallback={<LoadingContent />}>
+        {!coursesData || coursesData.length === 0 ? (
+          <EmptyContent />
+        ) : (
+          <CourseDisplay
+            initialCourses={coursesData}
+          />
+        )}
+      </Suspense>
+    )
+  } catch (error) {
+    console.error('[CLASSROOM_PAGE]', error)
+    return <ErrorContent message="Une erreur inattendue s'est produite" />
   }
-
-  // Récupérer l'utilisateur education
-  const { data: educationUser, error: educationError } = await supabase
-    .schema('education')
-    .from('users')
-    .select('id')
-    .eq('auth_id', authUser.id)
-    .single()
-
-  if (educationError) {
-    return <ErrorContent message="Erreur de récupération du profil" />
-  }
-
-  const courses = await getTeacherCourses(educationUser.id)
-  const coursesData = courses.data as TeacherCourseResponse[] | null
-
-  return (
-    <Suspense fallback={<LoadingContent />}>
-      {coursesData && coursesData.length === 0 ? (
-        <EmptyContent />
-      ) : (
-        <CourseDisplay
-          initialCourses={coursesData}
-        />
-      )}
-    </Suspense>
-  )
 }

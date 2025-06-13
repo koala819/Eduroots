@@ -3,8 +3,8 @@
 import { getSessionServer } from '@/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/supabase/api'
-import { Course, CourseSession, CourseSessionTimeslot, Database } from '@/types/supabase/db'
-import { TimeSlotEnum } from '@/types/supabase/courses'
+import { CourseSession, CourseSessionTimeslot, Database } from '@/types/supabase/db'
+import { CourseWithRelations,TimeSlotEnum } from '@/types/supabase/courses'
 
 type CourseSessionWithRelations = CourseSession & {
   courses_sessions_students?: Array<{
@@ -389,7 +389,7 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse>
   }
 }
 
-export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<Course[]>> {
+export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<CourseWithRelations[]>> {
   const { supabase } = await getSessionServer()
 
   try {

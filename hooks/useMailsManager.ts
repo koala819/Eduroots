@@ -3,7 +3,7 @@ import {toast} from 'react-toastify'
 
 import {Session} from 'next-auth'
 
-import {Mail} from '@/types/models'
+import {Mail} from '@/types/mongo/models'
 
 import {deleteMail, getMail, getSentMails, onClickMail} from '@/app/actions/mails'
 

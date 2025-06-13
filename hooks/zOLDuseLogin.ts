@@ -8,7 +8,7 @@ import {useRouter} from 'next/navigation'
 import {useToast} from '@/hooks/use-toast'
 import {useThemeLoader} from '@/hooks/useThemeLoader'
 
-import {UserRoleEnum} from '@/types/user'
+import {UserRoleEnum} from '@/types/mongo/user'
 
 import {z} from 'zod'
 

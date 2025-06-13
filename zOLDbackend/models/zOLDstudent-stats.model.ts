@@ -1,4 +1,4 @@
-import { SubjectNameEnum } from '@/types/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
 import { rootOptions, rootSchema } from './root.model'
 

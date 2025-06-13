@@ -5,7 +5,7 @@ import {useState} from 'react'
 
 import {useRouter} from 'next/navigation'
 
-import {Course, CourseSession, PopulatedCourse} from '@/types/course'
+import {Course, CourseSession, PopulatedCourse} from '@/types/mongo/course'
 
 import {CourseMenu} from '@/components/atoms/client/CourseMenu'
 import {CourseSelected} from '@/components/atoms/client/CourseTopMenuDetailedView'

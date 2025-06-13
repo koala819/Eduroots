@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
-import { Student } from '@/types/user'
+import { Student } from '@/types/mongo/user'
 
 import StudentDashboard from '@/components/organisms/client/StudentDashboard'
 

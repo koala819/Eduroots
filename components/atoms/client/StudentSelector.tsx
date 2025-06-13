@@ -1,6 +1,6 @@
 'use client'
 
-import { Student } from '@/types/user'
+import { Student } from '@/types/mongo/user'
 
 interface StudentSelectorProps {
   familyStudents: Student[]

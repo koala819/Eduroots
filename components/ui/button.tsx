@@ -1,7 +1,7 @@
 import {Slot} from '@radix-ui/react-slot'
 import * as React from 'react'
 
-import {ButtonVariant} from '@/types/models'
+import {ButtonVariant} from '@/types/mongo/models'
 
 // import { useConfig } from '@/context/ConfigContext'
 import {cn} from '@/utils/helpers'

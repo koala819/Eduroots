@@ -1,6 +1,6 @@
 'use server'
 
-import {PopulatedCourse} from '@/types/course'
+import {PopulatedCourse} from '@/types/mongo/course'
 
 import {getCourseById} from '@/app/actions/context/courses'
 import {CoursesProvider} from '@/context/Courses/client'

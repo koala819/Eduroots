@@ -3,8 +3,8 @@
 import {Users} from 'lucide-react'
 import {useEffect, useState} from 'react'
 
-import {StudentStats} from '@/types/stats'
-import {Student} from '@/types/user'
+import {StudentStats} from '@/types/mongo/stats'
+import {Student} from '@/types/mongo/user'
 
 import {ClassOverview} from '@/components/atoms/client/ClassOverview'
 import {Card, CardContent} from '@/components/ui/card'

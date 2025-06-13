@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 
-import {MessageBody} from '@/types/models'
+import {MessageBody} from '@/types/mongo/models'
 
 import {Message} from '@/backend/models/message'
 

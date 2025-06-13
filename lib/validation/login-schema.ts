@@ -1,4 +1,4 @@
-import {UserRoleEnum} from '@/types/user'
+import {UserRoleEnum} from '@/types/mongo/user'
 
 import {z} from 'zod'
 

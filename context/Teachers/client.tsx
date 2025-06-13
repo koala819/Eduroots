@@ -12,9 +12,9 @@ import {
 
 import {useToast} from '@/hooks/use-toast'
 
-import {GroupedStudents} from '@/types/course'
-import {StudentDocument} from '@/types/mongoose'
-import {Student, Teacher} from '@/types/user'
+import {GroupedStudents} from '@/types/mongo/course'
+import {StudentDocument} from '@/types/mongo/mongoose'
+import {Student, Teacher} from '@/types/mongo/user'
 
 import {
   createTeacher as createTeacherAction,

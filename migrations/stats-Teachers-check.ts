@@ -1,6 +1,6 @@
-import {TimeSlotEnum} from '@/types/course'
-import {TeacherStats} from '@/types/stats'
-import {GenderEnum} from '@/types/user'
+import {TimeSlotEnum} from '@/types/mongo/course'
+import {TeacherStats} from '@/types/mongo/stats'
+import {GenderEnum} from '@/types/mongo/user'
 
 import {
   TeacherSession,

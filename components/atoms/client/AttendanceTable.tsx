@@ -3,7 +3,7 @@
 import {CheckCircle, Clock, Plus, Star, XCircle} from 'lucide-react'
 import React from 'react'
 
-import {AttendanceDocument} from '@/types/mongoose'
+import {AttendanceDocument} from '@/types/mongo/mongoose'
 
 import {Button} from '@/components/ui/button'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'

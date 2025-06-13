@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { GradeRecord } from '@/types/grade'
+import { GradeRecord } from '@/types/mongo/grade'
 
 import { Grade as GradeModel } from '@/zOLDbackend/models/zOLDgrade.model'
 import { User as UserModel } from '@/zOLDbackend/models/zOLDuser.model'

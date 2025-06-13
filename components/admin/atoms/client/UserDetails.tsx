@@ -2,7 +2,7 @@
 
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum } from '@/types/user'
+import { GenderEnum } from '@/types/mongo/user'
 
 interface UserDetailsClientProps {
   gender: GenderEnum

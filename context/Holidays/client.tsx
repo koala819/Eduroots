@@ -15,7 +15,7 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 
-import { Holiday } from '@/types/holidays'
+import { Holiday } from '@/types/mongo/holidays'
 
 import { getCurrentHolidays, saveHolidays } from '@/app/actions/context/holidays'
 

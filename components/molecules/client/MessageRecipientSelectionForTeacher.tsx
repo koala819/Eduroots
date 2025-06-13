@@ -6,9 +6,9 @@ import {FixedSizeList as List} from 'react-window'
 
 import {Session} from 'next-auth'
 
-import {TimeSlotEnum} from '@/types/course'
-import {StudentDocument} from '@/types/mongoose'
-import {FormFields, SelectionModeType} from '@/types/writeMessage'
+import {TimeSlotEnum} from '@/types/mongo/course'
+import {StudentDocument} from '@/types/mongo/mongoose'
+import {FormFields, SelectionModeType} from '@/types/mongo/writeMessage'
 
 import {CustomCheckbox} from '@/components/atoms/client/MessageCustomCheckbox'
 import {Badge} from '@/components/ui/badge'

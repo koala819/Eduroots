@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { CourseDocument } from '@/types/mongoose'
-import { Teacher, UserRoleEnum } from '@/types/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/mongo/course'
+import { CourseDocument } from '@/types/mongo/mongoose'
+import { Teacher, UserRoleEnum } from '@/types/mongo/user'
 
 import StepOne from '@/components/root/NewTeacherStep1'
 import StepTwo from '@/components/root/NewTeacherStep2'

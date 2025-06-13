@@ -1,4 +1,4 @@
-import {Course} from '@/types/course'
+import {Course} from '@/types/mongo/course'
 
 import {TeacherStatsClient} from '@/components/admin/atoms/client/TeacherStats'
 

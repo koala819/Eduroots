@@ -1,7 +1,7 @@
 'use server'
 
-import {Attendance} from '@/types/attendance'
-import {SubjectNameEnum} from '@/types/course'
+import {Attendance} from '@/types/mongo/attendance'
+import {SubjectNameEnum} from '@/types/mongo/course'
 
 import {getStudentAttendanceHistory} from '@/app/actions/context/attendances'
 

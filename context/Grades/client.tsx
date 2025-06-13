@@ -13,7 +13,7 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 
-import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/grade'
+import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/types/mongo/grade'
 
 import {
   createGradeRecord,

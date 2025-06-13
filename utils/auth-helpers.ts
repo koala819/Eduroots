@@ -35,7 +35,7 @@ export async function getEducationUserId(authUserId: string): Promise<string | n
     return null
   }
 
-  return user?.id || null
+  return user?.id ?? null
 }
 
 /**

@@ -20,7 +20,7 @@ import {
   DuplicateBehavior,
   UpdateBehaviorPayload,
 } from '@/types/behavior'
-import {BehaviorDocument} from '@/types/mongoose'
+import {BehaviorDocument} from '@/types/mongo/mongoose'
 
 import {
   createBehaviorRecord,

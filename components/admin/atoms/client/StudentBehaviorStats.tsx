@@ -1,6 +1,6 @@
 'use client'
 
-import {SubjectNameEnum} from '@/types/course'
+import {SubjectNameEnum} from '@/types/mongo/course'
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 

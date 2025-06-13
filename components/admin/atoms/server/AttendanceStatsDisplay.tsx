@@ -1,4 +1,4 @@
-import { GlobalStats } from '@/types/stats'
+import { GlobalStats } from '@/types/mongo/stats'
 
 import { AttendanceStatsClient } from '@/components/admin/atoms/client/AttendanceStats'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

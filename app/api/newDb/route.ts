@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { TimeEnum } from '@/types/course'
-import type { Student, Teacher } from '@/types/user'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import { TimeEnum } from '@/types/mongo/course'
+import type { Student, Teacher } from '@/types/mongo/user'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/mongo/user'
 
 import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
 import { User } from '@/zOLDbackend/models/zOLDuser.model'

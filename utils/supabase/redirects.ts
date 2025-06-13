@@ -1,4 +1,4 @@
-import { UserRoleEnum } from '@/types/user'
+import { UserRoleEnum } from '@/types/mongo/user'
 
 /**
  * Obtient l'URL de redirection en fonction du rôle de l'utilisateur

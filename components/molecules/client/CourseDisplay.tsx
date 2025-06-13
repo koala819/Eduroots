@@ -3,11 +3,11 @@
 import { BookOpenCheck, Menu } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { TeacherCourseResponse } from '@/types/supabase/db'
+import { CourseWithRelations } from '@/types/supabase/courses'
 import { CourseMenu } from '@/components/atoms/client/CourseMenu'
 
 type CourseDisplayProps = {
-  initialCourses: TeacherCourseResponse[] | null
+  initialCourses: CourseWithRelations[] | null
 }
 
 export const CourseDisplay = ({ initialCourses }: CourseDisplayProps) => {

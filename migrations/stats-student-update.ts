@@ -1,5 +1,5 @@
-import { SubjectNameEnum } from '@/types/course'
-import { StudentStats } from '@/types/stats'
+import { SubjectNameEnum } from '@/types/mongo/course'
+import { StudentStats } from '@/types/mongo/stats'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import { StudentStats as StudentStatsCollection } from '@/zOLDbackend/models/zOLDstudent-stats.model'

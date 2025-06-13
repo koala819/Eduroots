@@ -1,4 +1,4 @@
-import {MessageBody} from '@/types/models'
+import {MessageBody} from '@/types/mongo/models'
 
 import {EMAIL_CONFIG, EmailUsageType} from '../config'
 import {mailBugAttendance} from './skinBugAttendance'

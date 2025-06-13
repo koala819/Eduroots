@@ -1,5 +1,5 @@
 import { TimeSlotEnum } from '@/types/supabase/courses'
-import { ButtonVariant, ThemeConfig } from '@/types/models'
+import { ButtonVariant, ThemeConfig } from '@/types/mongo/models'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { createClient } from '@/utils/supabase/client'

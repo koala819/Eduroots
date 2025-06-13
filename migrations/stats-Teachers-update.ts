@@ -1,5 +1,5 @@
-import {TeacherStats} from '@/types/stats'
-import {GenderEnum} from '@/types/user'
+import {TeacherStats} from '@/types/mongo/stats'
+import {GenderEnum} from '@/types/mongo/user'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import {TeacherStats as TeacherStatsCollection} from '@/zOLDbackend/models/zOLDteacher-stats.model'

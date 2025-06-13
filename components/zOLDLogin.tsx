@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { UserRoleEnum } from '@/types/user'
+import { UserRoleEnum } from '@/types/mongo/user'
 
 import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
 import { Button } from '@/components/ui/button'

@@ -10,8 +10,8 @@ import {
   X,
 } from 'lucide-react'
 
-import {StudentStats} from '@/types/stats'
-import {Student} from '@/types/user'
+import {StudentStats} from '@/types/mongo/stats'
+import {Student} from '@/types/mongo/user'
 
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardFooter, CardHeader} from '@/components/ui/card'

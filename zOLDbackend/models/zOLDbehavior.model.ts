@@ -1,4 +1,4 @@
-import { BehaviorDocument } from '@/types/mongoose'
+import { BehaviorDocument } from '@/types/mongo/mongoose'
 
 import { rootOptions, rootSchema } from './root.model'
 

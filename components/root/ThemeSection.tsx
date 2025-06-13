@@ -1,6 +1,6 @@
 import {memo, useCallback, useEffect, useState} from 'react'
 
-import {AppConfig, ThemeConfig} from '@/types/models'
+import {AppConfig, ThemeConfig} from '@/types/mongo/models'
 
 import {ButtonPreview} from '@/components/root/ButtonPreview'
 import ThemeInput from '@/components/root/ThemeInput'

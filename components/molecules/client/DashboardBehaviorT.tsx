@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 
 import React, {useEffect, useState} from 'react'
 
-import {AttendanceRecord} from '@/types/attendance'
+import {AttendanceRecord} from '@/types/mongo/attendance'
 
 import {BehaviorCreate} from '@/components/atoms/client/BehaviorCreate'
 import {BehaviorEdit} from '@/components/atoms/client/BehaviorEdit'

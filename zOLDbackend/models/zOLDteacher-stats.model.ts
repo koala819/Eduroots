@@ -1,4 +1,4 @@
-import { GenderEnum } from '@/types/user'
+import { GenderEnum } from '@/types/mongo/user'
 
 import { rootOptions, rootSchema } from './root.model'
 

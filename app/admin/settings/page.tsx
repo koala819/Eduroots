@@ -23,8 +23,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/types/user'
+import { EntityType } from '@/types/mongo/stats'
+import { Student, Teacher } from '@/types/mongo/user'
 
 import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
 import { Badge } from '@/components/ui/badge'

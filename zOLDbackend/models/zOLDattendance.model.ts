@@ -1,4 +1,4 @@
-import { AttendanceDocument } from '@/types/mongoose'
+import { AttendanceDocument } from '@/types/mongo/mongoose'
 import { rootOptions, rootSchema } from './root.model'
 import { Model, Schema, model, models } from 'mongoose'
 

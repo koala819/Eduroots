@@ -1,4 +1,4 @@
-import { HolidayScheduleDocument } from '@/types/holidays'
+import { HolidayScheduleDocument } from '@/types/mongo/holidays'
 
 import { Schema, model, models } from 'mongoose'
 

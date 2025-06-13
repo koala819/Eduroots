@@ -3,7 +3,7 @@
 // import { useSession } from 'next-auth/react'
 import { createContext, useContext, useEffect, useState } from 'react'
 
-import { ThemeConfig } from '@/types/models'
+import { ThemeConfig } from '@/types/mongo/models'
 
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
 import { generateDefaultTheme } from '@/utils/helpers'

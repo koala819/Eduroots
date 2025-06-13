@@ -1,5 +1,5 @@
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {GenderEnum, User} from '@/types/user'
+import {CourseSession, TimeSlotEnum} from '@/types/mongo/course'
+import {GenderEnum, User} from '@/types/mongo/user'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import {Course as CourseCollection} from '@/zOLDbackend/models/zOLDcourse.model'
