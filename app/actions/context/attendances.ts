@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-import { ApiResponse } from '@/types/api'
+import { ApiResponse } from '@/types/supabase/api'
 import { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 

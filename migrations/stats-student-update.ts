@@ -9,7 +9,7 @@ import {
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/lib/stats/student'
-import { convertToDate } from '@/lib/utils'
+import { convertToDate } from '@/utils/helpers'
 import fs from 'fs/promises'
 import { ObjectId } from 'mongoose'
 import path from 'path'

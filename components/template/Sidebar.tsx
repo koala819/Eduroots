@@ -1,6 +1,6 @@
 'use client'
 import { LogOut } from 'lucide-react'
-import { cn, logoutHandler } from '@/lib/utils'
+import { cn, logoutHandler } from '@/utils/helpers'
 import EdurootsLogo from '@/public/Logo-blanc.webp'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'

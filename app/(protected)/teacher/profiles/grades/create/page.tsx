@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { useCourses } from '@/context/Courses/client'
 import { useGrades } from '@/context/Grades/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import { formatDayOfWeek } from '@/utils/helpers'
 import useCourseStore from '@/stores/useCourseStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'

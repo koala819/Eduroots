@@ -16,7 +16,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {useCourses} from '@/context/Courses/client'
 import {useSchedules} from '@/context/Schedules/client'
 import {useStats} from '@/context/Stats/client'
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 interface StepTwoProps {
   form: UseFormReturn<FormData>

@@ -17,7 +17,7 @@ import {Checkbox} from '@/components/ui/checkbox'
 import {Input} from '@/components/ui/input'
 
 import {useTeachers} from '@/context/Teachers/client'
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
 import useCourseStore from '@/stores/useCourseStore'
 

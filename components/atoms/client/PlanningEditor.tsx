@@ -19,7 +19,7 @@ import {ScrollArea} from '@/components/ui/scroll-area'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 
 import {useCourses} from '@/context/Courses/client'
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 

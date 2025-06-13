@@ -15,8 +15,8 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 
-import { TimeSlotEnum } from '@/types/course'
-import { DaySchedule, Period } from '@/types/schedule'
+import { TimeSlotEnum } from '@/types/supabase/courses'
+import { DaySchedule, Period } from '@/types/supabase/schedule'
 
 import { getCurrentSchedule, saveSchedules } from '@/app/actions/context/schedules'
 

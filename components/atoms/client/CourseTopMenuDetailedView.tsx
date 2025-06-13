@@ -6,7 +6,7 @@ import {CourseSession} from '@/types/course'
 
 import {Card, CardContent, CardHeader} from '@/components/ui/card'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {motion} from 'framer-motion'
 
 export const CourseSelected = ({

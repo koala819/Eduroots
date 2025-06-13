@@ -9,7 +9,7 @@ import {GradeCard} from '@/components/atoms/client/StudentGradeCard'
 import {InfoCard} from '@/components/atoms/client/StudentInfoCard'
 import {StatCard} from '@/components/atoms/client/StudentStatCard'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 type StudentStatsProps = {
   detailedGrades: any

@@ -24,7 +24,7 @@ import {Button} from '@/components/ui/button'
 import {useBehavior} from '@/context/Behaviors/client'
 import {useCourses} from '@/context/Courses/client'
 import {useStudents} from '@/context/Students/client'
-import {cn} from '@/lib/utils'
+import {cn} from '@/utils/helpers'
 import {motion} from 'framer-motion'
 
 interface BehaviorCreateProps {

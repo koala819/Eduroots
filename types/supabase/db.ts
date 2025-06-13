@@ -156,16 +156,17 @@ export type Grade = {
   is_active: boolean
   deleted_at: Date | null
   type: string
+  records: GradeRecord[]
 }
 
 export type GradeRecord = {
-  id: string
+  id?: string
   grade_id: string
   student_id: string
   value: number | null
   is_absent: boolean
-  created_at: Date
-  updated_at: Date
+  created_at?: Date
+  updated_at?: Date
   comment: string | null
 }
 
@@ -245,14 +246,23 @@ export type StatsStudentGrade = {
 }
 
 export type TeacherCourseResponse = {
-  teacher_id: string
-  created_at: string
+  teacher_id?: string
+  created_at?: string
   course_id: string
-  courses: Course & {
-    courses_sessions: (CourseSession & {
-      courses_sessions_timeslot: CourseSessionTimeslot[]
-    })[]
-  }
+  courses: {
+    id: string
+    is_active: boolean
+    courses_sessions: {
+      id: string
+      subject: string
+      level: string
+      courses_sessions_timeslot: {
+        day_of_week: string
+        start_time: string
+        end_time: string
+      }[]
+    }[]
+  }[]
 }
 
 export type TeacherStats = {

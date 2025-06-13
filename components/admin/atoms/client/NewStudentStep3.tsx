@@ -8,7 +8,7 @@ import {GenderEnum, User} from '@/types/user'
 
 import {FormData} from '../../organisms/client/NewStudentForm'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {format} from 'date-fns'
 import {fr} from 'date-fns/locale'
 import {motion} from 'framer-motion'

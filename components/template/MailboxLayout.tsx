@@ -8,7 +8,7 @@ import {usePathname} from 'next/navigation'
 
 import {Button} from '@/components/ui/button'
 
-import {cn} from '@/lib/utils'
+import {cn} from '@/utils/helpers'
 
 const MailboxLayout = ({
   children,

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { Database } from '@/types/supabase/db'
-import { ApiResponse } from '@/types/api'
+import { ApiResponse } from '@/types/supabase/api'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 
 type Teacher = Database['public']['Tables']['users']['Row'] & {

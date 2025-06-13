@@ -1,7 +1,7 @@
 import { getCourseById } from '@/app/actions/context/courses'
 import { ErrorComponent } from '@/components/atoms/client/ErrorComponent'
 import { PopulatedCourse } from '@/types/course'
-import { generateWeeklyDates } from '@/lib/utils'
+import { generateWeeklyDates } from '@/utils/helpers'
 import { TeacherCourses } from '@/components/pages/client/TeacherCourses'
 
 

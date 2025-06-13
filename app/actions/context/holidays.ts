@@ -2,10 +2,10 @@
 
 import { createClient } from '@/utils/supabase/server'
 
-import { ApiResponse } from '@/types/api'
+import { ApiResponse } from '@/types/supabase/api'
 import { Holiday } from '@/types/holidays'
 import { SerializedValue, serializeData } from '@/lib/serialization'
-import { createDefaultHolidays } from '@/lib/utils'
+import { createDefaultHolidays } from '@/utils/helpers'
 
 interface SaveHolidayData {
   updatedBy: string

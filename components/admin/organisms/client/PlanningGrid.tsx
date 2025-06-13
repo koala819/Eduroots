@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useCourses } from '@/context/Courses/client'
 import { useHolidays } from '@/context/Holidays/client'
 import { useSchedules } from '@/context/Schedules/client'
-import { formatDayOfWeek } from '@/lib/utils'
+import { formatDayOfWeek } from '@/utils/helpers'
 
 export default function PlanningGridClient() {
   const { courses, isLoading, updateCourses } = useCourses()

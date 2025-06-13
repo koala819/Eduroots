@@ -6,7 +6,7 @@ import {Teacher} from '@/types/user'
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent} from '@/components/ui/card'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 interface StudentCourseMobileProps {
   sessions: Array<{

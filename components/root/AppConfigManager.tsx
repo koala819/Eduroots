@@ -14,7 +14,7 @@ import {Input} from '@/components/ui/input'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
 import {fetchWithAuth} from '@/lib/fetchWithAuth'
-import {generateDefaultTheme} from '@/lib/utils'
+import {generateDefaultTheme} from '@/utils/helpers'
 import {format, isValid} from 'date-fns'
 import {debounce} from 'lodash'
 

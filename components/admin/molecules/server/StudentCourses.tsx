@@ -7,7 +7,7 @@ import {StudentCourseMobile} from '@/components/admin/atoms/server/StudentCourse
 import {Alert, AlertDescription} from '@/components/ui/alert'
 
 import {getStudentCourses} from '@/app/actions/context/courses'
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 export async function StudentCourses({studentId}: {studentId: string}) {
   try {

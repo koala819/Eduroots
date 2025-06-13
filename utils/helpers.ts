@@ -1,6 +1,6 @@
 import { TimeSlotEnum } from '@/types/supabase/courses'
 import { ButtonVariant, ThemeConfig } from '@/types/models'
-import { PeriodTypeEnum } from '@/types/schedule'
+import { PeriodTypeEnum } from '@/types/supabase/schedule'
 import { SerializableDate } from '@/types/stats'
 
 import { type ClassValue, clsx } from 'clsx'

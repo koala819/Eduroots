@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 
-import { ApiResponse } from '@/types/api'
+import { ApiResponse } from '@/types/supabase/api'
 import { Student } from '@/types/user'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 

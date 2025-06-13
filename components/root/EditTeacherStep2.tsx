@@ -12,7 +12,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 
 import {TeacherFormData} from './EditTeacherForm'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 interface EditTeacherStep2Props {
   form: UseFormReturn<TeacherFormData>

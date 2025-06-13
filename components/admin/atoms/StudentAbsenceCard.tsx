@@ -28,7 +28,7 @@ import {
 import {Progress} from '@/components/ui/progress'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
-import {convertToDate} from '@/lib/utils'
+import {convertToDate} from '@/utils/helpers'
 import {compareDesc, format} from 'date-fns'
 import {fr} from 'date-fns/locale'
 import {motion} from 'framer-motion'

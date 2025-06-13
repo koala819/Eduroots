@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { formatDayOfWeek } from '@/lib/utils'
+import { formatDayOfWeek } from '@/utils/helpers'
 
 type SessionWithTimeslot = CourseSession & {
   timeslot?: CourseSessionTimeslot

@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { ThemeConfig } from '@/types/models'
 
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import { generateDefaultTheme } from '@/lib/utils'
+import { generateDefaultTheme } from '@/utils/helpers'
 
 interface ConfigContextType {
   error: string | null

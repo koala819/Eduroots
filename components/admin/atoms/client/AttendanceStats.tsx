@@ -4,7 +4,7 @@ import {GlobalStats} from '@/types/stats'
 
 import {Progress} from '@/components/ui/progress'
 
-import {convertToDate} from '@/lib/utils'
+import {convertToDate} from '@/utils/helpers'
 
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats

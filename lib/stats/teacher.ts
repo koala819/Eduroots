@@ -4,7 +4,7 @@ import {GenderEnum, User} from '@/types/user'
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import {Course as CourseCollection} from '@/zOLDbackend/models/zOLDcourse.model'
 import {User as UserCollection} from '@/zOLDbackend/models/zOLDuser.model'
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {differenceInYears} from 'date-fns'
 
 const CURRENT_ACADEMIC_YEAR = '2024'
