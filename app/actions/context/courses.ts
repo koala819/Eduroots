@@ -6,6 +6,19 @@ import { ApiResponse } from '@/types/supabase/api'
 import { Course, CourseSession, CourseSessionTimeslot, Database } from '@/types/supabase/db'
 import { TimeSlotEnum } from '@/types/supabase/courses'
 
+type CourseSessionWithRelations = CourseSession & {
+  courses_sessions_students?: Array<{
+    id: string
+    student_id: string
+    users?: {
+      id: string
+      firstname: string
+      lastname: string
+      email: string
+    }
+  }>
+}
+
 export async function addStudentToCourse(
   courseId: string,
   studentId: string,
@@ -354,7 +367,7 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse>
       .eq('courses_sessions.courses.is_active', true)
 
     if (error) {
-      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+      console.log(`Erreur lors de la récupération: ${error.message}`)
     }
 
     if (!enrollments || enrollments.length === 0) {
@@ -403,7 +416,7 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
       .eq('courses_teacher.teacher_id', teacherId)
 
     if (error) {
-      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+      console.log(`Erreur lors de la récupération: ${error.message}`)
     }
 
     return {
@@ -468,7 +481,7 @@ export async function updateCourse(
     }>
   },
 ): Promise<ApiResponse> {
- const { supabase } = await getSessionServer()
+  const { supabase } = await getSessionServer()
 
   try {
     for (const sessionData of courseData.sessions) {
@@ -493,7 +506,7 @@ export async function updateCourse(
           day_of_week: sessionData.timeSlot.day_of_week,
           start_time: sessionData.timeSlot.start_time,
           end_time: sessionData.timeSlot.end_time,
-          classroom_number: sessionData.timeSlot.classroom_number || null,
+          classroom_number: sessionData.timeSlot.classroom_number ?? null,
         })
         .eq('course_sessions_id', sessionData.id)
 
@@ -502,9 +515,45 @@ export async function updateCourse(
       }
     }
 
+    // Récupérer le cours mis à jour
+    const { data: updatedCourse, error: fetchError } = await supabase
+      .schema('education')
+      .from('courses')
+      .select(`
+        *,
+        courses_teacher (
+          *,
+          users:teacher_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        ),
+        courses_sessions (
+          *,
+          courses_sessions_students (
+            *,
+            users:student_id (
+              id,
+              firstname,
+              lastname,
+              email
+            )
+          ),
+          courses_sessions_timeslot (*)
+        )
+      `)
+      .eq('id', courseData.sessions[0].id)
+      .single()
+
+    if (fetchError) {
+      throw new Error(`Erreur lors de la récupération du cours mis à jour: ${fetchError.message}`)
+    }
+
     return {
       success: true,
-      data: null,
+      data: updatedCourse,
       message: 'Cours mis à jour avec succès',
     }
   } catch (error: any) {
@@ -513,23 +562,68 @@ export async function updateCourse(
   }
 }
 
-export async function updateCourses(
-  role: string,
-  userId: string,
-): Promise<ApiResponse> {
+export async function updateCourses(userRole: string, userId: string): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
   try {
-    let courses
+    let query;
 
-    if (['admin', 'bureau'].includes(role)) {
-      const { data: allCourses, error } = await supabase
+    if (userRole === 'teacher') {
+      // Pour un prof, on ne regarde que ses cours
+      query = supabase
+        .schema('education')
+        .from('courses')
+        .select(`
+          *,
+          courses_teacher!inner (
+            *,
+            users (
+              id,
+              firstname,
+              lastname,
+              email
+            )
+          ),
+          courses_sessions (
+            *,
+            courses_sessions_timeslot (*)
+          )
+        `)
+        .eq('is_active', true)
+        .eq('courses_teacher.teacher_id', userId)
+    } else if (userRole === 'student') {
+      // Pour un étudiant, on ne regarde que ses cours
+      query = supabase
+        .schema('education')
+        .from('courses')
+        .select(`
+          *,
+          courses_sessions!inner (
+            *,
+            courses_sessions_students!inner (
+              *,
+              users (
+                id,
+                firstname,
+                lastname,
+                email
+              )
+            ),
+            courses_sessions_timeslot (*)
+          )
+        `)
+        .eq('is_active', true)
+        .eq('courses_sessions.courses_sessions_students.student_id', userId)
+    } else {
+      // Pour admin/bureau, on voit tout
+      query = supabase
         .schema('education')
         .from('courses')
         .select(`
           *,
           courses_teacher (
-            users:teacher_id (
+            *,
+            users (
               id,
               firstname,
               lastname,
@@ -539,58 +633,33 @@ export async function updateCourses(
           courses_sessions (
             *,
             courses_sessions_students (
-              users:student_id (
+              *,
+              users (
                 id,
                 firstname,
                 lastname,
                 email
               )
-            )
+            ),
+            courses_sessions_timeslot (*)
           )
         `)
         .eq('is_active', true)
+    }
 
-      if (error) {
-        throw new Error(`Erreur lors de la récupération: ${error.message}`)
-      }
-      courses = allCourses
-    } else {
-      const { data: teacherCourses, error } = await supabase
-        .schema('education')
-        .from('courses_teacher')
-        .select(`
-          *,
-          courses (
-            *,
-            courses_sessions (
-              *,
-              courses_sessions_students (
-                users:student_id (
-                  id,
-                  firstname,
-                  lastname,
-                  email
-                )
-              )
-            )
-          )
-        `)
-        .eq('teacher_id', userId)
-        .eq('courses.is_active', true)
+    const { data: courses, error } = await query
 
-      if (error) {
-        throw new Error(`Erreur lors de la récupération: ${error.message}`)
-      }
-      courses = teacherCourses?.map((tc) => tc.courses) || []
+    if (error) {
+      throw new Error(error.message)
     }
 
     return {
       success: true,
       data: courses,
-      message: 'Cours récupérés avec succès',
+      message: 'Courses updated successfully',
     }
   } catch (error: any) {
-    console.error('[UPDATE_COURSES]', error)
+    console.error('[UPDATE_COURSES] Erreur complète:', error)
     throw new Error('Failed to update courses')
   }
 }
@@ -708,7 +777,7 @@ async function calculateCourseStats(sessionId: string) {
         if (record.is_absent) {
           totalAbsences++
         } else {
-          totalGrades += record.value || 0
+          totalGrades += record.value ?? 0
           totalParticipation++
         }
         totalStudents++

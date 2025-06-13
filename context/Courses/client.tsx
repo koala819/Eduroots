@@ -13,11 +13,7 @@ import {
 } from 'react'
 
 import { useToast } from '@/hooks/use-toast'
-
-import { CourseSession, PopulatedCourse, TimeSlot } from '@/types/course'
-
 import useCourseStore from '@/stores/useCourseStore'
-
 import {
   addStudentToCourse as addStudentToCourseAction,
   checkTimeSlotOverlap as checkTimeSlotOverlapAction,
@@ -31,9 +27,25 @@ import {
   updateCourses as updateCoursesAction,
 } from '@/app/actions/context/courses'
 
+import { Database } from '@/types/supabase/db'
+import { TimeSlotEnum } from '@/types/supabase/courses'
+import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
+
+type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
+  courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {
+    users: Database['education']['Tables']['users']['Row']
+  })[]
+  courses_sessions: (Database['education']['Tables']['courses_sessions']['Row'] & {
+    courses_sessions_students: (Database['education']['Tables']['courses_sessions_students']['Row'] & {
+      users: Database['education']['Tables']['users']['Row']
+    })[]
+    courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
+  })[]
+}
+
 interface CourseState {
-  courses: PopulatedCourse[]
-  teacherCourses: PopulatedCourse | null
+  courses: CourseWithRelations[]
+  teacherCourses: CourseWithRelations | null
   isLoading: boolean
   isLoadingCourse: boolean
   error: string | null
@@ -41,21 +53,21 @@ interface CourseState {
 
 type CourseAction =
   | {type: 'SET_LOADING_COURSE'; payload: boolean}
-  | {type: 'ADD_COURSE'; payload: PopulatedCourse}
+  | {type: 'ADD_COURSE'; payload: CourseWithRelations}
   | {
       type: 'ADD_STUDENT_TO_COURSE'
-      payload: {courseId: string; course: PopulatedCourse}
+      payload: {courseId: string; course: CourseWithRelations}
     }
   | {type: 'DELETE_COURSE'; payload: string}
   | {
       type: 'REMOVE_STUDENT_FROM_COURSE'
-      payload: {courseId: string; course: PopulatedCourse}
+      payload: {courseId: string; course: CourseWithRelations}
     }
-  | {type: 'SET_COURSES'; payload: PopulatedCourse[]}
-  | {type: 'SET_TEACHER_COURSES'; payload: PopulatedCourse}
+  | {type: 'SET_COURSES'; payload: CourseWithRelations[]}
+  | {type: 'SET_TEACHER_COURSES'; payload: CourseWithRelations}
   | {type: 'SET_ERROR'; payload: string | null}
   | {type: 'SET_LOADING'; payload: boolean}
-  | {type: 'UPDATE_COURSE'; payload: PopulatedCourse}
+  | {type: 'UPDATE_COURSE'; payload: CourseWithRelations}
 
 function courseReducer(state: CourseState, action: CourseAction): CourseState {
   switch (action.type) {
@@ -133,43 +145,59 @@ function courseReducer(state: CourseState, action: CourseAction): CourseState {
   }
 }
 
-const getInitialState = (initialData: PopulatedCourse[] | null): CourseState => ({
-  courses: (initialData as PopulatedCourse[]) || [],
+const getInitialState = (initialData: CourseWithRelations[] | null): CourseState => ({
+  courses: (initialData as CourseWithRelations[]) || [],
   teacherCourses: null,
   isLoading: initialData ? false : true,
   isLoadingCourse: initialData ? false : true,
   error: null,
 })
 
+type CourseSession = Database['education']['Tables']['courses_sessions']['Row'] & {
+  courses_sessions_students: (Database['education']['Tables']['courses_sessions_students']['Row'] & {
+    users: Database['education']['Tables']['users']['Row']
+  })[]
+  courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
+}
+
 interface CourseContextType extends CourseState {
   addStudentToCourse: (
     courseId: string,
     studentId: string,
-    timeSlot: {
-      dayOfWeek: string
-      startTime: string
-      endTime: string
-      subject: string
-    },
-  ) => Promise<PopulatedCourse>
+    timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'> & { subject: string },
+  ) => Promise<CourseWithRelations>
   checkTimeSlotOverlap: (
-    timeSlot: TimeSlot,
+    timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'>,
     userId: string,
     excludeCourseId?: string,
   ) => Promise<boolean>
   createCourse: (
-    courseData: Omit<PopulatedCourse, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-  ) => Promise<PopulatedCourse>
-  deleteCourse: (courseId: string) => Promise<PopulatedCourse>
-  getCoursesByTimeSlot: (timeSlot: TimeSlot) => PopulatedCourse[]
-  getStudentCourses: (studentId: string) => Promise<PopulatedCourse[]>
+    courseData: Omit<Database['education']['Tables']['courses']['Insert'], 'id' | 'created_at' | 'updated_at'> & {
+      teacherIds: string[]
+      sessions: Array<{
+        subject: string
+        level: string
+        timeSlots: Array<{
+          day_of_week: TimeSlotEnum
+          start_time: string
+          end_time: string
+          classroom_number: string | null
+        }>
+      }>
+    },
+  ) => Promise<CourseWithRelations>
+  deleteCourse: (courseId: string) => Promise<CourseWithRelations>
+  getCoursesByTimeSlot: (
+    timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'>
+  ) => CourseWithRelations[]
+  getStudentCourses: (studentId: string) => Promise<CourseWithRelations[]>
   fetchTeacherCourses: (teacherId: string) => Promise<void>
-  getCourseById: (courseId: string) => Promise<PopulatedCourse | null>
-  getCourseByIdForStudent: (courseId: string) => Promise<PopulatedCourse | null>
+  getCourseById: (courseId: string) => Promise<CourseWithRelations | null>
+  getCourseByIdForStudent: (courseId: string) => Promise<CourseWithRelations | null>
   removeStudentFromCourse: (courseId: string, studentId: string) => Promise<void>
   updateCourse: (
     courseId: string,
-    courseData: Omit<PopulatedCourse, 'students' | 'stats'>,
+    courseData: Omit<CourseWithRelations, 'students' | 'stats'>,
     sameStudents: boolean,
   ) => Promise<void>
   updateCourses: () => Promise<void>
@@ -187,7 +215,7 @@ export const CoursesProvider = ({
   initialCourseData = null,
 }: {
   children: ReactNode
-  initialCourseData?: PopulatedCourse[] | null
+  initialCourseData?: CourseWithRelations[] | null
 }) => {
   const { toast } = useToast()
   const [state, dispatch] = useReducer(courseReducer, getInitialState(initialCourseData))
@@ -256,16 +284,26 @@ export const CoursesProvider = ({
   )
 
   const getCourseById = useCallback(
-    async (id: string): Promise<PopulatedCourse | null> => {
+    async (id: string): Promise<CourseWithRelations | null> => {
+      if (!isAuthenticated || !user) {
+        return null
+      }
+
       dispatch({ type: 'SET_LOADING_COURSE', payload: true })
       try {
+        const { isAuthenticated: isAuth, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+        if (!isAuth || !educationUserId) {
+          throw new Error(error || 'Erreur d\'authentification')
+        }
+
         const response = await getCourseByIdAction(id)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to fetch course data')
         }
 
-        return response.data as PopulatedCourse | null
+        return response.data as CourseWithRelations | null
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
@@ -273,46 +311,61 @@ export const CoursesProvider = ({
         dispatch({ type: 'SET_LOADING_COURSE', payload: false })
       }
     },
-    [handleError],
+    [handleError, user, isAuthenticated],
   )
 
   const getCourseByIdForStudent = useCallback(
     async (id: string) => {
+      if (!isAuthenticated || !user) {
+        return null
+      }
+
       try {
+        const { isAuthenticated: isAuth, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+        if (!isAuth || !educationUserId) {
+          throw new Error(error || 'Erreur d\'authentification')
+        }
+
         const response = await getCourseByIdAction(id)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to fetch course data')
         }
 
-        return response.data as PopulatedCourse | null
+        return response.data as CourseWithRelations | null
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la récupération du cours')
         return null
       }
     },
-    [handleError],
+    [handleError, user, isAuthenticated],
   )
 
   const addStudentToCourse = useCallback(
     async (
       courseId: string,
       studentId: string,
-      timeSlot: {
-        dayOfWeek: string
-        startTime: string
-        endTime: string
-        subject: string
-      },
-    ): Promise<PopulatedCourse> => {
+      timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'> & { subject: string },
+    ): Promise<CourseWithRelations> => {
+      if (!isAuthenticated || !user) {
+        throw new Error('Non authentifié')
+      }
+
       try {
+        const { isAuthenticated: isAuth, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+        if (!isAuth || !educationUserId) {
+          throw new Error(error || 'Erreur d\'authentification')
+        }
+
         const response = await addStudentToCourseAction(courseId, studentId, timeSlot)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to add student to course')
         }
 
-        const courseData = response.data as unknown as PopulatedCourse
+        const courseData = response.data as CourseWithRelations
 
         dispatch({
           type: 'ADD_STUDENT_TO_COURSE',
@@ -325,11 +378,15 @@ export const CoursesProvider = ({
         throw error
       }
     },
-    [handleError],
+    [handleError, user, isAuthenticated],
   )
 
   const checkTimeSlotOverlap = useCallback(
-    async (timeSlot: TimeSlot, userId: string, excludeCourseId?: string): Promise<boolean> => {
+    async (
+      timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'>,
+      userId: string,
+      excludeCourseId?: string,
+    ): Promise<boolean> => {
       try {
         const response = await checkTimeSlotOverlapAction(timeSlot, userId, excludeCourseId)
 
@@ -351,7 +408,7 @@ export const CoursesProvider = ({
   )
 
   const getStudentCourses = useCallback(
-    async (studentId: string): Promise<PopulatedCourse[]> => {
+    async (studentId: string): Promise<CourseWithRelations[]> => {
       try {
         const response = await getStudentCoursesAction(studentId)
 
@@ -359,7 +416,7 @@ export const CoursesProvider = ({
           throw new Error(response.message || 'Failed to fetch student courses')
         }
 
-        return response.data as unknown as PopulatedCourse[]
+        return response.data as unknown as CourseWithRelations[]
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la récupération des cours de l\'étudiant')
         return []
@@ -370,36 +427,61 @@ export const CoursesProvider = ({
 
   const createCourse = useCallback(
     async (
-      courseData: Omit<PopulatedCourse, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-    ): Promise<PopulatedCourse> => {
+      courseData: Omit<Database['education']['Tables']['courses']['Insert'], 'id' | 'created_at' | 'updated_at'> & {
+        teacherIds: string[]
+        sessions: Array<{
+          subject: string
+          level: string
+          timeSlots: Array<{
+            day_of_week: TimeSlotEnum
+            start_time: string
+            end_time: string
+            classroom_number: string | null
+          }>
+        }>
+      },
+    ): Promise<CourseWithRelations> => {
+      if (!isAuthenticated || !user) {
+        throw new Error('Non authentifié')
+      }
+
       try {
+        const { isAuthenticated: isAuth, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+        if (!isAuth || !educationUserId) {
+          throw new Error(error || 'Erreur d\'authentification')
+        }
+
         const response = await createCourseAction(courseData)
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to create course')
         }
 
-        const newCourse = response.data as unknown as PopulatedCourse
+        const newCourse = response.data as CourseWithRelations
 
         dispatch({ type: 'ADD_COURSE', payload: newCourse })
 
         toast({
           title: 'Succès',
+          variant: 'success',
           description: 'Cours créé avec succès',
           duration: 3000,
         })
 
         return newCourse
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la création du cours')
+        const errorMessage =
+          error instanceof Error ? error.message : 'Erreur lors de la création du cours'
+        handleError(new Error(errorMessage))
         throw error
       }
     },
-    [handleError, toast],
+    [handleError, toast, user, isAuthenticated],
   )
 
   const deleteCourse = useCallback(
-    async (courseId: string): Promise<PopulatedCourse> => {
+    async (courseId: string): Promise<CourseWithRelations> => {
       try {
         const response = await deleteCourseAction(courseId)
 
@@ -407,7 +489,7 @@ export const CoursesProvider = ({
           throw new Error(response.message || 'Failed to delete course')
         }
 
-        const deletedCourse = response.data as unknown as PopulatedCourse
+        const deletedCourse = response.data as unknown as CourseWithRelations
 
         dispatch({ type: 'DELETE_COURSE', payload: courseId })
 
@@ -427,13 +509,16 @@ export const CoursesProvider = ({
   )
 
   const getCoursesByTimeSlot = useCallback(
-    (timeSlot: TimeSlot): PopulatedCourse[] => {
+    (timeSlot: Pick<Database['education']['Tables']['courses_sessions_timeslot']['Row'], 'day_of_week' | 'start_time' | 'end_time'>): CourseWithRelations[] => {
       return state.courses.filter((course) =>
-        course.sessions.some(
+        course.courses_sessions.some(
           (session) =>
-            session.timeSlot.dayOfWeek === timeSlot.dayOfWeek &&
-            session.timeSlot.startTime < timeSlot.endTime &&
-            session.timeSlot.endTime > timeSlot.startTime,
+            session.courses_sessions_timeslot.some(
+              (timeslot) =>
+                timeslot.day_of_week === timeSlot.day_of_week &&
+                timeslot.start_time < timeSlot.end_time &&
+                timeslot.end_time > timeSlot.start_time,
+            ),
         ),
       )
     },
@@ -449,7 +534,7 @@ export const CoursesProvider = ({
           throw new Error(response.message || 'Failed to remove student from course')
         }
 
-        const courseData = response.data as unknown as PopulatedCourse
+        const courseData = response.data as unknown as CourseWithRelations
 
         dispatch({
           type: 'REMOVE_STUDENT_FROM_COURSE',
@@ -472,17 +557,44 @@ export const CoursesProvider = ({
   const updateCourse = useCallback(
     async (
       courseId: string,
-      courseData: Omit<PopulatedCourse, 'students' | 'stats'>,
+      courseData: Omit<CourseWithRelations, 'students' | 'stats'>,
       sameStudents: boolean,
     ): Promise<void> => {
+      if (!isAuthenticated || !user) {
+        throw new Error('Non authentifié')
+      }
+
       try {
-        const response = await updateCourseAction(courseId, courseData, sameStudents)
+        const { isAuthenticated: isAuth, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+        if (!isAuth || !educationUserId) {
+          throw new Error(error || 'Erreur d\'authentification')
+        }
+
+        const response = await updateCourseAction({
+          sessions: courseData.courses_sessions.map(session => ({
+            id: session.id,
+            subject: session.subject,
+            level: session.level,
+            timeSlot: session.courses_sessions_timeslot[0] ? {
+              day_of_week: session.courses_sessions_timeslot[0].day_of_week,
+              start_time: session.courses_sessions_timeslot[0].start_time,
+              end_time: session.courses_sessions_timeslot[0].end_time,
+              classroom_number: session.courses_sessions_timeslot[0].classroom_number,
+            } : {
+              day_of_week: TimeSlotEnum.SATURDAY_MORNING,
+              start_time: '09:00',
+              end_time: '10:00',
+              classroom_number: null,
+            },
+          })),
+        })
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to update course')
         }
 
-        const updatedCourse = response.data as unknown as PopulatedCourse
+        const updatedCourse = response.data as CourseWithRelations
 
         dispatch({ type: 'UPDATE_COURSE', payload: updatedCourse })
 
@@ -499,30 +611,30 @@ export const CoursesProvider = ({
         throw error
       }
     },
-    [handleError, toast],
+    [handleError, toast, user, isAuthenticated],
   )
 
   const updateCourses = useCallback(async (): Promise<void> => {
-    // Only attempt to update if we have an authenticated user
     if (!isAuthenticated || !user) {
-      // console.log('Skipping updateCourses - not authenticated yet')
       return
     }
 
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      const userRole = user.user_metadata?.role
-      const userId = user.id
 
-      const response = await updateCoursesAction(userRole, userId)
+      const { isAuthenticated, role, educationUserId, error } = await getAuthenticatedEducationUser(user)
+
+      if (!isAuthenticated || !educationUserId) {
+        throw new Error(error || 'Erreur d\'authentification')
+      }
+
+      const response = await updateCoursesAction(role!, educationUserId)
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to update courses')
       }
 
-      const courseData = response.data as unknown as PopulatedCourse[]
-      // console.log('Loaded courses data:', courseData.length)
-      dispatch({ type: 'SET_COURSES', payload: courseData })
+      dispatch({ type: 'SET_COURSES', payload: response.data as CourseWithRelations[] })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la mise à jour des cours')
     } finally {
@@ -558,7 +670,7 @@ export const CoursesProvider = ({
           throw new Error(response.message || 'Failed to update course session')
         }
 
-        const courseData = response.data as unknown as PopulatedCourse
+        const courseData = response.data as unknown as CourseWithRelations
 
         dispatch({ type: 'UPDATE_COURSE', payload: courseData })
 
@@ -584,11 +696,9 @@ export const CoursesProvider = ({
 
     // Only load when authentication is ready and user is authenticated
     if (!authLoading && isAuthenticated && user) {
-      // console.log('User authenticated, loading courses data')
       updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
       fetchTeacherCourses(user.id)
     } else if (authLoading) {
-      // console.log('Auth is still loading')
     }
   }, [initialCourseData, user, isAuthenticated, authLoading, fetchTeacherCourses, updateCourses])
 

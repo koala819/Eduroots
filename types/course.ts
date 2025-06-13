@@ -4,7 +4,7 @@ import { RootEntity } from './root'
 import { Student, Teacher } from './user'
 
 import { Types } from 'mongoose'
-import { TimeSlotEnum } from '@/types/supabase/courses'
+import { TimeSlot, TimeSlotEnum } from '@/types/supabase/courses'
 
 export enum SubjectNameEnum {
   Arabe = 'Arabe',
@@ -54,12 +54,7 @@ export const TIME_SLOT_SCHEDULE = {
   },
 } as const
 
-export interface TimeSlot {
-  dayOfWeek: TimeSlotEnum
-  startTime: string // Format HH:mm
-  endTime: string // Format HH:mm
-  classroomNumber: number
-}
+
 
 export interface CourseSession {
   id: string
