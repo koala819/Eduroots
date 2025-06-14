@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 
 import { ApiResponse } from '@/types/supabase/api'
 import { SerializedValue, serializeData } from '@/lib/serialization'
-import { createDefaultSchedule } from '@/utils/helpers'
+import { createDefaultSchedule } from '@/utils/server-helpers'
 
 interface SaveScheduleData {
   updatedBy: string

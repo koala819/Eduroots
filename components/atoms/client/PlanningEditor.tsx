@@ -6,8 +6,8 @@ import {useForm} from 'react-hook-form'
 
 import {toast} from '@/hooks/use-toast'
 
-import {CourseSession, LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {Period, PeriodTypeEnum} from '@/types/schedule'
+import {CourseSession, LevelEnum, SubjectNameEnum} from '@/types/mongo/course'
+import {Period, PeriodTypeEnum} from '@/types/supabase/schedule'
 
 import {Button} from '@/components/ui/button'
 import {Card, CardContent} from '@/components/ui/card'
@@ -22,6 +22,7 @@ import {useCourses} from '@/context/Courses/client'
 import {formatDayOfWeek} from '@/utils/helpers'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 const sessionSchema = z.object({
   id: z.string(),
@@ -72,7 +73,14 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, session
       setIsSubmitting(true)
 
       for (const session of data.sessions) {
-        const hasOverlap = await checkTimeSlotOverlap(session.timeSlot, session.id)
+        const hasOverlap = await checkTimeSlotOverlap(
+          {
+            day_of_week: session.timeSlot.dayOfWeek,
+            start_time: session.timeSlot.startTime,
+            end_time: session.timeSlot.endTime,
+          },
+          session.id,
+        )
 
         if (hasOverlap) {
           setIsSubmitting(false)

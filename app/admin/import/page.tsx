@@ -4,8 +4,9 @@ import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
 import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import type { Student, Teacher } from '@/types/user'
-import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
+import type { Student, Teacher } from '@/types/mongo/user'
+import { SubjectNameEnum, LevelEnum } from '@/types/mongo/course'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 const ACADEMIC_YEAR = '2024'
 

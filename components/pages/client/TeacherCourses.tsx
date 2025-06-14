@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
-import { Course, PopulatedCourse } from '@/types/course'
+import { PopulatedCourse } from '@/types/mongo/course'
 
 import { ErrorComponent } from '@/components/atoms/client/ErrorComponent'
 import { CourseDetails } from '@/components/organisms/client/CourseDetails'
 
 import { getCourseById } from '@/app/actions/context/courses'
 import useCourseStore from '@/stores/useCourseStore'
-import { Student } from '@/types/user'
+import { Student } from '@/types/mongo/user'
 
 type CourseDetailsPageProps = {
     courseId: string
@@ -88,7 +88,7 @@ export const TeacherCourses = ({
 
 
   // Convertir les cours du store en PopulatedCourse[]
-  const populatedCourses = courses.map((course: Course) => ({
+  const populatedCourses = courses.map((course: any) => ({
     ...course,
     _id: course.id,
     teacher: {

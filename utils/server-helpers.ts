@@ -3,8 +3,6 @@ import { PeriodTypeEnum } from '@/types/supabase/schedule'
 import { TimeSlotEnum } from '@/types/supabase/courses'
 import { addWeeks, isAfter } from 'date-fns'
 
-
-
 export function createDefaultHolidays(academicYear: string, updatedBy: string) {
   const defaultHolidays = {
     academicYear,
@@ -145,7 +143,23 @@ export function createDefaultSchedule(academicYear: string, updatedBy: string) {
   return defaultSchedule
 }
 
-export function generateWeeklyDates(timeSlot: TimeSlotEnum): Date[] {
+export function generateDateRanges(startDate: Date, numWeeks: number) {
+  const periods = []
+  for (let i = 0; i < numWeeks; i++) {
+    const start = new Date(startDate)
+    start.setDate(start.getDate() + i * 7)
+    const end = new Date(start)
+    end.setDate(end.getDate() + 6)
+    periods.push({
+      start: start,
+      end: end,
+      label: `${start.toISOString().split('T')[0]} to ${end.toISOString().split('T')[0]}`,
+    })
+  }
+  return periods
+}
+
+export function generateSchoolDayDates(timeSlot: TimeSlotEnum): Date[] {
   const HOLIDAYS = [
     // Toussaint
     {

@@ -1,9 +1,10 @@
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { CourseDocument } from '@/types/mongoose'
+import { LevelEnum, SubjectNameEnum,  } from '@/types/mongo/course'
+import { CourseDocument } from '@/types/mongo/mongoose'
 
 import { rootOptions, rootSchema } from './root.model'
 
 import { Model, Schema, model, models } from 'mongoose'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 const timeSlotSchema = new Schema(
   {

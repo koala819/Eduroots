@@ -2,8 +2,8 @@
 
 import {useState} from 'react'
 
-import {CourseSession, PopulatedCourse} from '@/types/course'
-import {Student} from '@/types/user'
+import {CourseSession, PopulatedCourse} from '@/types/mongo/course'
+import {Student} from '@/types/mongo/user'
 
 import {TopMenu} from '@/components/molecules/client/CourseTopMenu'
 import {DashboardAttendanceT} from '@/components/molecules/client/DashboardAttendanceT'

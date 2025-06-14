@@ -2,9 +2,9 @@
 
 import {useEffect, useMemo, useState} from 'react'
 
-import {PopulatedCourse} from '@/types/course'
-import {CourseStats, StudentStats} from '@/types/stats'
-import {Student, Teacher} from '@/types/user'
+import {PopulatedCourse} from '@/types/mongo/course'
+import {CourseStats, StudentStats} from '@/types/mongo/stats'
+import {Student, Teacher} from '@/types/mongo/user'
 
 import StudentSelector from '@/components/atoms/client/StudentSelector'
 import StudentDetailsSkeleton from '@/components/atoms/server/StudentDetailsSkeleton'
@@ -83,14 +83,14 @@ export default function StudentDashboard({familyStudents}: StudentDashboardProps
       if (attendance?.success && attendance.data && attendance.data.absences?.length > 0) {
         const courseId = attendance.data.absences[0].course
         const courseData = await getCourseByIdForStudent(courseId)
-        if (courseData?.teacher) {
-          const teacherId = Array.isArray(courseData.teacher)
-            ? courseData.teacher[0]
-            : courseData.teacher
-          const teacherData = await getOneTeacher(teacherId)
+        if (courseData?.courses_teacher) {
+          const teacherId = Array.isArray(courseData.courses_teacher)
+            ? courseData.courses_teacher[0]
+            : courseData.courses_teacher
+          const teacherData = await getOneTeacher(teacherId.users.id)
           setDetailedTeacher(teacherData)
         }
-        setDetailedCourse(courseData ?? undefined)
+        setDetailedCourse(courseData as unknown as PopulatedCourse)
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données détaillées:', error)

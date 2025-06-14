@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { CourseSession } from '@/types/course'
-import { GenderEnum, Student, Teacher } from '@/types/user'
+import { CourseSession } from '@/types/mongo/course'
+import { GenderEnum, Student, Teacher } from '@/types/mongo/user'
 
 import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
 import { TeacherStats } from '@/zOLDbackend/models/zOLDteacher-stats.model'

@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
-import { CourseSession, TimeSlotEnum } from '@/types/course'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import { CourseSession } from '@/types/mongo/course'
+import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
 
 import PlanningDetailsCard from '@/components/admin/atoms/client/PlanningDetailsCard'
 import { TimeSlotColumn } from '@/components/admin/molecules/client/PlanningTimeSlotColumn'
@@ -19,6 +19,7 @@ import { useCourses } from '@/context/Courses/client'
 import { useHolidays } from '@/context/Holidays/client'
 import { useSchedules } from '@/context/Schedules/client'
 import { formatDayOfWeek } from '@/utils/helpers'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 export default function PlanningGridClient() {
   const { courses, isLoading, updateCourses } = useCourses()
@@ -54,8 +55,8 @@ export default function PlanningGridClient() {
   const getSessionsForSlot = (timeSlot: TimeSlotEnum, period: Period) => {
     return courses
       .flatMap((course) =>
-        course.sessions.map((session) => {
-          const firstTeacher = Array.isArray(course.teacher) && course.teacher[0]
+        course.courses_sessions.map((session) => {
+          const firstTeacher = Array.isArray(course.courses_teacher) && course.courses_teacher[0]
           const teacherData = firstTeacher && 'firstname' in firstTeacher ? firstTeacher : null
 
           return {
@@ -63,23 +64,24 @@ export default function PlanningGridClient() {
             courseId: course.id,
             user: teacherData
               ? {
-                id: teacherData.id,
-                firstname: teacherData.firstname,
-                lastname: teacherData.lastname,
-                role: teacherData.role,
+                id: teacherData.users.id,
+                firstname: teacherData.users.firstname,
+                lastname: teacherData.users.lastname,
+                role: teacherData.users.role,
               }
               : undefined,
           }
         }),
       )
       .filter((session) => {
-        if (!session?.timeSlot) {
+        if (!session?.courses_sessions_timeslot) {
           console.error('Session invalide:', { session })
           return false
         }
 
         return (
-          session.timeSlot.dayOfWeek === timeSlot && session.timeSlot.startTime === period.startTime
+          session.courses_sessions_timeslot[0].day_of_week === timeSlot &&
+          session.courses_sessions_timeslot[0].start_time === period.startTime
         )
       })
   }

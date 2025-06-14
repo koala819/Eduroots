@@ -1,12 +1,13 @@
 import {GraduationCap} from 'lucide-react'
 
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {Teacher} from '@/types/user'
+import {CourseSession} from '@/types/mongo/course'
+import {Teacher} from '@/types/mongo/user'
 
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent} from '@/components/ui/card'
 
 import {formatDayOfWeek} from '@/utils/helpers'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 interface StudentCourseMobileProps {
   sessions: Array<{

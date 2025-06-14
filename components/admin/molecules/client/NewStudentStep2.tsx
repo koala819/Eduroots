@@ -3,9 +3,9 @@
 import {useCallback, useState} from 'react'
 import {UseFormReturn} from 'react-hook-form'
 
-import {SubjectNameEnum, TimeSlotEnum} from '@/types/course'
-import {TeacherStats} from '@/types/stats'
-import {GenderEnum, Teacher} from '@/types/user'
+import {SubjectNameEnum} from '@/types/mongo/course'
+import {TeacherStats} from '@/types/mongo/stats'
+import {GenderEnum, Teacher} from '@/types/mongo/user'
 
 import {TeacherOption} from '@/components/admin/atoms/client/NewStudentTeacherOption'
 import {FormData} from '@/components/admin/organisms/client/NewStudentForm'
@@ -17,6 +17,7 @@ import {useCourses} from '@/context/Courses/client'
 import {useSchedules} from '@/context/Schedules/client'
 import {useStats} from '@/context/Stats/client'
 import {formatDayOfWeek} from '@/utils/helpers'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 interface StepTwoProps {
   form: UseFormReturn<FormData>
@@ -66,11 +67,11 @@ const StepTwo = ({form, teachers}: StepTwoProps) => {
 
       // 1. Trouver les cours correspondant aux critères de recherche
       const matchingCourses = courses.filter((course) =>
-        course.sessions.some(
+        course.courses_sessions.some(
           (session) =>
-            session.timeSlot.dayOfWeek === selectedTimeSlot &&
-            session.timeSlot.startTime === startTime &&
-            session.timeSlot.endTime === endTime &&
+            session.courses_sessions_timeslot[0].day_of_week === selectedTimeSlot &&
+            session.courses_sessions_timeslot[0].start_time === startTime &&
+            session.courses_sessions_timeslot[0].end_time === endTime &&
             session.subject === subject,
         ),
       )
@@ -78,10 +79,10 @@ const StepTwo = ({form, teachers}: StepTwoProps) => {
       // 2. Créer un ensemble d'identifiants d'enseignants uniques
       const teacherIds = new Set<string>()
       matchingCourses.forEach((course) => {
-        if (Array.isArray(course.teacher) && course.teacher[0]?._id) {
-          teacherIds.add(course.teacher[0]._id)
-        } else if (course.teacher && typeof course.teacher === 'object') {
-          const id = (course.teacher as any)._id || (course.teacher as any).id
+        if (Array.isArray(course.courses_teacher) && course.courses_teacher[0]?.users?.id) {
+          teacherIds.add(course.courses_teacher[0].users.id)
+        } else if (course.courses_teacher && typeof course.courses_teacher === 'object') {
+          const id = (course.courses_teacher as any).users.id
           if (id) teacherIds.add(id)
         }
       })
@@ -249,7 +250,7 @@ const StepTwo = ({form, teachers}: StepTwoProps) => {
     if (Array.isArray(teacher) && teacher[0]) {
       return teacher[0]._id || teacher[0].id // Gérer les deux possibilités
     }
-    return (teacher as any)?._id || (teacher as any)?.id
+    return (teacher as any)?._id ?? (teacher as any)?.id
   }
 
   return (
@@ -305,7 +306,7 @@ const StepTwo = ({form, teachers}: StepTwoProps) => {
           const existingSelection = form
             .getValues('selections')
             .find((s) => s.startTime === startTime && s.endTime === endTime)
-          const selectedSubject = existingSelection?.subject || subjectSelections[timeSlotKey]
+          const selectedSubject = existingSelection?.subject ?? subjectSelections[timeSlotKey]
 
           return (
             <Card key={`${startTime}-${endTime}`} className="p-4 md:p-6">

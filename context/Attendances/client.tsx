@@ -11,15 +11,14 @@ import {
 } from 'react'
 
 import { useToast } from '@/hooks/use-toast'
-
-import { AttendanceStats, GroupedAbsences } from '@/types/attendance'
 import {
   AttendanceRecord,
+  AttendanceStats, GroupedAbsences,
   CreateAttendancePayload,
   DuplicateRecords,
   UpdateAttendancePayload,
-} from '@/types/attendance'
-import { AttendanceDocument } from '@/types/mongoose'
+} from '@/types/mongo/attendance'
+import { AttendanceDocument } from '@/types/mongo/mongoose'
 
 import {
   createAttendanceRecord,
@@ -256,7 +255,7 @@ export const AttendancesProvider = ({
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Attendance Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -281,7 +280,7 @@ export const AttendancesProvider = ({
     }) => {
       dispatch({ type: 'SET_LOADING_ATTENDANCE', payload: true })
       try {
-        const response = await getAttendanceById(courseId, sessionId || '', checkToday)
+        const response = await getAttendanceById(courseId, sessionId ?? '', checkToday)
         // Check if the response is successful and has data
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to fetch attendance data')
@@ -367,7 +366,7 @@ export const AttendancesProvider = ({
           const response = await createAttendanceRecord(data)
 
           if (!response.success) {
-            throw new Error(response.error || 'Erreur lors de la création de la présence')
+            throw new Error(response.error ?? 'Erreur lors de la création de la présence')
           }
 
           toast({
@@ -399,7 +398,7 @@ export const AttendancesProvider = ({
           const response = await deleteAttendanceRecord(id)
 
           if (!response.success) {
-            throw new Error(response.error || 'Erreur lors de la suppression de la présence')
+            throw new Error(response.error ?? 'Erreur lors de la suppression de la présence')
           }
 
           dispatch({ type: 'DELETE_ATTENDANCE', payload: id })
@@ -428,7 +427,7 @@ export const AttendancesProvider = ({
           const response = await updateAttendanceRecord(data)
 
           if (!response.success) {
-            throw new Error(response.error || 'Erreur lors de la mise à jour de la présence')
+            throw new Error(response.error ?? 'Erreur lors de la mise à jour de la présence')
           }
 
           toast({

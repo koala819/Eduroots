@@ -1,7 +1,7 @@
 import { getCourseById } from '@/app/actions/context/courses'
 import { ErrorComponent } from '@/components/atoms/client/ErrorComponent'
 import { PopulatedCourse } from '@/types/mongo/course'
-import { generateWeeklyDates } from '@/utils/helpers'
+import { generateSchoolDayDates } from '@/utils/helpers'
 import { TeacherCourses } from '@/components/pages/client/TeacherCourses'
 
 
@@ -23,7 +23,7 @@ export default async function CoursePage({ params }: { params: Params }) {
     return <ErrorComponent message="Session de cours introuvable" />
   }
 
-  const courseDates = generateWeeklyDates(selectedSession.timeSlot.dayOfWeek)
+  const courseDates = generateSchoolDayDates(selectedSession.timeSlot.dayOfWeek)
   const sortedStudents = [...selectedSession.students].sort((a, b) =>
     `${a.lastname} ${a.firstname}`.localeCompare(`${b.lastname} ${b.firstname}`),
   )

@@ -1,13 +1,12 @@
 'use client'
 
 import {Save} from 'lucide-react'
-import {useSession} from 'next-auth/react'
+import {createClient} from '@/utils/supabase/client'
 import {useForm} from 'react-hook-form'
+import React from 'react'
 
-import {useRouter} from 'next/navigation'
-
-import {TimeSlotEnum} from '@/types/course'
-import {Period, PeriodTypeEnum} from '@/types/schedule'
+import {Period, PeriodTypeEnum} from '@/types/supabase/schedule'
+import {TimeSlotEnum} from '@/types/supabase/courses'
 
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader} from '@/components/ui/card'
@@ -67,22 +66,30 @@ const scheduleFormSchema = z.record(z.string(), dayScheduleSchema).superRefine((
 type ScheduleFormValues = z.infer<typeof scheduleFormSchema>
 
 export const ScheduleEditor = () => {
-  const router = useRouter()
   const {schedules, saveSchedules, isLoading, error} = useSchedules()
-  const {data: session} = useSession()
+  const supabase = createClient()
+  const [userId, setUserId] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const {data: {user}} = await supabase.auth.getUser()
+      setUserId(user?.id ?? null)
+    }
+    getUser()
+  }, [supabase])
 
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues: schedules,
-    values: schedules, // Ajout de cette ligne pour forcer les valeurs
+    values: schedules,
     mode: 'onChange',
   })
 
   const onSubmit = (data: ScheduleFormValues) => {
-    if (!session?.user?.id) return
+    if (!userId) return
     const scheduleData = {
       ...data,
-      updatedBy: session?.user?.id,
+      updatedBy: userId,
     }
 
     saveSchedules(scheduleData)

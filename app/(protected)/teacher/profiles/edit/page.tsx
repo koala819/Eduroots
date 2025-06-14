@@ -8,8 +8,9 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum, TimeSlotEnum } from '@/types/course'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import { CourseSession, SubjectNameEnum } from '@/types/mongo/course'
+import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 import { PlanningEditor } from '@/components/atoms/client/PlanningEditor'
 import { HolidaysCard } from '@/components/atoms/server/HolidaysCard'
@@ -64,10 +65,10 @@ const PlanningViewer = () => {
 
   const getSessionsForSlot = (timeSlot: TimeSlotEnum, period: Period) => {
     return courses.flatMap((course) =>
-      course.sessions.filter(
+      course.courses_sessions.filter(
         (session) =>
-          session.timeSlot.dayOfWeek === timeSlot &&
-          session.timeSlot.startTime === period.startTime,
+          session.courses_sessions_timeslot[0].day_of_week === timeSlot &&
+          session.courses_sessions_timeslot[0].start_time === period.startTime,
       ),
     )
   }
@@ -83,17 +84,6 @@ const PlanningViewer = () => {
     }, 0)
     return total + sessionCount
   }, 0)
-
-  const getSubjectColor = (subject: SubjectNameEnum): string => {
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'border-l-emerald-500'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'border-l-blue-500'
-    default:
-      return 'border-l-gray-500'
-    }
-  }
 
   const getSubjectBadgeColor = (subject: SubjectNameEnum): string => {
     switch (subject) {
@@ -176,12 +166,12 @@ const PlanningViewer = () => {
                           <div className="h-7 px-3 rounded-full bg-gray-100 flex items-center
                           justify-center">
                             <span className="text-gray-600 text-xs font-medium">
-                              Salle {session.timeSlot.classroomNumber}
+                              Salle {session.courses_sessions_timeslot[0].classroom_number}
                             </span>
                           </div>
                         </div>
                         <div className="text-sm text-gray-500">
-                          {session.students?.length || 0} élèves
+                          {session.courses_sessions_students?.length || 0} élèves
                         </div>
                       </div>
                     ))}
