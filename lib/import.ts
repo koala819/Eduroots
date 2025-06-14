@@ -1,7 +1,7 @@
-import { TimeEnum, TimeSlotEnum } from '@/types/course'
-import { LevelEnum, SubjectNameEnum } from '@/types/course'
-import type { Student, Teacher } from '@/types/user'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import { TimeEnum, TimeSlotEnum } from '@/types/mongo/course'
+import { LevelEnum, SubjectNameEnum } from '@/types/mongo/course'
+import type { Student, Teacher } from '@/types/mongo/user'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/mongo/user'
 
 // Interface spécifique pour l'import
 export interface ImportStudent extends Student {

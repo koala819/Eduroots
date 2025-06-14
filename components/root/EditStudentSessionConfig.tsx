@@ -1,8 +1,8 @@
 import {Clock} from 'lucide-react'
 import {UseFormReturn} from 'react-hook-form'
 
-import {SubjectNameEnum} from '@/types/course'
-import {Teacher} from '@/types/user'
+import {SubjectNameEnum} from '@/types/mongo/course'
+import {Teacher} from '@/types/mongo/user'
 
 import {Card} from '@/components/ui/card'
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'

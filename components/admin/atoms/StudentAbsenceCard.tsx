@@ -10,8 +10,8 @@ import {
   X,
 } from 'lucide-react'
 
-import {StudentStats} from '@/types/stats'
-import {Student} from '@/types/user'
+import {StudentStats} from '@/types/mongo/stats'
+import {Student} from '@/types/mongo/user'
 
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardFooter, CardHeader} from '@/components/ui/card'
@@ -28,7 +28,7 @@ import {
 import {Progress} from '@/components/ui/progress'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 
-import {convertToDate} from '@/lib/utils'
+import {convertToDate} from '@/utils/helpers'
 import {compareDesc, format} from 'date-fns'
 import {fr} from 'date-fns/locale'
 import {motion} from 'framer-motion'

@@ -1,10 +1,10 @@
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {GenderEnum, User} from '@/types/user'
+import {CourseSession, TimeSlotEnum} from '@/types/mongo/course'
+import {GenderEnum, User} from '@/types/mongo/user'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Course as CourseCollection} from '@/backend/models/course.model'
-import {User as UserCollection} from '@/backend/models/user.model'
-import {formatDayOfWeek} from '@/lib/utils'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Course as CourseCollection} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User as UserCollection} from '@/zOLDbackend/models/zOLDuser.model'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {differenceInYears} from 'date-fns'
 
 const CURRENT_ACADEMIC_YEAR = '2024'

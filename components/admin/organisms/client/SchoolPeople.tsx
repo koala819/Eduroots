@@ -3,8 +3,8 @@
 import {GraduationCap, Users} from 'lucide-react'
 import {useMemo, useState} from 'react'
 
-import {EntityType} from '@/types/stats'
-import {Student, Teacher} from '@/types/user'
+import {EntityType} from '@/types/mongo/stats'
+import {Student, Teacher} from '@/types/mongo/user'
 
 import {StatsCards} from '@/components/admin/molecules/client/StatsCards'
 

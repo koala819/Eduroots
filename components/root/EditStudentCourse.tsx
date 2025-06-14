@@ -8,8 +8,8 @@ import {useRouter} from 'next/navigation'
 
 import {useToast} from '@/hooks/use-toast'
 
-import {PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/course'
-import {Teacher} from '@/types/user'
+import {PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE} from '@/types/mongo/course'
+import {Teacher} from '@/types/mongo/user'
 
 import {SessionConfig} from '@/components/root/EditStudentSessionConfig'
 import {TimeSlotCard} from '@/components/root/EditStudentTimeSlotCard'
@@ -22,6 +22,7 @@ import {useTeachers} from '@/context/Teachers/client'
 import {fetchWithAuth} from '@/lib/fetchWithAuth'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 const sessionSchema = z.object({
   timeSlot: z.nativeEnum(TimeSlotEnum, {

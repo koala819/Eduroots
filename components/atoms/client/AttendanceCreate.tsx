@@ -4,20 +4,9 @@ import {BarChart2, CheckCircle, Clock, NotebookText, XCircle} from 'lucide-react
 import {useEffect, useState} from 'react'
 import {BiFemale, BiMale} from 'react-icons/bi'
 
-import {PopulatedCourse} from '@/types/course'
-import {GenderEnum, Student} from '@/types/user'
+import {PopulatedCourse} from '@/types/mongo/course'
+import {GenderEnum, Student} from '@/types/mongo/user'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import {Button} from '@/components/ui/button'
 
 import {useAttendance} from '@/context/Attendances/client'
@@ -38,10 +27,8 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   courseId,
 }) => {
   const {createAttendanceRecord} = useAttendance()
-  const {getCourseById, isLoadingCourse} = useCourses()
-
+  const {getCourseSessionById, isLoadingCourse} = useCourses()
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
-  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [attendanceData, setAttendanceData] = useState<{
     [key: string]: boolean
@@ -49,11 +36,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
 
   useEffect(() => {
     async function fecthCourse() {
-      const course = await getCourseById(courseId)
+      const course = await getCourseSessionById(courseId)
       setCourse(course)
     }
     fecthCourse()
-  }, [courseId, getCourseById])
+  }, [courseId, getCourseSessionById])
 
   function handleTogglePresence(studentId: string) {
     setAttendanceData((prev) => ({
@@ -87,7 +74,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
     if (confirmClose) {
       onClose()
     }
-    setIsConfirmOpen(false)
   }
 
   if (isLoadingCourse) {
@@ -153,7 +139,7 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
             <div className="max-w-4xl mx-auto">
               <ul className="space-y-3">
                 {students
-                  .sort((a, b) => a.firstname.localeCompare(b.firstname))
+                  .toSorted((a, b) => a.firstname.localeCompare(b.firstname))
                   .map((student) => {
                     return (
                       <motion.li

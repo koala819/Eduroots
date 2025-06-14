@@ -1,7 +1,7 @@
 import {getServerSession} from 'next-auth'
 import {redirect} from 'next/navigation'
 
-import {Student} from '@/types/user'
+import {Student} from '@/types/mongo/user'
 
 import StudentInfo from '@/components/organisms/server/StudentInfo'
 

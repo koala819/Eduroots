@@ -1,10 +1,10 @@
 import {Slot} from '@radix-ui/react-slot'
 import * as React from 'react'
 
-import {ButtonVariant} from '@/types/models'
+import {ButtonVariant} from '@/types/mongo/models'
 
 // import { useConfig } from '@/context/ConfigContext'
-import {cn} from '@/lib/utils'
+import {cn} from '@/utils/helpers'
 import {cva} from 'class-variance-authority'
 import {type VariantProps} from 'class-variance-authority'
 

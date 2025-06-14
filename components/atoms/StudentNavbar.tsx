@@ -6,7 +6,7 @@ import {signOut} from 'next-auth/react'
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 
-import {cn} from '@/lib/utils'
+import {cn} from '@/utils/helpers'
 
 export default function StudentNavbarMobile() {
   const pathname = usePathname()

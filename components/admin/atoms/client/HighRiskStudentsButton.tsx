@@ -4,7 +4,7 @@ import {AlertCircle} from 'lucide-react'
 
 import Link from 'next/link'
 
-import {cn} from '@/lib/utils'
+import {cn} from '@/utils/helpers'
 import {motion} from 'framer-motion'
 
 interface HighRiskStudentsButtonClientProps {

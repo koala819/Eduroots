@@ -1,6 +1,6 @@
 'use server'
 
-import {Student} from '@/types/user'
+import {Student} from '@/types/mongo/user'
 
 import {getAllStudents} from '@/app/actions/context/students'
 import {StudentProvider} from '@/context/Students/client'

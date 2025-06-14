@@ -1,10 +1,10 @@
 import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
-import {GenderEnum} from '@/types/user'
+import {GenderEnum} from '@/types/mongo/user'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Course} from '@/backend/models/course.model'
-import {User} from '@/backend/models/user.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import {User} from '@/zOLDbackend/models/zOLDuser.model'
 import fs from 'fs'
 import path from 'path'
 

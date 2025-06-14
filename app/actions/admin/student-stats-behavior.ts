@@ -1,8 +1,8 @@
 'use server'
 
-import {BehaviorRecord} from '@/types/behavior'
-import {SubjectNameEnum} from '@/types/course'
-import {BehaviorDocument} from '@/types/mongoose'
+import {BehaviorRecord} from '@/types/mongo/behavior'
+import {SubjectNameEnum} from '@/types/mongo/course'
+import {BehaviorDocument} from '@/types/mongo/mongoose'
 
 import {getStudentBehaviorHistory} from '@/app/actions/context/behaviors'
 import {format} from 'date-fns'

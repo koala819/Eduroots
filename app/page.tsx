@@ -1,7 +1,9 @@
+
+
+import { LoginClient } from '@/components/atoms/client/Login'
+
 import type { Metadata, Viewport } from 'next'
 
-import { LoginClient } from '@/components/molecules/client/Login'
-import { LoginMobileClient } from '@/components/molecules/client/LoginMobile'
 
 export const metadata: Metadata = {
   title: 'Eduroots',
@@ -34,18 +36,8 @@ export const viewport: Viewport = {
   themeColor: '#ffffff',
 }
 
-export default function HomePage() {
-  return (
-    <div className="min-h-screen flex justify-center items-center">
-      {/* Desktop version */}
-      <div className="hidden md:block w-full">
-        <LoginClient />
-      </div>
 
-      {/* Mobile version */}
-      <div className="md:hidden w-full">
-        <LoginMobileClient />
-      </div>
-    </div>
-  )
+
+export default function HomePage() {
+  return <LoginClient />
 }

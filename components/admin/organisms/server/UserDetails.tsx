@@ -1,6 +1,6 @@
 import {Suspense} from 'react'
 
-import {GenderEnum, Student, Teacher, UserRoleEnum} from '@/types/user'
+import {GenderEnum, Student, Teacher, UserRoleEnum} from '@/types/mongo/user'
 
 import {UserDetailsClient} from '@/components/admin/atoms/client/UserDetails'
 import Loading from '@/components/admin/atoms/server/Loading'

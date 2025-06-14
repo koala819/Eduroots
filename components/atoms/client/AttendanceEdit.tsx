@@ -4,8 +4,8 @@ import {BarChart2, CheckCircle, Clock, NotebookText, XCircle} from 'lucide-react
 import {useEffect, useState} from 'react'
 import {BiFemale, BiMale} from 'react-icons/bi'
 
-import {PopulatedCourse} from '@/types/course'
-import {GenderEnum, Student} from '@/types/user'
+import {PopulatedCourse} from '@/types/mongo/course'
+import {GenderEnum, Student} from '@/types/mongo/user'
 
 import {Button} from '@/components/ui/button'
 
@@ -29,7 +29,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   attendanceId,
 }) => {
   const {updateAttendanceRecord, isLoadingAttendance, getAttendanceById} = useAttendance()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getCourseSessionById, isLoadingCourse} = useCourses()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
@@ -56,8 +56,8 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         setAttendanceRecords(recordsMap)
       }
 
-      const course = await getCourseById(courseId)
-      setCourse(course)
+      const course = await getCourseSessionById(courseId)
+      setCourse(course as unknown as PopulatedCourse)
     }
     fetchData()
   }, [courseId, getAttendanceById])

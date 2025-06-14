@@ -1,9 +1,9 @@
 import {getToken} from 'next-auth/jwt'
 import {NextRequest, NextResponse} from 'next/server'
 
-import {AppConfigDocument} from '@/types/models'
+import {AppConfigDocument} from '@/types/mongo/models'
 
-import dbConnect from '@/backend/config/dbConnect'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
 import {AppConfig} from '@/backend/models/appConfig'
 import bcrypt from 'bcryptjs'
 

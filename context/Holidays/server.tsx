@@ -1,6 +1,6 @@
 'use server'
 
-import {Holiday} from '@/types/holidays'
+import {Holiday} from '@/types/mongo/holidays'
 
 import {getCurrentHolidays} from '@/app/actions/context/holidays'
 import {HolidaysProvider} from '@/context/Holidays/client'

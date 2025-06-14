@@ -1,6 +1,6 @@
 'use client'
 
-import {CourseSession} from '@/types/course'
+import {CourseSession} from '@/types/mongo/course'
 
 import {TeacherCard} from '@/components/admin/atoms/client/PlanningTeacherCard'
 

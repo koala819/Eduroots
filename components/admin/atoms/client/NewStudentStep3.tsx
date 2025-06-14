@@ -4,11 +4,11 @@ import {Calendar, Clock, GraduationCap, Mail, User2} from 'lucide-react'
 import {UseFormReturn} from 'react-hook-form'
 import {BiFemale, BiMale} from 'react-icons/bi'
 
-import {GenderEnum, User} from '@/types/user'
+import {GenderEnum, User} from '@/types/mongo/user'
 
 import {FormData} from '../../organisms/client/NewStudentForm'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 import {format} from 'date-fns'
 import {fr} from 'date-fns/locale'
 import {motion} from 'framer-motion'

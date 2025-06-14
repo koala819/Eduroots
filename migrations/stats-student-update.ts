@@ -1,15 +1,15 @@
-import { SubjectNameEnum } from '@/types/course'
-import { StudentStats } from '@/types/stats'
+import { SubjectNameEnum } from '@/types/mongo/course'
+import { StudentStats } from '@/types/mongo/stats'
 
-import dbConnect from '@/backend/config/dbConnect'
-import { StudentStats as StudentStatsCollection } from '@/backend/models/student-stats.model'
-import { User } from '@/backend/models/user.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import { StudentStats as StudentStatsCollection } from '@/zOLDbackend/models/zOLDstudent-stats.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/lib/stats/student'
-import { convertToDate } from '@/lib/utils'
+import { convertToDate } from '@/utils/helpers'
 import fs from 'fs/promises'
 import { ObjectId } from 'mongoose'
 import path from 'path'

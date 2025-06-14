@@ -1,83 +1,66 @@
 'use client'
 
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
-import { useState } from 'react'
-
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/hooks/use-toast'
-
-import { ProfileSection } from '@/components/molecules/server/ProfileSection'
-
 import { useStats } from '@/context/Stats/client'
-
-// Déclaration du type OneSignal
-declare global {
-  interface Window {
-    OneSignal: {
-      isPushNotificationsSupported(): Promise<boolean>
-      User: {
-        PushSubscription: {
-          optedIn: boolean
-          optIn(): Promise<void>
-          optOut(): Promise<void>
-        }
-      }
-    }
-  }
-}
-
-export type MenuItem = {
-  icon: React.ReactNode
-  title: string
-  color?: string
-  onClick: () => void
-}
+import { createClient } from '@/utils/supabase/client'
 
 const ProfilePage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   const { toast } = useToast()
   const { refreshTeacherStudentsStats, refreshGlobalStats } = useStats()
 
-  function logoutHandler() {
-    signOut({
-      redirect: true,
-      callbackUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL}/`,
-    })
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true)
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    }
+    fetchUser()
+  }, [])
+
+  async function logoutHandler() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = process.env.NEXT_PUBLIC_CLIENT_URL || '/'
   }
 
-  const actions: MenuItem[] = [
+  const actions = [
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="h-10 w-10" />,
       title: 'Détail des élèves',
-      // color: 'text-green-600',
       onClick: () => {
-        router.push('/teacher/profiles/classroom')
+        handleNavClick('/teacher/profiles/classroom')
       },
     },
     {
-      icon: <PenSquare className="h-5 w-5" />,
+      icon: <PenSquare className="h-10 w-10" />,
       title: 'Devoirs & Contrôles',
-      // color: 'text-orange-600',
       onClick: () => {
-        router.push('/teacher/profiles/grades')
+        handleNavClick('/teacher/profiles/grades')
       },
     },
     {
-      icon: <Calendar className="h-5 w-5" />,
+      icon: <Calendar className="h-10 w-10" />,
       title: 'Emploi du temps',
-      // color: 'text-purple-600',
       onClick: () => {
-        router.push('/teacher/profiles/edit')
+        handleNavClick('/teacher/profiles/edit')
       },
     },
     {
-      icon: <BarChart className="h-5 w-5" />,
+      icon: <BarChart className="h-10 w-10" />,
       title: 'Mettre à jour les statistiques',
       onClick: async () => {
         const now = Date.now()
@@ -88,7 +71,9 @@ const ProfilePage = () => {
           toast({
             variant: 'destructive',
             title: 'Mise à jour impossible',
-            description: `Veuillez attendre ${Math.ceil((MIN_UPDATE_INTERVAL - timeSinceLastUpdate) / 1000 / 60)} minutes avant la prochaine mise à jour`,
+            description: `Veuillez attendre ${Math.ceil(
+              (MIN_UPDATE_INTERVAL - timeSinceLastUpdate) / 1000 / 60,
+            )} minutes avant la prochaine mise à jour`,
             duration: 3000,
           })
           return
@@ -119,39 +104,19 @@ const ProfilePage = () => {
           toast({
             variant: 'destructive',
             title: 'Erreur',
-            description:
-              'Une erreur est survenue lors de la mise à jour des statistiques',
+            description: 'Une erreur est survenue lors de la mise à jour des statistiques',
             duration: 3000,
           })
         }
       },
     },
-    // {
-    //   icon: <ArrowUpRight className="h-5 w-5" />,
-    //   title: 'Transférer ma session',
-    //   color: 'text-gray-400', // Couleur grisée pour indiquer l'état désactivé
-    //   onClick: () => {
-    //     toast({
-    //       variant: 'success',
-    //       title: 'En dev',
-    //       description: 'Bientôt fonctionnel :)',
-    //       duration: 3000,
-    //     })
-    //     // console.log('Transfert session')
-    //   },
-    // },
   ]
 
-  const settings: MenuItem[] = [
-    {
-      icon: <LogOut className="h-5 w-5" />,
-      title: 'Déconnexion',
-      color: 'text-red-600',
-      onClick: () => logoutHandler(),
-    },
-  ]
+  function handleNavClick(href: string) {
+    router.push(href)
+  }
 
-  if (!session) {
+  if (loading) {
     return (
       <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
         <div className="flex items-center justify-center gap-2">
@@ -169,18 +134,57 @@ const ProfilePage = () => {
     )
   }
 
+  if (!user) {
+    return (
+      <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
+        <div className="text-gray-500">Non authentifié</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="hidden md:block mb-8 text-center">
+    <>
+      <section className="p-2 text-center w-full">
         <h1 className="text-2xl font-bold text-gray-900 space-x-4">
-          {session.user.firstname + ' ' + session.user.lastname}
+          {user.user_metadata?.firstname + ' ' + user.user_metadata?.lastname}
         </h1>
         <p className="text-gray-500">Professeur de Al&apos;Ihsane</p>
-      </div>
-
-      <ProfileSection title="Actions" items={actions} />
-      <ProfileSection title="Paramètres" items={settings} />
-    </div>
+      </section>
+      <section className="w-full flex-1 flex flex-col justify-center md:p-4 p-2">
+        <div className="flex flex-col gap-2 h-[77vh] md:grid md:grid-cols-2 w-full
+         md:h-[86vh] md:gap-4">
+          {actions.map((item) => {
+            return (
+              <button
+                key={item.title}
+                onClick={item.onClick}
+                className={`
+                  flex flex-col items-center justify-center rounded-2xl shadow-lg
+                  w-full h-full text-xl font-semibold transition-all
+                  bg-white text-[#375073] hover:bg-blue-50
+                `}
+              >
+                {item.icon}
+                <span className="mt-3 text-center px-2">{item.title}</span>
+              </button>
+            )
+          })}
+          <button
+            key="Déconnexion"
+            onClick={logoutHandler}
+            className={`
+              flex flex-col items-center justify-center rounded-2xl shadow-lg
+              w-full h-full text-xl font-semibold transition-all
+              bg-red-100 text-red-600 hover:bg-red-200 col-span-2
+            `}
+            style={{ minHeight: '120px' }}
+          >
+            <LogOut className="h-10 w-10 text-red-600" />
+            <span className="mt-3 text-center px-2">Déconnexion</span>
+          </button>
+        </div>
+      </section>
+    </>
   )
 }
 

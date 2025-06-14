@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react'
 import {UseFormReturn} from 'react-hook-form'
 
-import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/course'
+import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/mongo/course'
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Checkbox} from '@/components/ui/checkbox'
@@ -12,7 +12,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 
 import {TeacherFormData} from './EditTeacherForm'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import {formatDayOfWeek} from '@/utils/helpers'
 
 interface EditTeacherStep2Props {
   form: UseFormReturn<TeacherFormData>

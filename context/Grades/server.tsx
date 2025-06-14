@@ -1,6 +1,6 @@
 'use server'
 
-import {PopulatedGrade} from '@/types/grade'
+import {PopulatedGrade} from '@/types/mongo/grade'
 
 import {getTeacherGrades} from '@/app/actions/context/grades'
 import {GradesProvider} from '@/context/Grades/client'
