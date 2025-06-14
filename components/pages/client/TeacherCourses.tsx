@@ -44,36 +44,33 @@ export default function TeacherCourses({
   }, [selectedSession])
 
    return (
-     <div className="bg-gray-100">
+     <div className="flex flex-col h-full bg-gray-100">
        {/* Vue desktop */}
-       <div className="hidden sm:flex">
+       <div className="hidden sm:flex sticky top-0 z-40">
          <CourseMenuDesktop
           activeView={activeView}
           setActiveView={setActiveView}
           selectedSession={selectedSession}
          />
-      </div>
+       </div>
 
        {/* Vue mobile */}
-      <div className="sm:hidden space-y-2">
+       <div className="sm:hidden sticky top-0 z-40">
          <CourseMenuMobile
           activeView={activeView}
           setActiveView={setActiveView}
           selectedSession={selectedSession}
          />
-        </div>
+       </div>
 
-      <div className="p-4">
-        <div className="max-w-[600px] mx-auto bg-white rounded-lg shadow-sm">
-          {activeView === 'attendance' ? (
-            <>
-              dashboard attendance
-            {/* <DashboardAttendanceT
+      <div className="flex-1 p-4 overflow-auto">
+        <div className="max-w-[1200px] mx-auto bg-white rounded-lg shadow-sm">
+           {activeView === 'attendance' ? (
+             <DashboardAttendanceT
               courseId={courseSessionId}
               students={sortedStudents}
               courseDates={sessionScheduleDates}
-            /> */}
-            </>
+            />
           ) : (
               <>
                 dashboard behavior

@@ -39,7 +39,7 @@ export default function SidebarMenu({
       {/* Sidebar desktop */}
       <aside
         className={`hidden md:flex flex-col
-        ${isAdmin ? 'bg-red-500' : 'bg-[#375073]'} text-white w-64 py-6 px-4 h-screen`}>
+        ${isAdmin ? 'bg-red-500' : 'bg-[#375073]'} text-white w-64 py-6 px-4 h-full`}>
         {/* Logo */}
         <div>
           <div className="flex items-center">

@@ -53,16 +53,18 @@ export function CustomLayout({
         </div>
       )}
 
-      <SidebarMenu
-        handleNavClick={handleNavClick}
-        pathname={pathname}
-        navItems={navItems}
-        isAdmin={isAdmin}
-        teacher={teacher}
-      />
+      <div className="hidden md:block sticky top-0 h-screen">
+        <SidebarMenu
+          handleNavClick={handleNavClick}
+          pathname={pathname}
+          navItems={navItems}
+          isAdmin={isAdmin}
+          teacher={teacher}
+          />
+        </div>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0">
+      <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0 min-h-screen">
         {children}
       </main>
     </div>

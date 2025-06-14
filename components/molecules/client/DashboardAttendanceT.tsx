@@ -19,7 +19,7 @@ export const DashboardAttendanceT = ({
   courseDates,
 }: {
   courseId: string
-  students: Student[]
+  students: any[]
   courseDates: Date[]
   }) => {
   const [user, setUser] = useState<any>(null)
