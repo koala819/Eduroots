@@ -7,7 +7,12 @@ import { usePathname, useRouter } from 'next/navigation'
 
 interface ClientLayoutProps {
   children: React.ReactNode
-  navItems: { href: string; label: string; Icon: string }[]
+  navItems: {
+    href: string
+    label: string
+    Icon: string
+    pathPattern: string
+  }[]
   isAdmin?: boolean
   teacher?: {
     firstname: string
@@ -20,8 +25,8 @@ export function CustomLayout({
   children,
   navItems,
   isAdmin = false,
-  teacher }: Readonly<ClientLayoutProps>)
-{
+  teacher
+}: Readonly<ClientLayoutProps>) {
   const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -37,7 +42,6 @@ export function CustomLayout({
 
   return (
     <div className="flex min-h-screen">
-
       {/* Loading Overlay */}
       {isNavigating && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex flex-col items-center
@@ -54,7 +58,8 @@ export function CustomLayout({
         pathname={pathname}
         navItems={navItems}
         isAdmin={isAdmin}
-        teacher={teacher} />
+        teacher={teacher}
+      />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0">

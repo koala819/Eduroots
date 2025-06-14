@@ -8,7 +8,12 @@ import * as LucideIcons from 'lucide-react'
 type SidebarMenuProps = {
   handleNavClick: (href: string) => void
   pathname: string
-  navItems: { href: string; label: string; Icon: string }[]
+  navItems: {
+    href: string
+    label: string
+    Icon: string
+    pathPattern: string
+  }[]
   isAdmin?: boolean
   teacher?: {
     firstname: string
@@ -22,13 +27,12 @@ export default function SidebarMenu({
   pathname,
   navItems,
   isAdmin = false,
-  teacher }: Readonly<SidebarMenuProps>)
-{
-  function isActive (path: string) {
-    return pathname === path
-  }
-
-
+  teacher
+}: Readonly<SidebarMenuProps>) {
+  function isActive(item: { href: string; pathPattern: string }) {
+  const pattern = new RegExp(item.pathPattern)
+  return pattern.test(pathname)
+}
 
   return (
     <>
@@ -50,20 +54,20 @@ export default function SidebarMenu({
         </div>
         {/* Menu */}
         <div className="flex flex-col gap-8">
-          {navItems.map(({ href, label, Icon }) => {
+          {navItems.map(({ href, label, Icon, pathPattern }) => {
             const IconComponent =
               LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{ size: number }>
             return (
               <button
                 key={href}
-                onClick={() => !isActive(href) && handleNavClick(href)}
-                disabled={isActive(href)}
-                aria-current={isActive(href) ? 'page' : undefined}
+                onClick={() => !isActive({ href, pathPattern }) && handleNavClick(href)}
+                disabled={isActive({ href, pathPattern })}
+                aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
                 aria-label={label}
-                tabIndex={isActive(href) ? -1 : 0}
+                tabIndex={isActive({ href, pathPattern }) ? -1 : 0}
                 className={cn(
                   'flex flex-col items-center px-2 py-1 rounded-md text-white',
-                  isActive(href)
+                  isActive({ href, pathPattern })
                     ? isAdmin
                       ? 'bg-red-600 cursor-default text-white border-l-4 border-red-700'
                       : 'bg-white cursor-default text-primary'
@@ -93,18 +97,18 @@ export default function SidebarMenu({
       {/* Barre de navigation mobile */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#375073] text-white
       flex justify-around items-center py-2 md:hidden z-50">
-        {navItems.map(({ href, label, Icon }) => {
+        {navItems.map(({ href, label, Icon, pathPattern }) => {
           const IconComponent =
             LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{ size: number }>
           return (
             <button
               key={href}
-              onClick={() => !isActive(href) && handleNavClick(href)}
-              disabled={isActive(href)}
-              aria-current={isActive(href) ? 'page' : undefined}
+              onClick={() => !isActive({ href, pathPattern }) && handleNavClick(href)}
+              disabled={isActive({ href, pathPattern })}
+              aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
               className={cn(
                 'flex flex-col items-center px-2 py-1 rounded-md text-white',
-                isActive(href)
+                isActive({ href, pathPattern })
                   ? 'bg-white cursor-default text-primary'
                   : 'transition-colors hover:bg-white/10 hover:text-white' +
                   'group-hover:shadow-sm cursor-pointer',
