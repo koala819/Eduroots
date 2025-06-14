@@ -1,20 +1,29 @@
+// components/organisms/client/CourseDetails.tsx
 'use client'
 
-import {useState} from 'react'
-
-import {CourseSession, PopulatedCourse} from '@/types/mongo/course'
-import {Student} from '@/types/mongo/user'
-
-import {TopMenu} from '@/components/molecules/client/CourseTopMenu'
-import {DashboardAttendanceT} from '@/components/molecules/client/DashboardAttendanceT'
-import {DashboardBehaviorT} from '@/components/molecules/client/DashboardBehaviorT'
+import { useState } from 'react'
+import { CourseWithRelations } from '@/types/supabase/courses'
+import { User } from '@/types/supabase/db'
+import { TopMenu } from '@/components/molecules/client/CourseTopMenu'
+import { DashboardAttendanceT } from '@/components/molecules/client/DashboardAttendanceT'
+import { DashboardBehaviorT } from '@/components/molecules/client/DashboardBehaviorT'
 
 interface CourseDetailsProps {
   courseId: string
-  selectedSession: CourseSession
+  selectedSession: {
+    id: string
+    subject: string
+    level: string
+    courses_sessions_timeslot: {
+      day_of_week: string
+      start_time: string
+      end_time: string
+      classroom_number: string | null
+    }[]
+  }
   courseDates: Date[]
-  sortedStudents: Student[]
-  teacherCourses: PopulatedCourse[]
+  sortedStudents: User[]
+  teacherCourses: CourseWithRelations[]
 }
 
 export function CourseDetails({
@@ -38,13 +47,19 @@ export function CourseDetails({
       <div className="p-4">
         <div className="max-w-[600px] mx-auto bg-white rounded-lg shadow-sm">
           {activeView === 'attendance' ? (
-            <DashboardAttendanceT
+            <>
+              dashboard attendance
+            {/* <DashboardAttendanceT
               courseId={courseId}
               students={sortedStudents}
               courseDates={courseDates}
-            />
+            /> */}
+            </>
           ) : (
-            <DashboardBehaviorT courseId={courseId} courseDates={courseDates} />
+              <>
+                dashboard behavior
+                {/* <DashboardBehaviorT courseId={courseId} courseDates={courseDates} /> */}
+              </>
           )}
         </div>
       </div>

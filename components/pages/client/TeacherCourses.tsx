@@ -1,101 +1,98 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
-
-import { PopulatedCourse } from '@/types/mongo/course'
-
-import { ErrorComponent } from '@/components/atoms/client/ErrorComponent'
+import { CourseSession, User, CourseSessionTimeslot, Course, CourseTeacher, CourseSessionStudent } from '@/types/supabase/db'
+import { CourseWithRelations } from '@/types/supabase/courses'
+import { ErrorContent } from '@/components/atoms/client/StatusContent'
 import { CourseDetails } from '@/components/organisms/client/CourseDetails'
-
-import { getCourseById } from '@/app/actions/context/courses'
 import useCourseStore from '@/stores/useCourseStore'
-import { Student } from '@/types/mongo/user'
 
-type CourseDetailsPageProps = {
-    courseId: string
-    courseDates: Date[]
-    sortedStudents: Student[]
+interface StudentWithUser extends CourseSessionStudent {
+  users: User
+  mongo_student_id?: string
 }
 
-export const TeacherCourses = ({
+interface CourseSessionWithRelations extends CourseSession {
+  courses: Course
+  courses_sessions_timeslot: CourseSessionTimeslot[]
+  courses_sessions_students: StudentWithUser[]
+}
+
+interface CourseDetailsPageProps {
+  courseId: string
+  courseDates: Date[]
+  selectedSession: CourseSessionWithRelations
+  teacherCourses: CourseWithRelations[]
+}
+
+export default function TeacherCourses({
   courseId,
   courseDates,
-  sortedStudents,
-}: CourseDetailsPageProps) => {
-
+  selectedSession,
+  teacherCourses,
+}: CourseDetailsPageProps) {
   const [user, setUser] = useState<any>(null)
   const { courses, fetchTeacherCourses } = useCourseStore()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [courseData, setCourseData] = useState<PopulatedCourse | null>(null)
+
+  const sortedStudents = useMemo<User[]>(() => {
+    if (!selectedSession?.courses_sessions_students) return []
+
+    return selectedSession.courses_sessions_students
+      .filter(student => student.users) // On ne garde que les étudiants avec des données utilisateur
+      .map(student => student.users)
+      .sort((a, b) => {
+        if (!a.lastname || !b.lastname) return 0
+        return a.lastname.localeCompare(b.lastname)
+      })
+  }, [selectedSession])
 
   useEffect(() => {
-    const getUser = async () => {
-      const supabase = createClient()
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (user && !error) {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (error) {
+          console.error('Error fetching user:', error)
+          return
+        }
+
         setUser(user)
+      } catch (error) {
+        console.error('Error in fetchUser:', error)
       }
     }
-    getUser()
-    }, [])
+
+    fetchUser()
+  }, [])
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!user?.id) return
+    const loadTeacherCourses = async () => {
+      if (!user) return
 
       try {
-        // Charger tous les cours du professeur
         await fetchTeacherCourses(user.id)
-
-        // Charger les détails du cours spécifique
-        const response = await getCourseById(courseId)
-        if (!response.success) {
-          throw new Error(response.message || 'Erreur lors du chargement du cours')
-        }
-        setCourseData(response.data as unknown as PopulatedCourse)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur s\'est produite')
+      } catch (error) {
+        console.error('Error loading teacher courses:', error)
+        setError('Failed to load teacher courses')
       } finally {
         setIsLoading(false)
       }
     }
 
-    loadData()
-  }, [courseId, user?.id, fetchTeacherCourses])
+    loadTeacherCourses()
+  }, [user, fetchTeacherCourses])
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    )
+    return <div>Loading...</div>
   }
 
-  if (error || !courseData) {
-    return <ErrorComponent message={error || 'Erreur lors du chargement du cours'} />
+  if (error) {
+    return <div>Error: {error}</div>
   }
-
-  const selectedSession = courseData.sessions.find((session) => session.id === courseId)
-
-  if (!selectedSession) {
-    return <ErrorComponent message="Session de cours introuvable" />
-  }
-
-
-
-
-
-  // Convertir les cours du store en PopulatedCourse[]
-  const populatedCourses = courses.map((course: any) => ({
-    ...course,
-    _id: course.id,
-    teacher: {
-      _id: course.teacher[0],
-      id: course.teacher[0],
-    },
-  })) as unknown as PopulatedCourse[]
 
   return (
     <CourseDetails
@@ -103,7 +100,7 @@ export const TeacherCourses = ({
       selectedSession={selectedSession}
       courseDates={courseDates}
       sortedStudents={sortedStudents}
-      teacherCourses={populatedCourses}
+      teacherCourses={teacherCourses}
     />
   )
 }

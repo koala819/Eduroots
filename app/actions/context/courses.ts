@@ -282,40 +282,89 @@ export async function getCourseById(
   const { supabase } = await getSessionServer()
 
   try {
-    const { data: session, error } = await supabase
+    // console.log('1. Récupération de la session de base')
+    const { data: session, error: sessionError } = await supabase
       .schema('education')
       .from('courses_sessions')
-      .select(`
-        *,
-        courses (
-          *,
-          courses_teacher (
-            users:teacher_id (
-              id,
-              firstname,
-              lastname,
-              email
-            )
-          )
-        ),
-        courses_sessions_students (
-          users:student_id (
-            id,
-            firstname,
-            lastname,
-            email
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
-    if (error || !session) {
+    if (sessionError || !session) {
+      console.error('[GET_COURSE_BY_ID] Session Error:', sessionError)
       return {
         success: false,
-        message: 'Cours non trouvé',
+        message: 'Session non trouvée',
         data: null,
       }
+    }
+
+    // console.log('2. Récupération du cours')
+    const { data: course, error: courseError } = await supabase
+      .schema('education')
+      .from('courses')
+      .select('*')
+      .eq('id', session.course_id)
+      .single()
+
+    if (courseError) {
+      console.error('[GET_COURSE_BY_ID] Course Error:', courseError)
+    }
+
+    // console.log('3. Récupération des horaires')
+    const { data: timeslots, error: timeslotError } = await supabase
+      .schema('education')
+      .from('courses_sessions_timeslot')
+      .select('*')
+      .eq('course_sessions_id', id)
+
+    if (timeslotError) {
+      console.error('[GET_COURSE_BY_ID] Timeslot Error:', timeslotError)
+    }
+
+    // console.log('4. Récupération des étudiants')
+    const { data: students, error: studentsError } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .select('*')
+      .eq('course_sessions_id', id)
+
+    if (studentsError) {
+      console.error('[GET_COURSE_BY_ID] Students Error:', studentsError)
+    }
+
+    // console.log('5. Récupération des informations des utilisateurs')
+    const studentsWithUsers = await Promise.all(
+      students?.map(async (student) => {
+        if (!student.student_id) {
+          console.log('Étudiant sans student_id:', student)
+          return student
+        }
+
+        const { data: user, error: userError } = await supabase
+          .schema('education')
+          .from('users')
+          .select('*')
+          .eq('id', student.student_id)
+          .single()
+
+        if (userError) {
+          console.error('[GET_COURSE_BY_ID] User Error:', userError)
+          return student
+        }
+
+        return {
+          ...student,
+          user
+        }
+      }) || []
+    )
+
+    const response = {
+      ...session,
+      courses: course,
+      courses_sessions_timeslot: timeslots,
+      courses_sessions_students: studentsWithUsers
     }
 
     if (fields === 'stats') {
@@ -329,7 +378,7 @@ export async function getCourseById(
 
     return {
       success: true,
-      data: session,
+      data: response,
       message: 'Cours récupéré avec succès',
     }
   } catch (error: any) {
