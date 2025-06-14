@@ -275,7 +275,7 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
   }
 }
 
-export async function getCourseById(
+export async function getCourseSessionById(
   id: string,
   fields?: string,
 ): Promise<ApiResponse> {

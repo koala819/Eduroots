@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { CourseSession, User, CourseSessionTimeslot, Course, CourseTeacher, CourseSessionStudent } from '@/types/supabase/db'
-import { CourseWithRelations } from '@/types/supabase/courses'
-import { ErrorContent } from '@/components/atoms/client/StatusContent'
-import { CourseDetails } from '@/components/organisms/client/CourseDetails'
-import useCourseStore from '@/stores/useCourseStore'
+import { useMemo, useState } from 'react'
+import { CourseSession, User, CourseSessionTimeslot, Course, CourseSessionStudent } from '@/types/supabase/db'
+import { DashboardAttendanceT } from '@/components/molecules/client/DashboardAttendanceT'
+import { DashboardBehaviorT } from '@/components/molecules/client/DashboardBehaviorT'
+import { CourseMenuDesktop } from '@/components/atoms/client/CourseMenu_Desktop'
+import { CourseMenuMobile } from '@/components/atoms/client/CourseMenu_Mobile'
 
 interface StudentWithUser extends CourseSessionStudent {
   users: User
@@ -20,22 +19,17 @@ interface CourseSessionWithRelations extends CourseSession {
 }
 
 interface CourseDetailsPageProps {
-  courseId: string
-  courseDates: Date[]
+  courseSessionId: string
+  sessionScheduleDates: Date[]
   selectedSession: CourseSessionWithRelations
-  teacherCourses: CourseWithRelations[]
 }
 
 export default function TeacherCourses({
-  courseId,
-  courseDates,
+  courseSessionId,
+  sessionScheduleDates,
   selectedSession,
-  teacherCourses,
-}: CourseDetailsPageProps) {
-  const [user, setUser] = useState<any>(null)
-  const { courses, fetchTeacherCourses } = useCourseStore()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+}: Readonly<CourseDetailsPageProps>) {
+  const [activeView, setActiveView] = useState<string>('attendance')
 
   const sortedStudents = useMemo<User[]>(() => {
     if (!selectedSession?.courses_sessions_students) return []
@@ -49,58 +43,45 @@ export default function TeacherCourses({
       })
   }, [selectedSession])
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user }, error } = await supabase.auth.getUser()
+   return (
+     <div className="bg-gray-100">
+       {/* Vue desktop */}
+       <div className="hidden sm:flex">
+         <CourseMenuDesktop
+          activeView={activeView}
+          setActiveView={setActiveView}
+          selectedSession={selectedSession}
+         />
+      </div>
 
-        if (error) {
-          console.error('Error fetching user:', error)
-          return
-        }
+       {/* Vue mobile */}
+      <div className="sm:hidden space-y-2">
+         <CourseMenuMobile
+          activeView={activeView}
+          setActiveView={setActiveView}
+          selectedSession={selectedSession}
+         />
+        </div>
 
-        setUser(user)
-      } catch (error) {
-        console.error('Error in fetchUser:', error)
-      }
-    }
-
-    fetchUser()
-  }, [])
-
-  useEffect(() => {
-    const loadTeacherCourses = async () => {
-      if (!user) return
-
-      try {
-        await fetchTeacherCourses(user.id)
-      } catch (error) {
-        console.error('Error loading teacher courses:', error)
-        setError('Failed to load teacher courses')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadTeacherCourses()
-  }, [user, fetchTeacherCourses])
-
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>
-  }
-
-  return (
-    <CourseDetails
-      courseId={courseId}
-      selectedSession={selectedSession}
-      courseDates={courseDates}
-      sortedStudents={sortedStudents}
-      teacherCourses={teacherCourses}
-    />
+      <div className="p-4">
+        <div className="max-w-[600px] mx-auto bg-white rounded-lg shadow-sm">
+          {activeView === 'attendance' ? (
+            <>
+              dashboard attendance
+            {/* <DashboardAttendanceT
+              courseId={courseSessionId}
+              students={sortedStudents}
+              courseDates={sessionScheduleDates}
+            /> */}
+            </>
+          ) : (
+              <>
+                dashboard behavior
+                {/* <DashboardBehaviorT courseId={courseSessionId} courseDates={sessionScheduleDates} /> */}
+              </>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }

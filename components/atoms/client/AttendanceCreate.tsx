@@ -27,7 +27,7 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   courseId,
 }) => {
   const {createAttendanceRecord} = useAttendance()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getCourseSessionById, isLoadingCourse} = useCourses()
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [attendanceData, setAttendanceData] = useState<{
@@ -36,11 +36,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
 
   useEffect(() => {
     async function fecthCourse() {
-      const course = await getCourseById(courseId)
+      const course = await getCourseSessionById(courseId)
       setCourse(course)
     }
     fecthCourse()
-  }, [courseId, getCourseById])
+  }, [courseId, getCourseSessionById])
 
   function handleTogglePresence(studentId: string) {
     setAttendanceData((prev) => ({

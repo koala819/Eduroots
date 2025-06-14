@@ -41,7 +41,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   courseId,
 }) => {
   const {createBehaviorRecord} = useBehavior()
-  const {getCourseById} = useCourses()
+  const {getCourseSessionById} = useCourses()
   const {getOneStudent} = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
@@ -68,7 +68,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
       try {
         setIsInitialLoading(true)
         const [courseData, studentsData] = await Promise.all([
-          getCourseById(courseId),
+          getCourseSessionById(courseId),
           Promise.all(
             students
               .filter((s) => s.isPresent)
@@ -97,7 +97,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
     return () => {
       isMounted = false
     }
-  }, [courseId, students, getCourseById, getOneStudent])
+  }, [courseId, students, getCourseSessionById, getOneStudent])
 
   const handleSave = async () => {
     if (!course?.sessions?.[0]?.id) {

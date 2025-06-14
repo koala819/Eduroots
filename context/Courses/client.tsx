@@ -19,7 +19,7 @@ import {
   checkTimeSlotOverlap as checkTimeSlotOverlapAction,
   createCourse as createCourseAction,
   deleteCourse as deleteCourseAction,
-  getCourseById as getCourseByIdAction,
+  getCourseSessionById as getCourseByIdAction,
   getStudentCourses as getStudentCoursesAction,
   removeStudentFromCourse as removeStudentFromCourseAction,
   updateCourse as updateCourseAction,
@@ -192,7 +192,7 @@ interface CourseContextType extends CourseState {
   ) => CourseWithRelations[]
   getStudentCourses: (studentId: string) => Promise<CourseWithRelations[]>
   fetchTeacherCourses: (teacherId: string) => Promise<void>
-  getCourseById: (courseId: string) => Promise<CourseWithRelations | null>
+  getCourseSessionById: (courseId: string) => Promise<CourseWithRelations | null>
   getCourseByIdForStudent: (courseId: string) => Promise<CourseWithRelations | null>
   removeStudentFromCourse: (courseId: string, studentId: string) => Promise<void>
   updateCourse: (
@@ -283,7 +283,7 @@ export const CoursesProvider = ({
     [toast],
   )
 
-  const getCourseById = useCallback(
+  const getCourseSessionById = useCallback(
     async (id: string): Promise<CourseWithRelations | null> => {
       if (!isAuthenticated || !user) {
         return null
@@ -716,7 +716,7 @@ export const CoursesProvider = ({
       updateCourse,
       updateCourses,
       updateCourseSession,
-      getCourseById,
+      getCourseSessionById,
       getCourseByIdForStudent,
     }),
     [
@@ -732,7 +732,7 @@ export const CoursesProvider = ({
       updateCourse,
       updateCourses,
       updateCourseSession,
-      getCourseById,
+      getCourseSessionById,
       getCourseByIdForStudent,
     ],
   )

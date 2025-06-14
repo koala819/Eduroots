@@ -44,7 +44,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   behaviorId,
 }) => {
   const {updateBehaviorRecord, isLoadingBehavior, getBehaviorById} = useBehavior()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getCourseSessionById, isLoadingCourse} = useCourses()
   const {getOneStudent} = useStudents()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
@@ -67,7 +67,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
       try {
         // Charger le cours et le behavior existant en parallèle
         const [courseData, behaviorResponse] = await Promise.all([
-          getCourseById(courseId),
+          getCourseSessionById(courseId),
           getBehaviorById(courseId, date),
         ])
 
@@ -128,7 +128,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
     return () => {
       isMounted = false
     }
-  }, [courseId, date, getOneStudent, getBehaviorById, getCourseById, presentStudents])
+  }, [courseId, date, getOneStudent, getBehaviorById, getCourseSessionById, presentStudents])
 
   async function handleSave() {
     setIsUpdating(true)

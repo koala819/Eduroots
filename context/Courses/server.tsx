@@ -2,7 +2,7 @@
 
 import {PopulatedCourse} from '@/types/mongo/course'
 
-import {getCourseById} from '@/app/actions/context/courses'
+import {getCourseSessionById} from '@/app/actions/context/courses'
 import {CoursesProvider} from '@/context/Courses/client'
 
 interface CoursesServerComponentProps {
@@ -20,7 +20,7 @@ export default async function CourseServerComponent({
   if (courseId) {
     try {
       // Récupération des données
-      const response = await getCourseById(courseId)
+      const response = await getCourseSessionById(courseId)
 
       if (response.success && response.data) {
         // Vérifier si data est un tableau et le convertir explicitement en CourseDocument[]

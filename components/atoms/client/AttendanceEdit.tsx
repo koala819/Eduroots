@@ -29,7 +29,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   attendanceId,
 }) => {
   const {updateAttendanceRecord, isLoadingAttendance, getAttendanceById} = useAttendance()
-  const {getCourseById, isLoadingCourse} = useCourses()
+  const {getCourseSessionById, isLoadingCourse} = useCourses()
 
   const [course, setCourse] = useState<PopulatedCourse | null>(null)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
@@ -56,7 +56,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         setAttendanceRecords(recordsMap)
       }
 
-      const course = await getCourseById(courseId)
+      const course = await getCourseSessionById(courseId)
       setCourse(course as unknown as PopulatedCourse)
     }
     fetchData()
