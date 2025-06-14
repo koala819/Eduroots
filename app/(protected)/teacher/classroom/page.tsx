@@ -1,14 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { Metadata } from 'next'
 import { getTeacherCourses } from '@/app/actions/context/courses'
+import { Suspense } from 'react'
+import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
+import { CourseGrid } from '@/components/molecules/client/CourseGrid'
 import {
   LoadingContent,
   EmptyContent,
-  CourseDisplay,
   ErrorContent,
-} from '@/components/molecules/client/CourseDisplay'
-import { Suspense } from 'react'
-import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
+} from '@/components/atoms/client/StatusContent'
 
 export const metadata: Metadata = {
   title: 'Gestion des cours',
@@ -38,15 +38,22 @@ export default async function ClassroomPage() {
     const coursesData = coursesResponse.data
 
     return (
-      <Suspense fallback={<LoadingContent />}>
-        {!coursesData || coursesData.length === 0 ? (
-          <EmptyContent />
-        ) : (
-          <CourseDisplay
-            initialCourses={coursesData}
-          />
-        )}
-      </Suspense>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Mes Cours</h1>
+          <p className="text-gray-500 mt-1">
+            Gérez vos cours et suivez la progression de vos élèves
+          </p>
+        </div>
+
+        <Suspense fallback={<LoadingContent />}>
+          {!coursesData || coursesData.length === 0 ? (
+            <EmptyContent />
+          ) : (
+            <CourseGrid courses={coursesData} />
+          )}
+        </Suspense>
+      </div>
     )
   } catch (error) {
     console.error('[CLASSROOM_PAGE]', error)

@@ -1,62 +1,6 @@
 'use client'
 
-import { BookOpenCheck, Menu } from 'lucide-react'
-import { useCallback, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { CourseWithRelations } from '@/types/supabase/courses'
-import { CourseMenu } from '@/components/atoms/client/CourseMenu'
-
-type CourseDisplayProps = {
-  initialCourses: CourseWithRelations[] | null
-}
-
-export const CourseDisplay = ({ initialCourses }: CourseDisplayProps) => {
-  const router = useRouter()
-
-  const [currentCourseId, setCurrentCourseId] = useState<string>('')
-
-  const handleCourseSelect = useCallback(
-    (courseId: string) => {
-      setCurrentCourseId(courseId)
-      router.push(`/teacher/classroom/course/${courseId}`)
-    },
-    [router],
-  )
-
-  return (
-    <div className={`
-      flex flex-col items-center justify-center min-h-[400px]
-      bg-gradient-to-b from-white to-gray-50 p-4
-    `}>
-      <div className="text-center max-w-md mx-auto">
-        <div className="mb-6">
-          <BookOpenCheck className="w-12 h-12 mx-auto text-blue-500/80" />
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Sélectionnez un cours
-        </h3>
-        <div className="text-sm text-gray-500 mb-4 text-center leading-relaxed">
-          <p>Cliquez sur le bouton</p>
-          <p>
-            <strong className="hidden sm:inline">
-              &ldquo;Ouvrir le menu&rdquo;
-            </strong>
-            <Menu className="inline sm:hidden w-5 h-5" />
-          </p>
-          <p>pour voir la liste des cours et gérer vos élèves.</p>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-sm text-blue-500">
-          <CourseMenu
-            courses={initialCourses}
-            currentCourseId={currentCourseId}
-            onCourseSelect={handleCourseSelect}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
+import { BookOpenCheck } from 'lucide-react'
 
 export const LoadingContent = () => {
   return (

@@ -408,7 +408,12 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
           courses_sessions_timeslot (
             day_of_week,
             start_time,
-            end_time
+            end_time,
+            classroom_number
+         ),
+          courses_sessions_students (
+            id,
+            student_id
           )
         )
       `)
