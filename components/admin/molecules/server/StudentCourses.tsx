@@ -1,15 +1,15 @@
-import {AlertCircle} from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
-import {TimeSlotEnum} from '@/types/mongo/course'
+import { TimeSlotEnum } from '@/types/mongo/course'
 
-import {CoursesTable} from '@/components/admin/atoms/client/StudentCoursesTable'
-import {StudentCourseMobile} from '@/components/admin/atoms/server/StudentCourseMobile'
-import {Alert, AlertDescription} from '@/components/ui/alert'
+import { CoursesTable } from '@/components/admin/atoms/client/StudentCoursesTable'
+import { StudentCourseMobile } from '@/components/admin/atoms/server/StudentCourseMobile'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
-import {getStudentCourses} from '@/app/actions/context/courses'
-import {formatDayOfWeek} from '@/utils/helpers'
+import { getStudentCourses } from '@/app/actions/context/courses'
+import { formatDayOfWeek } from '@/utils/helpers'
 
-export async function StudentCourses({studentId}: {studentId: string}) {
+export async function StudentCourses({ studentId }: {studentId: string}) {
   try {
     const response = await getStudentCourses(studentId)
 

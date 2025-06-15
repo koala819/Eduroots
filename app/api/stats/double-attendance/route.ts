@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server'
-import {generateDateRanges, getSessionServer} from '@/utils/server-helpers'
-import {Database} from '@/types/supabase/db'
+import { NextResponse } from 'next/server'
+import { generateDateRanges, getSessionServer } from '@/utils/server-helpers'
+import { Database } from '@/types/supabase/db'
 
 // Type de base pour une présence
 type BaseAttendance = Database['education']['Tables']['attendances']['Row'] & {
@@ -16,7 +16,7 @@ type AttendanceWithPeriod = BaseAttendance & {
 
 export async function GET() {
   try {
-    const {supabase} = await getSessionServer()
+    const { supabase } = await getSessionServer()
 
     const startDateString = process.env.START_YEAR
     if (!startDateString) {
@@ -36,7 +36,7 @@ export async function GET() {
     const weekPeriods = generateDateRanges(startDate, numWeeks)
 
     // Récupérer les présences avec leurs enregistrements
-    const {data: attendances, error: attendancesError} = await supabase
+    const { data: attendances, error: attendancesError } = await supabase
       .schema('education')
       .from('attendances')
       .select(`
@@ -47,21 +47,21 @@ export async function GET() {
       .lte('date', endDate.toISOString())
       .eq('is_active', true)
       .is('deleted_at', null)
-      .order('date', {ascending: true})
+      .order('date', { ascending: true })
 
     if (attendancesError) throw attendancesError
 
     // Ajouter le weekPeriod à chaque présence
-    const attendancesWithWeekPeriod = attendances.map(attendance => {
+    const attendancesWithWeekPeriod = attendances.map((attendance) => {
       const date = new Date(attendance.date)
       const weekPeriod = weekPeriods.find(
-        period => date >= period.start && date < new Date(period.end.getTime() + 86400000)
+        (period) => date >= period.start && date < new Date(period.end.getTime() + 86400000),
       )?.label ?? 'Other'
 
-     return {
+      return {
         ...attendance,
         weekPeriod,
-        formattedDate: date.toISOString().split('T')[0]
+        formattedDate: date.toISOString().split('T')[0],
       } as AttendanceWithPeriod
     })
 
@@ -76,19 +76,19 @@ export async function GET() {
     }, {})
 
     // Filtrer et formater les résultats comme dans MongoDB
-       // Filtrer et formater les résultats comme dans MongoDB
+    // Filtrer et formater les résultats comme dans MongoDB
     const duplicates = Object.entries(groupedAttendances)
       .filter(([_, group]) => group.length > 1)
       .map(([key, group]) => ({
         _id: {
           course: group[0].course_id,
           date: group[0].formattedDate,
-          weekPeriod: group[0].weekPeriod
+          weekPeriod: group[0].weekPeriod,
         },
         count: group.length,
-        attendances: group
+        attendances: group,
       }))
-      .flatMap(group => group.attendances)
+      .flatMap((group) => group.attendances)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     return NextResponse.json({
@@ -98,7 +98,7 @@ export async function GET() {
   } catch (error: any) {
     if (error.message === 'Non authentifié') {
       return NextResponse.json({
-        statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+        statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
         status: 401,
       })
     }

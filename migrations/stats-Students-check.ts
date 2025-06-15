@@ -1,4 +1,4 @@
-import {User as UserCollection} from '@/zOLDbackend/models/zOLDuser.model'
+import { User as UserCollection } from '@/zOLDbackend/models/zOLDuser.model'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
@@ -71,7 +71,7 @@ export async function statsStudentCheck(): Promise<{
 
     // Générer et sauvegarder le rapport
     const reportDir = path.join(process.cwd(), 'reports')
-    await fs.mkdir(reportDir, {recursive: true})
+    await fs.mkdir(reportDir, { recursive: true })
 
     const timestamp = new Date().toISOString().replace(/:/g, '-')
     const fileName = `Students_GRADES_stats_${timestamp}.json`

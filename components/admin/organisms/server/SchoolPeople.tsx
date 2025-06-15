@@ -1,9 +1,9 @@
-import {Student, Teacher} from '@/types/mongo/user'
+import { Student, Teacher } from '@/types/mongo/user'
 
-import {SchoolPeopleClient} from '@/components/admin/organisms/client/SchoolPeople'
+import { SchoolPeopleClient } from '@/components/admin/organisms/client/SchoolPeople'
 
-import {getAllStudents} from '@/app/actions/context/students'
-import {getAllTeachers} from '@/app/actions/context/teachers'
+import { getAllStudents } from '@/app/actions/context/students'
+import { getAllTeachers } from '@/app/actions/context/teachers'
 
 export async function SchoolPeople() {
   const [studentsResponse, teachersResponse] = await Promise.all([

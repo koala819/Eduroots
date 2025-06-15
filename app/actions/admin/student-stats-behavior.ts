@@ -1,12 +1,12 @@
 'use server'
 
-import {BehaviorRecord} from '@/types/mongo/behavior'
-import {SubjectNameEnum} from '@/types/mongo/course'
-import {BehaviorDocument} from '@/types/mongo/mongoose'
+import { BehaviorRecord } from '@/types/mongo/behavior'
+import { SubjectNameEnum } from '@/types/mongo/course'
+import { BehaviorDocument } from '@/types/mongo/mongoose'
 
-import {getStudentBehaviorHistory} from '@/app/actions/context/behaviors'
-import {format} from 'date-fns'
-import {fr} from 'date-fns/locale'
+import { getStudentBehaviorHistory } from '@/app/actions/context/behaviors'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 export interface BehaviorStats {
   averageRating: number

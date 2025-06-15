@@ -1,4 +1,3 @@
-import { createClient } from '@/utils/supabase/server'
 import { Metadata } from 'next'
 import { getTeacherCourses } from '@/app/actions/context/courses'
 import { Suspense } from 'react'
@@ -9,6 +8,7 @@ import {
   EmptyContent,
   ErrorContent,
 } from '@/components/atoms/client/StatusContent'
+import { getSessionServer } from '@/utils/server-helpers'
 
 export const metadata: Metadata = {
   title: 'Gestion des cours',
@@ -19,14 +19,13 @@ export const metadata: Metadata = {
 
 export default async function ClassroomPage() {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { user } = await getSessionServer()
 
     const { isAuthenticated, role, educationUserId, error: authError } =
       await getAuthenticatedEducationUser(user)
 
     if (!isAuthenticated || !educationUserId || role !== 'teacher') {
-      return <ErrorContent message={authError || "Vous n'avez pas les droits nécessaires"} />
+      return <ErrorContent message={authError || 'Vous n\'avez pas les droits nécessaires'} />
     }
 
     const coursesResponse = await getTeacherCourses(educationUserId)

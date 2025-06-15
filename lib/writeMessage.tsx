@@ -1,5 +1,5 @@
-import {StudentDocument} from '@/types/mongo/mongoose'
-import {Student, Teacher} from '@/types/mongo/user'
+import { StudentDocument } from '@/types/mongo/mongoose'
+import { Student, Teacher } from '@/types/mongo/user'
 
 // Fonction pour calculer les emails valides
 export function calculateValidEmails(

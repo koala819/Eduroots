@@ -1,5 +1,5 @@
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
+import { Grade } from '@/zOLDbackend/models/zOLDgrade.model'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -42,7 +42,7 @@ export async function statsGradesUpdate(): Promise<{
     // Connexion à la base de données
     await dbConnect()
     console.log('✅ Connecté à la base de données')
-    console.log(`\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DE GRADES =====\n`)
+    console.log('\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DE GRADES =====\n')
 
     // Récupérer tous les grades
     console.log('1️⃣ Récupération des grades...')
@@ -67,7 +67,7 @@ export async function statsGradesUpdate(): Promise<{
 
       // Vérifier si le grade a des enregistrements
       if (!grade.records || grade.records.length === 0) {
-        console.log(`  ⚠️ Grade sans enregistrements, ignoré`)
+        console.log('  ⚠️ Grade sans enregistrements, ignoré')
         stats.gradesWithoutRecords++
         stats.skippedGrades++
         continue
@@ -88,7 +88,7 @@ export async function statsGradesUpdate(): Promise<{
 
       // Si aucune note valide, définir des valeurs par défaut
       if (validGrades.length === 0) {
-        console.log(`  ⚠️ Aucune note valide trouvée, valeurs par défaut utilisées`)
+        console.log('  ⚠️ Aucune note valide trouvée, valeurs par défaut utilisées')
 
         const newStats = {
           averageGrade: 0,
@@ -111,7 +111,7 @@ export async function statsGradesUpdate(): Promise<{
 
         if (differences.length > 0) {
           // Mettre à jour le grade
-          await Grade.updateOne({_id: grade._id}, {$set: {stats: newStats}})
+          await Grade.updateOne({ _id: grade._id }, { $set: { stats: newStats } })
 
           stats.statsChanges.push({
             gradeId,
@@ -121,10 +121,10 @@ export async function statsGradesUpdate(): Promise<{
           })
 
           stats.updatedGrades++
-          console.log(`  ✅ Statistiques mises à jour avec des valeurs par défaut`)
+          console.log('  ✅ Statistiques mises à jour avec des valeurs par défaut')
         } else {
           stats.skippedGrades++
-          console.log(`  ℹ️ Aucun changement nécessaire`)
+          console.log('  ℹ️ Aucun changement nécessaire')
         }
 
         continue
@@ -160,7 +160,7 @@ export async function statsGradesUpdate(): Promise<{
 
       if (differences.length > 0) {
         // Mettre à jour le grade
-        await Grade.updateOne({_id: grade._id}, {$set: {stats: newStats}})
+        await Grade.updateOne({ _id: grade._id }, { $set: { stats: newStats } })
 
         stats.statsChanges.push({
           gradeId,
@@ -173,7 +173,7 @@ export async function statsGradesUpdate(): Promise<{
         console.log(`  ✅ Statistiques mises à jour: ${differences.join(', ')}`)
       } else {
         stats.skippedGrades++
-        console.log(`  ℹ️ Aucun changement nécessaire`)
+        console.log('  ℹ️ Aucun changement nécessaire')
       }
     }
 
@@ -186,7 +186,7 @@ export async function statsGradesUpdate(): Promise<{
     }
 
     const reportPath = path.join(process.cwd(), 'reports')
-    await fs.mkdir(reportPath, {recursive: true})
+    await fs.mkdir(reportPath, { recursive: true })
     const timestamp = new Date().toISOString().replace(/:/g, '-')
     const fileName = `grade_stats_update_${timestamp}.json`
     const filePath = path.join(reportPath, fileName)
@@ -210,7 +210,7 @@ export async function statsGradesUpdate(): Promise<{
       console.log('\n✅ MISE À JOUR RÉUSSIE: Statistiques recalculées avec succès')
     }
 
-    console.log(`\n===== FIN DE LA MISE À JOUR =====`)
+    console.log('\n===== FIN DE LA MISE À JOUR =====')
 
     return {
       success: isSuccessful,
@@ -251,8 +251,8 @@ function compareStats(oldStats: any, newStats: any) {
     averageGrade: 'moyenne',
     highestGrade: 'note maximale',
     lowestGrade: 'note minimale',
-    absentCount: "nombre d'absents",
-    totalStudents: "nombre total d'étudiants",
+    absentCount: 'nombre d\'absents',
+    totalStudents: 'nombre total d\'étudiants',
   }
 
   // Comparer chaque champ

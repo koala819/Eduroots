@@ -1,13 +1,13 @@
 'use client'
 
-import {CalendarDays, GraduationCap, Users} from 'lucide-react'
+import { CalendarDays, GraduationCap, Users } from 'lucide-react'
 
-import {CourseSession} from '@/types/mongo/course'
-import {Teacher} from '@/types/mongo/user'
+import { CourseSession } from '@/types/mongo/course'
+import { Teacher } from '@/types/mongo/user'
 
-import {Badge} from '@/components/ui/badge'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TimeSlotEnum } from '@/types/supabase/courses'
 
 interface CoursesTableProps {
@@ -18,7 +18,7 @@ interface CoursesTableProps {
   formatDayOfWeek: (dayOfWeek: TimeSlotEnum) => string
 }
 
-export function CoursesTable({sessions, formatDayOfWeek}: CoursesTableProps) {
+export function CoursesTable({ sessions, formatDayOfWeek }: CoursesTableProps) {
   return (
     <Card className="w-full">
       <CardHeader>
@@ -41,7 +41,7 @@ export function CoursesTable({sessions, formatDayOfWeek}: CoursesTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sessions.map(({session, teacher}, index) => (
+            {sessions.map(({ session, teacher }, index) => (
               <TableRow key={`session-${index}`}>
                 <TableCell className="font-medium whitespace-nowrap">
                   {formatDayOfWeek(session.timeSlot.day_of_week as TimeSlotEnum)}

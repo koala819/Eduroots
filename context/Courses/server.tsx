@@ -1,9 +1,21 @@
 'use server'
 
-import {PopulatedCourse} from '@/types/mongo/course'
+import { Database } from '@/types/supabase/db'
 
-import {getCourseSessionById} from '@/app/actions/context/courses'
-import {CoursesProvider} from '@/context/Courses/client'
+import { getCourseSessionById } from '@/app/actions/context/courses'
+import { CoursesProvider } from '@/context/Courses/client'
+
+type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
+  courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {
+    users: Database['education']['Tables']['users']['Row']
+  })[]
+  courses_sessions: (Database['education']['Tables']['courses_sessions']['Row'] & {
+    courses_sessions_students: (Database['education']['Tables']['courses_sessions_students']['Row'] & {
+      users: Database['education']['Tables']['users']['Row']
+    })[]
+    courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
+  })[]
+}
 
 interface CoursesServerComponentProps {
   children: React.ReactNode
@@ -13,9 +25,9 @@ interface CoursesServerComponentProps {
 export default async function CourseServerComponent({
   children,
   courseId,
-}: CoursesServerComponentProps) {
+}: Readonly <CoursesServerComponentProps>) {
   // Si un courseId est fourni, on pré-charge les données pour ce cours
-  let initialCourseData: PopulatedCourse[] | null = null
+  let initialCourseData: CourseWithRelations[] | null = null
 
   if (courseId) {
     try {
@@ -23,8 +35,8 @@ export default async function CourseServerComponent({
       const response = await getCourseSessionById(courseId)
 
       if (response.success && response.data) {
-        // Vérifier si data est un tableau et le convertir explicitement en CourseDocument[]
-        const courseData = response.data as unknown as PopulatedCourse
+        // Vérifier si data est un tableau et le convertir explicitement en CourseWithRelations[]
+        const courseData = response.data as unknown as CourseWithRelations
         // Toujours stocker comme un tableau pour maintenir la cohérence avec le provider
         initialCourseData = [courseData]
       }

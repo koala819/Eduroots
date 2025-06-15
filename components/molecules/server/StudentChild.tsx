@@ -1,15 +1,15 @@
-import {Calendar} from 'lucide-react'
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { Calendar } from 'lucide-react'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {Course} from '@/types/mongo/course'
-import {GenderEnum, Student,Teacher} from '@/types/mongo/user'
+import { Course } from '@/types/mongo/course'
+import { GenderEnum, Student,Teacher } from '@/types/mongo/user'
 
 import StudentAvatar from '@/components/atoms/server/StudentAvatar'
 
-import {getStudentCourses} from '@/app/actions/context/courses'
-import {getTeachersForStudent} from '@/app/actions/context/students'
+import { getStudentCourses } from '@/app/actions/context/courses'
+import { getTeachersForStudent } from '@/app/actions/context/students'
 
-async function StudentChild({child}: {child: Student}) {
+async function StudentChild({ child }: {child: Student}) {
   const studentId = child._id || child.id
   const teacherInfo = await getStudentInfo(studentId)
 
@@ -22,7 +22,7 @@ async function StudentChild({child}: {child: Student}) {
       const teachers = await getTeachersForStudent(studentId)
 
       if (!teachers || !courses) {
-        return {teacherInfo: null}
+        return { teacherInfo: null }
       }
 
       // Récupérer le premier professeur
@@ -70,7 +70,7 @@ async function StudentChild({child}: {child: Student}) {
       return teacherInfo
     } catch (error: any) {
       console.error('Erreur lors de la récupération des informations:', error)
-      return {teacherInfo: null, error: error.message}
+      return { teacherInfo: null, error: error.message }
     }
   }
 
@@ -123,10 +123,10 @@ async function StudentChild({child}: {child: Student}) {
               <span>
                 {child.dateOfBirth
                   ? new Date(child.dateOfBirth).toLocaleDateString('fr-FR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })
                   : 'Non spécifiée'}
               </span>
             </div>

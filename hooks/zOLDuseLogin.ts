@@ -1,40 +1,40 @@
 'use client'
 
-import {getSession, signIn} from 'next-auth/react'
-import {useState} from 'react'
+import { getSession, signIn } from 'next-auth/react'
+import { useState } from 'react'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
-import {useThemeLoader} from '@/hooks/useThemeLoader'
+import { useToast } from '@/hooks/use-toast'
+import { useThemeLoader } from '@/hooks/useThemeLoader'
 
-import {UserRoleEnum} from '@/types/mongo/user'
+import { UserRoleEnum } from '@/types/mongo/user'
 
-import {z} from 'zod'
+import { z } from 'zod'
 
 export const FormSchema = z.object({
-  mail: z.string().email("Le format de l'email est invalide"),
+  mail: z.string().email('Le format de l\'email est invalide'),
   pwd: z.string().min(8, {
     message: 'Le mot de passe doit contenir 8 caractères minimum.',
   }),
   role: z.nativeEnum(UserRoleEnum, {
-    errorMap: () => ({message: 'Veuillez faire un choix svp.'}),
+    errorMap: () => ({ message: 'Veuillez faire un choix svp.' }),
   }),
 })
 
 export type FormValues = z.infer<typeof FormSchema>
 
 export function useLogin() {
-  const {loadTheme} = useThemeLoader()
-  const {toast} = useToast()
+  const { loadTheme } = useThemeLoader()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   async function checkDefaultPassword(email: string, password: string, role: UserRoleEnum) {
     const response = await fetch('/api/checkDefaultPwd', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password, role}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role }),
     })
     return response.json()
   }
@@ -107,61 +107,61 @@ export function useLogin() {
 
       // Gestion de la redirection selon le rôle
       switch (user?.role) {
-        case UserRoleEnum.Admin:
-        case UserRoleEnum.Bureau:
+      case UserRoleEnum.Admin:
+      case UserRoleEnum.Bureau:
+        toast({
+          variant: 'success',
+          title: 'Connexion réussie',
+          description: 'Redirection vers Bureau...',
+        })
+        router.push('/admin')
+        break
+
+      case UserRoleEnum.Teacher:
+        // Vérification du mot de passe par défaut
+        const authResult = await checkDefaultPassword(values.mail, values.pwd, values.role)
+
+        if (!authResult.isMatch) {
           toast({
-            variant: 'success',
-            title: 'Connexion réussie',
-            description: 'Redirection vers Bureau...',
+            variant: 'destructive',
+            title: 'Identifiants incorrects. Veuillez réessayer',
           })
-          router.push('/admin')
           break
+        }
 
-        case UserRoleEnum.Teacher:
-          // Vérification du mot de passe par défaut
-          const authResult = await checkDefaultPassword(values.mail, values.pwd, values.role)
-
-          if (!authResult.isMatch) {
-            toast({
-              variant: 'destructive',
-              title: 'Identifiants incorrects. Veuillez réessayer',
-            })
-            break
-          }
-
-          if (authResult.isDefault) {
-            toast({
-              variant: 'destructive',
-              title: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
-            })
-            router.push('/rstPwd?forceChange=true')
-            break
-          }
-
+        if (authResult.isDefault) {
           toast({
-            variant: 'success',
-            title: 'Connexion réussie',
-            description: 'Redirection vers Enseignant...',
+            variant: 'destructive',
+            title: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
           })
-          router.push('/teacher')
+          router.push('/rstPwd?forceChange=true')
           break
+        }
 
-        case UserRoleEnum.Student:
-          toast({
-            variant: 'success',
-            title: 'Connexion réussie',
-            description: 'Redirection vers Parent...',
-          })
-          router.push('/student')
-          break
+        toast({
+          variant: 'success',
+          title: 'Connexion réussie',
+          description: 'Redirection vers Enseignant...',
+        })
+        router.push('/teacher')
+        break
 
-        default:
-          toast({
-            variant: 'success',
-            title: 'Connexion réussie',
-            description: 'Redirection vers Accueil...',
-          })
-          router.push('/home')
+      case UserRoleEnum.Student:
+        toast({
+          variant: 'success',
+          title: 'Connexion réussie',
+          description: 'Redirection vers Parent...',
+        })
+        router.push('/student')
+        break
+
+      default:
+        toast({
+          variant: 'success',
+          title: 'Connexion réussie',
+          description: 'Redirection vers Accueil...',
+        })
+        router.push('/home')
       }
     } catch (error) {
       console.error('Error during login:', error)

@@ -353,8 +353,8 @@ function validateRequiredFields(type: string, data: any): {isValid: boolean; mes
 
   return missingFields.length > 0
     ? {
-        isValid: false,
-        message: `Champs manquants: ${missingFields.join(', ')}`,
-      }
+      isValid: false,
+      message: `Champs manquants: ${missingFields.join(', ')}`,
+    }
     : { isValid: true }
 }

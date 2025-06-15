@@ -1,12 +1,12 @@
-import {TeacherStats} from '@/types/mongo/stats'
-import {GenderEnum} from '@/types/mongo/user'
+import { TeacherStats } from '@/types/mongo/stats'
+import { GenderEnum } from '@/types/mongo/user'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {TeacherStats as TeacherStatsCollection} from '@/zOLDbackend/models/zOLDteacher-stats.model'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
-import {calculateTeacherStats} from '@/lib/stats/teacher'
+import { TeacherStats as TeacherStatsCollection } from '@/zOLDbackend/models/zOLDteacher-stats.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
+import { calculateTeacherStats } from '@/lib/stats/teacher'
 import fs from 'fs/promises'
-import {ObjectId} from 'mongoose'
+import { ObjectId } from 'mongoose'
 import path from 'path'
 
 interface UpdateStats {
@@ -36,11 +36,11 @@ export async function statsTeacherUpdate(): Promise<{
     // Connexion à la base de données
     await dbConnect()
     console.log('✅ Connecté à la base de données')
-    console.log(`\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES PROFESSEURS =====\n`)
+    console.log('\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES PROFESSEURS =====\n')
 
     // Récupérer tous les professeurs actifs
     console.log('1️⃣ Récupération des professeurs...')
-    const teachers = await User.find({role: 'teacher', isActive: true})
+    const teachers = await User.find({ role: 'teacher', isActive: true })
     console.log(`- Total des professeurs trouvés: ${teachers.length}`)
 
     // Initialiser les statistiques
@@ -66,7 +66,7 @@ export async function statsTeacherUpdate(): Promise<{
 
         // Vérifier si le professeur a des étudiants
         if (teacherStats.totalStudents === 0) {
-          console.log(`  ⚠️ Professeur sans étudiants, ignoré`)
+          console.log('  ⚠️ Professeur sans étudiants, ignoré')
           stats.teachersWithoutStudents++
           stats.skippedTeachers++
           continue
@@ -109,7 +109,7 @@ export async function statsTeacherUpdate(): Promise<{
           // Mise à jour du document existant
           if (statsDoc) {
             await TeacherStatsCollection.updateOne(
-              {_id: (statsDoc as any)._id},
+              { _id: (statsDoc as any)._id },
               {
                 $set: {
                   ...newTeacherStats,
@@ -145,7 +145,7 @@ export async function statsTeacherUpdate(): Promise<{
           console.log(`  ✅ Statistiques mises à jour: ${differences.join(', ')}`)
         } else {
           stats.skippedTeachers++
-          console.log(`  ℹ️ Aucun changement nécessaire`)
+          console.log('  ℹ️ Aucun changement nécessaire')
         }
       } catch (error) {
         console.error(`  ❌ Erreur lors du traitement du professeur ${teacherId}:`, error)
@@ -164,7 +164,7 @@ export async function statsTeacherUpdate(): Promise<{
       }
 
       const reportDir = path.join(process.cwd(), 'reports')
-      await fs.mkdir(reportDir, {recursive: true})
+      await fs.mkdir(reportDir, { recursive: true })
       const timestamp = new Date().toISOString().replace(/:/g, '-')
       const fileName = `teacher_stats_update_${timestamp}.json`
       reportPath = path.join(reportDir, fileName)
@@ -173,7 +173,7 @@ export async function statsTeacherUpdate(): Promise<{
       console.log(`✅ Rapport généré: ${reportPath}`)
     } catch (error: any) {
       console.log(`ℹ️ Impossible de générer le rapport: ${error.message}`)
-      console.log("C'est normal si vous exécutez ce script sur Vercel.")
+      console.log('C\'est normal si vous exécutez ce script sur Vercel.')
     }
 
     // 4. Afficher le résumé
@@ -188,7 +188,7 @@ export async function statsTeacherUpdate(): Promise<{
 
     console.log('\n✅ MISE À JOUR RÉUSSIE: Statistiques des professeurs recalculées avec succès')
 
-    console.log(`\n===== FIN DE LA MISE À JOUR =====`)
+    console.log('\n===== FIN DE LA MISE À JOUR =====')
 
     return {
       success: true,
@@ -258,7 +258,7 @@ async function safeUpdateUserStats(teacherId: string, statsDocId: ObjectId) {
   try {
     // Tentative de mise à jour directe
     const updateResult = await User.updateOne(
-      {_id: teacherId},
+      { _id: teacherId },
       {
         $set: {
           stats: statsDocId,
@@ -318,7 +318,7 @@ async function safeUpdateUserStats(teacherId: string, statsDocId: ObjectId) {
     console.error('Erreur lors de la mise à jour des stats utilisateur:', error)
 
     // Log détaillé de l'erreur
-    console.error("Détails de l'erreur:", {
+    console.error('Détails de l\'erreur:', {
       name: error.name,
       message: error.message,
       stack: error.stack,

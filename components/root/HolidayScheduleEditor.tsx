@@ -1,20 +1,20 @@
 'use client'
 
-import {Save} from 'lucide-react'
-import {useSession} from 'next-auth/react'
-import {useForm} from 'react-hook-form'
+import { Save } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader} from '@/components/ui/card'
-import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import {useHolidays} from '@/context/Holidays/client'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {z} from 'zod'
+import { useHolidays } from '@/context/Holidays/client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 
 const holidaySchema = z
   .object({
@@ -40,9 +40,9 @@ const holidayFormSchema = z.object({
 type HolidayFormValues = z.infer<typeof holidayFormSchema>
 
 export const HolidayScheduleEditor = () => {
-  const {holidays, saveHolidays, isLoading, error} = useHolidays()
+  const { holidays, saveHolidays, isLoading, error } = useHolidays()
   const router = useRouter()
-  const {data: session} = useSession()
+  const { data: session } = useSession()
 
   // Fonction pour formater les dates
   const formatDateForInput = (dateString: Date) => {
@@ -64,7 +64,7 @@ export const HolidayScheduleEditor = () => {
     defaultValues: {
       holidays: formattedHolidays,
     },
-    values: {holidays: formattedHolidays},
+    values: { holidays: formattedHolidays },
     mode: 'onChange',
   })
 
@@ -103,7 +103,7 @@ export const HolidayScheduleEditor = () => {
                   control={form.control}
                   name={`holidays.${idx}.name`}
                   defaultValue={holiday.name}
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <Input className="w-full" placeholder="Nom de la période" {...field} />
@@ -118,7 +118,7 @@ export const HolidayScheduleEditor = () => {
                   control={form.control}
                   name={`holidays.${idx}.start`}
                   defaultValue={formatDateForInput(holiday.start)}
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem className="w-full">
                       <FormControl>
                         <Input type="date" className="w-full" {...field} />
@@ -132,7 +132,7 @@ export const HolidayScheduleEditor = () => {
                   control={form.control}
                   name={`holidays.${idx}.end`}
                   defaultValue={formatDateForInput(holiday.end)}
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem className="w-full">
                       <FormControl>
                         <Input type="date" className="w-full" {...field} />
@@ -146,7 +146,7 @@ export const HolidayScheduleEditor = () => {
                   control={form.control}
                   name={`holidays.${idx}.type`}
                   defaultValue={holiday.type}
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <SelectTrigger className="w-full">

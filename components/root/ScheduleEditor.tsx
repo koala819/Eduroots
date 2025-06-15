@@ -1,33 +1,33 @@
 'use client'
 
-import {Save} from 'lucide-react'
-import {createClient} from '@/utils/supabase/client'
-import {useForm} from 'react-hook-form'
+import { Save } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
+import { useForm } from 'react-hook-form'
 import React from 'react'
 
-import {Period, PeriodTypeEnum} from '@/types/supabase/schedule'
-import {TimeSlotEnum} from '@/types/supabase/courses'
+import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader} from '@/components/ui/card'
-import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import {useSchedules} from '@/context/Schedules/client'
-import {formatDayOfWeek} from '@/utils/helpers'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {z} from 'zod'
+import { useSchedules } from '@/context/Schedules/client'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 
 const periodSchema = z.object({
   startTime: z
     .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide")
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide')
     .refine((time) => {
       const [hours, minutes] = time.split(':').map(Number)
       return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59
-    }, "L'heure doit être valide"),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide"),
+    }, 'L\'heure doit être valide'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide'),
   type: z.enum([PeriodTypeEnum.CLASS, PeriodTypeEnum.BREAK]),
   order: z.number(),
 })
@@ -46,7 +46,7 @@ const scheduleFormSchema = z.record(z.string(), dayScheduleSchema).superRefine((
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              "L'heure de début doit être égale ou après l'heure de fin de la période précédente",
+              'L\'heure de début doit être égale ou après l\'heure de fin de la période précédente',
             path: [timeSlot, 'periods', index, 'startTime'],
           })
         }
@@ -55,7 +55,7 @@ const scheduleFormSchema = z.record(z.string(), dayScheduleSchema).superRefine((
       if (period.endTime <= period.startTime) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "L'heure de fin doit être après l'heure de début",
+          message: 'L\'heure de fin doit être après l\'heure de début',
           path: [timeSlot, 'periods', index, 'endTime'],
         })
       }
@@ -66,13 +66,13 @@ const scheduleFormSchema = z.record(z.string(), dayScheduleSchema).superRefine((
 type ScheduleFormValues = z.infer<typeof scheduleFormSchema>
 
 export const ScheduleEditor = () => {
-  const {schedules, saveSchedules, isLoading, error} = useSchedules()
+  const { schedules, saveSchedules, isLoading, error } = useSchedules()
   const supabase = createClient()
   const [userId, setUserId] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     const getUser = async () => {
-      const {data: {user}} = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       setUserId(user?.id ?? null)
     }
     getUser()
@@ -121,7 +121,7 @@ export const ScheduleEditor = () => {
                       control={form.control}
                       name={`${timeSlot}.periods.${idx}.startTime`}
                       defaultValue={period.startTime}
-                      render={({field}) => (
+                      render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <Input className="w-full" type="time" {...field} />
@@ -135,7 +135,7 @@ export const ScheduleEditor = () => {
                       control={form.control}
                       name={`${timeSlot}.periods.${idx}.endTime`}
                       defaultValue={period.endTime}
-                      render={({field}) => (
+                      render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <Input className="w-full" type="time" {...field} />
@@ -149,7 +149,7 @@ export const ScheduleEditor = () => {
                       control={form.control}
                       name={`${timeSlot}.periods.${idx}.type`}
                       defaultValue={period.type}
-                      render={({field}) => (
+                      render={({ field }) => (
                         <FormItem>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <SelectTrigger className="w-full">

@@ -1,15 +1,15 @@
-import {getToken} from 'next-auth/jwt'
-import {NextRequest, NextResponse} from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { NextRequest, NextResponse } from 'next/server'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     await dbConnect()
 
     // Récupérer tous les étudiants
-    const allStudents = await User.find({role: 'student'})
+    const allStudents = await User.find({ role: 'student' })
 
     // Filtrer les étudiants
     const studentsWithoutValidTeacher = await Promise.all(
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const filteredStudents = studentsWithoutValidTeacher.filter((student) => student !== null)
 
     if (filteredStudents.length > 0) {
-      return NextResponse.json({status: 200, data: filteredStudents})
+      return NextResponse.json({ status: 200, data: filteredStudents })
     } else {
       return NextResponse.json({
         status: 200,

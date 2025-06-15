@@ -1,4 +1,4 @@
-import {Metadata} from 'next'
+import { Metadata } from 'next'
 
 import NewStudentForm from '@/components/admin/organisms/client/NewStudentForm'
 

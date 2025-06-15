@@ -1,14 +1,14 @@
 'use client'
 
-import {Inbox, Menu, PenTool, Send, X} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Inbox, Menu, PenTool, Send, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
-import {usePathname} from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {cn} from '@/utils/helpers'
+import { cn } from '@/utils/helpers'
 
 const MailboxLayout = ({
   children,
@@ -31,7 +31,7 @@ const MailboxLayout = ({
       setIsAtTop(currentScroll <= 0)
     }
 
-    window.addEventListener('scroll', handleScroll, {passive: true})
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -41,8 +41,8 @@ const MailboxLayout = ({
   }, [pathname])
 
   const sidebarItems = [
-    {name: 'Boîte de réception', icon: Inbox, path: '/inbox'},
-    {name: 'Messages envoyés', icon: Send, path: '/sent'},
+    { name: 'Boîte de réception', icon: Inbox, path: '/inbox' },
+    { name: 'Messages envoyés', icon: Send, path: '/sent' },
   ]
 
   const currentItem = sidebarItems.find((item) => pathname.endsWith(item.path))

@@ -27,12 +27,12 @@ export default function SidebarMenu({
   pathname,
   navItems,
   isAdmin = false,
-  teacher
+  teacher,
 }: Readonly<SidebarMenuProps>) {
   function isActive(item: { href: string; pathPattern: string }) {
-  const pattern = new RegExp(item.pathPattern)
-  return pattern.test(pathname)
-}
+    const pattern = new RegExp(item.pathPattern)
+    return pattern.test(pathname)
+  }
 
   return (
     <>

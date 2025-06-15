@@ -1,13 +1,13 @@
-import {MessageBody} from '@/types/mongo/models'
+import { MessageBody } from '@/types/mongo/models'
 
-import {EMAIL_CONFIG, EmailUsageType} from '../config'
-import {mailBugAttendance} from './skinBugAttendance'
-import {mailBugBehavior} from './skinBugBehavior'
-import {mailCheckAdminCo} from './skinCheckAdminCo'
-import {sendOTP} from './skinOTP'
-import {skinUpdateStudentEmail} from './skinUpdateStudentEmail'
+import { EMAIL_CONFIG, EmailUsageType } from '../config'
+import { mailBugAttendance } from './skinBugAttendance'
+import { mailBugBehavior } from './skinBugBehavior'
+import { mailCheckAdminCo } from './skinCheckAdminCo'
+import { sendOTP } from './skinOTP'
+import { skinUpdateStudentEmail } from './skinUpdateStudentEmail'
 
-import {mailMessage} from '@/lib/mails/templates/skin'
+import { mailMessage } from '@/lib/mails/templates/skin'
 
 interface TemplateParams {
   body?: MessageBody

@@ -1,20 +1,20 @@
 'use client'
 
-import {Menu, Search, X} from 'lucide-react'
-import {useState} from 'react'
+import { Menu, Search, X } from 'lucide-react'
+import { useState } from 'react'
 
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export const DashBoardNavbar = () => {
   const [currentView, setCurrentView] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
-    {name: 'Tableau de bord', view: 'dashboard'},
-    {name: 'Élèves', view: 'students'},
-    {name: 'Classes', view: 'classes'},
-    {name: 'Enseignants', view: 'teachers'},
+    { name: 'Tableau de bord', view: 'dashboard' },
+    { name: 'Élèves', view: 'students' },
+    { name: 'Classes', view: 'classes' },
+    { name: 'Enseignants', view: 'teachers' },
   ]
   return (
     <div>

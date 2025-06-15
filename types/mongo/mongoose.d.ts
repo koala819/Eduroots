@@ -1,8 +1,8 @@
-import {GradeStats} from './grade'
-import {Holiday} from './holidays'
-import {Student, Teacher} from './user'
+import { GradeStats } from './grade'
+import { Holiday } from './holidays'
+import { Student, Teacher } from './user'
 
-import {Document} from 'mongoose'
+import { Document } from 'mongoose'
 
 // Base document type
 export interface MongooseDocument extends Document {

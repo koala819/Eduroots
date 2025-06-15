@@ -1,17 +1,17 @@
 'use client'
 
-import {Loader2} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import {Student} from '@/types/mongo/user'
+import { Student } from '@/types/mongo/user'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-import {useStudents} from '@/context/Students/client'
+import { useStudents } from '@/context/Students/client'
 
 export const StudentsWithoutCourses = () => {
-  const {getStudentsWithoutCourses, isLoading} = useStudents()
+  const { getStudentsWithoutCourses, isLoading } = useStudents()
   const [students, setStudents] = useState<Student[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
 
@@ -20,7 +20,7 @@ export const StudentsWithoutCourses = () => {
       const studentsData = await getStudentsWithoutCourses()
       // Tri alphabétique sur le prénom
       const sortedStudents = [...studentsData].sort((a, b) =>
-        a.firstname.localeCompare(b.firstname, 'fr', {sensitivity: 'base'}),
+        a.firstname.localeCompare(b.firstname, 'fr', { sensitivity: 'base' }),
       )
       setStudents(sortedStudents)
       setIsInitialLoading(false)

@@ -33,7 +33,7 @@ export const CourseMenuMobile = ({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       className="sticky top-0 z-40 bg-[#375073] text-white border-b border-[#375073]/20"
     >
       {/* Header avec informations du cours */}
@@ -47,7 +47,7 @@ export const CourseMenuMobile = ({
           {/* Bouton retour amélioré */}
           <motion.button
             whileTap={{ scale: 0.95 }}
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+            whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             onClick={() => router.push('/teacher/classroom')}
             className="flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-200"
           >
@@ -94,24 +94,24 @@ export const CourseMenuMobile = ({
           <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-1.5 border border-white/20">
             {/* Background BLANC pour l'onglet actif */}
 
-              <motion.div
-                key={activeView}
-                layoutId="activeViewBackground"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 30,
-                  opacity: { duration: 0.2 }
-                }}
-                className="absolute inset-1.5 bg-white rounded-xl shadow-lg"
-                style={{
-                  left: activeView === 'attendance' ? '6px' : '50%',
-                  width: 'calc(50% - 6px)',
-                }}
-              />
+            <motion.div
+              key={activeView}
+              layoutId="activeViewBackground"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 30,
+                opacity: { duration: 0.2 },
+              }}
+              className="absolute inset-1.5 bg-white rounded-xl shadow-lg"
+              style={{
+                left: activeView === 'attendance' ? '6px' : '50%',
+                width: 'calc(50% - 6px)',
+              }}
+            />
 
 
             {/* Boutons des vues */}

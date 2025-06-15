@@ -2,7 +2,7 @@
 import { CheckCircle2, Star, ArrowLeft, Clock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { CourseSessionWithRelations } from '@/types/supabase/courses'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { formatDayOfWeek } from '@/utils/helpers'
 
 const views = [
@@ -33,7 +33,7 @@ export const CourseMenuDesktop = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       className="w-full bg-gradient-to-br from-[#375073] via-[#375073] to-[#2d4059] text-white"
     >
       <div className="px-8 py-6">
@@ -48,7 +48,7 @@ export const CourseMenuDesktop = ({
           >
             {/* Bouton retour avec style moderne */}
             <motion.button
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.15)" }}
+              whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/teacher/classroom')}
               className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition-all duration-200 border border-white/20 flex-shrink-0"
@@ -106,17 +106,17 @@ export const CourseMenuDesktop = ({
                       width: isActive ? '90%' : '10%',
                     }}
                     transition={{
-                      type: "spring",
+                      type: 'spring',
                       stiffness: 300,
                       damping: 30,
-                      duration: 0.6
+                      duration: 0.6,
                     }}
                     className={`
                       relative flex items-center justify-center rounded-xl text-sm font-medium transition-all duration-300 h-full
                       ${isActive
-                        ? 'bg-white/20 backdrop-blur-md shadow-lg border border-white/30 text-white'
-                        : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-                      }
+                    ? 'bg-white/20 backdrop-blur-md shadow-lg border border-white/30 text-white'
+                    : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+                  }
                     `}
                   >
                     {/* Contenu de l'onglet actif (90%) */}

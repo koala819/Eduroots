@@ -1,11 +1,11 @@
-import {LogOut, LucideIcon, Menu, Plus, Settings} from 'lucide-react'
+import { LogOut, LucideIcon, Menu, Plus, Settings } from 'lucide-react'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 import Image from 'next/image'
 
-import {Button} from '@/components/ui/button'
-import {ScrollArea} from '@/components/ui/scroll-area'
-import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 type NavItem = {
   href: string

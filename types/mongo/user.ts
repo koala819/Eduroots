@@ -1,25 +1,6 @@
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/supabase/user'
 import { SubjectNameEnum } from './course'
 import { RootEntity } from './root'
-
-export type UserRole = 'student' | 'teacher' | 'admin' | 'bureau'
-
-export enum UserRoleEnum {
-  Student = 'student',
-  Teacher = 'teacher',
-  Admin = 'admin',
-  Bureau = 'bureau',
-}
-
-export enum GenderEnum {
-  Masculin = 'masculin',
-  Feminin = 'féminin',
-}
-
-export enum UserType {
-  Student = 'student',
-  Parent = 'parent',
-  Both = 'both',
-}
 
 export type User = Student | Teacher | (BaseUser & { role: 'admin' | 'bureau' })
 

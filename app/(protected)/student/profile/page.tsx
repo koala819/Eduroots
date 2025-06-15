@@ -1,12 +1,12 @@
-import {getServerSession} from 'next-auth'
-import {redirect} from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 
-import {Student} from '@/types/mongo/user'
+import { Student } from '@/types/mongo/user'
 
 import StudentInfo from '@/components/organisms/server/StudentInfo'
 
-import {getAllStudents} from '@/app/actions/context/students'
-import {authOptions} from '@/lib/authOptions'
+import { getAllStudents } from '@/app/actions/context/students'
+import { authOptions } from '@/lib/authOptions'
 
 export default async function FamilyPage() {
   const session = await getServerSession(authOptions)

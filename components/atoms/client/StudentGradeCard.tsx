@@ -1,8 +1,8 @@
 'use client'
 
-import {ReactNode} from 'react'
+import { ReactNode } from 'react'
 
-import {SubjectNameEnum} from '@/types/mongo/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
 interface SubjectGrade {
   subject: string
@@ -19,22 +19,22 @@ interface GradeCardProps {
 // Fonction pour déterminer la couleur en fonction de la matière
 const getSubjectColor = (subject: string) => {
   switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'bg-emerald-100 text-emerald-700'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'bg-blue-100 text-blue-700'
+  case SubjectNameEnum.Arabe:
+    return 'bg-emerald-100 text-emerald-700'
+  case SubjectNameEnum.EducationCulturelle:
+    return 'bg-blue-100 text-blue-700'
     // case 'Français':
     //   return 'bg-indigo-100 text-indigo-700'
     // case 'Mathématiques':
     //   return 'bg-purple-100 text-purple-700'
     // case 'Sciences':
     //   return 'bg-orange-100 text-orange-700'
-    default:
-      return 'bg-slate-100 text-slate-700'
+  default:
+    return 'bg-slate-100 text-slate-700'
   }
 }
 
-export const GradeCard = ({title, icon, subjectGrades}: GradeCardProps) => {
+export const GradeCard = ({ title, icon, subjectGrades }: GradeCardProps) => {
   return (
     <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white">
       <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-green-400"></div>

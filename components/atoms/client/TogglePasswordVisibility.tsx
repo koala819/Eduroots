@@ -1,8 +1,8 @@
 'use client'
 
-import {Eye, EyeOff} from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
-import {TogglePasswordVisibilityProps} from '@/types/mongo/models'
+import { TogglePasswordVisibilityProps } from '@/types/mongo/models'
 
 const TogglePasswordVisibility: React.FC<TogglePasswordVisibilityProps> = ({
   showPwd,

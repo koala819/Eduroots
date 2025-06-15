@@ -1,12 +1,12 @@
 'use client'
 
-import {useCallback, useState} from 'react'
+import { useCallback, useState } from 'react'
 
-import {Message} from '@/types/mongo/message'
+import { Message } from '@/types/mongo/message'
 
-import {MessageAttachment} from '@/components/atoms/client/MessageAttachment'
-import {MessageActionButtons} from '@/components/molecules/client/MessageActionButtons'
-import {Separator} from '@/components/ui/separator'
+import { MessageAttachment } from '@/components/atoms/client/MessageAttachment'
+import { MessageActionButtons } from '@/components/molecules/client/MessageActionButtons'
+import { Separator } from '@/components/ui/separator'
 
 interface MessageViewerProps {
   message: Message
@@ -44,7 +44,7 @@ export function MessageViewer({
         <Separator />
         <div className="flex-1 p-2 sm:p-4 text-sm prose prose-sm max-w-none overflow-x-auto">
           <div
-            dangerouslySetInnerHTML={{__html: message.message}}
+            dangerouslySetInnerHTML={{ __html: message.message }}
             className="[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1"
           />
           {message.attachmentUrl && <MessageAttachment url={message.attachmentUrl} />}

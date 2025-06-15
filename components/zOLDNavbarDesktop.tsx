@@ -1,9 +1,9 @@
-import {LucideIcon, Settings} from 'lucide-react'
+import { LucideIcon, Settings } from 'lucide-react'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 import Image from 'next/image'
 
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 type NavItem = {
   href: string

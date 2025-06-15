@@ -1,15 +1,15 @@
-import {getToken} from 'next-auth/jwt'
-import {NextRequest, NextResponse} from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { NextRequest, NextResponse } from 'next/server'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Behavior} from '@/zOLDbackend/models/zOLDbehavior.model'
+import { Behavior } from '@/zOLDbackend/models/zOLDbehavior.model'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     if (sessionId) {
       // Récupérer un comportement spécifique
-      behaviorRecords = await Behavior.find({_id: sessionId})
+      behaviorRecords = await Behavior.find({ _id: sessionId })
         .populate('teacher')
         .populate('students._id')
         .lean()
@@ -50,10 +50,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     // console.log('\n\n\nbody', body, '\n\n\n')
-    const {students, teacher, session, date} = body
+    const { students, teacher, session, date } = body
     // console.log('\n\n\nstudents', students)
     // console.log('teacher', teacher)
     // console.log('session', session)
@@ -91,17 +91,17 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
 
   const body = await req.json()
-  const {behaviorId, updatedStudents} = body
+  const { behaviorId, updatedStudents } = body
   // console.log(
   //   '\n\n\nupdatedStudents',
   //   updatedStudents,
@@ -121,8 +121,8 @@ export async function PUT(req: NextRequest) {
 
     const updatedAttendance = await Behavior.findByIdAndUpdate(
       behaviorId,
-      {$set: {students: updatedStudents}},
-      {new: true},
+      { $set: { students: updatedStudents } },
+      { new: true },
     )
 
     if (!updatedAttendance) {

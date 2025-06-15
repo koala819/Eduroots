@@ -1,27 +1,27 @@
 'use client'
 
-import {useEffect, useMemo, useState} from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import {PopulatedCourse} from '@/types/mongo/course'
-import {CourseStats, StudentStats} from '@/types/mongo/stats'
-import {Student, Teacher} from '@/types/mongo/user'
+import { PopulatedCourse } from '@/types/mongo/course'
+import { CourseStats, StudentStats } from '@/types/mongo/stats'
+import { Student, Teacher } from '@/types/mongo/user'
 
 import StudentSelector from '@/components/atoms/client/StudentSelector'
 import StudentDetailsSkeleton from '@/components/atoms/server/StudentDetailsSkeleton'
 import ChildStats from '@/components/molecules/client/StudentStats'
 
-import {useCourses} from '@/context/Courses/client'
-import {useStats} from '@/context/Stats/client'
-import {useTeachers} from '@/context/Teachers/client'
+import { useCourses } from '@/context/Courses/client'
+import { useStats } from '@/context/Stats/client'
+import { useTeachers } from '@/context/Teachers/client'
 
 interface StudentDashboardProps {
   familyStudents: Student[]
 }
 
-export default function StudentDashboard({familyStudents}: StudentDashboardProps) {
-  const {getCourseByIdForStudent} = useCourses()
-  const {getStudentAttendance, getStudentBehavior, getStudentGrade} = useStats()
-  const {getOneTeacher} = useTeachers()
+export default function StudentDashboard({ familyStudents }: StudentDashboardProps) {
+  const { getCourseByIdForStudent } = useCourses()
+  const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()
+  const { getOneTeacher } = useTeachers()
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
   const [detailedAttendance, setDetailedAttendance] = useState<StudentStats>()

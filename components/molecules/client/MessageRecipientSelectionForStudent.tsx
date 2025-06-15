@@ -1,17 +1,17 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {UseFormReturn} from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 
-import {Teacher} from '@/types/mongo/user'
-import {FormFields} from '@/types/mongo/writeMessage'
+import { Teacher } from '@/types/mongo/user'
+import { FormFields } from '@/types/mongo/writeMessage'
 
-import {Badge} from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 
-import {useStudents} from '@/context/Students/client'
-import {calculateValidEmails} from '@/lib/writeMessage'
+import { useStudents } from '@/context/Students/client'
+import { calculateValidEmails } from '@/lib/writeMessage'
 
 interface RecipientForStudentProps {
   onValidEmailsChange: (emails: string[]) => void
@@ -30,7 +30,7 @@ export const RecipientForStudent = ({
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   // Hooks
-  const {getTeachersForStudent} = useStudents()
+  const { getTeachersForStudent } = useStudents()
 
   // Trouver les professeurs de l'étudiant
   useEffect(() => {
@@ -53,7 +53,7 @@ export const RecipientForStudent = ({
 
   // Observer pour les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, {name}) => {
+    const subscription = form.watch((value, { name }) => {
       if (name === 'recipients') {
         const validEmails = calculateValidEmails(value.recipients as string[], teachersList)
         onValidEmailsChange(validEmails)

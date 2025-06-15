@@ -1,20 +1,20 @@
 'use client'
 
-import {BarChart2, CheckCircle, Clock, NotebookText, XCircle} from 'lucide-react'
-import {useEffect, useState} from 'react'
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { BarChart2, CheckCircle, Clock, NotebookText, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {PopulatedCourse} from '@/types/mongo/course'
-import {GenderEnum, Student} from '@/types/mongo/user'
+import { GenderEnum } from '@/types/supabase/user'
+import {  User } from '@/types/supabase/db'
+import { Button } from '@/components/ui/button'
 
-import {Button} from '@/components/ui/button'
-
-import {useAttendance} from '@/context/Attendances/client'
-import {useCourses} from '@/context/Courses/client'
-import {motion} from 'framer-motion'
+import { useAttendance } from '@/context/Attendances/client'
+import { useCourses } from '@/context/Courses/client'
+import { motion } from 'framer-motion'
+import { CourseSessionWithRelations } from '@/types/supabase/courses'
 
 interface AttendanceCreateProps {
-  students: Student[]
+  students: User[]
   onClose: () => void
   date: string
   courseId: string
@@ -26,17 +26,22 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   date,
   courseId,
 }) => {
-  const {createAttendanceRecord} = useAttendance()
-  const {getCourseSessionById, isLoadingCourse} = useCourses()
-  const [course, setCourse] = useState<PopulatedCourse | null>(null)
+  const { createAttendanceRecord } = useAttendance()
+  const { getCourseSessionById, isLoadingCourse } = useCourses()
+  const [course, setCourse] = useState<CourseSessionWithRelations | null>(null)
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [attendanceData, setAttendanceData] = useState<{
     [key: string]: boolean
-  }>(students.reduce((acc, student) => ({...acc, [student._id]: true}), {}))
+  }>(students.reduce((acc, student) => ({ ...acc, [student.id]: true }), {}))
 
   useEffect(() => {
     async function fecthCourse() {
       const course = await getCourseSessionById(courseId)
+
+      if (!course) {
+        return
+      }
+
       setCourse(course)
     }
     fecthCourse()
@@ -60,11 +65,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         courseId: courseId,
         date: date,
         records: records,
-        sessionId: course?.sessions?.[0]?.id || '',
+        sessionId: course?.id ?? '',
       })
       onClose()
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de l'attendance:", error)
+      console.error('Erreur lors de l\'enregistrement de l\'attendance:', error)
     } finally {
       setIsRecording(false)
     }
@@ -82,11 +87,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
         ></div>
       </div>
     )
@@ -95,10 +100,10 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
-        initial={{opacity: 0, height: 0}}
-        animate={{opacity: 1, height: 'auto'}}
-        exit={{opacity: 0, height: 0}}
-        transition={{duration: 0.3}}
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3 }}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
       >
         <div className="space-y-6">
@@ -112,14 +117,14 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <BarChart2 className="w-5 h-5 shrink-0 text-gray-400" />
                       <span className="text-sm text-gray-700">
-                        Niveau {course.sessions[0].level}
+                        Niveau {course.level}
                       </span>
                     </div>
 
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">{course.sessions[0].subject}</span>
+                      <span className="text-sm text-gray-700">{course.subject}</span>
                     </div>
 
                     {/* Date */}
@@ -143,11 +148,11 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                   .map((student) => {
                     return (
                       <motion.li
-                        key={student._id}
+                        key={student.id}
                         className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
-                        onClick={() => handleTogglePresence(student._id)}
-                        whileHover={{scale: 1.02}}
-                        whileTap={{scale: 0.98}}
+                        onClick={() => handleTogglePresence(student.id)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center space-x-3">
                           {student.gender === GenderEnum.Masculin ? (
@@ -162,14 +167,14 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                         </div>
                         <motion.div
                           className={`transition-all duration-300 ${
-                            attendanceData[student._id]
+                            attendanceData[student.id]
                               ? 'text-green-500 bg-green-50'
                               : 'text-red-500 bg-red-50'
                           } p-2 rounded-full`}
-                          whileHover={{scale: 1.1}}
-                          whileTap={{scale: 0.9}}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                         >
-                          {attendanceData[student._id] ? (
+                          {attendanceData[student.id] ? (
                             <CheckCircle className="h-6 w-6" />
                           ) : (
                             <XCircle className="h-6 w-6" />

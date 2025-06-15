@@ -1,15 +1,14 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {Student} from '@/types/mongo/user'
-import {AttendanceCreate} from '@/components/atoms/client/AttendanceCreate'
-import {AttendanceEdit} from '@/components/atoms/client/AttendanceEdit'
-import {AttendanceTable} from '@/components/atoms/client/AttendanceTable'
-import {Card, CardContent} from '@/components/ui/card'
-import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
-import {useAttendance} from '@/context/Attendances/client'
-import {useCourses} from '@/context/Courses/client'
-import {AnimatePresence} from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { AttendanceCreate } from '@/components/atoms/client/AttendanceCreate'
+import { AttendanceEdit } from '@/components/atoms/client/AttendanceEdit'
+import { AttendanceTable } from '@/components/atoms/client/AttendanceTable'
+import { Card, CardContent } from '@/components/ui/card'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import { useAttendance } from '@/context/Attendances/client'
+import { useCourses } from '@/context/Courses/client'
+import { AnimatePresence } from 'framer-motion'
 import useCourseStore from '@/stores/useCourseStore'
 import { createClient } from '@/utils/supabase/client'
 
@@ -24,8 +23,8 @@ export const DashboardAttendanceT = ({
   }) => {
   const [user, setUser] = useState<any>(null)
   const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
-  const {fetchTeacherCourses} = useCourseStore()
-  const {allAttendance, fetchAttendances, error} = useAttendance()
+  const { fetchTeacherCourses } = useCourseStore()
+  const { allAttendance, fetchAttendances, error } = useAttendance()
 
   const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
   const [isEditingAttendance, setIsEdittingAttendance] = useState<boolean>(false)
@@ -33,7 +32,7 @@ export const DashboardAttendanceT = ({
   const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
 
-    useEffect(() => {
+  useEffect(() => {
     const getUser = async () => {
       const supabase = createClient()
       const { data: { user }, error } = await supabase.auth.getUser()
@@ -42,7 +41,7 @@ export const DashboardAttendanceT = ({
       }
     }
     getUser()
-    }, [])
+  }, [])
 
 
   useEffect(() => {
@@ -51,7 +50,7 @@ export const DashboardAttendanceT = ({
 
       setIsLoadingAttendance(true)
       try {
-        await Promise.all([fetchAttendances({courseId}), fetchTeacherCourses(user.id)])
+        await Promise.all([fetchAttendances({ courseId }), fetchTeacherCourses(user.id)])
       } catch (err) {
         console.error('Error loading attendance:', err)
       } finally {
@@ -79,7 +78,7 @@ export const DashboardAttendanceT = ({
     await new Promise((resolve) => setTimeout(resolve, 100))
     // Recharger les données sans recharger toute la page
     if (courseId) {
-      await fetchAttendances({courseId})
+      await fetchAttendances({ courseId })
     }
   }
 
@@ -87,7 +86,7 @@ export const DashboardAttendanceT = ({
     setIsEdittingAttendance(false)
     // Recharger les données sans recharger toute la page
     if (courseId) {
-      await fetchAttendances({courseId})
+      await fetchAttendances({ courseId })
     }
   }
 
@@ -97,11 +96,11 @@ export const DashboardAttendanceT = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
         />
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
         />
       </div>
     )

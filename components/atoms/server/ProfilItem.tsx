@@ -1,6 +1,6 @@
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {MenuItem} from '@/app/(protected)/teacher/profiles/page'
+import { MenuItem } from '@/app/(protected)/teacher/profiles/page'
 
 export const ProfileItem = ({
   icon,

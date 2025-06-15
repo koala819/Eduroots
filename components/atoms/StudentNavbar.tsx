@@ -1,12 +1,12 @@
 'use client'
 
-import {Home, LogOut, Mail, User} from 'lucide-react'
-import {signOut} from 'next-auth/react'
+import { Home, LogOut, Mail, User } from 'lucide-react'
+import { signOut } from 'next-auth/react'
 
 import Link from 'next/link'
-import {usePathname} from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
-import {cn} from '@/utils/helpers'
+import { cn } from '@/utils/helpers'
 
 export default function StudentNavbarMobile() {
   const pathname = usePathname()

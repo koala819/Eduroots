@@ -1,14 +1,14 @@
-import {ProfileItem} from '@/components/atoms/server/ProfilItem'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import { ProfileItem } from '@/components/atoms/server/ProfilItem'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import {MenuItem as TypeItem} from '@/app/(protected)/teacher/profiles/page'
+import { MenuItem as TypeItem } from '@/app/(protected)/teacher/profiles/page'
 
 type ProfileSectionProps = {
   title: string
   items: TypeItem[]
 }
 
-export const ProfileSection = ({title, items}: ProfileSectionProps) => {
+export const ProfileSection = ({ title, items }: ProfileSectionProps) => {
   return (
     <Card className="mb-6">
       <CardHeader>

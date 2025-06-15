@@ -1,6 +1,6 @@
-import {TimeSlotEnum} from '@/types/mongo/course'
-import {TeacherStats} from '@/types/mongo/stats'
-import {GenderEnum} from '@/types/mongo/user'
+import { TimeSlotEnum } from '@/types/mongo/course'
+import { TeacherStats } from '@/types/mongo/stats'
+import { GenderEnum } from '@/types/mongo/user'
 
 import {
   TeacherSession,
@@ -85,7 +85,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
               teacherStudents = await calculateTeacherStats(teacher.teacherId)
             } catch (error) {
               console.error(
-                `Erreur lors de la collecte des étudiants pour 67937d4373ff32f60b3b7e16`,
+                'Erreur lors de la collecte des étudiants pour 67937d4373ff32f60b3b7e16',
                 error,
               )
             }
@@ -110,7 +110,7 @@ export async function statsTeacherCheck(): Promise<StatsCheckResult> {
       backupPath: null,
     }
   } catch (error) {
-    console.error("Erreur lors de l'analyse des sessions:", error)
+    console.error('Erreur lors de l\'analyse des sessions:', error)
 
     return {
       success: false,

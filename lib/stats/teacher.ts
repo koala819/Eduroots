@@ -1,11 +1,11 @@
-import {CourseSession, TimeSlotEnum} from '@/types/mongo/course'
-import {GenderEnum, User} from '@/types/mongo/user'
+import { CourseSession, TimeSlotEnum } from '@/types/mongo/course'
+import { GenderEnum, User } from '@/types/mongo/user'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Course as CourseCollection} from '@/zOLDbackend/models/zOLDcourse.model'
-import {User as UserCollection} from '@/zOLDbackend/models/zOLDuser.model'
-import {formatDayOfWeek} from '@/utils/helpers'
-import {differenceInYears} from 'date-fns'
+import { Course as CourseCollection } from '@/zOLDbackend/models/zOLDcourse.model'
+import { User as UserCollection } from '@/zOLDbackend/models/zOLDuser.model'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { differenceInYears } from 'date-fns'
 
 const CURRENT_ACADEMIC_YEAR = '2024'
 
@@ -42,7 +42,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
     await dbConnect()
 
     // Récupérer tous les professeurs
-    const teachers = await UserCollection.find({role: 'teacher'})
+    const teachers = await UserCollection.find({ role: 'teacher' })
 
     // Récupérer tous les cours actifs pour l'année académique
     const courses = await CourseCollection.find({
@@ -161,7 +161,7 @@ export async function analyzeTeacherSessions(): Promise<TeacherAnalytics> {
       //   teacherStats,
     }
   } catch (error) {
-    console.error("Erreur lors de l'analyse des sessions:", error)
+    console.error('Erreur lors de l\'analyse des sessions:', error)
     throw error
   }
 }
@@ -179,7 +179,7 @@ export async function calculateStudentAgeStatistics(studentIds: string[]): Promi
     const students = await UserCollection.find({
       _id: studentIds,
       role: 'student',
-      dateOfBirth: {$ne: null},
+      dateOfBirth: { $ne: null },
     }).select('dateOfBirth')
 
     // Calculate ages

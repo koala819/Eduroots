@@ -1,4 +1,4 @@
-import {Document, Model, Schema} from 'mongoose'
+import { Document, Model, Schema } from 'mongoose'
 
 export interface AppConfig {
   studentPassword?: string

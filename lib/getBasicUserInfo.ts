@@ -1,7 +1,7 @@
-import {Student, Teacher} from '@/types/mongo/user'
+import { Student, Teacher } from '@/types/mongo/user'
 
-import {getOneStudent} from '@/app/actions/context/students'
-import {getOneTeacher} from '@/app/actions/context/teachers'
+import { getOneStudent } from '@/app/actions/context/students'
+import { getOneTeacher } from '@/app/actions/context/teachers'
 
 export async function getBasicUserInfo(
   type: 'teacher' | 'student',

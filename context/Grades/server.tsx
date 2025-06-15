@@ -1,9 +1,9 @@
 'use server'
 
-import {PopulatedGrade} from '@/types/mongo/grade'
+import { PopulatedGrade } from '@/types/mongo/grade'
 
-import {getTeacherGrades} from '@/app/actions/context/grades'
-import {GradesProvider} from '@/context/Grades/client'
+import { getTeacherGrades } from '@/app/actions/context/grades'
+import { GradesProvider } from '@/context/Grades/client'
 
 interface CoursesServerComponentProps {
   children: React.ReactNode

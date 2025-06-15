@@ -1,20 +1,20 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {UseFormReturn} from 'react-hook-form'
-import {FixedSizeList as List} from 'react-window'
+import { useEffect, useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
+import { FixedSizeList as List } from 'react-window'
 
-import {Student} from '@/types/mongo/user'
-import {FormFields, RecipientType, SelectionModeType} from '@/types/mongo/writeMessage'
+import { Student } from '@/types/mongo/user'
+import { FormFields, RecipientType, SelectionModeType } from '@/types/mongo/writeMessage'
 
-import {CustomCheckbox} from '@/components/atoms/client/MessageCustomCheckbox'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
+import { CustomCheckbox } from '@/components/atoms/client/MessageCustomCheckbox'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
-import {useStudents} from '@/context/Students/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
+import { useStudents } from '@/context/Students/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { calculateValidEmails, isValidStudent } from '@/lib/writeMessage'
 
 interface RecipientForAdminProps {
   selectionMode: SelectionModeType
@@ -30,8 +30,8 @@ export const RecipientForAdmin = ({
   form,
 }: RecipientForAdminProps) => {
   // Hooks pour récupérer les données
-  const {students, isLoading} = useStudents()
-  const {getStudentsByTeacher, teachers} = useTeachers()
+  const { students, isLoading } = useStudents()
+  const { getStudentsByTeacher, teachers } = useTeachers()
 
   // États locaux pour l'UI
   const [recipientType, setRecipientType] = useState<RecipientType>(null)
@@ -57,25 +57,25 @@ export const RecipientForAdmin = ({
   // Calculer les étudiants filtrés (pour la recherche)
   const filteredStudents = students
     ? students.filter(
-        (student) =>
-          isValidStudent(student) &&
+      (student) =>
+        isValidStudent(student) &&
           (!searchQuery ||
             `${student.firstname} ${student.lastname}`.toLowerCase().includes(searchQuery)),
-      )
+    )
     : []
 
   const filteredInvalidStudents = students
     ? students.filter(
-        (student) =>
-          !isValidStudent(student) &&
+      (student) =>
+        !isValidStudent(student) &&
           (!searchQuery ||
             `${student.firstname} ${student.lastname}`.toLowerCase().includes(searchQuery)),
-      )
+    )
     : []
 
   // Observer pour les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, {name}) => {
+    const subscription = form.watch((value, { name }) => {
       if (name === 'recipients') {
         const validEmails = calculateValidEmails(value.recipients as string[], [
           ...students,
@@ -117,7 +117,7 @@ export const RecipientForAdmin = ({
 
       setTeacherStudents((prev) => ({
         ...prev,
-        [teacherId]: {valid: validStudents, invalid: invalidStudents},
+        [teacherId]: { valid: validStudents, invalid: invalidStudents },
       }))
     } catch (error) {
       console.error('Erreur lors du chargement des étudiants :', error)
@@ -139,7 +139,7 @@ export const RecipientForAdmin = ({
   }
 
   // Rendu des éléments virtualisés
-  const StudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
+  const StudentItem = ({ index, style }: {index: number; style: React.CSSProperties}) => {
     const student = filteredStudents[index]
     return (
       <div style={style}>
@@ -148,7 +148,7 @@ export const RecipientForAdmin = ({
     )
   }
 
-  const InvalidStudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
+  const InvalidStudentItem = ({ index, style }: {index: number; style: React.CSSProperties}) => {
     const student = filteredInvalidStudents[index]
     return (
       <div

@@ -1,14 +1,14 @@
-import {Student} from '@/types/mongo/user'
+import { Student } from '@/types/mongo/user'
 
 import StudentContact from '@/components/atoms/server/StudentContact'
 import StudentChild from '@/components/molecules/server/StudentChild'
-import {Card, CardContent, CardFooter, CardHeader} from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 
 interface FamilyInfoCardProps {
   data: Student[]
 }
 
-const StudentInfo = ({data}: FamilyInfoCardProps) => {
+const StudentInfo = ({ data }: FamilyInfoCardProps) => {
   return (
     <Card className="max-w-xl w-full mx-auto">
       <CardHeader className="flex flex-row items-center gap-4 pb-4">

@@ -1,17 +1,17 @@
-import {getToken} from 'next-auth/jwt'
-import {NextRequest, NextResponse} from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { NextRequest, NextResponse } from 'next/server'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
-import {validateRequest} from '@/lib/api.utils'
-import {formatName} from '@/utils/helpers'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
+import { validateRequest } from '@/lib/api.utils'
+import { formatName } from '@/utils/helpers'
 
 export async function DELETE(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
@@ -19,7 +19,7 @@ export async function DELETE(req: NextRequest) {
   await dbConnect()
 
   try {
-    const {id} = await req.json()
+    const { id } = await req.json()
 
     const deletedStudent = await User.findOneAndDelete({
       _id: id,
@@ -48,23 +48,23 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   if (!token || !token.user) {
     return NextResponse.json({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   }
   // console.log('\n\n\ntoken', token)
 
-  const {role, _id: userId} = token.user as {role: string; _id: string}
+  const { role, _id: userId } = token.user as {role: string; _id: string}
   // console.log('\n\n\napi/users/student\nrole', role, '\nuserId', userId)
 
   try {
     await dbConnect()
 
-    const {searchParams} = new URL(req.url)
+    const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
     const page = searchParams.get('page')
     const limit = searchParams.get('limit')
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     if (role !== 'admin' && role !== 'bureau') {
       if (!teacherId && !sessionId && role !== 'teacher') {
         return NextResponse.json({
-          statusText: "Vous n'avez pas les droits pour accéder à tous les étudiants",
+          statusText: 'Vous n\'avez pas les droits pour accéder à tous les étudiants',
           status: 403,
         })
       }
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         })
         return NextResponse.json({
           status: 200,
-          statusText: "Vous ne pouvez accéder qu'à vos propres étudiants",
+          statusText: 'Vous ne pouvez accéder qu\'à vos propres étudiants',
           data: teacherStudents,
           userRole: role,
         })
@@ -107,9 +107,9 @@ export async function GET(req: NextRequest) {
       const limitNumber = parseInt(limit)
       const skip = (pageNumber - 1) * limitNumber
 
-      const students = await User.find({role: 'student'}).skip(skip).limit(limitNumber).lean()
+      const students = await User.find({ role: 'student' }).skip(skip).limit(limitNumber).lean()
 
-      const totalStudents = await User.countDocuments({role: 'student'})
+      const totalStudents = await User.countDocuments({ role: 'student' })
 
       return NextResponse.json({
         status: 200,
@@ -125,15 +125,15 @@ export async function GET(req: NextRequest) {
           role: 'student',
           teacher: teacherId,
         })
-        return NextResponse.json({status: 200, data: students})
+        return NextResponse.json({ status: 200, data: students })
       }
 
-      const students = await User.find({role: 'student'})
+      const students = await User.find({ role: 'student' })
 
       if (students.length > 0) {
-        return NextResponse.json({status: 200, data: students})
+        return NextResponse.json({ status: 200, data: students })
       } else {
-        return NextResponse.json({status: 404, message: 'No students found'})
+        return NextResponse.json({ status: 404, message: 'No students found' })
       }
     }
   } catch (error: any) {
@@ -146,10 +146,10 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
     if (!token || !token.user) {
       return NextResponse.json({
-        statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+        statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
         status: 401,
       })
     }
@@ -174,7 +174,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Récupérer l'étudiant actuel
-    const currentStudent = await User.findOne({_id: id, role: 'student'})
+    const currentStudent = await User.findOne({ _id: id, role: 'student' })
     if (!currentStudent) {
       return NextResponse.json({
         status: 404,
@@ -183,16 +183,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Formater le prénom et le nom
-    const {firstName, lastName} = formatName(currentStudent.firstname, currentStudent.lastname)
+    const { firstName, lastName } = formatName(currentStudent.firstname, currentStudent.lastname)
 
     const updatedStudent = await User.findOneAndUpdate(
-      {_id: id, role: 'student'},
+      { _id: id, role: 'student' },
       {
         gender: body,
         firstname: firstName,
         lastname: lastName,
       },
-      {new: true},
+      { new: true },
     )
 
     if (!updatedStudent) {
@@ -209,10 +209,10 @@ export async function PATCH(req: NextRequest) {
       data: updatedStudent,
     })
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'étudiant:", error)
+    console.error('Erreur lors de la mise à jour de l\'étudiant:', error)
     return NextResponse.json({
       status: 500,
-      statusText: "Erreur serveur lors de la mise à jour de l'étudiant",
+      statusText: 'Erreur serveur lors de la mise à jour de l\'étudiant',
     })
   }
 }
@@ -267,24 +267,24 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
     if (!token || !token.user) {
       return NextResponse.json({
-        statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+        statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
         status: 401,
       })
     }
 
     await dbConnect()
 
-    const {dateOfBirth, email, gender, id, firstname, lastname, secondaryEmail, session, teacher} =
+    const { dateOfBirth, email, gender, id, firstname, lastname, secondaryEmail, session, teacher } =
       await req.json()
 
     // console.log('\n\n\nsession', session)
 
     const updatedStudent = await User.findOneAndUpdate(
-      {_id: id, role: 'student'},
+      { _id: id, role: 'student' },
       {
         dateOfBirth,
         gender,
@@ -295,7 +295,7 @@ export async function PUT(req: NextRequest) {
         secondaryEmail,
         teacher,
       },
-      {new: true},
+      { new: true },
     )
 
     if (!updatedStudent) {
@@ -321,7 +321,7 @@ export async function PUT(req: NextRequest) {
 
 async function fetchStudentFromDatabase(id: string) {
   try {
-    const student = await User.findOne({_id: id, role: 'student'})
+    const student = await User.findOne({ _id: id, role: 'student' })
     if (!student) {
       return NextResponse.json({
         status: 404,

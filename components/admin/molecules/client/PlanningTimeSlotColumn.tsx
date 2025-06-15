@@ -1,8 +1,8 @@
 'use client'
 
-import {CourseSession} from '@/types/mongo/course'
+import { CourseSession } from '@/types/mongo/course'
 
-import {TeacherCard} from '@/components/admin/atoms/client/PlanningTeacherCard'
+import { TeacherCard } from '@/components/admin/atoms/client/PlanningTeacherCard'
 
 type FixedTimeSlot = {
   startTime: string

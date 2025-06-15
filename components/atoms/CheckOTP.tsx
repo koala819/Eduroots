@@ -1,24 +1,24 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useForm} from 'react-hook-form'
-import {toast} from 'react-toastify'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
 
-import {CheckOTPProps} from '@/types/mongo/models'
+import { CheckOTPProps } from '@/types/mongo/models'
 
-import {Button} from '@/components/ui/button'
-import {Form, FormControl, FormField, FormItem, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 
-import {sendEmailNotification} from '@/lib/mails/emailService'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { sendEmailNotification } from '@/lib/mails/emailService'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const formSchema = z.object({
   otp: z.array(z.string().length(1)).length(4),
 })
 
-const CheckOTP: React.FC<CheckOTPProps> = ({email, otp, onOTPVerified, otpExpirationTime}) => {
+const CheckOTP: React.FC<CheckOTPProps> = ({ email, otp, onOTPVerified, otpExpirationTime }) => {
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true)
   const [remainingTime, setRemainingTime] = useState<number>(0)
   const [timerCount, setTimerCount] = useState<number>(300) // 5 minutes
@@ -104,8 +104,8 @@ const CheckOTP: React.FC<CheckOTPProps> = ({email, otp, onOTPVerified, otpExpira
 
       toast.success('Nouveau code OTP envoyé')
     } catch (error) {
-      console.error("Erreur lors de l'envoi du mail:", error)
-      toast.error("Erreur lors de l'envoi du nouveau code OTP")
+      console.error('Erreur lors de l\'envoi du mail:', error)
+      toast.error('Erreur lors de l\'envoi du nouveau code OTP')
     }
   }
 
@@ -118,7 +118,7 @@ const CheckOTP: React.FC<CheckOTPProps> = ({email, otp, onOTPVerified, otpExpira
               key={index}
               control={form.control}
               name={`otp.${index}`}
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input

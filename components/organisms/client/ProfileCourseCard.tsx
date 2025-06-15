@@ -1,24 +1,24 @@
 'use client'
 
-import {Users} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import {StudentStats} from '@/types/mongo/stats'
-import {Student} from '@/types/mongo/user'
+import { StudentStats } from '@/types/mongo/stats'
+import { Student } from '@/types/mongo/user'
 
-import {ClassOverview} from '@/components/atoms/client/ClassOverview'
-import {Card, CardContent} from '@/components/ui/card'
+import { ClassOverview } from '@/components/atoms/client/ClassOverview'
+import { Card, CardContent } from '@/components/ui/card'
 
-import {useStats} from '@/context/Stats/client'
+import { useStats } from '@/context/Stats/client'
 
 export interface StudentWithDetails extends Student {
   stats: StudentStats
 }
 
-export const ProfileCourseCard = ({students}: {students: Student[]}) => {
+export const ProfileCourseCard = ({ students }: {students: Student[]}) => {
   const [studentsWithData, setStudentsWithData] = useState<StudentWithDetails[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const {getStudentAttendance, getStudentBehavior, getStudentGrade} = useStats()
+  const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()
 
   useEffect(() => {
     // Fonction pour charger toutes les données des étudiants
@@ -41,7 +41,7 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
               getStudentGrade(studentId),
             ])
 
-            console.log("📊 Données brutes reçues pour l'étudiant", studentId, {
+            console.log('📊 Données brutes reçues pour l\'étudiant', studentId, {
               attendanceData,
               behaviorData,
               gradesData,
@@ -54,14 +54,14 @@ export const ProfileCourseCard = ({students}: {students: Student[]}) => {
               absencesCount: attendanceData?.data?.absencesCount || 0,
               behaviorAverage: behaviorData?.data?.behaviorAverage || 0,
               absences: attendanceData?.data?.absences || [],
-              grades: gradesData?.data || {overallAverage: 0},
+              grades: gradesData?.data || { overallAverage: 0 },
               lastActivity: attendanceData?.data?.lastActivity
                 ? new Date(attendanceData.data.lastActivity)
                 : null,
               lastUpdate: new Date(),
             }
 
-            console.log("📊 Statistiques construites pour l'étudiant", studentId, studentStats)
+            console.log('📊 Statistiques construites pour l\'étudiant', studentId, studentStats)
 
             // Ajouter l'étudiant avec toutes ses données
             completeStudents.push({

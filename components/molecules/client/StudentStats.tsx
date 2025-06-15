@@ -1,15 +1,15 @@
 'use client'
 
-import {Book, GraduationCap} from 'lucide-react'
+import { Book, GraduationCap } from 'lucide-react'
 import 'react'
 
-import {TimeSlotEnum} from '@/types/mongo/course'
+import { TimeSlotEnum } from '@/types/mongo/course'
 
-import {GradeCard} from '@/components/atoms/client/StudentGradeCard'
-import {InfoCard} from '@/components/atoms/client/StudentInfoCard'
-import {StatCard} from '@/components/atoms/client/StudentStatCard'
+import { GradeCard } from '@/components/atoms/client/StudentGradeCard'
+import { InfoCard } from '@/components/atoms/client/StudentInfoCard'
+import { StatCard } from '@/components/atoms/client/StudentStatCard'
 
-import {formatDayOfWeek} from '@/utils/helpers'
+import { formatDayOfWeek } from '@/utils/helpers'
 
 type StudentStatsProps = {
   detailedGrades: any

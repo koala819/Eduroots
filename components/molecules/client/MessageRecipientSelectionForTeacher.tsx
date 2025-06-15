@@ -1,24 +1,24 @@
 'use client'
 
-import {useEffect, useMemo, useState} from 'react'
-import {UseFormReturn} from 'react-hook-form'
-import {FixedSizeList as List} from 'react-window'
+import { useEffect, useMemo, useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
+import { FixedSizeList as List } from 'react-window'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 
-import {TimeSlotEnum} from '@/types/mongo/course'
-import {StudentDocument} from '@/types/mongo/mongoose'
-import {FormFields, SelectionModeType} from '@/types/mongo/writeMessage'
+import { TimeSlotEnum } from '@/types/mongo/course'
+import { StudentDocument } from '@/types/mongo/mongoose'
+import { FormFields, SelectionModeType } from '@/types/mongo/writeMessage'
 
-import {CustomCheckbox} from '@/components/atoms/client/MessageCustomCheckbox'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
-import {Checkbox} from '@/components/ui/checkbox'
-import {Input} from '@/components/ui/input'
+import { CustomCheckbox } from '@/components/atoms/client/MessageCustomCheckbox'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 
-import {useTeachers} from '@/context/Teachers/client'
-import {formatDayOfWeek} from '@/utils/helpers'
-import {calculateValidEmails, isValidStudent} from '@/lib/writeMessage'
+import { useTeachers } from '@/context/Teachers/client'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { calculateValidEmails, isValidStudent } from '@/lib/writeMessage'
 import useCourseStore from '@/stores/useCourseStore'
 
 interface RecipientForTeacherProps {
@@ -36,9 +36,9 @@ export const RecipientForTeacher = ({
   form,
   session,
 }: RecipientForTeacherProps) => {
-  const {courses} = useCourseStore()
-  const {fetchTeacherCourses} = useCourseStore()
-  const {students, getStudentsByTeacher, isLoading} = useTeachers()
+  const { courses } = useCourseStore()
+  const { fetchTeacherCourses } = useCourseStore()
+  const { students, getStudentsByTeacher, isLoading } = useTeachers()
 
   // État local
   const [recipientType, setRecipientType] = useState<'bureau' | 'students' | null>(null)
@@ -56,7 +56,7 @@ export const RecipientForTeacher = ({
 
   // Observer les changements de formulaire pour calculer les emails valides
   useEffect(() => {
-    const subscription = form.watch((value, {name}) => {
+    const subscription = form.watch((value, { name }) => {
       if (name === 'recipients') {
         const validEmails = calculateValidEmails(value.recipients as string[], students)
         onValidEmailsChange(validEmails)
@@ -123,7 +123,7 @@ export const RecipientForTeacher = ({
   }
 
   // Composants pour la liste virtualisée
-  const StudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
+  const StudentItem = ({ index, style }: {index: number; style: React.CSSProperties}) => {
     const student = filteredValidStudents[index]
     const isChecked = form.watch('recipients')?.includes(student._id)
 
@@ -157,7 +157,7 @@ export const RecipientForTeacher = ({
     )
   }
 
-  const InvalidStudentItem = ({index, style}: {index: number; style: React.CSSProperties}) => {
+  const InvalidStudentItem = ({ index, style }: {index: number; style: React.CSSProperties}) => {
     const student = filteredInvalidStudents[index]
     return (
       <div

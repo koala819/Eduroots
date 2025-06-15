@@ -1,11 +1,11 @@
 'use client'
 
-import {Mail, Reply, Trash} from 'lucide-react'
-import {memo, useCallback} from 'react'
+import { Mail, Reply, Trash } from 'lucide-react'
+import { memo, useCallback } from 'react'
 
-import type {Message} from '@/types/mongo/message'
+import type { Message } from '@/types/mongo/message'
 
-import {MessageReplyComposer} from '@/components/molecules/client/MessageReplyComposer'
+import { MessageReplyComposer } from '@/components/molecules/client/MessageReplyComposer'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,

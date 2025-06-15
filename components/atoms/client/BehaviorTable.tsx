@@ -1,14 +1,14 @@
 'use client'
 
-import {AlertCircle, CheckCircle, Clock, Plus, Star, XCircle} from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock, Plus, Star, XCircle } from 'lucide-react'
 import React from 'react'
 
-import {Button} from '@/components/ui/button'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
-import {useHolidays} from '@/context/Holidays/client'
-import {isWithinInterval} from 'date-fns'
+import { useHolidays } from '@/context/Holidays/client'
+import { isWithinInterval } from 'date-fns'
 
 interface TableProps<T> {
   courseDates: Date[]
@@ -25,7 +25,7 @@ export const BehaviorTable = <T extends {_id: string; warning?: boolean}>({
   recordExists,
   getRecordForDate,
 }: TableProps<T>) => {
-  const {holidays} = useHolidays()
+  const { holidays } = useHolidays()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">

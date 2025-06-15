@@ -1,4 +1,4 @@
-import {StudentsWithoutCourses} from '@/components/root/StudentsWithoutCourses'
+import { StudentsWithoutCourses } from '@/components/root/StudentsWithoutCourses'
 
 const ExtraPage = () => {
   return <StudentsWithoutCourses />

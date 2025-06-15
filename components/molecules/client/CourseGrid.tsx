@@ -22,10 +22,10 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
   const router = useRouter()
 
   const allSessions = courses.flatMap((course) =>
-    course.courses_sessions?.map(session => ({
+    course.courses_sessions?.map((session) => ({
       ...session,
-      timeslot: session.courses_sessions_timeslot?.[0]
-    })) || []
+      timeslot: session.courses_sessions_timeslot?.[0],
+    })) || [],
   ).sort((a, b) => {
     // Trier par créneau horaire
     const slotA = TIME_SLOT_ORDER[a.timeslot?.day_of_week] || 999

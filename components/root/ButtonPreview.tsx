@@ -1,6 +1,6 @@
-import {cn, formatAdminConfigTitle} from '@/utils/helpers'
+import { cn, formatAdminConfigTitle } from '@/utils/helpers'
 
-export const ButtonPreview: React.FC<{className: string; title: string}> = ({className, title}) => {
+export const ButtonPreview: React.FC<{className: string; title: string}> = ({ className, title }) => {
   return (
     <button
       type="button"

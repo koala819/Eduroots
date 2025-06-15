@@ -1,12 +1,12 @@
-import {Clock} from 'lucide-react'
-import {UseFormReturn} from 'react-hook-form'
+import { Clock } from 'lucide-react'
+import { UseFormReturn } from 'react-hook-form'
 
-import {SubjectNameEnum} from '@/types/mongo/course'
-import {Teacher} from '@/types/mongo/user'
+import { SubjectNameEnum } from '@/types/mongo/course'
+import { Teacher } from '@/types/mongo/user'
 
-import {Card} from '@/components/ui/card'
-import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import { Card } from '@/components/ui/card'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface SessionConfigProps {
   startTime: string
@@ -50,7 +50,7 @@ export const SessionConfig = ({
         <FormField
           control={form.control}
           name={`selections.${index}.subject`}
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem className="space-y-1.5 md:space-y-2">
               <FormLabel className="text-sm md:text-base">Matière</FormLabel>
               <FormControl>
@@ -82,7 +82,7 @@ export const SessionConfig = ({
           <FormField
             control={form.control}
             name={`selections.${index}.teacherId`}
-            render={({field}) => (
+            render={({ field }) => (
               <FormItem className="space-y-1.5 md:space-y-2">
                 <FormLabel className="text-sm md:text-base">Professeur</FormLabel>
                 <FormControl>

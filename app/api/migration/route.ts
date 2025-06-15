@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     console.error('Erreur inattendue lors de la migration:', error)
     return NextResponse.json(
       {
-        error: "Une erreur inattendue s'est produite lors de la migration",
+        error: 'Une erreur inattendue s\'est produite lors de la migration',
       },
       { status: 500 },
     )

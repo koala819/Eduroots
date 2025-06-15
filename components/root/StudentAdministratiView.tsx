@@ -1,7 +1,7 @@
-import {format} from 'date-fns'
-import {fr} from 'date-fns/locale'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
-export const AdminInfoDisplay = ({data}: {data: any}) => (
+export const AdminInfoDisplay = ({ data }: {data: any}) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-6">
     {/* Item wrapper pour un meilleur contrôle du spacing */}
     <div className="space-y-1">
@@ -32,7 +32,7 @@ export const AdminInfoDisplay = ({data}: {data: any}) => (
     <div className="space-y-1">
       <p className="text-sm text-gray-500">Date de Naissance</p>
       <p className="font-medium text-base md:text-lg">
-        {data.dateOfBirth ? format(new Date(data.dateOfBirth), 'd MMMM yyyy', {locale: fr}) : '-'}
+        {data.dateOfBirth ? format(new Date(data.dateOfBirth), 'd MMMM yyyy', { locale: fr }) : '-'}
       </p>
     </div>
   </div>

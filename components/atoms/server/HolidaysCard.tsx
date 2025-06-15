@@ -1,8 +1,8 @@
 import React from 'react'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import {cn} from '@/utils/helpers'
+import { cn } from '@/utils/helpers'
 
 interface Holiday {
   name: string
@@ -16,7 +16,7 @@ interface HolidaysCardProps {
   isLoading?: boolean
 }
 
-export const HolidaysCard = ({holidays, isLoading}: HolidaysCardProps) => {
+export const HolidaysCard = ({ holidays, isLoading }: HolidaysCardProps) => {
   return (
     <Card className="bg-white shadow-sm">
       <CardHeader className="pb-2">

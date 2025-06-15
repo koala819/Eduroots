@@ -1,8 +1,8 @@
 'use client'
 
-import {BiFemale, BiMale} from 'react-icons/bi'
+import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {GenderEnum, Teacher} from '@/types/mongo/user'
+import { GenderEnum, Teacher } from '@/types/mongo/user'
 
 interface TeacherStats {
   totalStudents: number

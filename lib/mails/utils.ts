@@ -1,4 +1,4 @@
-import {ReceiverName} from '@/types/mongo/models'
+import { ReceiverName } from '@/types/mongo/models'
 
 export function formatDate(isoDate: string): string {
   const date = new Date(isoDate)

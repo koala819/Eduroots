@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse} from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,17 +9,17 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authHeader ? {Authorization: authHeader} : {}),
+        ...(authHeader ? { Authorization: authHeader } : {}),
       },
       body: JSON.stringify(body),
     })
     if (!res.ok) {
       const errorText = await res.text()
-      return NextResponse.json({success: false, error: errorText}, {status: res.status})
+      return NextResponse.json({ success: false, error: errorText }, { status: res.status })
     }
     const data = await res.json()
-    return NextResponse.json({success: true, result: data})
+    return NextResponse.json({ success: true, result: data })
   } catch (error: any) {
-    return NextResponse.json({success: false, error: error.message}, {status: 500})
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }

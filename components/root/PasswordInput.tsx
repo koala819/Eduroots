@@ -1,6 +1,6 @@
-import {CheckCircle, Eye, EyeOff, Lock, XCircle} from 'lucide-react'
+import { CheckCircle, Eye, EyeOff, Lock, XCircle } from 'lucide-react'
 
-import {Input} from '@/components/ui/input'
+import { Input } from '@/components/ui/input'
 
 interface PasswordInputProps {
   type: 'student' | 'teacher'
@@ -37,7 +37,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
       <button
         type="button"
-        onClick={() => setShowPwd((prev) => ({...prev, [type]: !prev[type]}))}
+        onClick={() => setShowPwd((prev) => ({ ...prev, [type]: !prev[type] }))}
         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
         aria-label={showPwd[type] ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
       >

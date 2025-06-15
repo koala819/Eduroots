@@ -1,16 +1,16 @@
-import {NextRequest, NextResponse} from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-import {AttendanceRecord} from '@/types/mongo/attendance'
+import { AttendanceRecord } from '@/types/mongo/attendance'
 
-import {Attendance} from '@/zOLDbackend/models/zOLDattendance.model'
-import {validateRequest} from '@/lib/api.utils'
+import { Attendance } from '@/zOLDbackend/models/zOLDattendance.model'
+import { validateRequest } from '@/lib/api.utils'
 
 export async function GET(req: NextRequest) {
   const authError = await validateRequest(req)
   if (authError) return authError
 
   try {
-    const attendances = await Attendance.find({isActive: true})
+    const attendances = await Attendance.find({ isActive: true })
     const totalSessions = attendances.length
     let totalPresences = 0
     let totalStudents = 0

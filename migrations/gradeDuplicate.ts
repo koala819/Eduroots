@@ -1,5 +1,5 @@
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Grade} from '@/zOLDbackend/models/zOLDgrade.model'
+import { Grade } from '@/zOLDbackend/models/zOLDgrade.model'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -66,7 +66,7 @@ export async function checkGradesDuplicates(): Promise<{
       const [toKeep, ...toRemove] = group
 
       for (const duplicateGrade of toRemove) {
-        await Grade.deleteOne({_id: duplicateGrade._id})
+        await Grade.deleteOne({ _id: duplicateGrade._id })
         stats.duplicatesRemoved++
       }
     }
@@ -80,7 +80,7 @@ export async function checkGradesDuplicates(): Promise<{
 
     // Créer le dossier de rapports si n'existe pas
     const reportPath = path.join(process.cwd(), 'reports')
-    await fs.mkdir(reportPath, {recursive: true})
+    await fs.mkdir(reportPath, { recursive: true })
 
     // Nom de fichier avec timestamp
     const timestamp = new Date().toISOString().replace(/:/g, '-')

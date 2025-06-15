@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server'
-import {generateDateRanges, getSessionServer} from '@/utils/server-helpers'
-import {Database} from '@/types/supabase/db'
+import { NextResponse } from 'next/server'
+import { generateDateRanges, getSessionServer } from '@/utils/server-helpers'
+import { Database } from '@/types/supabase/db'
 
 // Type de base pour un comportement
 type BaseBehavior = Database['education']['Tables']['behaviors']['Row'] & {
@@ -15,7 +15,7 @@ type BehaviorWithPeriod = BaseBehavior & {
 
 export async function GET() {
   try {
-    const {supabase} = await getSessionServer()
+    const { supabase } = await getSessionServer()
 
     const startDateString = process.env.START_YEAR
     if (!startDateString) {
@@ -35,7 +35,7 @@ export async function GET() {
     const weekPeriods = generateDateRanges(startDate, numWeeks)
 
     // Récupérer les comportements avec leurs enregistrements
-    const {data: behaviors, error: behaviorsError} = await supabase
+    const { data: behaviors, error: behaviorsError } = await supabase
       .schema('education')
       .from('behaviors')
       .select(`
@@ -46,21 +46,21 @@ export async function GET() {
       .lte('date', endDate.toISOString())
       .eq('is_active', true)
       .is('deleted_at', null)
-      .order('date', {ascending: true})
+      .order('date', { ascending: true })
 
     if (behaviorsError) throw behaviorsError
 
     // Ajouter le weekPeriod à chaque comportement
-    const behaviorsWithWeekPeriod = behaviors.map(behavior => {
+    const behaviorsWithWeekPeriod = behaviors.map((behavior) => {
       const date = new Date(behavior.date)
       const weekPeriod = weekPeriods.find(
-        period => date >= period.start && date < new Date(period.end.getTime() + 86400000)
+        (period) => date >= period.start && date < new Date(period.end.getTime() + 86400000),
       )?.label ?? 'Other'
 
       return {
         ...behavior,
         weekPeriod,
-        formattedDate: date.toISOString().split('T')[0]
+        formattedDate: date.toISOString().split('T')[0],
       } as BehaviorWithPeriod
     })
 
@@ -81,7 +81,7 @@ export async function GET() {
         course: group[0].course_id,
         weekPeriod: group[0].weekPeriod,
         count: group.length,
-        behaviors: group
+        behaviors: group,
       }))
       .sort((a, b) => new Date(a.behaviors[0].date).getTime() - new Date(b.behaviors[0].date).getTime())
 
@@ -93,7 +93,7 @@ export async function GET() {
   } catch (error: any) {
     if (error.message === 'Non authentifié') {
       return NextResponse.json({
-        statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+        statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
         status: 401,
       })
     }

@@ -72,12 +72,12 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
 }
 
 export async function createGradeRecord(
-  data: Database['education']['Tables']['grades']['Insert']
+  data: Database['education']['Tables']['grades']['Insert'],
 ): Promise<ApiResponse<null>> {
-    const { supabase } = await getSessionServer()
+  const { supabase } = await getSessionServer()
 
-    try {
-      const stats = calculateGradeStats(data.records)
+  try {
+    const stats = calculateGradeStats(data.records)
 
     // Créer le grade principal
     const { data: grade, error: gradeError } = await supabase
@@ -222,7 +222,7 @@ export async function refreshGradeData(
 
 export async function updateGradeRecord(
   gradeId: string,
-  data: Database['education']['Tables']['grades']['Insert']
+  data: Database['education']['Tables']['grades']['Insert'],
 ): Promise<ApiResponse<null>> {
   const { supabase } = await getSessionServer()
 

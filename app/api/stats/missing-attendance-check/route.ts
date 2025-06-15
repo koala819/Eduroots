@@ -1,5 +1,5 @@
-import {NextResponse} from 'next/server'
-import {generateDateRanges, getSessionServer} from '@/utils/server-helpers'
+import { NextResponse } from 'next/server'
+import { generateDateRanges, getSessionServer } from '@/utils/server-helpers'
 
 type TeacherCourseWithSessions = {
   course_id: string
@@ -20,7 +20,7 @@ type TeacherCourseWithSessions = {
 }
 
 async function validateTeacher(supabase: any, teacherId: string) {
-  const {data: teacher, error: teacherError} = await supabase
+  const { data: teacher, error: teacherError } = await supabase
     .schema('education')
     .from('users')
     .select('*')
@@ -35,7 +35,7 @@ async function validateTeacher(supabase: any, teacherId: string) {
 }
 
 async function getTeacherCourses(supabase: any, teacherId: string) {
-  const {data: teacherCourses, error: coursesError} = await supabase
+  const { data: teacherCourses, error: coursesError } = await supabase
     .schema('education')
     .from('courses_teacher')
     .select(`
@@ -62,7 +62,7 @@ async function getTeacherCourses(supabase: any, teacherId: string) {
 }
 
 async function getExistingAttendances(supabase: any, courseId: string, startDate: Date, endDate: Date): Promise<Set<string>> {
-  const {data: attendances, error: attendancesError} = await supabase
+  const { data: attendances, error: attendancesError } = await supabase
     .schema('education')
     .from('attendances')
     .select('*')
@@ -78,20 +78,20 @@ async function getExistingAttendances(supabase: any, courseId: string, startDate
 
 function calculateMissingDates(weekPeriods: any[], dayOfWeek: number, endDate: Date, attendanceDates: Set<string>) {
   return weekPeriods
-    .map(period => {
+    .map((period) => {
       const expectedDate = new Date(period.start)
       expectedDate.setDate(
-        expectedDate.getDate() + ((dayOfWeek - expectedDate.getDay() + 7) % 7)
+        expectedDate.getDate() + ((dayOfWeek - expectedDate.getDay() + 7) % 7),
       )
       return expectedDate <= endDate ? expectedDate.toISOString().split('T')[0] : null
     })
-    .filter(date => date && !attendanceDates.has(date))
+    .filter((date) => date && !attendanceDates.has(date))
 }
 
 export async function GET(req: Request) {
   try {
-    const {supabase} = await getSessionServer()
-    const {searchParams} = new URL(req.url)
+    const { supabase } = await getSessionServer()
+    const { searchParams } = new URL(req.url)
     const teacherId = searchParams.get('teacherId')
 
     if (!teacherId) {
@@ -135,9 +135,9 @@ export async function GET(req: Request) {
             session: {
               id: session.id,
               level: session.level,
-              sessionTime: `${timeslot.day_of_week} ${timeslot.start_time}-${timeslot.end_time}`
+              sessionTime: `${timeslot.day_of_week} ${timeslot.start_time}-${timeslot.end_time}`,
             },
-            missingDates
+            missingDates,
           })
         }
       }
@@ -150,7 +150,7 @@ export async function GET(req: Request) {
   } catch (error: any) {
     if (error.message === 'Non authentifié') {
       return NextResponse.json({
-        statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+        statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
         status: 401,
       })
     }

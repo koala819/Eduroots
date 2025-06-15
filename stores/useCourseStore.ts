@@ -14,7 +14,7 @@ interface CourseState {
 
 // Fonctions utilitaires extraites pour réduire l'imbrication
 const findCourseIndex = (courses: TeacherCourseResponse[], courseId: string): number => {
-  return courses.findIndex(c => c.course_id === courseId)
+  return courses.findIndex((c) => c.course_id === courseId)
 }
 
 const updateCourseInList = (courses: TeacherCourseResponse[], updatedCourse: TeacherCourseResponse): TeacherCourseResponse[] => {
@@ -27,7 +27,7 @@ const updateCourseInList = (courses: TeacherCourseResponse[], updatedCourse: Tea
 }
 
 const removeCourseFromList = (courses: TeacherCourseResponse[], courseId: string): TeacherCourseResponse[] => {
-  return courses.filter(c => c.course_id !== courseId)
+  return courses.filter((c) => c.course_id !== courseId)
 }
 
 const useCourseStore = create<CourseState>()(
@@ -37,7 +37,7 @@ const useCourseStore = create<CourseState>()(
       lastFetch: null,
       fetchTeacherCourses: async (teacherId: string) => {
         try {
-           // Vérification du cache (5 minutes)
+          // Vérification du cache (5 minutes)
           const now = Date.now()
           const lastFetch = useCourseStore.getState().lastFetch
           if (lastFetch && now - lastFetch < 5 * 60 * 1000) {
@@ -48,7 +48,7 @@ const useCourseStore = create<CourseState>()(
           if (response.success && response.data) {
             set({
               courses: response.data,
-              lastFetch: now
+              lastFetch: now,
             })
           } else {
             console.error('Erreur lors de la récupération des cours:', response.message)
@@ -88,12 +88,12 @@ const useCourseStore = create<CourseState>()(
               event: '*',
               schema: 'education',
               table: 'courses',
-              filter: `teacher_id=eq.${teacherId}`
+              filter: `teacher_id=eq.${teacherId}`,
             },
-            handleCourseChange
+            handleCourseChange,
           )
           .subscribe()
-      }
+      },
     }),
     {
       name: 'course-storage',
@@ -101,8 +101,8 @@ const useCourseStore = create<CourseState>()(
         courses: state.courses,
         lastFetch: state.lastFetch,
       }),
-    }
-  )
+    },
+  ),
 )
 
 export default useCourseStore

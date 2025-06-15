@@ -1,8 +1,8 @@
 'use client'
 
-import {CourseSession, SubjectNameEnum} from '@/types/mongo/course'
+import { CourseSession, SubjectNameEnum } from '@/types/mongo/course'
 
-export const TeacherCard = ({session, onClick}: {session: CourseSession; onClick: () => void}) => {
+export const TeacherCard = ({ session, onClick }: {session: CourseSession; onClick: () => void}) => {
   const baseClasses =
     'p-3 rounded-lg text-white cursor-pointer transition-transform hover:scale-[1.02] space-y-1'
   const colorClasses = session.subject === SubjectNameEnum.Arabe ? 'bg-emerald-600' : 'bg-blue-600'

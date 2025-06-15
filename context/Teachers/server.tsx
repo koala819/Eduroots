@@ -1,15 +1,15 @@
 'use server'
 
-import {Teacher} from '@/types/mongo/user'
+import { Teacher } from '@/types/mongo/user'
 
-import {getAllTeachers} from '@/app/actions/context/teachers'
-import {TeacherProvider} from '@/context/Teachers/client'
+import { getAllTeachers } from '@/app/actions/context/teachers'
+import { TeacherProvider } from '@/context/Teachers/client'
 
 interface TeachersServerComponentProps {
   children: React.ReactNode
 }
 
-export default async function TeachersServerComponent({children}: TeachersServerComponentProps) {
+export default async function TeachersServerComponent({ children }: TeachersServerComponentProps) {
   let initialTeachers: Teacher[] | null = null
 
   const response = await getAllTeachers()

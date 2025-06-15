@@ -1,12 +1,12 @@
 'use client'
 
-import {AlertTriangle} from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 
 interface ErrorComponentProps {
   message: string
 }
 
-export function ErrorComponent({message}: ErrorComponentProps) {
+export function ErrorComponent({ message }: ErrorComponentProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-center w-12 h-12 mb-4 bg-red-100 rounded-full">

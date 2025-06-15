@@ -1,19 +1,19 @@
 'use client'
 
-import {GraduationCap, Users} from 'lucide-react'
-import {useMemo, useState} from 'react'
+import { GraduationCap, Users } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-import {EntityType} from '@/types/mongo/stats'
-import {Student, Teacher} from '@/types/mongo/user'
+import { EntityType } from '@/types/mongo/stats'
+import { Student, Teacher } from '@/types/mongo/user'
 
-import {StatsCards} from '@/components/admin/molecules/client/StatsCards'
+import { StatsCards } from '@/components/admin/molecules/client/StatsCards'
 
 interface SchoolPeopleClientProps {
   students: Student[]
   teachers: Teacher[]
 }
 
-export function SchoolPeopleClient({students, teachers}: SchoolPeopleClientProps) {
+export function SchoolPeopleClient({ students, teachers }: SchoolPeopleClientProps) {
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
 
   const people = useMemo(() => {

@@ -51,32 +51,32 @@ export function statsReducer(
   action: StatsAction,
 ): StatsState {
   switch (action.type) {
-    case 'SET_GLOBAL_STATS':
-      return { ...state, globalStats: action.payload }
-    case 'SET_ENTITY_STATS':
-      return { ...state, entityStats: action.payload }
-    case 'UPDATE_ENTITY_STATS':
-      return {
-        ...state,
-        entityStats: state.entityStats.map((stat) => {
-          if (stat && typeof stat === 'object' && 'userId' in stat) {
-            const statWithUserId = stat as { userId: SerializedValue }
-            if (
-              statWithUserId.userId ===
+  case 'SET_GLOBAL_STATS':
+    return { ...state, globalStats: action.payload }
+  case 'SET_ENTITY_STATS':
+    return { ...state, entityStats: action.payload }
+  case 'UPDATE_ENTITY_STATS':
+    return {
+      ...state,
+      entityStats: state.entityStats.map((stat) => {
+        if (stat && typeof stat === 'object' && 'userId' in stat) {
+          const statWithUserId = stat as { userId: SerializedValue }
+          if (
+            statWithUserId.userId ===
               (action.payload as { userId: SerializedValue }).userId
-            ) {
-              return action.payload
-            }
+          ) {
+            return action.payload
           }
-          return stat
-        }),
-      }
-    case 'SET_LOADING':
-      return { ...state, isLoading: action.payload }
-    case 'SET_ERROR':
-      return { ...state, error: action.payload }
-    default:
-      return state
+        }
+        return stat
+      }),
+    }
+  case 'SET_LOADING':
+    return { ...state, isLoading: action.payload }
+  case 'SET_ERROR':
+    return { ...state, error: action.payload }
+  default:
+    return state
   }
 }
 

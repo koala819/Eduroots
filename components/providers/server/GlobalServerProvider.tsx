@@ -1,6 +1,6 @@
 'use server'
 
-import {ReactNode, Suspense} from 'react'
+import { ReactNode, Suspense } from 'react'
 
 import GlobalLoadingIndicator from '@/components/atoms/client/ContextLoader'
 import LoadingFallback from '@/components/atoms/client/LoadingFallback'
@@ -15,7 +15,7 @@ import StatsServerComponent from '@/context/Stats/server'
 import StudentsServerComponent from '@/context/Students/server'
 import TeachersServerComponent from '@/context/Teachers/server'
 
-export default async function GlobalServerProvider({children}: {children: ReactNode}) {
+export default async function GlobalServerProvider({ children }: {children: ReactNode}) {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <StatsServerComponent>

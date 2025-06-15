@@ -1,12 +1,12 @@
-import {memo, useCallback, useEffect, useState} from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 
-import {AppConfig, ThemeConfig} from '@/types/mongo/models'
+import { AppConfig, ThemeConfig } from '@/types/mongo/models'
 
-import {ButtonPreview} from '@/components/root/ButtonPreview'
+import { ButtonPreview } from '@/components/root/ButtonPreview'
 import ThemeInput from '@/components/root/ThemeInput'
-import {Card, CardContent, CardHeader} from '@/components/ui/card'
-import {Input} from '@/components/ui/input'
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type UserType = 'teacher' | 'student' | 'bureau'
 
@@ -25,7 +25,7 @@ const ButtonVariantInput: React.FC<{
   buttonKey: string
   value: string
   onChange: (value: string) => void
-}> = memo(function ButtonVariantInput({userType, buttonKey, value, onChange}) {
+}> = memo(function ButtonVariantInput({ userType, buttonKey, value, onChange }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center space-x-4">
@@ -40,7 +40,7 @@ const ButtonVariantInput: React.FC<{
   )
 })
 
-export const ThemeSection: React.FC<ThemeSectionProps> = ({config, handleThemeChange}) => {
+export const ThemeSection: React.FC<ThemeSectionProps> = ({ config, handleThemeChange }) => {
   const userTypes: UserType[] = ['teacher', 'student', 'bureau']
   const [localConfig, setLocalConfig] = useState(config)
 
@@ -60,9 +60,9 @@ export const ThemeSection: React.FC<ThemeSectionProps> = ({config, handleThemeCh
               [themeSection]:
                 themeSection === 'buttonVariants'
                   ? {
-                      ...prevConfig.themes[userType].buttonVariants,
-                      [key]: value,
-                    }
+                    ...prevConfig.themes[userType].buttonVariants,
+                    [key]: value,
+                  }
                   : value,
             },
           },

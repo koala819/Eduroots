@@ -70,7 +70,7 @@ export async function saveSchedules(scheduleData: SaveScheduleData) {
   const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
 
   const daySchedules = Object.fromEntries(
-      Object.entries(scheduleData).filter(([key]) => key !== 'updatedBy'),
+    Object.entries(scheduleData).filter(([key]) => key !== 'updatedBy'),
   )
 
   try {

@@ -1,9 +1,9 @@
 'use server'
 
-import {MessageBody} from '@/types/mongo/models'
+import { MessageBody } from '@/types/mongo/models'
 
-import {EMAIL_CONFIG, EmailUsageType} from './config'
-import {getEmailTemplate} from './templates'
+import { EMAIL_CONFIG, EmailUsageType } from './config'
+import { getEmailTemplate } from './templates'
 
 import nodemailer from 'nodemailer'
 
@@ -81,63 +81,63 @@ export async function sendEmailNotification(params: EmailSendParams) {
  * Génère les options d'email en fonction du type d'utilisation
  */
 function getMailOptions(params: EmailSendParams, defaultSender: string) {
-  const {usage, sender, receiver, body, detailedBody, otp} = params
+  const { usage, sender, receiver, body, detailedBody, otp } = params
   const template = getEmailTemplate(usage, params)
 
   switch (usage) {
-    case 'attendanceError':
-      return {
-        from: EMAIL_CONFIG.defaultSender,
-        to: EMAIL_CONFIG.techSupportEmail,
-        subject: 'BUG with attendance',
-        html: template,
-      }
+  case 'attendanceError':
+    return {
+      from: EMAIL_CONFIG.defaultSender,
+      to: EMAIL_CONFIG.techSupportEmail,
+      subject: 'BUG with attendance',
+      html: template,
+    }
 
-    case 'behaviorError':
-      return {
-        from: EMAIL_CONFIG.defaultSender,
-        to: EMAIL_CONFIG.techSupportEmail,
-        subject: 'BUG with behavior',
-        html: template,
-      }
+  case 'behaviorError':
+    return {
+      from: EMAIL_CONFIG.defaultSender,
+      to: EMAIL_CONFIG.techSupportEmail,
+      subject: 'BUG with behavior',
+      html: template,
+    }
 
-    case 'checkAdminCo':
-      return {
-        from: 'watching@col.dix31.com',
-        to: EMAIL_CONFIG.techSupportEmail,
-        subject: `${detailedBody?.mail} - Connexion à l'idg ADMIN`,
-        html: template,
-      }
+  case 'checkAdminCo':
+    return {
+      from: 'watching@col.dix31.com',
+      to: EMAIL_CONFIG.techSupportEmail,
+      subject: `${detailedBody?.mail} - Connexion à l'idg ADMIN`,
+      html: template,
+    }
 
-    case 'fixNewEmail':
-      return {
-        from: EMAIL_CONFIG.defaultSender,
-        to: EMAIL_CONFIG.defaultSender,
-        bcc: EMAIL_CONFIG.techSupportEmail,
-        subject: `Fix new email for ${detailedBody?.firstname} ${detailedBody?.lastname}`,
-        html: template,
-      }
+  case 'fixNewEmail':
+    return {
+      from: EMAIL_CONFIG.defaultSender,
+      to: EMAIL_CONFIG.defaultSender,
+      bcc: EMAIL_CONFIG.techSupportEmail,
+      subject: `Fix new email for ${detailedBody?.firstname} ${detailedBody?.lastname}`,
+      html: template,
+    }
 
-    case 'standard':
-    case 'bureau':
-      return {
-        from: `${sender} <${defaultSender}>`,
-        to: receiver.email,
-        subject: `${body?.subject}`,
-        text: `${body?.message}`,
-        html: template,
-      }
+  case 'standard':
+  case 'bureau':
+    return {
+      from: `${sender} <${defaultSender}>`,
+      to: receiver.email,
+      subject: `${body?.subject}`,
+      text: `${body?.message}`,
+      html: template,
+    }
 
-    case 'rstPwd':
-      return {
-        from: EMAIL_CONFIG.defaultSender,
-        to: receiver.email,
-        bcc: EMAIL_CONFIG.techSupportEmail,
-        subject: 'Votre code pour définir un nouveau mot de passe',
-        html: template,
-      }
+  case 'rstPwd':
+    return {
+      from: EMAIL_CONFIG.defaultSender,
+      to: receiver.email,
+      bcc: EMAIL_CONFIG.techSupportEmail,
+      subject: 'Votre code pour définir un nouveau mot de passe',
+      html: template,
+    }
 
-    default:
-      throw new Error(`Email usage type "${usage}" not supported`)
+  default:
+    throw new Error(`Email usage type "${usage}" not supported`)
   }
 }

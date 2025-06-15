@@ -1,5 +1,5 @@
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
 
 interface CheckResult {
   success: boolean
@@ -107,7 +107,7 @@ async function checkRemainingFullSessions(): Promise<CheckResult> {
     }
 
     if (afternoon.length > 0) {
-      console.log("\n🌇 Sessions de l'après-midi (14h-17h30):")
+      console.log('\n🌇 Sessions de l\'après-midi (14h-17h30):')
       afternoon.forEach((session) => {
         console.log(`\n🔹 Session ${session.sessionId}:`)
         console.log(`   • Cours ID: ${session.courseId}`)

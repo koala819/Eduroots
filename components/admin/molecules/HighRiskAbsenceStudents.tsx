@@ -1,9 +1,9 @@
-import {AlertTriangle, ArrowUpDown} from 'lucide-react'
-import React, {useEffect, useMemo, useState} from 'react'
+import { AlertTriangle, ArrowUpDown } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
 
-import {StudentAbsenceCard} from '@/components/admin/atoms/StudentAbsenceCard'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
+import { StudentAbsenceCard } from '@/components/admin/atoms/StudentAbsenceCard'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import {useStats} from '@/context/Stats/client'
-import {useStudents} from '@/context/Students/client'
-import {compareDesc} from 'date-fns'
+import { useStats } from '@/context/Stats/client'
+import { useStudents } from '@/context/Students/client'
+import { compareDesc } from 'date-fns'
 
 // Types de tri disponibles
 type SortType = 'alphabetical' | 'absences-desc' | 'recent-activity' | 'last-absence'
@@ -31,8 +31,8 @@ interface StudentStatsData {
 }
 
 export const HighRiskAbsenceStudents = () => {
-  const {students, isLoading: isLoadingStudents} = useStudents()
-  const {studentStats: stats, isLoading: isLoadingStats, refreshEntityStats} = useStats()
+  const { students, isLoading: isLoadingStudents } = useStudents()
+  const { studentStats: stats, isLoading: isLoadingStats, refreshEntityStats } = useStats()
 
   const [sortType, setSortType] = useState<SortType>('alphabetical')
   const [error, setError] = useState<string | null>(null)
@@ -84,38 +84,38 @@ export const HighRiskAbsenceStudents = () => {
       if (!statsA || !statsB) return 0
 
       switch (sortType) {
-        case 'alphabetical':
-          // Tri alphabétique par nom puis prénom
-          const lastNameComparison = a.lastname.localeCompare(b.lastname)
-          if (lastNameComparison === 0) {
-            return a.firstname.localeCompare(b.firstname)
-          }
-          return lastNameComparison
+      case 'alphabetical':
+        // Tri alphabétique par nom puis prénom
+        const lastNameComparison = a.lastname.localeCompare(b.lastname)
+        if (lastNameComparison === 0) {
+          return a.firstname.localeCompare(b.firstname)
+        }
+        return lastNameComparison
 
-        case 'absences-desc':
-          // Tri par nombre d'absences (décroissant)
-          return statsB.absencesCount - statsA.absencesCount
+      case 'absences-desc':
+        // Tri par nombre d'absences (décroissant)
+        return statsB.absencesCount - statsA.absencesCount
 
-        case 'recent-activity':
-          // Tri par dernière activité (la plus récente en premier)
-          if (!statsA.lastActivity && !statsB.lastActivity) return 0
-          if (!statsA.lastActivity) return 1
-          if (!statsB.lastActivity) return -1
-          return compareDesc(new Date(statsA.lastActivity), new Date(statsB.lastActivity))
+      case 'recent-activity':
+        // Tri par dernière activité (la plus récente en premier)
+        if (!statsA.lastActivity && !statsB.lastActivity) return 0
+        if (!statsA.lastActivity) return 1
+        if (!statsB.lastActivity) return -1
+        return compareDesc(new Date(statsA.lastActivity), new Date(statsB.lastActivity))
 
-        case 'last-absence':
-          // Tri par date de dernière absence (la plus récente en premier)
-          if (!statsA.absences.length && !statsB.absences.length) return 0
-          if (!statsA.absences.length) return 1
-          if (!statsB.absences.length) return -1
+      case 'last-absence':
+        // Tri par date de dernière absence (la plus récente en premier)
+        if (!statsA.absences.length && !statsB.absences.length) return 0
+        if (!statsA.absences.length) return 1
+        if (!statsB.absences.length) return -1
 
-          const lastAbsenceA = statsA.absences[statsA.absences.length - 1].date
-          const lastAbsenceB = statsB.absences[statsB.absences.length - 1].date
+        const lastAbsenceA = statsA.absences[statsA.absences.length - 1].date
+        const lastAbsenceB = statsB.absences[statsB.absences.length - 1].date
 
-          return compareDesc(new Date(lastAbsenceA), new Date(lastAbsenceB))
+        return compareDesc(new Date(lastAbsenceA), new Date(lastAbsenceB))
 
-        default:
-          return 0
+      default:
+        return 0
       }
     })
   }, [students, statsMap, sortType])

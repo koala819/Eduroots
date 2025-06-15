@@ -1,8 +1,8 @@
-import {Share} from 'lucide-react'
+import { Share } from 'lucide-react'
 
-import {Card, CardContent} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
-import {IOSInstallInstructionsClient} from '../client/IOSInstallInstructions'
+import { IOSInstallInstructionsClient } from '../client/IOSInstallInstructions'
 
 interface IOSInstallInstructionsContentProps {
   isInstalled: boolean

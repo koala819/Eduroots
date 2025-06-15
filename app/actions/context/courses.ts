@@ -162,7 +162,7 @@ export async function createCourse(
         classroom_number: string | null
       }>
     }>
-  }
+  },
 ): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
@@ -180,9 +180,9 @@ export async function createCourse(
     }
 
     // 2. Insérer les relations profs-cours
-    const teacherRelations = courseData.teacherIds.map(teacherId => ({
+    const teacherRelations = courseData.teacherIds.map((teacherId) => ({
       course_id: course.id,
-      teacher_id: teacherId
+      teacher_id: teacherId,
     }))
 
     if (teacherRelations.length > 0) {
@@ -218,12 +218,12 @@ export async function createCourse(
       }
 
       // Insérer les créneaux
-      const timeSlots = sessionData.timeSlots.map(slot => ({
+      const timeSlots = sessionData.timeSlots.map((slot) => ({
         course_sessions_id: session.id,
         day_of_week: slot.day_of_week,
         start_time: slot.start_time,
         end_time: slot.end_time,
-        classroom_number: slot.classroom_number
+        classroom_number: slot.classroom_number,
       }))
 
       const { error: timeslotError } = await supabase
@@ -355,16 +355,16 @@ export async function getCourseSessionById(
 
         return {
           ...student,
-          user
+          user,
         }
-      }) || []
+      }) || [],
     )
 
     const response = {
       ...session,
       courses: course,
       courses_sessions_timeslot: timeslots,
-      courses_sessions_students: studentsWithUsers
+      courses_sessions_students: studentsWithUsers,
     }
 
     if (fields === 'stats') {
@@ -620,7 +620,7 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
   const { supabase } = await getSessionServer()
 
   try {
-    let query;
+    let query
 
     if (userRole === 'teacher') {
       // Pour un prof, on ne regarde que ses cours

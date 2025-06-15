@@ -1,10 +1,10 @@
-import {Course} from '@/types/mongo/course'
+import { Course } from '@/types/mongo/course'
 
-import {TeacherStatsClient} from '@/components/admin/atoms/client/TeacherStats'
+import { TeacherStatsClient } from '@/components/admin/atoms/client/TeacherStats'
 
-import {getTeacherCourses} from '@/app/actions/context/courses'
+import { getTeacherCourses } from '@/app/actions/context/courses'
 
-export async function TeacherStatsServer({teacherId}: {teacherId: string}) {
+export async function TeacherStatsServer({ teacherId }: {teacherId: string}) {
   const response = await getTeacherCourses(teacherId)
 
   if (!response.success || !response.data) {

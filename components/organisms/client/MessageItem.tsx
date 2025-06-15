@@ -1,14 +1,14 @@
 'use client'
 
-import {Mail as MailIcon, Paperclip} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Mail as MailIcon, Paperclip } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import {Mail} from '@/types/mongo/models'
+import { Mail } from '@/types/mongo/models'
 
-import {MessageViewer} from '@/components/organisms/client/MessageViewer'
+import { MessageViewer } from '@/components/organisms/client/MessageViewer'
 
-import {fetchReceiver} from '@/app/actions/mails'
-import {getReceiverName} from '@/lib/mails/utils'
+import { fetchReceiver } from '@/app/actions/mails'
+import { getReceiverName } from '@/lib/mails/utils'
 
 interface MessageItemProps {
   message: Mail

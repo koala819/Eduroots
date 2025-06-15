@@ -1,9 +1,9 @@
 'use client'
 
-import React, {useCallback, useEffect, useState} from 'react'
-import {Editor} from '@tinymce/tinymce-react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Editor } from '@tinymce/tinymce-react'
 
-import type {MyQuillComponentProps} from '@/types/mongo/models'
+import type { MyQuillComponentProps } from '@/types/mongo/models'
 
 const TINYMCE_CONFIG = {
   height: 300,
@@ -36,7 +36,7 @@ const TINYMCE_CONFIG = {
     'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px }',
 }
 
-const RichTextEditor = React.memo(({value, onChange}: MyQuillComponentProps) => {
+const RichTextEditor = React.memo(({ value, onChange }: MyQuillComponentProps) => {
   const [editorContent, setEditorContent] = useState<string>(value || '')
 
   useEffect(() => {

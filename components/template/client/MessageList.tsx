@@ -1,6 +1,6 @@
 'use client'
 
-import {Mail} from '@/types/mongo/models'
+import { Mail } from '@/types/mongo/models'
 
 import MessageItem from '@/components/organisms/client/MessageItem'
 

@@ -1,4 +1,4 @@
-import { TimeSlotEnum } from "@/types/supabase/courses"
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 export type AppConfig = {
   id: string

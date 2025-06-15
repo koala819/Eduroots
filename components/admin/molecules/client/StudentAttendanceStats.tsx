@@ -1,25 +1,25 @@
 'use client'
 
-import {CalendarDays, Check, TrendingUp, Users, X} from 'lucide-react'
+import { CalendarDays, Check, TrendingUp, Users, X } from 'lucide-react'
 
-import {SubjectNameEnum} from '@/types/mongo/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import {CalculatedStats} from '@/app/actions/admin/student-stats-attendances'
+import { CalculatedStats } from '@/app/actions/admin/student-stats-attendances'
 
 interface StudentAttendanceStatsClientProps {
   stats: CalculatedStats
 }
 
-export function StudentAttendanceStatsClient({stats}: StudentAttendanceStatsClientProps) {
+export function StudentAttendanceStatsClient({ stats }: StudentAttendanceStatsClientProps) {
   // Calculer le statut de présence
   const attendanceStatus =
     stats.presenceRate >= 90
-      ? {color: 'text-green-500', text: 'Excellent'}
+      ? { color: 'text-green-500', text: 'Excellent' }
       : stats.presenceRate >= 75
-        ? {color: 'text-yellow-500', text: 'Satisfaisant'}
-        : {color: 'text-red-500', text: 'À améliorer'}
+        ? { color: 'text-yellow-500', text: 'Satisfaisant' }
+        : { color: 'text-red-500', text: 'À améliorer' }
 
   return (
     <div className="space-y-3">

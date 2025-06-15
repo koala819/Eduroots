@@ -25,7 +25,7 @@ export function CustomLayout({
   children,
   navItems,
   isAdmin = false,
-  teacher
+  teacher,
 }: Readonly<ClientLayoutProps>) {
   const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
@@ -60,8 +60,8 @@ export function CustomLayout({
           navItems={navItems}
           isAdmin={isAdmin}
           teacher={teacher}
-          />
-        </div>
+        />
+      </div>
 
       {/* Main content */}
       <main className="flex-1 flex flex-col bg-slate-50 pb-16 md:pb-0 min-h-screen">

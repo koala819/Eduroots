@@ -1,17 +1,17 @@
 'use client'
 
-import {SubjectNameEnum} from '@/types/mongo/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import {BehaviorStats} from '@/app/actions/admin/student-stats-behavior'
-import {Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts'
+import { BehaviorStats } from '@/app/actions/admin/student-stats-behavior'
+import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 interface StudentBehaviorStatsClientProps {
   stats: BehaviorStats
 }
 
-export function StudentBehaviorStatsClient({stats}: StudentBehaviorStatsClientProps) {
+export function StudentBehaviorStatsClient({ stats }: StudentBehaviorStatsClientProps) {
   const subjectColors: Record<SubjectNameEnum, string> = {
     [SubjectNameEnum.Arabe]: '#2563eb',
     [SubjectNameEnum.EducationCulturelle]: '#16a34a',
@@ -52,11 +52,11 @@ export function StudentBehaviorStatsClient({stats}: StudentBehaviorStatsClientPr
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats.chartData} margin={{top: 5, right: 30, left: 20, bottom: 5}}>
-                <XAxis dataKey="date" tick={{fontSize: 12}} />
-                <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{fontSize: 12}} />
+              <LineChart data={stats.chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  content={({active, payload, label}) => {
+                  content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       const dataPoint = payload[0].payload
                       return (

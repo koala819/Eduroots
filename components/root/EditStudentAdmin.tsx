@@ -1,24 +1,24 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {GenderEnum} from '@/types/mongo/user'
+import { GenderEnum } from '@/types/mongo/user'
 
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {LoadingSpinner} from '@/components/ui/loading-spinner'
-import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
-import {useStudents} from '@/context/Students/client'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useStudents } from '@/context/Students/client'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const adminSchema = z.object({
@@ -27,17 +27,17 @@ const adminSchema = z.object({
   parentEmail1: z.string().email('Email invalide').optional().default('user@mail.fr'),
   parentEmail2: z.string().email('Email invalide').optional().or(z.literal('')),
   gender: z.nativeEnum(GenderEnum, {
-    errorMap: () => ({message: 'Veuillez sélectionner un genre'}),
+    errorMap: () => ({ message: 'Veuillez sélectionner un genre' }),
   }),
   dateOfBirth: z.string().optional(),
 })
 
 type AdminFormData = z.infer<typeof adminSchema>
 
-export const EditAdminStudent = ({id}: {id: string}) => {
+export const EditAdminStudent = ({ id }: {id: string}) => {
   const [isLoading, setIsLoading] = useState(true)
-  const {getOneStudent, updateStudent} = useStudents()
-  const {toast} = useToast()
+  const { getOneStudent, updateStudent } = useStudents()
+  const { toast } = useToast()
   const router = useRouter()
 
   const form = useForm<AdminFormData>({
@@ -62,7 +62,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
         console.error(error)
         toast({
           title: 'Erreur',
-          description: "Impossible de charger les données de l'étudiant",
+          description: 'Impossible de charger les données de l\'étudiant',
           variant: 'destructive',
         })
       } finally {
@@ -113,7 +113,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
                 <FormField
                   control={form.control}
                   name="firstname"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Prénom</FormLabel>
                       <FormControl>
@@ -126,7 +126,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
                 <FormField
                   control={form.control}
                   name="lastname"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nom</FormLabel>
                       <FormControl>
@@ -141,7 +141,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
               <FormField
                 control={form.control}
                 name="gender"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem className="space-y-3">
                     <FormLabel>Genre</FormLabel>
                     <FormControl>
@@ -166,7 +166,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
               <FormField
                 control={form.control}
                 name="dateOfBirth"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date de naissance</FormLabel>
                     <FormControl>
@@ -184,7 +184,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
               <FormField
                 control={form.control}
                 name="parentEmail1"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email Parent 1</FormLabel>
                     <FormControl>
@@ -203,7 +203,7 @@ export const EditAdminStudent = ({id}: {id: string}) => {
               <FormField
                 control={form.control}
                 name="parentEmail2"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email Parent 2</FormLabel>
                     <FormControl>

@@ -1,10 +1,10 @@
-import {getToken} from 'next-auth/jwt'
-import {NextRequest, NextResponse} from 'next/server'
-import {GenderEnum} from '@/types/mongo/user'
+import { getToken } from 'next-auth/jwt'
+import { NextRequest, NextResponse } from 'next/server'
+import { GenderEnum } from '@/types/mongo/user'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
-import {Course} from '@/zOLDbackend/models/zOLDcourse.model'
-import {User} from '@/zOLDbackend/models/zOLDuser.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import fs from 'fs'
 import path from 'path'
 
@@ -295,11 +295,11 @@ async function getTeacherForStudent(studentId: string): Promise<TeacherInfo | nu
 
 export async function POST(req: NextRequest) {
   // Authentification
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token?.user) {
     return NextResponse.json({
       status: 401,
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
     })
   }
 
@@ -318,7 +318,7 @@ export async function POST(req: NextRequest) {
     const dbStudents = await User.find({
       role: 'student',
       isActive: true,
-      _id: {$nin: STUDENTS_TO_IGNORE},
+      _id: { $nin: STUDENTS_TO_IGNORE },
     }).lean()
 
     // Créer les structures pour la comparaison
@@ -479,7 +479,7 @@ export async function POST(req: NextRequest) {
     // Générer le rapport dans le dossier reports
     const reportsDir = path.join(process.cwd(), 'reports')
     if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, {recursive: true})
+      fs.mkdirSync(reportsDir, { recursive: true })
     }
 
     const reportPath = path.join(reportsDir, `students_comparison_${Date.now()}.json`)
@@ -504,7 +504,7 @@ export async function POST(req: NextRequest) {
         message: 'Erreur lors de la comparaison',
         error: (error as Error).message,
       },
-      {status: 500},
+      { status: 500 },
     )
   }
 }
@@ -515,19 +515,19 @@ export async function GET(req: NextRequest) {
   const reportPath = url.searchParams.get('path')
 
   if (!reportPath) {
-    return NextResponse.json({message: 'Chemin du rapport manquant'}, {status: 400})
+    return NextResponse.json({ message: 'Chemin du rapport manquant' }, { status: 400 })
   }
 
   try {
     // Vérifier si le chemin est dans le dossier reports pour des raisons de sécurité
     const fullPath = path.resolve(process.cwd(), reportPath)
     if (!fullPath.startsWith(path.resolve(process.cwd(), 'reports'))) {
-      return NextResponse.json({message: 'Chemin non autorisé'}, {status: 403})
+      return NextResponse.json({ message: 'Chemin non autorisé' }, { status: 403 })
     }
 
     // Vérifier que le fichier existe
     if (!fs.existsSync(fullPath)) {
-      return NextResponse.json({message: 'Rapport non trouvé'}, {status: 404})
+      return NextResponse.json({ message: 'Rapport non trouvé' }, { status: 404 })
     }
 
     // Lire le fichier
@@ -542,7 +542,7 @@ export async function GET(req: NextRequest) {
         message: 'Erreur lors de la récupération du rapport',
         error: (error as Error).message,
       },
-      {status: 500},
+      { status: 500 },
     )
   }
 }

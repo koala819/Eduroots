@@ -1,26 +1,26 @@
 'use client'
 
-import {Pencil} from 'lucide-react'
-import React, {useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { Pencil } from 'lucide-react'
+import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {toast} from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 
-import {CourseSession, LevelEnum, SubjectNameEnum} from '@/types/mongo/course'
-import {Period, PeriodTypeEnum} from '@/types/supabase/schedule'
+import { CourseSession, LevelEnum, SubjectNameEnum } from '@/types/mongo/course'
+import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
 
-import {Button} from '@/components/ui/button'
-import {Card, CardContent} from '@/components/ui/card'
-import {Checkbox} from '@/components/ui/checkbox'
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {ScrollArea} from '@/components/ui/scroll-area'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import {useCourses} from '@/context/Courses/client'
-import {formatDayOfWeek} from '@/utils/helpers'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useCourses } from '@/context/Courses/client'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { TimeSlotEnum } from '@/types/supabase/courses'
 
@@ -49,8 +49,8 @@ interface SessionsEditorProps {
   periods: Period[] | undefined
 }
 
-export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, sessions, periods}) => {
-  const {updateCourse, checkTimeSlotOverlap} = useCourses()
+export const PlanningEditor: React.FC<SessionsEditorProps> = ({ timeSlot, sessions, periods }) => {
+  const { updateCourse, checkTimeSlotOverlap } = useCourses()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -131,7 +131,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, session
                 <FormField
                   control={form.control}
                   name="sameStudents"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
@@ -159,7 +159,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, session
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.subject`}
-                              render={({field}) => (
+                              render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Matière</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -184,7 +184,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, session
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.level`}
-                              render={({field}) => (
+                              render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Niveau</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -209,7 +209,7 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({timeSlot, session
                             <FormField
                               control={form.control}
                               name={`sessions.${index}.timeSlot.classroomNumber`}
-                              render={({field}) => (
+                              render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Salle</FormLabel>
                                   <FormControl>

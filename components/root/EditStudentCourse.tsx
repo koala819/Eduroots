@@ -1,26 +1,26 @@
 'use client'
 
-import {ChevronRight} from 'lucide-react'
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { ChevronRight } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE} from '@/types/mongo/course'
-import {Teacher} from '@/types/mongo/user'
+import { PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE } from '@/types/mongo/course'
+import { Teacher } from '@/types/mongo/user'
 
-import {SessionConfig} from '@/components/root/EditStudentSessionConfig'
-import {TimeSlotCard} from '@/components/root/EditStudentTimeSlotCard'
-import {Button} from '@/components/ui/button'
-import {Form} from '@/components/ui/form'
-import {LoadingSpinner} from '@/components/ui/loading-spinner'
+import { SessionConfig } from '@/components/root/EditStudentSessionConfig'
+import { TimeSlotCard } from '@/components/root/EditStudentTimeSlotCard'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
-import {useCourses} from '@/context/Courses/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {fetchWithAuth} from '@/lib/fetchWithAuth'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useCourses } from '@/context/Courses/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { TimeSlotEnum } from '@/types/supabase/courses'
 
@@ -33,8 +33,8 @@ const sessionSchema = z.object({
       dayOfWeek: z.nativeEnum(TimeSlotEnum, {
         required_error: 'Le jour est requis',
       }),
-      startTime: z.string({required_error: 'L heure de debut est requise'}),
-      endTime: z.string({required_error: 'L heure de fin est requise'}),
+      startTime: z.string({ required_error: 'L heure de debut est requise' }),
+      endTime: z.string({ required_error: 'L heure de fin est requise' }),
       subject: z.nativeEnum(SubjectNameEnum, {
         required_error: 'La matière est requise',
       }),
@@ -45,12 +45,12 @@ const sessionSchema = z.object({
 
 type FormData = z.infer<typeof sessionSchema>
 
-export const EditCourseStudent = ({studentId}: {studentId: string}) => {
+export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
   const router = useRouter()
 
-  const {toast} = useToast()
-  const {getStudentCourses, addStudentToCourse, removeStudentFromCourse, courses} = useCourses()
-  const {teachers, getAllTeachers} = useTeachers()
+  const { toast } = useToast()
+  const { getStudentCourses, addStudentToCourse, removeStudentFromCourse, courses } = useCourses()
+  const { teachers, getAllTeachers } = useTeachers()
 
   const [existingCourses, setExistingCourses] = useState<PopulatedCourse[]>([])
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>('')
@@ -78,8 +78,8 @@ export const EditCourseStudent = ({studentId}: {studentId: string}) => {
               ? 'Samedi Après-midi'
               : 'Dimanche Matin',
         sessions: [
-          {startTime: value.START, endTime: value.PAUSE},
-          {startTime: value.PAUSE, endTime: value.FINISH},
+          { startTime: value.START, endTime: value.PAUSE },
+          { startTime: value.PAUSE, endTime: value.FINISH },
         ],
       })),
     [],
@@ -132,7 +132,7 @@ export const EditCourseStudent = ({studentId}: {studentId: string}) => {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: "Impossible de charger les données de l'étudiant",
+          description: 'Impossible de charger les données de l\'étudiant',
         })
       } finally {
         setPageIsLoading(false)
@@ -266,7 +266,7 @@ export const EditCourseStudent = ({studentId}: {studentId: string}) => {
   function handleSubjectSelect(index: number) {
     const selections = form.getValues('selections')
     const subject = form.getValues(`selections.${index}.subject`)
-    const timeSlot = form.getValues(`timeSlot`)
+    const timeSlot = form.getValues('timeSlot')
 
     // Mettre à jour uniquement la sélection à l'index spécifié
     form.setValue(`selections.${index}`, {

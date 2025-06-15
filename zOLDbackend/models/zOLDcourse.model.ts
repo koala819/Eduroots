@@ -1,4 +1,4 @@
-import { LevelEnum, SubjectNameEnum,  } from '@/types/mongo/course'
+import { LevelEnum, SubjectNameEnum  } from '@/types/mongo/course'
 import { CourseDocument } from '@/types/mongo/mongoose'
 
 import { rootOptions, rootSchema } from './root.model'

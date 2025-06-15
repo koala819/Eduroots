@@ -42,7 +42,7 @@ export async function statsStudentUpdate(): Promise<{
     await dbConnect()
     console.log('✅ Connecté à la base de données')
     console.log(
-      `\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES ÉTUDIANTS =====\n`,
+      '\n===== DÉBUT DE LA MISE À JOUR DES STATISTIQUES DES ÉTUDIANTS =====\n',
     )
 
     // Récupérer tous les étudiants actifs
@@ -79,7 +79,7 @@ export async function statsStudentUpdate(): Promise<{
 
         // Vérifier si l'étudiant a des données
         if (!attendanceData && !behaviorData) {
-          console.log(`  ⚠️ Étudiant sans données, ignoré`)
+          console.log('  ⚠️ Étudiant sans données, ignoré')
           stats.studentsWithoutData++
           stats.skippedStudents++
           continue
@@ -163,7 +163,7 @@ export async function statsStudentUpdate(): Promise<{
           )
         } else {
           stats.skippedStudents++
-          console.log(`  ℹ️ Aucun changement nécessaire`)
+          console.log('  ℹ️ Aucun changement nécessaire')
         }
       } catch (error) {
         console.error(
@@ -194,7 +194,7 @@ export async function statsStudentUpdate(): Promise<{
       console.log(`✅ Rapport généré: ${reportPath}`)
     } catch (error: any) {
       console.log(`ℹ️ Impossible de générer le rapport: ${error.message}`)
-      console.log("C'est normal si vous exécutez ce script sur Vercel.")
+      console.log('C\'est normal si vous exécutez ce script sur Vercel.')
     }
 
     // 4. Afficher le résumé
@@ -211,7 +211,7 @@ export async function statsStudentUpdate(): Promise<{
       '\n✅ MISE À JOUR RÉUSSIE: Statistiques des étudiants recalculées avec succès',
     )
 
-    console.log(`\n===== FIN DE LA MISE À JOUR =====`)
+    console.log('\n===== FIN DE LA MISE À JOUR =====')
 
     return {
       success: true,
@@ -364,7 +364,7 @@ async function safeUpdateUserStats(studentId: string, statsDocId: ObjectId) {
     console.error('Erreur lors de la mise à jour des stats utilisateur:', error)
 
     // Log détaillé de l'erreur
-    console.error("Détails de l'erreur:", {
+    console.error('Détails de l\'erreur:', {
       name: error.name,
       message: error.message,
       stack: error.stack,

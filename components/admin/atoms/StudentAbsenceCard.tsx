@@ -10,11 +10,11 @@ import {
   X,
 } from 'lucide-react'
 
-import {StudentStats} from '@/types/mongo/stats'
-import {Student} from '@/types/mongo/user'
+import { StudentStats } from '@/types/mongo/stats'
+import { Student } from '@/types/mongo/user'
 
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardFooter, CardHeader} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import {
   Dialog,
   DialogClose,
@@ -25,20 +25,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {Progress} from '@/components/ui/progress'
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import {convertToDate} from '@/utils/helpers'
-import {compareDesc, format} from 'date-fns'
-import {fr} from 'date-fns/locale'
-import {motion} from 'framer-motion'
+import { convertToDate } from '@/utils/helpers'
+import { compareDesc, format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { motion } from 'framer-motion'
 
 interface StudentAbsenceCardProps {
   student: Student
   stats: StudentStats
 }
 
-export const StudentAbsenceCard = ({student, stats}: StudentAbsenceCardProps) => {
+export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) => {
   // Fonction pour formater la distance par rapport à maintenant
   function formatTimeToNow(date: Date | string | null): string {
     if (!date) return 'Jamais'
@@ -50,7 +50,7 @@ export const StudentAbsenceCard = ({student, stats}: StudentAbsenceCardProps) =>
     // Convertir la différence en jours
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
-    if (days === 0) return "Aujourd'hui"
+    if (days === 0) return 'Aujourd\'hui'
     if (days === 1) return 'Hier'
     if (days < 7) return `Il y a ${days} jours`
     if (days < 30) return `Il y a ${Math.floor(days / 7)} semaines`
@@ -69,9 +69,9 @@ export const StudentAbsenceCard = ({student, stats}: StudentAbsenceCardProps) =>
       <CardHeader className="pt-6 px-6 relative">
         <div className="flex justify-between items-start mb-4">
           <motion.div
-            initial={{scale: 0.9, opacity: 0}}
-            animate={{scale: 1, opacity: 1}}
-            transition={{duration: 0.3}}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
             className="flex items-center space-x-4"
           >
             <div>
@@ -126,11 +126,11 @@ export const StudentAbsenceCard = ({student, stats}: StudentAbsenceCardProps) =>
             </div>
             <motion.span
               className="font-medium"
-              initial={{opacity: 0}}
-              animate={{opacity: 1}}
-              transition={{delay: 0.2}}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
             >
-              {getLastAbsence() ? format(getLastAbsence()!, 'dd MMM yyyy', {locale: fr}) : 'Aucune'}
+              {getLastAbsence() ? format(getLastAbsence()!, 'dd MMM yyyy', { locale: fr }) : 'Aucune'}
             </motion.span>
           </div>
 

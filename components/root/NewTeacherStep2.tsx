@@ -1,12 +1,12 @@
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Checkbox} from '@/components/ui/checkbox'
-import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
-import {LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum} from '@/types/mongo/course'
-import {useState} from 'react'
-import {UseFormReturn} from 'react-hook-form'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/mongo/course'
+import { useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
 interface StepTwoProps {
   form: UseFormReturn<{
@@ -32,7 +32,7 @@ const daysDisplay = {
   [TimeSlotEnum.SUNDAY_MORNING]: 'Dimanche Matin',
 }
 
-const StepTwo = ({form}: StepTwoProps) => {
+const StepTwo = ({ form }: StepTwoProps) => {
   const [selectedDays, setSelectedDays] = useState<TimeSlotEnum[]>([])
 
   const handleDayChange = (day: TimeSlotEnum, checked: boolean) => {
@@ -115,11 +115,11 @@ const StepTwo = ({form}: StepTwoProps) => {
                     const formIndex = selectedDays.indexOf(day) * 2 + sessionIndex
                     const timeRange =
                       sessionIndex === 0
-                        ? {start: TIME_SLOT_SCHEDULE[day].START, end: TIME_SLOT_SCHEDULE[day].PAUSE}
+                        ? { start: TIME_SLOT_SCHEDULE[day].START, end: TIME_SLOT_SCHEDULE[day].PAUSE }
                         : {
-                            start: TIME_SLOT_SCHEDULE[day].PAUSE,
-                            end: TIME_SLOT_SCHEDULE[day].FINISH,
-                          }
+                          start: TIME_SLOT_SCHEDULE[day].PAUSE,
+                          end: TIME_SLOT_SCHEDULE[day].FINISH,
+                        }
 
                     return (
                       <div key={sessionIndex} className="space-y-4">
@@ -135,7 +135,7 @@ const StepTwo = ({form}: StepTwoProps) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.subject`}
-                            render={({field}) => (
+                            render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-sm">Matière</FormLabel>
                                 <Select
@@ -163,7 +163,7 @@ const StepTwo = ({form}: StepTwoProps) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.level`}
-                            render={({field}) => (
+                            render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-sm">Niveau</FormLabel>
                                 <Select
@@ -191,7 +191,7 @@ const StepTwo = ({form}: StepTwoProps) => {
                           <FormField
                             control={form.control}
                             name={`sessions.${formIndex}.timeSlot.classroomNumber`}
-                            render={({field}) => (
+                            render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-sm">Salle</FormLabel>
                                 <FormControl>

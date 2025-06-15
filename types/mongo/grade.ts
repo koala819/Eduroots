@@ -1,6 +1,6 @@
-import {Course} from './course'
-import {RootEntity} from './root'
-import {Student} from './user'
+import { Course } from './course'
+import { RootEntity } from './root'
+import { Student } from './user'
 
 export enum GradeTypeEnum {
   Controle = 'contrôle',

@@ -1,11 +1,11 @@
-import {useCallback, useMemo, useState} from 'react'
-import {toast} from 'react-toastify'
+import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
 
-import {Session} from 'next-auth'
+import { Session } from 'next-auth'
 
-import {Mail} from '@/types/mongo/models'
+import { Mail } from '@/types/mongo/models'
 
-import {deleteMail, getMail, getSentMails, onClickMail} from '@/app/actions/mails'
+import { deleteMail, getMail, getSentMails, onClickMail } from '@/app/actions/mails'
 
 export function useMailsManager(session: Session, isSentbox: boolean) {
   const [rawMessages, setRawMessages] = useState<Mail[]>([])
@@ -109,7 +109,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
         const response = await deleteMail(messageToDelete._id, userId)
 
         if (!response.success) {
-          toast.error("Erreur lors de la suppression de l'email")
+          toast.error('Erreur lors de la suppression de l\'email')
           return
         }
 
@@ -135,7 +135,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
 
         toast.success('Email supprimé avec succès')
       } catch (error) {
-        toast.error("Erreur lors de la suppression de l'email")
+        toast.error('Erreur lors de la suppression de l\'email')
       }
     },
     [messages, userId],
@@ -154,7 +154,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
         const response = await onClickMail(parseInt(userId), mailId)
 
         if (!response.success) {
-          toast.error("Erreur lors du marquage de l'email comme lu")
+          toast.error('Erreur lors du marquage de l\'email comme lu')
           return
         }
 
@@ -169,7 +169,7 @@ export function useMailsManager(session: Session, isSentbox: boolean) {
           return updatedMessages
         })
       } catch (error) {
-        toast.error("Erreur lors du marquage de l'email comme lu")
+        toast.error('Erreur lors du marquage de l\'email comme lu')
       }
     },
     [messages, userId],

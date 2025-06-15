@@ -1,25 +1,25 @@
 'use client'
 
-import {useEffect, useMemo, useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {LevelEnum, SubjectNameEnum, TimeSlotEnum} from '@/types/mongo/course'
-import {CourseDocument} from '@/types/mongo/mongoose'
-import {Teacher} from '@/types/mongo/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/mongo/course'
+import { CourseDocument } from '@/types/mongo/mongoose'
+import { Teacher } from '@/types/mongo/user'
 
 import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
 import EditTeacherStep2 from '@/components/root/EditTeacherStep2'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Form} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Form } from '@/components/ui/form'
 
-import {useCourses} from '@/context/Courses/client'
-import {useTeachers} from '@/context/Teachers/client'
-import {zodResolver} from '@hookform/resolvers/zod'
+import { useCourses } from '@/context/Courses/client'
+import { useTeachers } from '@/context/Teachers/client'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import useCourseStore from '@/stores/useCourseStore'
 
@@ -74,12 +74,12 @@ export interface TeacherFormData {
   }[]
 }
 
-export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
-  const {updateCourse, isLoading: isLoadingCourse} = useCourses()
-  const {fetchTeacherCourses} = useCourseStore()
+export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
+  const { updateCourse, isLoading: isLoadingCourse } = useCourses()
+  const { fetchTeacherCourses } = useCourseStore()
   const router = useRouter()
-  const {getOneTeacher, updateTeacher, isLoading: isLoadingTeacher} = useTeachers()
-  const {toast} = useToast()
+  const { getOneTeacher, updateTeacher, isLoading: isLoadingTeacher } = useTeachers()
+  const { toast } = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true)
@@ -164,8 +164,8 @@ export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
   const isLoading = isLoadingTeacher || isLoadingCourse || isDataLoading
 
   const steps = [
-    {number: 1, label: 'Informations personnelles'},
-    {number: 2, label: 'Matières enseignées'},
+    { number: 1, label: 'Informations personnelles' },
+    { number: 2, label: 'Matières enseignées' },
   ]
 
   const validateStep1 = () => {
@@ -382,12 +382,12 @@ export const EditTeacherForm = ({id}: EditTeacherFormProps) => {
               <div
                 className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
                   ${
-                    currentStep === step.number
-                      ? 'bg-blue-500 text-white'
-                      : currentStep > step.number
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200'
-                  }`}
+            currentStep === step.number
+              ? 'bg-blue-500 text-white'
+              : currentStep > step.number
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200'
+            }`}
               >
                 {step.number}
               </div>

@@ -572,7 +572,7 @@ export const CoursesProvider = ({
         }
 
         const response = await updateCourseAction({
-          sessions: courseData.courses_sessions.map(session => ({
+          sessions: courseData.courses_sessions.map((session) => ({
             id: session.id,
             subject: session.subject,
             level: session.level,

@@ -81,32 +81,32 @@ function parseDayOfWeek(value: string): TimeSlotEnum | undefined {
 function parseLevel(value: string): LevelEnum | undefined {
   const normalized = value.trim()
   switch (normalized) {
-    case '0':
-      return LevelEnum.Zero
-    case '0-2':
-      return LevelEnum.Zero2
-    case '1':
-      return LevelEnum.One
-    case '1-2':
-      return LevelEnum.One2
-    case '2':
-      return LevelEnum.Two
-    case '2-2':
-      return LevelEnum.Two2
-    case '3':
-      return LevelEnum.Three
-    case '3-2':
-      return LevelEnum.Three2
-    case '4':
-      return LevelEnum.Four
-    case '4-2':
-      return LevelEnum.Four2
-    case '5':
-      return LevelEnum.Five
-    case '6':
-      return LevelEnum.Six
-    default:
-      return undefined
+  case '0':
+    return LevelEnum.Zero
+  case '0-2':
+    return LevelEnum.Zero2
+  case '1':
+    return LevelEnum.One
+  case '1-2':
+    return LevelEnum.One2
+  case '2':
+    return LevelEnum.Two
+  case '2-2':
+    return LevelEnum.Two2
+  case '3':
+    return LevelEnum.Three
+  case '3-2':
+    return LevelEnum.Three2
+  case '4':
+    return LevelEnum.Four
+  case '4-2':
+    return LevelEnum.Four2
+  case '5':
+    return LevelEnum.Five
+  case '6':
+    return LevelEnum.Six
+  default:
+    return undefined
   }
 }
 

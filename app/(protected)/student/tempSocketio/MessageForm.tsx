@@ -1,6 +1,6 @@
 'use client'
-import {useState} from 'react'
-import {getSession} from 'next-auth/react'
+import { useState } from 'react'
+import { getSession } from 'next-auth/react'
 
 export default function MessageForm() {
   const [message, setMessage] = useState('')
@@ -24,7 +24,7 @@ export default function MessageForm() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({content: message, conversation}),
+        body: JSON.stringify({ content: message, conversation }),
       })
       const data = await res.json()
       if (data.success) {

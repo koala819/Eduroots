@@ -1,16 +1,16 @@
-import {Suspense} from 'react'
+import { Suspense } from 'react'
 
-import {GenderEnum, Student, Teacher, UserRoleEnum} from '@/types/mongo/user'
+import { GenderEnum, Student, Teacher, UserRoleEnum } from '@/types/mongo/user'
 
-import {UserDetailsClient} from '@/components/admin/atoms/client/UserDetails'
+import { UserDetailsClient } from '@/components/admin/atoms/client/UserDetails'
 import Loading from '@/components/admin/atoms/server/Loading'
-import {StudentAttendanceStats} from '@/components/admin/atoms/server/StudentAttendanceStats'
-import {StudentBehaviorStats} from '@/components/admin/atoms/server/StudentBehaviorStats'
-import {TeacherStatsServer} from '@/components/admin/atoms/server/TeacherStats'
-import {StudentCourses} from '@/components/admin/molecules/server/StudentCourses'
-import {Badge} from '@/components/ui/badge'
+import { StudentAttendanceStats } from '@/components/admin/atoms/server/StudentAttendanceStats'
+import { StudentBehaviorStats } from '@/components/admin/atoms/server/StudentBehaviorStats'
+import { TeacherStatsServer } from '@/components/admin/atoms/server/TeacherStats'
+import { StudentCourses } from '@/components/admin/molecules/server/StudentCourses'
+import { Badge } from '@/components/ui/badge'
 
-export const UserDetails = ({entity}: {entity: Student | Teacher}) => {
+export const UserDetails = ({ entity }: {entity: Student | Teacher}) => {
   if (entity.role === UserRoleEnum.Student) {
     const student = entity as Student
     if (!student) {

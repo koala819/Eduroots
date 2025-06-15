@@ -1,15 +1,15 @@
 'use client'
 
-import {CourseSession} from '@/types/mongo/course'
-import {GenderEnum, Student} from '@/types/mongo/user'
+import { CourseSession } from '@/types/mongo/course'
+import { GenderEnum, Student } from '@/types/mongo/user'
 
-import {StatsCard} from '@/components/admin/atoms/server/PlanningStatCard'
+import { StatsCard } from '@/components/admin/atoms/server/PlanningStatCard'
 
 interface SessionDetailsCardProps {
   session: CourseSession
 }
 
-export default function PlanningDetailsCard({session}: SessionDetailsCardProps) {
+export default function PlanningDetailsCard({ session }: SessionDetailsCardProps) {
   const calculateGenderDistribution = (students: Student[]) => {
     const distribution = {
       [GenderEnum.Masculin]: 0,
