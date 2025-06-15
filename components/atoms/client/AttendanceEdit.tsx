@@ -169,7 +169,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
             <div className="max-w-4xl mx-auto">
               <ul className="space-y-3">
                 {students
-                  .sort((a, b) => a.firstname.localeCompare(b.firstname))
+                  .toSorted((a, b) => a.firstname.localeCompare(b.firstname))
                   .map((student) => {
                     return (
                       <motion.li

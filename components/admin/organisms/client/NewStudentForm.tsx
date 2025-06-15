@@ -1,41 +1,50 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from "@/hooks/use-toast";
 
-import { CourseSession, SubjectNameEnum } from '@/types/mongo/course'
-import { GenderEnum, Student, UserRoleEnum, UserType } from '@/types/mongo/user'
+import { CourseSession, SubjectNameEnum } from "@/types/mongo/course";
+import { GenderEnum, UserRoleEnum, UserType } from "@/types/supabase/user";
 
-import StepOne from '@/components/admin/atoms/client/NewStudentStep1'
-import StepThree from '@/components/admin/atoms/client/NewStudentStep3'
-import StepTwo from '@/components/admin/molecules/client/NewStudentStep2'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form } from '@/components/ui/form'
+import StepOne from "@/components/admin/atoms/client/NewStudentStep1";
+import StepThree from "@/components/admin/atoms/client/NewStudentStep3";
+import StepTwo from "@/components/admin/molecules/client/NewStudentStep2";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 
-import { useCourses } from '@/context/Courses/client'
-import { useStudents } from '@/context/Students/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import useCourseStore from '@/stores/useCourseStore'
-import { TimeSlotEnum } from '@/types/supabase/courses'
+import { useCourses } from "@/context/Courses/client";
+import { useStudents } from "@/context/Students/client";
+import { useTeachers } from "@/context/Teachers/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import useCourseStore from "@/stores/useCourseStore";
+import { TimeSlotEnum } from "@/types/supabase/courses";
+import { Student } from "@/types/mongo/user";
 
 const studentSchema = z.object({
-  firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
-  lastname: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  parentEmail1: z.string().email('Email invalide').optional().default('user@mail.fr'),
-  parentEmail2: z.string().email('Email invalide').optional().default('user@mail.fr'),
+  firstname: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastname: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  parentEmail1: z
+    .string()
+    .email("Email invalide")
+    .optional()
+    .default("user@mail.fr"),
+  parentEmail2: z
+    .string()
+    .email("Email invalide")
+    .optional()
+    .default("user@mail.fr"),
   gender: z.nativeEnum(GenderEnum, {
-    errorMap: () => ({ message: 'Veuillez sélectionner un genre' }),
+    errorMap: () => ({ message: "Veuillez sélectionner un genre" }),
   }),
   dateOfBirth: z.string().optional(),
   timeSlot: z.nativeEnum(TimeSlotEnum, {
-    errorMap: () => ({ message: 'Veuillez sélectionner un créneau' }),
+    errorMap: () => ({ message: "Veuillez sélectionner un créneau" }),
   }),
   selections: z.array(
     z.object({
@@ -44,84 +53,84 @@ const studentSchema = z.object({
       endTime: z.string(),
       subject: z.nativeEnum(SubjectNameEnum),
       teacherId: z.string(),
-    }),
+    })
   ),
-})
+});
 
 // const studentSchema = z.object({})
 
-export type FormData = z.infer<typeof studentSchema>
+export type FormData = z.infer<typeof studentSchema>;
 
 const NewStudentForm = () => {
-  const { addStudentToCourse } = useCourses()
-  const { courses } = useCourseStore()
-  const router = useRouter()
-  const { createStudent } = useStudents()
-  const { teachers, getAllTeachers } = useTeachers()
-  const { toast } = useToast()
+  const { addStudentToCourse } = useCourses();
+  const { courses } = useCourseStore();
+  const router = useRouter();
+  const { createStudent } = useStudents();
+  const { teachers, getAllTeachers } = useTeachers();
+  const { toast } = useToast();
 
-  const [currentStep, setCurrentStep] = useState<number>(1)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      firstname: '',
-      lastname: '',
-      parentEmail1: 'user@mail.fr',
-      parentEmail2: 'user@mail.fr',
+      firstname: "",
+      lastname: "",
+      parentEmail1: "user@mail.fr",
+      parentEmail2: "user@mail.fr",
       gender: undefined,
-      dateOfBirth: '',
+      dateOfBirth: "",
       timeSlot: undefined,
       selections: [],
     },
-  })
+  });
 
   useEffect(() => {
-    getAllTeachers()
-  }, [getAllTeachers])
+    getAllTeachers();
+  }, [getAllTeachers]);
 
   const steps = [
-    { number: 1, label: 'Informations personnelles' },
-    { number: 2, label: 'Choix de l\'enseignant' },
-    { number: 3, label: 'Confirmation' },
-  ]
+    { number: 1, label: "Informations personnelles" },
+    { number: 2, label: "Choix de l'enseignant" },
+    { number: 3, label: "Confirmation" },
+  ];
 
   // Validation des étapes
   const validateStep1 = () => {
     return form.trigger([
-      'firstname',
-      'lastname',
-      'parentEmail1',
-      'parentEmail2',
-      'gender',
-      'dateOfBirth',
-    ])
-  }
+      "firstname",
+      "lastname",
+      "parentEmail1",
+      "parentEmail2",
+      "gender",
+      "dateOfBirth",
+    ]);
+  };
 
   const validateStep2 = () => {
-    return form.trigger(['timeSlot', 'selections'])
-  }
+    return form.trigger(["timeSlot", "selections"]);
+  };
 
   const handleNext = async () => {
-    let isValid = false
+    let isValid = false;
 
     switch (currentStep) {
-    case 1:
-      isValid = await validateStep1()
-      break
-    case 2:
-      isValid = await validateStep2()
-      break
-    case 3:
-      await form.handleSubmit(onSubmit)()
-      return
+      case 1:
+        isValid = await validateStep1();
+        break;
+      case 2:
+        isValid = await validateStep2();
+        break;
+      case 3:
+        await form.handleSubmit(onSubmit)();
+        return;
     }
 
     if (isValid && currentStep < 3) {
-      setCurrentStep((prev) => prev + 1)
+      setCurrentStep((prev) => prev + 1);
     }
-  }
+  };
 
   const onSubmit = async (values: FormData) => {
     // console.log('🚀 values from FORM:', values)
@@ -151,31 +160,35 @@ const NewStudentForm = () => {
     // }
 
     try {
-      setIsLoading(true)
-      const studentData: Omit<Student, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
+      setIsLoading(true);
+      const studentData: Omit<
+        Student,
+        "id" | "_id" | "createdAt" | "updatedAt"
+      > = {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.parentEmail1,
-        hasInvalidEmail: values.parentEmail1 === 'user@mail.fr',
+        hasInvalidEmail: values.parentEmail1 === "user@mail.fr",
         secondaryEmail: values.parentEmail2,
-        password: '',
+        password: "",
         role: UserRoleEnum.Student,
         gender: values.gender,
         dateOfBirth: values.dateOfBirth,
         type: UserType.Both,
         subjects: values.selections.map((s) => s.subject),
-        schoolYear: '2024-2025',
+        schoolYear: "2024-2025",
         isActive: true,
-      }
+      };
 
-      const student = await createStudent(studentData)
+      const student = await createStudent(studentData);
       if (!student.id) {
         toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Une erreur est survenue lors de la création de l\'étudiant',
-        })
-        throw new Error('Erreur lors de la création de l\'étudiant')
+          variant: "destructive",
+          title: "Erreur",
+          description:
+            "Une erreur est survenue lors de la création de l'étudiant",
+        });
+        throw new Error("Erreur lors de la création de l'étudiant");
       }
 
       for (const selection of values.selections) {
@@ -184,37 +197,41 @@ const NewStudentForm = () => {
           const teacherCourse = courses.find(
             (course) =>
               Array.isArray(course.teacher) &&
-              course.teacher.some((teacherId) => teacherId === selection.teacherId),
-          )
+              course.teacher.some(
+                (teacherId) => teacherId === selection.teacherId
+              )
+          );
 
           if (!teacherCourse) {
             toast({
-              variant: 'destructive',
-              title: 'Erreur',
-              description: 'Aucun cours trouvé pour le professeur',
-            })
-            throw new Error('Aucun cours trouvé pour le professeur')
+              variant: "destructive",
+              title: "Erreur",
+              description: "Aucun cours trouvé pour le professeur",
+            });
+            throw new Error("Aucun cours trouvé pour le professeur");
           }
 
           // 2. Trouver la bonne session qui correspond à la sélection
-          const targetSession = teacherCourse.sessions.find((session: CourseSession) => {
-            if (!session?.timeSlot) return false
+          const targetSession = teacherCourse.sessions.find(
+            (session: CourseSession) => {
+              if (!session?.timeSlot) return false;
 
-            return (
-              session.timeSlot.dayOfWeek === selection.dayOfWeek &&
-              session.subject === selection.subject &&
-              session.timeSlot.startTime === selection.startTime &&
-              session.timeSlot.endTime === selection.endTime
-            )
-          })
+              return (
+                session.timeSlot.dayOfWeek === selection.dayOfWeek &&
+                session.subject === selection.subject &&
+                session.timeSlot.startTime === selection.startTime &&
+                session.timeSlot.endTime === selection.endTime
+              );
+            }
+          );
 
           if (!targetSession) {
             toast({
-              variant: 'destructive',
-              title: 'Erreur',
+              variant: "destructive",
+              title: "Erreur",
               description: `Session non trouvée pour ${selection.subject}`,
-            })
-            throw new Error(`Session non trouvée pour ${selection.subject}`)
+            });
+            throw new Error(`Session non trouvée pour ${selection.subject}`);
           }
 
           // 3. Ajouter l'étudiant au cours
@@ -223,37 +240,45 @@ const NewStudentForm = () => {
             startTime: selection.startTime,
             endTime: selection.endTime,
             subject: selection.subject,
-          })
+          });
 
           toast({
-            title: 'Succès',
-            variant: 'success',
-            description: 'L\'étudiant a été créé avec succès',
-          })
+            title: "Succès",
+            variant: "success",
+            description: "L'étudiant a été créé avec succès",
+          });
         } catch (error) {
-          console.error(`Erreur lors de l'ajout au cours ${selection.subject}:`, error)
+          console.error(
+            `Erreur lors de l'ajout au cours ${selection.subject}:`,
+            error
+          );
           toast({
-            variant: 'destructive',
-            title: 'Erreur',
-            description: error instanceof Error ? error.message : 'Une erreur est survenue',
-          })
+            variant: "destructive",
+            title: "Erreur",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Une erreur est survenue",
+          });
         }
       }
     } catch (error: any) {
-      console.error('Student creation error:', error)
+      console.error("Student creation error:", error);
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de la création de l\'étudiant',
-      })
+        variant: "destructive",
+        title: "Erreur",
+        description:
+          error.message ||
+          "Une erreur est survenue lors de la création de l'étudiant",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
       setTimeout(() => {
-        window.location.reload()
-        router.push('/admin/settings')
-      }, 100)
+        window.location.reload();
+        router.push("/admin/settings");
+      }, 100);
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -269,12 +294,12 @@ const NewStudentForm = () => {
               <div
                 className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
                   ${
-            currentStep === step.number
-              ? 'bg-blue-500 text-white'
-              : currentStep > step.number
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200'
-            }`}
+                    currentStep === step.number
+                      ? "bg-blue-500 text-white"
+                      : currentStep > step.number
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200"
+                  }`}
               >
                 {step.number}
               </div>
@@ -304,23 +329,23 @@ const NewStudentForm = () => {
               <Button
                 type="button"
                 onClick={handleNext}
-                className={`${currentStep === 1 ? 'ml-auto' : ''} ${
-                  currentStep === 3 ? 'bg-green-500 hover:bg-green-600' : ''
+                className={`${currentStep === 1 ? "ml-auto" : ""} ${
+                  currentStep === 3 ? "bg-green-500 hover:bg-green-600" : ""
                 }`}
                 disabled={isLoading}
               >
                 {isLoading
-                  ? 'Chargement...'
+                  ? "Chargement..."
                   : currentStep === 3
-                    ? 'Valider l\'inscription'
-                    : 'Suivant'}
+                  ? "Valider l'inscription"
+                  : "Suivant"}
               </Button>
             </div>
           </form>
         </Form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default NewStudentForm
+export default NewStudentForm;

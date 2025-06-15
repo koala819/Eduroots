@@ -1,20 +1,21 @@
-import { Suspense } from 'react'
+import { Suspense } from "react";
 
-import { GenderEnum, Student, Teacher, UserRoleEnum } from '@/types/mongo/user'
+import { GenderEnum, UserRoleEnum } from "@/types/supabase/user";
 
-import { UserDetailsClient } from '@/components/admin/atoms/client/UserDetails'
-import Loading from '@/components/admin/atoms/server/Loading'
-import { StudentAttendanceStats } from '@/components/admin/atoms/server/StudentAttendanceStats'
-import { StudentBehaviorStats } from '@/components/admin/atoms/server/StudentBehaviorStats'
-import { TeacherStatsServer } from '@/components/admin/atoms/server/TeacherStats'
-import { StudentCourses } from '@/components/admin/molecules/server/StudentCourses'
-import { Badge } from '@/components/ui/badge'
+import { UserDetailsClient } from "@/components/admin/atoms/client/UserDetails";
+import Loading from "@/components/admin/atoms/server/Loading";
+import { StudentAttendanceStats } from "@/components/admin/atoms/server/StudentAttendanceStats";
+import { StudentBehaviorStats } from "@/components/admin/atoms/server/StudentBehaviorStats";
+import { TeacherStatsServer } from "@/components/admin/atoms/server/TeacherStats";
+import { StudentCourses } from "@/components/admin/molecules/server/StudentCourses";
+import { Badge } from "@/components/ui/badge";
+import { Student, Teacher } from "@/types/mongo/user";
 
-export const UserDetails = ({ entity }: {entity: Student | Teacher}) => {
+export const UserDetails = ({ entity }: { entity: Student | Teacher }) => {
   if (entity.role === UserRoleEnum.Student) {
-    const student = entity as Student
+    const student = entity as Student;
     if (!student) {
-      return <div>Error student not found</div>
+      return <div>Error student not found</div>;
     }
     return (
       <div className="space-y-4 pb-4">
@@ -32,9 +33,9 @@ export const UserDetails = ({ entity }: {entity: Student | Teacher}) => {
           <StudentBehaviorStats studentId={student.id} />
         </Suspense>
       </div>
-    )
+    );
   } else {
-    const teacher = entity as Teacher
+    const teacher = entity as Teacher;
 
     return (
       <div className="space-y-4">
@@ -45,13 +46,15 @@ export const UserDetails = ({ entity }: {entity: Student | Teacher}) => {
           </div>
         </div>
         <div>
-          <h4 className="font-semibold text-sm text-gray-500 mb-2">Matières enseignées</h4>
+          <h4 className="font-semibold text-sm text-gray-500 mb-2">
+            Matières enseignées
+          </h4>
           <div className="flex flex-wrap gap-2">
             {teacher.subjects?.map((subject) => (
               <Badge key={subject} variant="secondary">
                 {subject}
               </Badge>
-            )) || 'Aucune matière spécifiée'}
+            )) || "Aucune matière spécifiée"}
           </div>
         </div>
 
@@ -59,6 +62,6 @@ export const UserDetails = ({ entity }: {entity: Student | Teacher}) => {
           <TeacherStatsServer teacherId={teacher.id} />
         </Suspense>
       </div>
-    )
+    );
   }
-}
+};

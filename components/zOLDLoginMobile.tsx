@@ -1,55 +1,72 @@
-'use client'
+"use client";
 
-import { ArrowRight, CircleArrowLeft, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import {
+  ArrowRight,
+  CircleArrowLeft,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from "@/hooks/use-toast";
 
-import { UserRoleEnum } from '@/types/mongo/user'
+import { UserRoleEnum } from "@/types/supabase/user";
 
-import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { PWAButtonClient } from "@/components/atoms/client/PWAButton";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 // import { loginAction } from '@/app/actions/auth'
-import { FormSchema, FormValues } from '@/lib/validation/login-schema'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
+import { FormSchema, FormValues } from "@/lib/validation/login-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
 
 export const LoginMobileClient = () => {
-  const { toast } = useToast()
-  const router = useRouter()
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState(1)
-  const [showPwd, setShowPwd] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
+  const [showPwd, setShowPwd] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      mail: '',
-      pwd: '',
+      mail: "",
+      pwd: "",
       role: undefined,
-      userAgent: '',
+      userAgent: "",
     },
-  })
+  });
 
   async function onSubmit(values: FormValues) {
-    setLoading(true)
+    setLoading(true);
 
-    const formData = new FormData()
-    formData.append('email', values.mail)
-    formData.append('pwd', values.pwd)
-    formData.append('role', values.role as string)
+    const formData = new FormData();
+    formData.append("email", values.mail);
+    formData.append("pwd", values.pwd);
+    formData.append("role", values.role as string);
 
     // Ajout sécurisé de userAgent
     // Move this code out of the render cycle to avoid hydration mismatches
-    formData.append('userAgent', typeof window !== 'undefined' ? navigator.userAgent : '')
+    formData.append(
+      "userAgent",
+      typeof window !== "undefined" ? navigator.userAgent : ""
+    );
 
     try {
       // Update userAgent before submission
@@ -65,121 +82,121 @@ export const LoginMobileClient = () => {
 
       // Importation dynamique de l'action côté client pour éviter les problèmes d'hydratation
       // const { loginAction } = await import('@/app/actions/auth')
-      const result = { success: true } as any
+      const result = { success: true } as any;
 
       if (!result?.success) {
         // Gérer les erreurs spécifiques
-        if (result?.error === 'CredentialsSignin') {
+        if (result?.error === "CredentialsSignin") {
           toast({
-            variant: 'destructive',
-            title: 'Erreur de connexion',
-            description: result.message || 'Identifiants incorrects. Veuillez réessayer',
-          })
-          router.push('/unauthorized?error=CredentialsSignin')
-          return
+            variant: "destructive",
+            title: "Erreur de connexion",
+            description:
+              result.message || "Identifiants incorrects. Veuillez réessayer",
+          });
+          router.push("/unauthorized?error=CredentialsSignin");
+          return;
         }
 
         // Gérer les erreurs générales
         toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: result.message || 'Une erreur est survenue',
-        })
-        return
+          variant: "destructive",
+          title: "Erreur",
+          description: result.message || "Une erreur est survenue",
+        });
+        return;
       }
 
       // Gérer la redirection pour changement de mot de passe
       if (result.forcePasswordChange) {
         toast({
-          variant: 'destructive',
-          title: 'Mot de passe par défaut',
+          variant: "destructive",
+          title: "Mot de passe par défaut",
           description:
-            result.message || 'Veuillez changer votre mot de passe pour des raisons de sécurité',
-        })
-        router.push(result.redirectUrl)
-        return
+            result.message ||
+            "Veuillez changer votre mot de passe pour des raisons de sécurité",
+        });
+        router.push(result.redirectUrl);
+        return;
       }
 
       // Connexion réussie
       if (result.status === 200) {
-
-
         // Notification et redirection
         toast({
-          variant: 'success',
-          title: 'Connexion réussie',
+          variant: "success",
+          title: "Connexion réussie",
           description: `Redirection vers ${getRoleName(values.role)}...`,
-        })
+        });
 
         // Redirection en fonction du rôle
-        const path = getRedirectUrl(values.role)
+        const path = getRedirectUrl(values.role);
         // console.log('🚀  path:', path)
 
         // Attendre un court instant pour que la session soit complètement établie
         setTimeout(() => {
-          router.push(path)
+          router.push(path);
 
           // Si après un court délai nous sommes toujours sur la même page, forcer la redirection
           setTimeout(() => {
-            if (window.location.pathname === '/') {
-              console.log('Forcing navigation with window.location')
-              window.location.href = path
+            if (window.location.pathname === "/") {
+              console.log("Forcing navigation with window.location");
+              window.location.href = path;
             }
-          }, 1000)
-        }, 300)
+          }, 1000);
+        }, 300);
       }
     } catch (error) {
-      console.error('Error during login:', error)
+      console.error("Error during login:", error);
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la connexion',
-      })
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la connexion",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   // Fonction utilitaire pour obtenir le nom du rôle pour le message toast
   function getRoleName(role: UserRoleEnum) {
     switch (role) {
-    case UserRoleEnum.Admin:
-    case UserRoleEnum.Bureau:
-      return 'Bureau'
-    case UserRoleEnum.Teacher:
-      return 'Enseignant'
-    case UserRoleEnum.Student:
-      return 'Parent'
-    default:
-      return 'Accueil'
+      case UserRoleEnum.Admin:
+      case UserRoleEnum.Bureau:
+        return "Bureau";
+      case UserRoleEnum.Teacher:
+        return "Enseignant";
+      case UserRoleEnum.Student:
+        return "Parent";
+      default:
+        return "Accueil";
     }
   }
 
   // Fonction utilitaire pour obtenir l'URL de redirection
   function getRedirectUrl(role: UserRoleEnum) {
     switch (role) {
-    case UserRoleEnum.Admin:
-    case UserRoleEnum.Bureau:
-      return '/admin'
-    case UserRoleEnum.Teacher:
-      return '/teacher'
-    case UserRoleEnum.Student:
-      return '/student'
-    default:
-      return '/home'
+      case UserRoleEnum.Admin:
+      case UserRoleEnum.Bureau:
+        return "/admin";
+      case UserRoleEnum.Teacher:
+        return "/teacher";
+      case UserRoleEnum.Student:
+        return "/student";
+      default:
+        return "/home";
     }
   }
 
   function handleNext(nextStep: number) {
     const currentFields: Record<number, keyof FormValues> = {
-      1: 'role',
-      2: 'mail',
-      3: 'pwd',
-    }
+      1: "role",
+      2: "mail",
+      3: "pwd",
+    };
 
     form.trigger(currentFields[step]).then((isValid) => {
-      if (isValid) setStep(nextStep)
-    })
+      if (isValid) setStep(nextStep);
+    });
   }
 
   return (
@@ -199,10 +216,10 @@ export const LoginMobileClient = () => {
                 key={s}
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   s === step
-                    ? 'bg-blue-600 text-white'
+                    ? "bg-blue-600 text-white"
                     : s < step
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-500"
                 }`}
               >
                 {s}
@@ -239,12 +256,12 @@ export const LoginMobileClient = () => {
                     render={({ field }) => (
                       <FormItem className="space-y-4">
                         {[
-                          { label: 'Direction', value: UserRoleEnum.Admin },
+                          { label: "Direction", value: UserRoleEnum.Admin },
                           {
-                            label: 'Enseignant(e)',
+                            label: "Enseignant(e)",
                             value: UserRoleEnum.Teacher,
                           },
-                          { label: 'Parent', value: UserRoleEnum.Student },
+                          { label: "Parent", value: UserRoleEnum.Student },
                         ].map((role) => (
                           <button
                             key={role.value}
@@ -252,16 +269,21 @@ export const LoginMobileClient = () => {
                             className={`w-full p-4 bg-gray-50 dark:bg-gray-700 rounded-xl flex
                                items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600
                                 transition-colors
-                                ${field.value === role.value ? 'ring-2 ring-blue-600' : ''
-                          }`}
+                                ${
+                                  field.value === role.value
+                                    ? "ring-2 ring-blue-600"
+                                    : ""
+                                }`}
                             onClick={() => {
-                              field.onChange(role.value)
-                              handleNext(2)
+                              field.onChange(role.value);
+                              handleNext(2);
                             }}
                           >
                             <span className="flex items-center">
                               <User className="w-5 h-5 mr-3 text-blue-600" />
-                              <span className="text-gray-900 dark:text-white">{role.label}</span>
+                              <span className="text-gray-900 dark:text-white">
+                                {role.label}
+                              </span>
                             </span>
                             <ArrowRight className="w-5 h-5 text-gray-400" />
                           </button>
@@ -298,8 +320,10 @@ export const LoginMobileClient = () => {
                               className="w-full bg-gray-50 dark:bg-gray-700 border-0
                               rounded-xl pl-12 h-12"
                             />
-                            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2
-                            text-gray-400 w-5 h-5" />
+                            <Mail
+                              className="absolute left-4 top-1/2 transform -translate-y-1/2
+                            text-gray-400 w-5 h-5"
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -350,13 +374,15 @@ export const LoginMobileClient = () => {
                           <div className="relative">
                             <Input
                               {...field}
-                              type={showPwd ? 'text' : 'password'}
+                              type={showPwd ? "text" : "password"}
                               placeholder="••••••••"
                               className="w-full bg-gray-50 dark:bg-gray-700 border-0
                               rounded-xl pl-12 pr-12 h-12"
                             />
-                            <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2
-                            text-gray-400 w-5 h-5" />
+                            <Lock
+                              className="absolute left-4 top-1/2 transform -translate-y-1/2
+                            text-gray-400 w-5 h-5"
+                            />
                             <button
                               type="button"
                               onClick={() => setShowPwd(!showPwd)}
@@ -400,7 +426,7 @@ export const LoginMobileClient = () => {
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-12"
                       disabled={loading}
                     >
-                      {loading ? 'Connexion...' : 'Se connecter'}
+                      {loading ? "Connexion..." : "Se connecter"}
                     </Button>
                   </div>
                 </div>
@@ -415,5 +441,5 @@ export const LoginMobileClient = () => {
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};

@@ -1,18 +1,26 @@
-'use client'
+"use client";
 
-import { createClient } from '@/utils/supabase/client'
-import { BuildingOfficeIcon, AcademicCapIcon, HomeIcon } from '@heroicons/react/24/outline'
-import { UserGroupIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
-import { z } from 'zod'
-import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
+import { createClient } from "@/utils/supabase/client";
+import {
+  BuildingOfficeIcon,
+  AcademicCapIcon,
+  HomeIcon,
+} from "@heroicons/react/24/outline";
+import {
+  UserGroupIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from "@heroicons/react/24/solid";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
-import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
-import { Button } from '@/components/ui/button'
+import { PWAButtonClient } from "@/components/atoms/client/PWAButton";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -20,52 +28,50 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import Link from 'next/link'
-import { loginAction } from '@/app/actions/auth'
-
-
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { loginAction } from "@/app/actions/auth";
 
 const formSchema = z.object({
   role: z.string({
-    required_error: 'Veuillez sélectionner votre profil',
+    required_error: "Veuillez sélectionner votre profil",
   }),
-  email: z.string().email('Email invalide'),
-  password: z.string().min(1, 'Le mot de passe est requis'),
-})
+  email: z.string().email("Email invalide"),
+  password: z.string().min(1, "Le mot de passe est requis"),
+});
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof formSchema>;
 
 export const LoginClient = () => {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const { toast } = useToast();
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: '',
-      email: '',
-      password: '',
+      role: "",
+      email: "",
+      password: "",
     },
-  })
+  });
 
   async function signInWithGoogle() {
-    const role = form.getValues('role')
+    const role = form.getValues("role");
     if (!role) {
-      form.setError('role', { message: 'Veuillez sélectionner votre profil' })
-      return
+      form.setError("role", { message: "Veuillez sélectionner votre profil" });
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      const supabase = createClient()
-      console.log('Tentative de connexion Google avec le rôle:', role)
+      const supabase = createClient();
+      console.log("Tentative de connexion Google avec le rôle:", role);
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/google-auth?role=${role}`,
           queryParams: {
@@ -73,52 +79,52 @@ export const LoginClient = () => {
             next: `/${role}`,
           },
         },
-      })
+      });
 
       if (error) {
-        console.error('Erreur lors de la connexion Google:', error)
-        setError(`Erreur lors de la connexion avec Google: ${error.message}`)
+        console.error("Erreur lors de la connexion Google:", error);
+        setError(`Erreur lors de la connexion avec Google: ${error.message}`);
       }
     } catch (error) {
-      console.error('Exception lors de la connexion Google:', error)
-      setError(`Erreur lors de la connexion avec Google: ${error}`)
+      console.error("Exception lors de la connexion Google:", error);
+      setError(`Erreur lors de la connexion avec Google: ${error}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function onSubmit(values: FormValues) {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
-      const formData = new FormData()
-      formData.append('email', values.email)
-      formData.append('pwd', values.password)
-      formData.append('role', values.role)
-      formData.append('userAgent', navigator.userAgent)
+      const formData = new FormData();
+      formData.append("email", values.email);
+      formData.append("pwd", values.password);
+      formData.append("role", values.role);
+      formData.append("userAgent", navigator.userAgent);
 
-      const result = await loginAction(formData)
+      const result = await loginAction(formData);
 
       if (result.success === false) {
         toast({
-          variant: 'destructive',
-          title: 'Erreur',
+          variant: "destructive",
+          title: "Erreur",
           description: result.message,
-        })
-        return
+        });
+        return;
       }
 
-      router.push(`/${result.role}`)
+      router.push(`/${result.role}`);
       toast({
-        variant: 'success',
-        title: 'Succès',
-        description: 'Vous êtes connecté',
-      })
+        variant: "success",
+        title: "Succès",
+        description: "Vous êtes connecté",
+      });
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -133,33 +139,44 @@ export const LoginClient = () => {
     >
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#375073]/10
-          rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#375073]/10
-          rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+        <div
+          className="absolute -top-40 -right-40 w-80 h-80 bg-[#375073]/10
+          rounded-full blur-3xl animate-pulse"
+        />
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#375073]/10
+          rounded-full blur-3xl animate-pulse delay-1000"
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
           w-96 h-96 bg-gradient-to-r from-[#375073]/5 to-transparent
-          rounded-full blur-3xl animate-pulse delay-500" />
+          rounded-full blur-3xl animate-pulse delay-500"
+        />
       </div>
 
       {/* Main Container */}
-      <main className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16
-        items-center relative z-10">
-
+      <main
+        className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16
+        items-center relative z-10"
+      >
         {/* Left Side - Branding */}
         <aside className="hidden lg:flex flex-col space-y-8 text-center lg:text-left">
           <div className="space-y-6">
             <div className="inline-flex items-center justify-center lg:justify-start">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#375073] to-[#4a6b95]
+              <div
+                className="w-16 h-16 bg-gradient-to-br from-[#375073] to-[#4a6b95]
                 rounded-2xl flex items-center justify-center shadow-2xl
-                transform rotate-3 hover:rotate-0 transition-all duration-500">
+                transform rotate-3 hover:rotate-0 transition-all duration-500"
+              >
                 <UserGroupIcon className="w-8 h-8 text-white" />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-bold bg-gradient-to-r
-                from-[#375073] to-[#4a6b95] bg-clip-text text-transparent">
+              <h1
+                className="text-5xl lg:text-6xl font-bold bg-gradient-to-r
+                from-[#375073] to-[#4a6b95] bg-clip-text text-transparent"
+              >
                 Eduroots
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -187,21 +204,26 @@ export const LoginClient = () => {
 
         {/* Right Side - Login Form */}
         <aside className="w-full max-w-md mx-auto lg:max-w-none">
-          <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
+          <div
+            className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
             border border-white/30 dark:border-gray-700/30 rounded-3xl
             shadow-2xl p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8
-            max-h-screen lg:max-h-none overflow-y-auto">
-
+            max-h-screen lg:max-h-none overflow-y-auto"
+          >
             {/* Mobile Header */}
             <div className="lg:hidden text-center space-y-3">
-              <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#375073] to-[#4a6b95]
+              <div
+                className="w-12 h-12 mx-auto bg-gradient-to-br from-[#375073] to-[#4a6b95]
                 rounded-xl flex items-center justify-center shadow-xl
-                transform rotate-3 hover:rotate-0 transition-all duration-500">
+                transform rotate-3 hover:rotate-0 transition-all duration-500"
+              >
                 <UserGroupIcon className="w-6 h-6 text-white" />
               </div>
               <div className="space-y-1">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#375073]
-                  to-[#4a6b95] bg-clip-text text-transparent">
+                <h1
+                  className="text-2xl font-bold bg-gradient-to-r from-[#375073]
+                  to-[#4a6b95] bg-clip-text text-transparent"
+                >
                   Eduroots
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300 text-xs">
@@ -211,7 +233,10 @@ export const LoginClient = () => {
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {/* Role Selection */}
                 <FormField
                   control={form.control}
@@ -229,43 +254,55 @@ export const LoginClient = () => {
                           type="button"
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
-                            ${field.value === 'bureau'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'}
+                            ${
+                              field.value === "bureau"
+                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
+                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
+                            }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange('bureau')}
-                          aria-pressed={field.value === 'bureau'}
+                          onClick={() => field.onChange("bureau")}
+                          aria-pressed={field.value === "bureau"}
                         >
                           <BuildingOfficeIcon className="w-7 h-7 mb-1" />
-                          <span className="font-medium text-xs sm:text-sm">Bureau</span>
+                          <span className="font-medium text-xs sm:text-sm">
+                            Bureau
+                          </span>
                         </button>
                         <button
                           type="button"
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
-                            ${field.value === 'teacher'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'}
+                            ${
+                              field.value === "teacher"
+                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
+                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
+                            }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange('teacher')}
-                          aria-pressed={field.value === 'teacher'}
+                          onClick={() => field.onChange("teacher")}
+                          aria-pressed={field.value === "teacher"}
                         >
                           <AcademicCapIcon className="w-7 h-7 mb-1" />
-                          <span className="font-medium text-xs sm:text-sm">Enseignant</span>
+                          <span className="font-medium text-xs sm:text-sm">
+                            Enseignant
+                          </span>
                         </button>
                         <button
                           type="button"
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
-                            ${field.value === 'student'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'}
+                            ${
+                              field.value === "student"
+                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
+                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
+                            }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange('student')}
-                          aria-pressed={field.value === 'student'}
+                          onClick={() => field.onChange("student")}
+                          aria-pressed={field.value === "student"}
                         >
                           <HomeIcon className="w-7 h-7 mb-1" />
-                          <span className="font-medium text-xs sm:text-sm">Famille</span>
+                          <span className="font-medium text-xs sm:text-sm">
+                            Famille
+                          </span>
                         </button>
                       </div>
                       <FormMessage />
@@ -277,8 +314,10 @@ export const LoginClient = () => {
                 <div className="space-y-4 lg:space-y-6">
                   {/* Google Login - First */}
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200
-                      text-center lg:text-left">
+                    <h3
+                      className="text-sm font-medium text-gray-700 dark:text-gray-200
+                      text-center lg:text-left"
+                    >
                       Connexion rapide
                     </h3>
 
@@ -291,8 +330,10 @@ export const LoginClient = () => {
                       bg-white hover:bg-white rounded-lg shadow-sm transition-all duration-200
                       hover:shadow-[0_0_0_5px_#e8f0fe] hover:border-[#4285F4]"
                     >
-                      <span className="icon inline-flex self-stretch items-center justify-center
-                       px-2 border-r border-[#4285F4]">
+                      <span
+                        className="icon inline-flex self-stretch items-center justify-center
+                       px-2 border-r border-[#4285F4]"
+                      >
                         <svg
                           viewBox="0 0 533.5 544.3"
                           xmlns="http://www.w3.org/2000/svg"
@@ -303,28 +344,32 @@ export const LoginClient = () => {
                           <path
                             d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7
                             63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z"
-                            fill="#4285f4" />
+                            fill="#4285f4"
+                          />
                           <path
                             d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9
                             26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9
                             243.2 149.9z"
-                            fill="#34a853" />
+                            fill="#34a853"
+                          />
                           <path
                             d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6
                             167.5 0 244.4l90.4-70.1z"
-                            fill="#fbbc04" />
+                            fill="#fbbc04"
+                          />
                           <path
                             d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8
                             272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4
                             152.8-112.4z"
-                            fill="#ea4335" />
+                            fill="#ea4335"
+                          />
                         </svg>
                       </span>
                       <span
                         className="flex-1 text-[#4285F4] font-medium text-base text-center
                         transition-all duration-200 group-hover:text-white"
                       >
-                        {loading ? 'Connexion...' : 'Se connecter avec Google'}
+                        {loading ? "Connexion..." : "Se connecter avec Google"}
                       </span>
                     </Button>
                   </div>
@@ -335,8 +380,10 @@ export const LoginClient = () => {
                       <div className="w-full border-t border-gray-200 dark:border-gray-600" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-3 bg-white/80 dark:bg-gray-900/80 text-gray-500
-                        font-bold text-base tracking-wide">
+                      <span
+                        className="px-3 bg-white/80 dark:bg-gray-900/80 text-gray-500
+                        font-bold text-base tracking-wide"
+                      >
                         OU
                       </span>
                     </div>
@@ -362,10 +409,10 @@ export const LoginClient = () => {
                                 focus:border-[#375073] focus:outline-none focus:ring-2
                                  focus:ring-[#375073]/50 disabled:bg-gray-100
                                  disabled:cursor-not-allowed"
-                              disabled={loading || !form.watch('role')}
+                              disabled={loading || !form.watch("role")}
                             />
                           </FormControl>
-                          {!form.watch('role') && (
+                          {!form.watch("role") && (
                             <p className="text-sm text-red-500 t-1">
                               Sélectionnez d'abord votre profil
                             </p>
@@ -387,14 +434,14 @@ export const LoginClient = () => {
                             <div className="relative">
                               <Input
                                 {...field}
-                                type={showPassword ? 'text' : 'password'}
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Entrez votre mot de passe"
                                 className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
                                 border border-gray-200 text-gray-900 lg:text-base
                                 focus:border-[#375073] focus:outline-none focus:ring-2
                                  focus:ring-[#375073]/50 disabled:bg-gray-100
                                  disabled:cursor-not-allowed"
-                                disabled={loading || !form.watch('role')}
+                                disabled={loading || !form.watch("role")}
                               />
                               <button
                                 type="button"
@@ -402,7 +449,7 @@ export const LoginClient = () => {
                                 className="absolute right-2.5 lg:right-3 top-2.5 lg:top-3
                                 text-gray-400 hover:text-[#375073] transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={loading || !form.watch('role')}
+                                disabled={loading || !form.watch("role")}
                               >
                                 {showPassword ? (
                                   <EyeSlashIcon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -412,7 +459,7 @@ export const LoginClient = () => {
                               </button>
                             </div>
                           </FormControl>
-                          {!form.watch('role') && (
+                          {!form.watch("role") && (
                             <p className="text-sm text-red-500 mt-1">
                               Sélectionnez d'abord votre profil
                             </p>
@@ -423,9 +470,9 @@ export const LoginClient = () => {
                     />
 
                     <div className="flex justify-end">
-                      {form.watch('role') ? (
+                      {form.watch("role") ? (
                         <Link
-                          href={`/forgot-password?role=${form.watch('role')}`}
+                          href={`/forgot-password?role=${form.watch("role")}`}
                           className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
         transition-colors font-medium"
                         >
@@ -433,7 +480,7 @@ export const LoginClient = () => {
                         </Link>
                       ) : (
                         <p className="text-xs lg:text-sm text-red-500">
-                            Sélectionnez d'abord votre profil
+                          Sélectionnez d'abord votre profil
                         </p>
                       )}
                     </div>
@@ -448,7 +495,7 @@ export const LoginClient = () => {
                         focus:outline-none focus:ring-2 focus:ring-[#375073]/50
                         focus:ring-offset-2 text-sm lg:text-base"
                     >
-                      {loading ? 'Connexion...' : 'Se connecter'}
+                      {loading ? "Connexion..." : "Se connecter"}
                     </Button>
                   </div>
                 </div>
@@ -457,8 +504,10 @@ export const LoginClient = () => {
 
             {/* Alerts */}
             {error && (
-              <div className="p-2.5 lg:p-3 bg-red-50 dark:bg-red-900/20
-                border border-red-200 dark:border-red-800 rounded-xl lg:rounded-2xl">
+              <div
+                className="p-2.5 lg:p-3 bg-red-50 dark:bg-red-900/20
+                border border-red-200 dark:border-red-800 rounded-xl lg:rounded-2xl"
+              >
                 <p className="text-center text-xs lg:text-sm text-red-700 dark:text-red-300">
                   {error}
                 </p>
@@ -469,7 +518,10 @@ export const LoginClient = () => {
             <div className="pt-3 lg:pt-4 border-t border-gray-200 dark:border-gray-600">
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 En vous connectant, vous acceptez nos
-                <Link href="/terms" className="text-[#375073] hover:underline ml-1">
+                <Link
+                  href="/terms"
+                  className="text-[#375073] hover:underline ml-1"
+                >
                   conditions d'utilisation
                 </Link>
               </p>
@@ -483,5 +535,5 @@ export const LoginClient = () => {
         </aside>
       </main>
     </motion.div>
-  )
-}
+  );
+};

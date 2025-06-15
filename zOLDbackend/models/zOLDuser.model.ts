@@ -1,12 +1,12 @@
-import { SubjectNameEnum } from '@/types/mongo/course'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/mongo/user'
+import { SubjectNameEnum } from "@/types/mongo/course";
+import { GenderEnum, UserRoleEnum, UserType } from "@/types/supabase/user";
 
-import { rootOptions } from './root.model'
+import { rootOptions } from "./root.model";
 
-import { StudentStats } from '@/backend/models/student-stats.model'
-import { TeacherStats } from '@/backend/models/teacher-stats.model'
-import bcrypt from 'bcryptjs'
-import mongoose, { Schema } from 'mongoose'
+import { StudentStats } from "@/backend/models/student-stats.model";
+import { TeacherStats } from "@/backend/models/teacher-stats.model";
+import bcrypt from "bcryptjs";
+import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -23,8 +23,8 @@ const userSchema = new Schema(
       required: true,
       trim: true,
       set: (value: string) => {
-        if (!value) return value
-        return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+        if (!value) return value;
+        return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
       },
     },
     lastname: {
@@ -32,8 +32,8 @@ const userSchema = new Schema(
       required: true,
       trim: true,
       set: (value: string) => {
-        if (!value) return value
-        return value.toUpperCase()
+        if (!value) return value;
+        return value.toUpperCase();
       },
     },
     password: {
@@ -78,44 +78,44 @@ const userSchema = new Schema(
     deletedAt: { type: Date, default: null },
     stats: {
       type: Schema.Types.ObjectId,
-      refPath: 'statsModel', // Référence dynamique basée sur le champ statsModel
+      refPath: "statsModel", // Référence dynamique basée sur le champ statsModel
     },
     statsModel: {
       type: String,
-      enum: ['StudentStats', 'TeacherStats'],
+      enum: ["StudentStats", "TeacherStats"],
     },
   },
   {
     ...rootOptions,
     timestamps: true,
-  },
-)
+  }
+);
 
 // Password hashing
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
-  this.password = await bcrypt.hash(this.password, 10)
-  next()
-})
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
 // Définir le modèle de stats basé sur le rôle
-userSchema.pre('save', function (next) {
-  if (this.role === 'student') {
-    this.statsModel = 'StudentStats'
+userSchema.pre("save", function (next) {
+  if (this.role === "student") {
+    this.statsModel = "StudentStats";
   } else {
-    this.statsModel = 'TeacherStats'
+    this.statsModel = "TeacherStats";
   }
-  next()
-})
+  next();
+});
 
 // Create stats for users
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // Vérifier si c'est un professeur et qu'il n'a pas de stats
-  if (this.role === 'teacher' && !this.stats) {
+  if (this.role === "teacher" && !this.stats) {
     try {
       const newStatsDoc = new TeacherStats({
         userId: this._id,
-        type: 'teacher',
+        type: "teacher",
         teacherStats: {
           totalStudents: 0,
           genderDistribution: {
@@ -125,9 +125,9 @@ userSchema.pre('save', async function (next) {
               undefined: 0,
             },
             percentages: {
-              [GenderEnum.Masculin]: '0',
-              [GenderEnum.Feminin]: '0',
-              undefined: '0',
+              [GenderEnum.Masculin]: "0",
+              [GenderEnum.Feminin]: "0",
+              undefined: "0",
             },
           },
           minAge: 0,
@@ -135,20 +135,20 @@ userSchema.pre('save', async function (next) {
           averageAge: 0,
         },
         lastUpdate: new Date(),
-      })
+      });
 
-      await newStatsDoc.save()
+      await newStatsDoc.save();
 
       // Ajouter la référence au document de stats
-      this.stats = newStatsDoc._id
+      this.stats = newStatsDoc._id;
     } catch (error) {
-      console.error('Erreur lors de la création des stats:', error)
+      console.error("Erreur lors de la création des stats:", error);
     }
-  } else if (this.role === 'student' && !this.stats) {
+  } else if (this.role === "student" && !this.stats) {
     try {
       const newStatsDoc = new StudentStats({
         userId: this._id,
-        type: 'student',
+        type: "student",
         studentStats: {
           attendanceRate: 0,
           totalAbsences: 0,
@@ -159,24 +159,24 @@ userSchema.pre('save', async function (next) {
           lastBehavior: null,
         },
         lastUpdate: new Date(),
-      })
+      });
 
-      await newStatsDoc.save()
+      await newStatsDoc.save();
 
       // Ajouter la référence au document de stats
-      this.stats = newStatsDoc._id
+      this.stats = newStatsDoc._id;
     } catch (error) {
-      console.error('Erreur lors de la création des stats:', error)
+      console.error("Erreur lors de la création des stats:", error);
     }
   }
-  next()
-})
+  next();
+});
 
 // Indexes
-userSchema.index({ email: 1 })
-userSchema.index({ role: 1, isActive: 1 })
-userSchema.index({ firstname: 1, lastname: 1 })
-userSchema.index({ role: 1, subjects: 1 }) // Index pour la recherche des profs par matière
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1, isActive: 1 });
+userSchema.index({ firstname: 1, lastname: 1 });
+userSchema.index({ role: 1, subjects: 1 }); // Index pour la recherche des profs par matière
 
 export const User =
-  mongoose.models.userNEW || mongoose.model('userNEW', userSchema)
+  mongoose.models.userNEW || mongoose.model("userNEW", userSchema);

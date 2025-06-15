@@ -1,37 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
-import { TimeEnum } from '@/types/mongo/course'
-import type { Student, Teacher } from '@/types/mongo/user'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/mongo/user'
+import { TimeEnum } from "@/types/mongo/course";
+import type { Student, Teacher } from "@/types/mongo/user";
+import { GenderEnum, UserRoleEnum, UserType } from "@/types/supabase/user";
 
-import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
-import { User } from '@/zOLDbackend/models/zOLDuser.model'
-import { validateRequest } from '@/lib/api.utils'
+import { Course } from "@/zOLDbackend/models/zOLDcourse.model";
+import { User } from "@/zOLDbackend/models/zOLDuser.model";
 import type {
   CourseSessionDataType,
   StudentDataType,
   TeacherDataType,
-} from '@/lib/import'
+} from "@/lib/import";
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
-  const validatedId = String(id).trim()
+  const validatedId = String(id).trim();
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
-    const sanitizedId = validatedId.replace(/[\n\r]/g, '')
-    console.warn(`ID invalide ignoré: ${sanitizedId}`)
-    return null
+    const sanitizedId = validatedId.replace(/[\n\r]/g, "");
+    console.warn(`ID invalide ignoré: ${sanitizedId}`);
+    return null;
   }
-  return validatedId
+  return validatedId;
 }
 
 export async function POST(req: NextRequest) {
-  const authError = await validateRequest(req)
-  if (authError) return authError
-
   try {
     const { teachers, courses, students, mergedTeachers, year } =
-      await req.json()
-    const logs: string[] = []
+      await req.json();
+    const logs: string[] = [];
 
     // Debug: Vérifier les données d'entrée
     // console.log("\n=== DEBUG: DONNÉES D'ENTRÉE ===")
@@ -51,23 +47,23 @@ export async function POST(req: NextRequest) {
 
           if (s.teacherId) {
             // Validation du teacherId pour éviter l'injection de propriété
-            const teacherId = String(s.teacherId).trim()
+            const teacherId = String(s.teacherId).trim();
             if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
-              const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, '')
+              const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, "");
               console.warn(
-                `ID de professeur invalide ignoré: ${sanitizedTeacherId}`,
-              )
-              return acc
+                `ID de professeur invalide ignoré: ${sanitizedTeacherId}`
+              );
+              return acc;
             }
             if (!acc[teacherId]) {
-              acc[teacherId] = []
+              acc[teacherId] = [];
             }
-            acc[teacherId].push(s)
+            acc[teacherId].push(s);
           }
-          return acc
+          return acc;
         },
-        {},
-      ) ??{}
+        {}
+      ) ?? {};
 
     // Debug: Afficher les profs et leurs étudiants
     // console.log('\n=== DEBUG: PROFESSEURS ET ÉTUDIANTS ===')
@@ -87,32 +83,32 @@ export async function POST(req: NextRequest) {
         (
           acc: Record<string, string>,
           mt: {
-            originalId: string
-            mergedId: string
-          },
+            originalId: string;
+            mergedId: string;
+          }
         ) => {
           // Validation des IDs pour éviter l'injection de propriété
-          const originalId = String(mt.originalId).trim()
-          const mergedId = String(mt.mergedId).trim()
+          const originalId = String(mt.originalId).trim();
+          const mergedId = String(mt.mergedId).trim();
 
           if (
             !/^[a-zA-Z0-9_-]+$/.test(originalId) ||
             !/^[a-zA-Z0-9_-]+$/.test(mergedId)
           ) {
-            const sanitizedOriginalId = originalId.replace(/[\n\r]/g, '')
-            const sanitizedMergedId = mergedId.replace(/[\n\r]/g, '')
+            const sanitizedOriginalId = originalId.replace(/[\n\r]/g, "");
+            const sanitizedMergedId = mergedId.replace(/[\n\r]/g, "");
             console.warn(
               `ID de professeur invalide ignoré dans la fusion: originalId
-              =${sanitizedOriginalId}, mergedId=${sanitizedMergedId}`,
-            )
-            return acc
+              =${sanitizedOriginalId}, mergedId=${sanitizedMergedId}`
+            );
+            return acc;
           }
 
-          acc[originalId] = mergedId
-          return acc
+          acc[originalId] = mergedId;
+          return acc;
         },
-        {},
-      ) ?? {}
+        {}
+      ) ?? {};
 
     // console.log('\n=== DEBUG: FUSION DES PROFESSEURS ===')
     // console.log('mergedTeachers:', mergedTeachers)
@@ -122,8 +118,8 @@ export async function POST(req: NextRequest) {
     /*----------------------------------------------------------
     1. Insérer les enseignants
     ----------------------------------------------------------*/
-    const insertedTeachers = []
-    const teacherIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
+    const insertedTeachers = [];
+    const teacherIdMap: Record<string, string> = {}; // Map pour stocker id métier -> _id MongoDB
     if (teachers && teachers.length > 0) {
       // console.log('\n\n\n[FIRST] teachers:', teachers)
       // console.log(
@@ -131,123 +127,120 @@ export async function POST(req: NextRequest) {
       //   teachers.length,
       // )
 
-
-
       // Créer un Set pour stocker les IDs uniques des enseignants de Excel
       const uniqueTeacherIdFromExcel = new Set<string>(
         teachers.map((t: TeacherDataType) => {
           // console.log('t', t)
-          return t.id
-        }),
-      )
+          return t.id;
+        })
+      );
       // console.log('\n\n uniqueTeacherIdFromExcel', uniqueTeacherIdFromExcel)
 
       // Créer les documents des enseignants (un seul par ID)
       const teacherDataFormats: Teacher[] = Array.from(
-        uniqueTeacherIdFromExcel,
+        uniqueTeacherIdFromExcel
       ).map((id) => {
-        const teacher = teachers.find((t: TeacherDataType) => t.id === id)
-        let gender: GenderEnum = GenderEnum.Masculin
-        if (teacher?.gender === 'female' || teacher?.gender === 'féminin')
-          gender = GenderEnum.Feminin
-        else if (teacher?.gender === 'male' || teacher?.gender === 'masculin')
-          gender = GenderEnum.Masculin
+        const teacher = teachers.find((t: TeacherDataType) => t.id === id);
+        let gender: GenderEnum = GenderEnum.Masculin;
+        if (teacher?.gender === "female" || teacher?.gender === "féminin")
+          gender = GenderEnum.Feminin;
+        else if (teacher?.gender === "male" || teacher?.gender === "masculin")
+          gender = GenderEnum.Masculin;
 
         // Récupérer les sujets des cours pour cet enseignant
         const teacherSubjects =
           courses
             ?.filter((c: CourseSessionDataType) => {
               // console.log('course', c)
-              return c.teacherId === id
+              return c.teacherId === id;
             })
             .map((c: CourseSessionDataType) => c.subject)
-            .filter(Boolean) ?? []
+            .filter(Boolean) ?? [];
 
         // les matières sont uniques
-        const uniqueSubjects = Array.from(new Set(teacherSubjects))
+        const uniqueSubjects = Array.from(new Set(teacherSubjects));
         // console.log('\n\n\nteacherSubjects pour', id, ':', teacherSubjects)
         return {
           id: id,
-          email: teacher?.email?.toLowerCase() ?? 'user@mail.fr',
+          email: teacher?.email?.toLowerCase() ?? "user@mail.fr",
           firstname: teacher?.firstname,
           lastname: teacher?.lastname,
-          password: '',
+          password: "",
           role: UserRoleEnum.Teacher,
           gender,
-          phone: teacher?.phone ?? '0123456789',
+          phone: teacher?.phone ?? "0123456789",
           isActive: true,
           deletedAt: null,
           subjects: uniqueSubjects,
-        } as Teacher
-      })
+        } as Teacher;
+      });
 
       // Insérer les enseignants et stocker leurs IDs
       for (const newTeacher of teacherDataFormats) {
         // console.log('[IMPORT] Tentative insertion enseignant:', newTeacher)
-        const teacher = new User(newTeacher)
-        const savedTeacher = await teacher.save()
+        const teacher = new User(newTeacher);
+        const savedTeacher = await teacher.save();
         // Stocker l'ID MongoDB avec l'ID métier comme clé
-        const teacherId = String(newTeacher.id).trim()
+        const teacherId = String(newTeacher.id).trim();
         if (!/^[a-zA-Z0-9_-]+$/.test(teacherId)) {
-          const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, '')
+          const sanitizedTeacherId = teacherId.replace(/[\n\r]/g, "");
           console.warn(
-            `ID de professeur invalide ignoré lors de la création du map: ${sanitizedTeacherId}`,
-          )
-          continue
+            `ID de professeur invalide ignoré lors de la création du map: ${sanitizedTeacherId}`
+          );
+          continue;
         }
-        teacherIdMap[teacherId] = savedTeacher._id.toString()
-        insertedTeachers.push(savedTeacher)
+        teacherIdMap[teacherId] = savedTeacher._id.toString();
+        insertedTeachers.push(savedTeacher);
         // console.log('newTeacher.id', newTeacher.id)
         // console.log('teacherIdMap[newTeacher.id]', teacherIdMap[newTeacher.id])
       }
 
-      logs.push(`${insertedTeachers.length} enseignants insérés.`)
+      logs.push(`${insertedTeachers.length} enseignants insérés.`);
     }
 
     /*----------------------------------------------------------
     2. Insérer les étudiants
     ----------------------------------------------------------*/
-    const insertedStudents = []
-    const studentIdMap: Record<string, string> = {} // Map pour stocker id métier -> _id MongoDB
+    const insertedStudents = [];
+    const studentIdMap: Record<string, string> = {}; // Map pour stocker id métier -> _id MongoDB
     if (students && students.length > 0) {
       // console.log(
       //   '[IMPORT] Début insertion étudiants, nombre:',
       //   students.length,
       // )
 
-
       const studentDataFormats: Student[] = students.map((s: any) => {
-        let gender: GenderEnum = GenderEnum.Masculin
-        if (s.gender === 'female' || s.gender === 'féminin')
-          gender = GenderEnum.Feminin
-        else if (s.gender === 'male' || s.gender === 'masculin')
-          gender = GenderEnum.Masculin
+        let gender: GenderEnum = GenderEnum.Masculin;
+        if (s.gender === "female" || s.gender === "féminin")
+          gender = GenderEnum.Feminin;
+        else if (s.gender === "male" || s.gender === "masculin")
+          gender = GenderEnum.Masculin;
         return {
           id: s.id,
-          email: s.email?.toLowerCase() ?? '',
+          email: s.email?.toLowerCase() ?? "",
           firstname: s.firstname,
           lastname: s.lastname,
-          password: '',
+          password: "",
           role: UserRoleEnum.Student,
           gender,
-          phone: s.phone ?? '',
+          phone: s.phone ?? "",
           isActive: true,
           deletedAt: null,
           type: UserType.Student,
           dateOfBirth: s.dateOfBirth ?? undefined,
-        } as Student
-      })
+        } as Student;
+      });
 
       for (const newStudent of studentDataFormats) {
-        const student = new User(newStudent)
-        const savedStudent = await student.save()
+        const student = new User(newStudent);
+        const savedStudent = await student.save();
         // Stocker l'ID MongoDB avec l'ID Excel comme clé
-        const studentId = validateId(newStudent.id)
-        if (!studentId) continue
-        studentIdMap[studentId] = savedStudent._id.toString()
-        insertedStudents.push(savedStudent)
+        const studentId = validateId(newStudent.id);
+        if (!studentId) continue;
+        studentIdMap[studentId] = savedStudent._id.toString();
+        insertedStudents.push(savedStudent);
       }
-      logs.push(`${insertedStudents.length} étudiants insérés.`)
+      logs.push(`${insertedStudents.length} étudiants insérés.`);
     }
 
     // Debug: Afficher les profs et leurs étudiants avec les IDs MongoDB
@@ -268,7 +261,7 @@ export async function POST(req: NextRequest) {
     /*----------------------------------------------------------
     3. Insérer les cours avec les IDs des professeurs et des étudiants
     ----------------------------------------------------------*/
-    let insertedCourses = []
+    let insertedCourses = [];
     if (courses && courses.length > 0) {
       // console.log('[IMPORT] Début insertion cours, nombre:', courses.length)
 
@@ -277,8 +270,9 @@ export async function POST(req: NextRequest) {
         (acc: any, c: CourseSessionDataType) => {
           // console.log('c', c)
           // Convertir l'ID Excel en ID MongoDB
-          const originalTeacherId = mergedTeacherMap[c.teacherId] ?? c.teacherId
-          const teacherMongoId = teacherIdMap[originalTeacherId]
+          const originalTeacherId =
+            mergedTeacherMap[c.teacherId] ?? c.teacherId;
+          const teacherMongoId = teacherIdMap[originalTeacherId];
 
           // console.log('\n=== DEBUG: CONVERSION ID PROFESSEUR ===')
           // console.log('ID Excel original:', c.teacherId)
@@ -287,19 +281,22 @@ export async function POST(req: NextRequest) {
           // console.log('=====================================\n')
 
           if (!teacherMongoId) {
-            const sanitizedTeacherId = String(c.teacherId).replace(/\n|\r/g, '')
+            const sanitizedTeacherId = String(c.teacherId).replace(
+              /\n|\r/g,
+              ""
+            );
             console.warn(
-              `Professeur non trouvé pour l'ID ${sanitizedTeacherId}`,
-            )
-            return acc
+              `Professeur non trouvé pour l'ID ${sanitizedTeacherId}`
+            );
+            return acc;
           }
 
           // Clé unique : professeur uniquement
-          const key = teacherMongoId
+          const key = teacherMongoId;
           // Validation supplémentaire de la clé MongoDB
           if (!/^[a-zA-Z0-9_-]+$/.test(key)) {
-            console.warn(`ID MongoDB invalide ignoré: ${key}`)
-            return acc
+            console.warn(`ID MongoDB invalide ignoré: ${key}`);
+            return acc;
           }
           // console.log('Clé de regroupement:', key)
 
@@ -311,7 +308,7 @@ export async function POST(req: NextRequest) {
               isActive: true,
               deletedAt: null,
               stats: {},
-            }
+            };
           }
 
           // Récupérer les étudiants de ce professeur et convertir leurs IDs
@@ -341,13 +338,13 @@ export async function POST(req: NextRequest) {
               s.timeSlot.classroomNumber === parseInt(c.classroomNumber) &&
               s.subject === c.subject &&
               s.level === c.level &&
-              s.sameStudents === false,
-          )
+              s.sameStudents === false
+          );
 
           if (existingSession) {
             // Si une session existe déjà, on divise le créneau
-            const isMorning = c.dayOfWeek.includes('morning')
-            const isAfternoon = c.dayOfWeek.includes('afternoon')
+            const isMorning = c.dayOfWeek.includes("morning");
+            const isAfternoon = c.dayOfWeek.includes("afternoon");
 
             if (isMorning) {
               // Pour le matin
@@ -356,17 +353,17 @@ export async function POST(req: NextRequest) {
                 existingSession.timeSlot.endTime === TimeEnum.MorningEnd
               ) {
                 // Récupérer les étudiants de ce professeur
-                const teacherStudents = studentsByTeacher[c.teacherId] ?? []
+                const teacherStudents = studentsByTeacher[c.teacherId] ?? [];
                 const studentIds = teacherStudents
                   .map((s: Student) => {
-                    const id = validateId(s.id)
-                    return id ? studentIdMap[id] : null
+                    const id = validateId(s.id);
+                    return id ? studentIdMap[id] : null;
                   })
-                  .filter(Boolean)
+                  .filter(Boolean);
 
                 // Première matière : 9h-10h45
-                existingSession.timeSlot.endTime = TimeEnum.MorningPause
-                existingSession.students = studentIds
+                existingSession.timeSlot.endTime = TimeEnum.MorningPause;
+                existingSession.students = studentIds;
 
                 // Deuxième matière : 11h-12h30
                 acc[key].sessions.push({
@@ -381,7 +378,7 @@ export async function POST(req: NextRequest) {
                   students: studentIds,
                   sameStudents: false,
                   stats: {},
-                })
+                });
               }
             } else if (isAfternoon) {
               // Pour l'après-midi
@@ -391,17 +388,17 @@ export async function POST(req: NextRequest) {
                 existingSession.timeSlot.endTime === TimeEnum.AfternoonEnd
               ) {
                 // Récupérer les étudiants de ce professeur
-                const teacherStudents = studentsByTeacher[c.teacherId] ?? []
+                const teacherStudents = studentsByTeacher[c.teacherId] ?? [];
                 const studentIds = teacherStudents
                   .map((s: Student) => {
-                    const id = validateId(s.id)
-                    return id ? studentIdMap[id] : null
+                    const id = validateId(s.id);
+                    return id ? studentIdMap[id] : null;
                   })
-                  .filter(Boolean)
+                  .filter(Boolean);
 
                 // Première matière : 14h-15h45
-                existingSession.timeSlot.endTime = TimeEnum.AfternoonPause
-                existingSession.students = studentIds
+                existingSession.timeSlot.endTime = TimeEnum.AfternoonPause;
+                existingSession.students = studentIds;
 
                 // Deuxième matière : 16h-17h30
                 acc[key].sessions.push({
@@ -416,19 +413,19 @@ export async function POST(req: NextRequest) {
                   students: studentIds,
                   sameStudents: false,
                   stats: {},
-                })
+                });
               }
             }
           } else {
             // Si aucune session similaire n'existe, on ajoute la session normale
             // Récupérer les étudiants de ce professeur
-            const teacherStudents = studentsByTeacher[c.teacherId] ?? []
+            const teacherStudents = studentsByTeacher[c.teacherId] ?? [];
             const studentIds = teacherStudents
               .map((s: Student) => {
-                const id = validateId(s.id)
-                return id ? studentIdMap[id] : null
+                const id = validateId(s.id);
+                return id ? studentIdMap[id] : null;
               })
-              .filter(Boolean)
+              .filter(Boolean);
 
             acc[key].sessions.push({
               timeSlot: {
@@ -442,34 +439,34 @@ export async function POST(req: NextRequest) {
               students: studentIds,
               sameStudents: false,
               stats: {}, // Laisser vide, Mongoose/Middleware pourra compléter
-            })
+            });
           }
 
-          return acc
+          return acc;
         },
-        {},
-      )
+        {}
+      );
 
-      const coursesToInsert = Object.values(groupedCourses)
+      const coursesToInsert = Object.values(groupedCourses);
       // console.log('Nombre de cours après regroupement:', coursesToInsert.length)
       // console.log('Cours regroupés:', JSON.stringify(groupedCourses, null, 2))
 
       insertedCourses = await Course.insertMany(coursesToInsert, {
         ordered: false,
-      })
-      logs.push(`${insertedCourses.length} cours insérés.`)
+      });
+      logs.push(`${insertedCourses.length} cours insérés.`);
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Base créée avec succès',
+      message: "Base créée avec succès",
       logs,
-    })
+    });
   } catch (error: any) {
-    console.error('Erreur lors de la création de la base:', error)
+    console.error("Erreur lors de la création de la base:", error);
     return NextResponse.json(
       { success: false, error: error.message ?? error, stack: error.stack },
-      { status: 500 },
-    )
+      { status: 500 }
+    );
   }
 }

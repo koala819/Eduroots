@@ -1,29 +1,30 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from "@/hooks/use-toast";
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/mongo/course'
-import { CourseDocument } from '@/types/mongo/mongoose'
-import { Teacher, UserRoleEnum } from '@/types/mongo/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from "@/types/mongo/course";
+import { CourseDocument } from "@/types/mongo/mongoose";
+import { UserRoleEnum } from "@/types/supabase/user";
 
-import StepOne from '@/components/root/NewTeacherStep1'
-import StepTwo from '@/components/root/NewTeacherStep2'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form } from '@/components/ui/form'
+import StepOne from "@/components/root/NewTeacherStep1";
+import StepTwo from "@/components/root/NewTeacherStep2";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 
-import { useCourses } from '@/context/Courses/client'
-import { useTeachers } from '@/context/Teachers/client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { useCourses } from "@/context/Courses/client";
+import { useTeachers } from "@/context/Teachers/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Teacher } from "@/types/mongo/user";
 
 const teacherSchema = z.object({
-  firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
-  lastname: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  email: z.string().email('Email invalide'),
+  firstname: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastname: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Email invalide"),
   sessions: z
     .array(
       z.object({
@@ -35,58 +36,58 @@ const teacherSchema = z.object({
         }),
         subject: z.nativeEnum(SubjectNameEnum).nullable(),
         level: z.nativeEnum(LevelEnum).nullable(),
-      }),
+      })
     )
-    .min(2, 'Au moins 2 sessions sont requises')
-    .max(6, 'Maximum 6 sessions autorisées'),
-})
+    .min(2, "Au moins 2 sessions sont requises")
+    .max(6, "Maximum 6 sessions autorisées"),
+});
 // const teacherSchema = z.object({})
 
-export type FormData = z.infer<typeof teacherSchema>
+export type FormData = z.infer<typeof teacherSchema>;
 
 const NewTeacherForm = () => {
-  const { createCourse } = useCourses()
-  const { createTeacher } = useTeachers()
-  const { toast } = useToast()
+  const { createCourse } = useCourses();
+  const { createTeacher } = useTeachers();
+  const { toast } = useToast();
 
-  const [currentStep, setCurrentStep] = useState<number>(1)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(teacherSchema),
     defaultValues: {
-      firstname: '',
-      lastname: '',
-      email: '',
+      firstname: "",
+      lastname: "",
+      email: "",
       sessions: [],
     },
-  })
+  });
 
   const steps = [
-    { number: 1, label: 'Informations personnelles' },
-    { number: 2, label: 'Matières enseignées' },
-  ]
+    { number: 1, label: "Informations personnelles" },
+    { number: 2, label: "Matières enseignées" },
+  ];
 
   const validateStep1 = () => {
-    return form.trigger(['firstname', 'lastname', 'email'])
-  }
+    return form.trigger(["firstname", "lastname", "email"]);
+  };
 
   const validateStep2 = () => {
-    return form.trigger(['sessions'])
-  }
+    return form.trigger(["sessions"]);
+  };
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      const isValid = await validateStep1()
-      if (isValid) setCurrentStep(2)
-      return
+      const isValid = await validateStep1();
+      if (isValid) setCurrentStep(2);
+      return;
     }
 
     if (currentStep === 2) {
-      const isValid = await validateStep2()
-      if (isValid) await form.handleSubmit(onSubmit)()
+      const isValid = await validateStep2();
+      if (isValid) await form.handleSubmit(onSubmit)();
     }
-  }
+  };
 
   const onSubmit = async (values: FormData) => {
     // const values = {
@@ -117,33 +118,40 @@ const NewTeacherForm = () => {
     //   ],
     // }
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
-      const teacherData: Omit<Teacher, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
+      const teacherData: Omit<
+        Teacher,
+        "id" | "_id" | "createdAt" | "updatedAt"
+      > = {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.email,
-        password: '',
+        password: "",
         role: UserRoleEnum.Teacher,
         subjects: [SubjectNameEnum.Arabe, SubjectNameEnum.EducationCulturelle],
-        schoolYear: '2024-2025',
+        schoolYear: "2024-2025",
         isActive: true,
-      }
+      };
       //   console.log('Teacher data:', teacherData)
 
-      const teacher = await createTeacher(teacherData)
-      console.log('🚀 ~ teacher ID :', teacher.id)
+      const teacher = await createTeacher(teacherData);
+      console.log("🚀 ~ teacher ID :", teacher.id);
 
       if (!teacher.id) {
         toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Une erreur est survenue lors de la création du professeur',
-        })
-        throw new Error('Erreur lors de la création du professeur')
+          variant: "destructive",
+          title: "Erreur",
+          description:
+            "Une erreur est survenue lors de la création du professeur",
+        });
+        throw new Error("Erreur lors de la création du professeur");
       }
 
-      const courseData: Omit<CourseDocument, 'id' | '_id' | 'createdAt' | 'updatedAt'> = {
+      const courseData: Omit<
+        CourseDocument,
+        "id" | "_id" | "createdAt" | "updatedAt"
+      > = {
         teacher: [teacher.id],
         sessions: values.sessions.map((session) => ({
           timeSlot: {
@@ -162,7 +170,7 @@ const NewTeacherForm = () => {
             lastUpdated: new Date(),
           },
         })),
-        academicYear: '2024-2025',
+        academicYear: "2024-2025",
         stats: {
           averageAttendance: 0,
           averageGrade: 0,
@@ -170,25 +178,28 @@ const NewTeacherForm = () => {
           sessionCount: values.sessions.length,
           lastUpdated: new Date(),
         },
-      }
+      };
       //todo fix any
-      await createCourse(courseData as any)
-      form.reset()
-      setCurrentStep(1)
+      await createCourse(courseData as any);
+      form.reset();
+      setCurrentStep(1);
     } catch (error: any) {
-      console.error('Erreur lors de l\'ajout du professeur :', error)
+      console.error("Erreur lors de l'ajout du professeur :", error);
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
-      })
+        variant: "destructive",
+        title: "Erreur",
+        description:
+          error instanceof Error ? error.message : "Une erreur est survenue",
+      });
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl">Nouveau Professeur</CardTitle>
+        <CardTitle className="text-xl md:text-2xl">
+          Nouveau Professeur
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-8 relative">
@@ -198,12 +209,12 @@ const NewTeacherForm = () => {
               <div
                 className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
                   ${
-            currentStep === step.number
-              ? 'bg-blue-500 text-white'
-              : currentStep > step.number
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200'
-            }`}
+                    currentStep === step.number
+                      ? "bg-blue-500 text-white"
+                      : currentStep > step.number
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200"
+                  }`}
               >
                 {step.number}
               </div>
@@ -230,23 +241,23 @@ const NewTeacherForm = () => {
               <Button
                 type="button"
                 onClick={handleNext}
-                className={`${currentStep === 1 ? 'ml-auto' : ''} ${
-                  currentStep === 2 ? 'bg-green-500 hover:bg-green-600' : ''
+                className={`${currentStep === 1 ? "ml-auto" : ""} ${
+                  currentStep === 2 ? "bg-green-500 hover:bg-green-600" : ""
                 }`}
                 disabled={isLoading}
               >
                 {isLoading
-                  ? 'Chargement...'
+                  ? "Chargement..."
                   : currentStep === 2
-                    ? 'Valider l\'inscription'
-                    : 'Suivant'}
+                  ? "Valider l'inscription"
+                  : "Suivant"}
               </Button>
             </div>
           </form>
         </Form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default NewTeacherForm
+export default NewTeacherForm;
