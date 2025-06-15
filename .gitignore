@@ -1,4 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.cursor/
 
 # Insert data from excel file
 migrations/studentsList.xlsx
@@ -7,6 +8,12 @@ app/admin/compare-students/données_pour_comparaison.json
 
 # Backup before migration
 backup/
+utils/@dejaFait
+utils/script
+utils/tuto
+utils/compare
+utils/db_migration/.env
+utils/db_migration/mongo_to_supabase_ids.json
 
 # Report after migration and/or update
 reports/

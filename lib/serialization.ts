@@ -43,7 +43,7 @@ export function serializeData<T>(data: T): SerializedValue {
       JSON.stringify(data, (key, value) => {
         // Gérer les dates
         if (value instanceof Date) {
-          return {$date: value.toISOString()} as SerializedDate
+          return { $date: value.toISOString() } as SerializedDate
         }
 
         // Gérer les ObjectId
@@ -54,12 +54,12 @@ export function serializeData<T>(data: T): SerializedValue {
           value._bsontype === 'ObjectID' &&
           typeof value.toString === 'function'
         ) {
-          return {$oid: value.toString()} as SerializedObjectId
+          return { $oid: value.toString() } as SerializedObjectId
         }
 
         // Gérer les Buffer (comme dans les ObjectId)
         if (Buffer.isBuffer(value)) {
-          return {$binary: value.toString('hex')} as SerializedBinary
+          return { $binary: value.toString('hex') } as SerializedBinary
         }
 
         // Par défaut, retourner la valeur telle quelle

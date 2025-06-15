@@ -6,7 +6,7 @@ const RichTextEditor = dynamic(() => import('@/components/atoms/client/MessageRi
   ssr: false,
 })
 
-export const MessageEditor = ({form}: {form: any}) => {
+export const MessageEditor = ({ form }: {form: any}) => {
   const handleEditorChange = (content: string) => {
     form.setValue('message', content)
   }

@@ -1,4 +1,4 @@
-import {fetchWithAuth} from '@/lib/fetchWithAuth'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
 
 jest.mock('@/lib/fetchWithAuth', () => ({
   fetchWithAuth: jest.fn(),
@@ -10,7 +10,7 @@ describe('Student API Endpoints', () => {
   })
 
   it('[GET] /api/users?type=student - should fetch all students', async () => {
-    const mockStudents = [{id: '123', name: 'John'}]
+    const mockStudents = [{ id: '123', name: 'John' }]
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
       data: mockStudents,
@@ -28,7 +28,7 @@ describe('Student API Endpoints', () => {
   })
 
   it('[GET] /api/users?type=student&id - should fetch one student', async () => {
-    const mockStudent = {id: '123', name: 'John'}
+    const mockStudent = { id: '123', name: 'John' }
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
       data: mockStudent,
@@ -46,10 +46,10 @@ describe('Student API Endpoints', () => {
   })
 
   it('[POST] /api/users?type=student - should create student', async () => {
-    const mockStudent = {name: 'John'}
+    const mockStudent = { name: 'John' }
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 201,
-      data: {id: '123', ...mockStudent},
+      data: { id: '123', ...mockStudent },
     })
 
     const response = await fetchWithAuth('/api/users?type=student', {
@@ -65,10 +65,10 @@ describe('Student API Endpoints', () => {
   })
 
   it('[PATCH] /api/users?type=student&id - should update student', async () => {
-    const mockUpdate = {name: 'John Updated'}
+    const mockUpdate = { name: 'John Updated' }
     ;(fetchWithAuth as jest.Mock).mockResolvedValueOnce({
       status: 200,
-      data: {id: '123', ...mockUpdate},
+      data: { id: '123', ...mockUpdate },
     })
 
     const response = await fetchWithAuth('/api/users?type=student&id=123', {

@@ -1,5 +1,5 @@
-import type {Metadata, Viewport} from 'next'
-import {Inter} from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 
 import GlobalServerProvider from '@/components/providers/server/GlobalServerProvider'
 
@@ -13,7 +13,7 @@ const currentYear = new Date().getFullYear()
 
 export const metadata: Metadata = {
   title: `Gestion des cours ${currentYear}`,
-  description: "Plateforme de gestion des cours pour l'école coranique",
+  description: 'Plateforme de gestion des cours pour l\'école coranique',
 }
 
 export const viewport: Viewport = {

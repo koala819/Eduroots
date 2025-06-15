@@ -4,8 +4,9 @@ import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
 import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
 import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import type { Student, Teacher } from '@/types/user'
-import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
+import type { Student, Teacher } from '@/types/mongo/user'
+import { SubjectNameEnum, LevelEnum } from '@/types/mongo/course'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 const ACADEMIC_YEAR = '2024'
 
@@ -93,10 +94,10 @@ const ExcelConverter: React.FC = () => {
         setTeacherWarnings(warnings)
         setMergedTeachers(mergedTeachersLocal)
         setTeacherStepMessage(
-          `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`
+          `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`,
         )
       } catch (err: any) {
-        setTeacherStepMessage("Erreur lors de l'intégration des enseignants : " + err.message)
+        setTeacherStepMessage('Erreur lors de l\'intégration des enseignants : ' + err.message)
         setTeachersFormatted(null)
         setTeacherWarnings([])
       }
@@ -112,7 +113,7 @@ const ExcelConverter: React.FC = () => {
         setCourseWarnings(courseWarningsLocal)
         setCourseStepMessage(`Étape 2 : Intégration des cours avec succès (${courses.length} cours formatés).`)
       } catch (err: any) {
-        setCourseStepMessage("Erreur lors de l'intégration des cours : " + err.message)
+        setCourseStepMessage('Erreur lors de l\'intégration des cours : ' + err.message)
         setCoursesFormatted(null)
         setCourseWarnings([])
       }
@@ -132,7 +133,7 @@ const ExcelConverter: React.FC = () => {
         setStudentCourses(result.studentCourses)
         setStudentStepMessage(`Étape 3 : Intégration des étudiants avec succès (${students.length} étudiants formatés)`)
       } catch (err: any) {
-        setStudentStepMessage("Erreur lors de l'intégration des étudiants : " + err.message)
+        setStudentStepMessage('Erreur lors de l\'intégration des étudiants : ' + err.message)
         setStudentsFormatted(null)
         setStudentWarningsRed([])
         setStudentWarningsYellow([])
@@ -173,8 +174,8 @@ const ExcelConverter: React.FC = () => {
           courses: coursesFormatted,
           students: studentsFormatted,
           mergedTeachers: mergedTeachers,
-          year: ACADEMIC_YEAR
-        }
+          year: ACADEMIC_YEAR,
+        },
       })
       setImportResult(response)
     } catch (err: any) {

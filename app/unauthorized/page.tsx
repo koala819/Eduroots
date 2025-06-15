@@ -1,11 +1,11 @@
 'use client'
 
-import {Suspense} from 'react'
+import { Suspense } from 'react'
 
 import Link from 'next/link'
-import {useSearchParams} from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 const ErrorContent = () => {
   const searchParams = useSearchParams()
@@ -30,19 +30,17 @@ const ErrorContent = () => {
   )
 }
 
-const ErrorMessage = ({error}: {error: string | null}) => {
+const ErrorMessage = ({ error }: {error: string | null}) => {
   function getErrorMessage(error: string | null) {
     switch (error) {
-      case 'CredentialsSignin':
-        return 'Login failed. Check your credentials and try again.'
-      case 'AccessDenied':
-        return 'You do not have permission to access this page.'
-      case 'AccessDenied':
-        return 'You do not have permission to access this page.'
-      case 'ErrorFetchTeacher':
-        return 'An error to fetch teachers. Please contact support.'
-      default:
-        return 'An unknown error occurred. Please try again.'
+    case 'CredentialsSignin':
+      return 'Login failed. Check your credentials and try again.'
+    case 'AccessDenied':
+      return 'You do not have permission to access this page.'
+    case 'ErrorFetchTeacher':
+      return 'An error to fetch teachers. Please contact support.'
+    default:
+      return 'An unknown error occurred. Please try again.'
     }
   }
 

@@ -48,7 +48,7 @@ export default function InfiniteScroll({
             next()
           }
         },
-        {threshold: safeThreshold, root, rootMargin},
+        { threshold: safeThreshold, root, rootMargin },
       )
       observer.current.observe(element)
     },
@@ -69,7 +69,7 @@ export default function InfiniteScroll({
         const isObserveTarget = reverse ? index === 0 : index === flattenChildren.length - 1
         const ref = isObserveTarget ? observerRef : null
         // @ts-ignore ignore ref type
-        return React.cloneElement(child, {ref})
+        return React.cloneElement(child, { ref })
       })}
     </>
   )

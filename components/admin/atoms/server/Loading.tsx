@@ -1,4 +1,4 @@
-export default function Loading({name}: {name: string}) {
+export default function Loading({ name }: {name: string}) {
   return (
     <div className="flex items-center justify-center w-full h-24">
       <div className="flex flex-col items-center space-y-2">

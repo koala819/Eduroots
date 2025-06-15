@@ -110,21 +110,21 @@ export const PWAButtonClient: React.FC = () => {
   const getInstallInstructions = () => {
     if (platform === 'mobile') {
       if (browser === 'firefox') {
-        return "Appuyez sur les trois points (⋮) en haut à droite, puis sur 'Ajouter à l'écran d'accueil'"
+        return 'Appuyez sur les trois points (⋮) en haut à droite, puis sur \'Ajouter à l\'écran d\'accueil\''
       }
-      return "Utilisez le menu du navigateur pour 'Ajouter à l'écran d'accueil'"
+      return 'Utilisez le menu du navigateur pour \'Ajouter à l\'écran d\'accueil\''
     }
 
     if (platform === 'desktop') {
       if (browser === 'firefox') {
-        return "Pour une meilleure expérience d'installation PWA, nous vous recommandons d'utiliser Google Chrome ou Microsoft Edge."
+        return 'Pour une meilleure expérience d\'installation PWA, nous vous recommandons d\'utiliser Google Chrome ou Microsoft Edge.'
       }
       if (browser === 'chrome') {
-        return "Cliquez sur l'icône d'installation dans la barre d'URL (à droite) ou utilisez le bouton ci-dessous"
+        return 'Cliquez sur l\'icône d\'installation dans la barre d\'URL (à droite) ou utilisez le bouton ci-dessous'
       }
     }
 
-    return "Utilisez l'option 'Installer' ou 'Ajouter à l'écran d'accueil' dans le menu de votre navigateur"
+    return 'Utilisez l\'option \'Installer\' ou \'Ajouter à l\'écran d\'accueil\' dans le menu de votre navigateur'
   }
 
   const handleInstallClick = async () => {
@@ -294,8 +294,8 @@ export const PWAButtonClient: React.FC = () => {
                         <Download className="h-5 w-5" />
                         <span>
                           {isFirefoxDesktop
-                            ? "Voir les options d'installation"
-                            : "Installer l'application"}
+                            ? 'Voir les options d\'installation'
+                            : 'Installer l\'application'}
                         </span>
                       </>
                     )}

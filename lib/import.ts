@@ -1,63 +1,63 @@
-import { TimeEnum, TimeSlotEnum } from '@/types/course'
-import { LevelEnum, SubjectNameEnum } from '@/types/course'
-import type { Student, Teacher } from '@/types/user'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import { TimeEnum, TimeSlotEnum } from '@/types/mongo/course'
+import { LevelEnum, SubjectNameEnum } from '@/types/mongo/course'
+import type { Student, Teacher } from '@/types/mongo/user'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/supabase/user'
 
 // Interface spécifique pour l'import
 export interface ImportStudent extends Student {
-  teacherId: string
+  teacherId: string;
 }
 
 export interface CourseSessionDataType {
-  teacherId: string // Colonne I
-  subject: string // Colonne O
-  dayOfWeek: string // Colonne P
-  classroomNumber: string // Colonne Q
-  level: string // Colonne R
-  startTime: string
-  endTime: string
+  teacherId: string; // Colonne I
+  subject: string; // Colonne O
+  dayOfWeek: string; // Colonne P
+  classroomNumber: string; // Colonne Q
+  level: string; // Colonne R
+  startTime: string;
+  endTime: string;
 }
 
 export interface ExcelRow {
-  [key: string]: any
+  [key: string]: any;
 }
 
 export interface ProcessedData {
-  lastName: string // Colonne A
-  firstName: string // Colonne B
-  teacher: string // Colonne C
-  level: string // Colonne D
-  classRoomNumber: string // Colonne E
-  dayOfWeek: TimeSlotEnum // Colonne F
-  startTime: string // Colonne G
-  endTime: string // Colonne H
-  gender: string // Colonne I
-  dateOfBirth: string // Colonne J
-  email: string // Colonne K
-  phone: string // Colonne L
+  lastName: string; // Colonne A
+  firstName: string; // Colonne B
+  teacher: string; // Colonne C
+  level: string; // Colonne D
+  classRoomNumber: string; // Colonne E
+  dayOfWeek: TimeSlotEnum; // Colonne F
+  startTime: string; // Colonne G
+  endTime: string; // Colonne H
+  gender: string; // Colonne I
+  dateOfBirth: string; // Colonne J
+  email: string; // Colonne K
+  phone: string; // Colonne L
 }
 
 export interface StudentDataType {
-  lastName: string // Colonne A
-  firstName: string // Colonne B
-  teacherId: string // Colonne C
-  gender: string // Colonne D
-  dateOfBirth: string // Colonne E
-  email: string // Colonne F
-  phone: string // Colonne G
+  lastName: string; // Colonne A
+  firstName: string; // Colonne B
+  teacherId: string; // Colonne C
+  gender: string; // Colonne D
+  dateOfBirth: string; // Colonne E
+  email: string; // Colonne F
+  phone: string; // Colonne G
 }
 
 export interface TeacherDataType {
-  id: string // Colonne I
-  lastName: string // Colonne J
-  firstName: string // Colonne K
-  email: string // Colonne L
-  gender: string // Colonne M
-  phone: string // Colonne N
+  id: string; // Colonne I
+  lastName: string; // Colonne J
+  firstName: string; // Colonne K
+  email: string; // Colonne L
+  gender: string; // Colonne M
+  phone: string; // Colonne N
 }
 
 export interface ExcelRowType {
-  [key: string]: any
+  [key: string]: any;
 }
 
 // Helpers de conversion/validation pour les enums
@@ -81,32 +81,32 @@ function parseDayOfWeek(value: string): TimeSlotEnum | undefined {
 function parseLevel(value: string): LevelEnum | undefined {
   const normalized = value.trim()
   switch (normalized) {
-    case '0':
-      return LevelEnum.Zero
-    case '0-2':
-      return LevelEnum.Zero2
-    case '1':
-      return LevelEnum.One
-    case '1-2':
-      return LevelEnum.One2
-    case '2':
-      return LevelEnum.Two
-    case '2-2':
-      return LevelEnum.Two2
-    case '3':
-      return LevelEnum.Three
-    case '3-2':
-      return LevelEnum.Three2
-    case '4':
-      return LevelEnum.Four
-    case '4-2':
-      return LevelEnum.Four2
-    case '5':
-      return LevelEnum.Five
-    case '6':
-      return LevelEnum.Six
-    default:
-      return undefined
+  case '0':
+    return LevelEnum.Zero
+  case '0-2':
+    return LevelEnum.Zero2
+  case '1':
+    return LevelEnum.One
+  case '1-2':
+    return LevelEnum.One2
+  case '2':
+    return LevelEnum.Two
+  case '2-2':
+    return LevelEnum.Two2
+  case '3':
+    return LevelEnum.Three
+  case '3-2':
+    return LevelEnum.Three2
+  case '4':
+    return LevelEnum.Four
+  case '4-2':
+    return LevelEnum.Four2
+  case '5':
+    return LevelEnum.Five
+  case '6':
+    return LevelEnum.Six
+  default:
+    return undefined
   }
 }
 
@@ -120,8 +120,8 @@ function parseSubject(value: string): SubjectNameEnum | undefined {
 
 // Formatage des cours (matières multiples, pas de filtrage strict)
 export function formatCoursesFromExcel(data: ExcelRowType[]): {
-  courses: CourseSessionDataType[]
-  warnings: string[]
+  courses: CourseSessionDataType[];
+  warnings: string[];
 } {
   const courses: CourseSessionDataType[] = []
   const warnings: string[] = []
@@ -130,8 +130,8 @@ export function formatCoursesFromExcel(data: ExcelRowType[]): {
   const courseMap = new Map<
     string,
     {
-      firstPeriod: CourseSessionDataType | null
-      secondPeriod: CourseSessionDataType | null
+      firstPeriod: CourseSessionDataType | null;
+      secondPeriod: CourseSessionDataType | null;
     }
   >()
 
@@ -257,28 +257,28 @@ function extractTimeSlot(dayOfWeek: string) {
 }
 
 export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
-  students: ImportStudent[]
-  missingTeacherIdWarnings: string[]
-  missingContactWarnings: string[]
+  students: ImportStudent[];
+  missingTeacherIdWarnings: string[];
+  missingContactWarnings: string[];
   studentCourses: Array<{
-    studentId: string
-    teacherId: string
-    sessionId: string
-    subject: SubjectNameEnum
-    dayOfWeek: TimeSlotEnum
-    level: LevelEnum
-  }>
+    studentId: string;
+    teacherId: string;
+    sessionId: string;
+    subject: SubjectNameEnum;
+    dayOfWeek: TimeSlotEnum;
+    level: LevelEnum;
+  }>;
 } {
   const students: ImportStudent[] = []
   const missingTeacherIdWarnings: string[] = []
   const missingContactWarnings: string[] = []
   const studentCourses: Array<{
-    studentId: string
-    teacherId: string
-    sessionId: string
-    subject: SubjectNameEnum
-    dayOfWeek: TimeSlotEnum
-    level: LevelEnum
+    studentId: string;
+    teacherId: string;
+    sessionId: string;
+    subject: SubjectNameEnum;
+    dayOfWeek: TimeSlotEnum;
+    level: LevelEnum;
   }> = []
 
   // D'abord, on récupère tous les cours pour les lier aux élèves
@@ -299,7 +299,9 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
 
     if (!teacherId) {
       missingTeacherIdWarnings.push(
-        `- Étudiant ligne ${idx + 2} (${firstName} ${lastName}) : ID Professeur manquant`,
+        `- Étudiant ligne ${
+          idx + 2
+        } (${firstName} ${lastName}) : ID Professeur manquant`,
       )
       return
     }
@@ -381,31 +383,31 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
 
 // Formatage enseignants avec warnings
 export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
-  teachers: Teacher[]
-  warnings: string[]
+  teachers: Teacher[];
+  warnings: string[];
   mergedTeachers: Array<{
-    originalId: string
-    mergedId: string
-    name: string
-    subjects: string[]
-  }>
+    originalId: string;
+    mergedId: string;
+    name: string;
+    subjects: string[];
+  }>;
 } {
   const teachers: Teacher[] = []
   const warnings: string[] = []
   const mergedTeachers: Array<{
-    originalId: string
-    mergedId: string
-    name: string
-    subjects: string[]
+    originalId: string;
+    mergedId: string;
+    name: string;
+    subjects: string[];
   }> = []
 
   // Map pour stocker les profs par nom+prénom
   const teachersByName = new Map<
     string,
     {
-      id: string
-      teacher: Partial<Teacher>
-      subjects: Set<string>
+      id: string;
+      teacher: Partial<Teacher>;
+      subjects: Set<string>;
     }
   >()
 

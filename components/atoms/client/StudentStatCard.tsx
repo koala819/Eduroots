@@ -1,9 +1,9 @@
 'use client'
 
-import {BarChart3, Clock, Star} from 'lucide-react'
-import {ReactNode} from 'react'
+import { BarChart3, Clock, Star } from 'lucide-react'
+import { ReactNode } from 'react'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type IconType = 'chart' | 'clock' | 'star' | string
 

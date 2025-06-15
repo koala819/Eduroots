@@ -1,40 +1,40 @@
 'use client'
 
-import {CircleArrowLeft, Loader2} from 'lucide-react'
-import {useSession} from 'next-auth/react'
-import {useState} from 'react'
-import {useForm} from 'react-hook-form'
+import { CircleArrowLeft, Loader2 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import {useToast} from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
-import {MessageAttachmentUploader as AttachmentField} from '@/components/atoms/client/MessageAttachmentUploader '
-import {MessageEditor} from '@/components/atoms/client/MessageEditor'
-import {SubjectField} from '@/components/atoms/client/MessageSubjectField'
-import {StepsNavigation} from '@/components/atoms/server/MessageStepsNavigation'
-import {RecipientSelection} from '@/components/molecules/client/MessageRecipientSelection'
-import {Button} from '@/components/ui/button'
-import {Card} from '@/components/ui/card'
-import {Form} from '@/components/ui/form'
+import { MessageAttachmentUploader as AttachmentField } from '@/components/atoms/client/MessageAttachmentUploader '
+import { MessageEditor } from '@/components/atoms/client/MessageEditor'
+import { SubjectField } from '@/components/atoms/client/MessageSubjectField'
+import { StepsNavigation } from '@/components/atoms/server/MessageStepsNavigation'
+import { RecipientSelection } from '@/components/molecules/client/MessageRecipientSelection'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Form } from '@/components/ui/form'
 
-import {sendMail} from '@/app/actions/mails'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {z} from 'zod'
+import { sendMail } from '@/app/actions/mails'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 
 const messageSchema = z.object({
-  recipients: z.array(z.string()).min(1, {message: 'Sélectionnez au moins un destinataire'}),
-  subject: z.string().min(1, {message: 'Le sujet est requis'}),
-  message: z.string().min(1, {message: 'Le message ne peut pas être vide'}),
+  recipients: z.array(z.string()).min(1, { message: 'Sélectionnez au moins un destinataire' }),
+  subject: z.string().min(1, { message: 'Le sujet est requis' }),
+  message: z.string().min(1, { message: 'Le message ne peut pas être vide' }),
   attachment: z.any().optional(),
 })
 
 export type MessageFormData = z.infer<typeof messageSchema>
 
 export function MessageWrite() {
-  const {data: session} = useSession()
+  const { data: session } = useSession()
 
-  const {toast} = useToast()
+  const { toast } = useToast()
   const router = useRouter()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
@@ -55,7 +55,7 @@ export function MessageWrite() {
         recipients: z.array(z.string()).min(1),
       }),
     ),
-    defaultValues: {recipients: []},
+    defaultValues: { recipients: [] },
   })
 
   const messageForm = useForm<Pick<MessageFormData, 'subject' | 'message' | 'attachment'>>({
@@ -149,7 +149,7 @@ export function MessageWrite() {
           router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/${session?.user?.role}/messages/sent`)
         messageForm.reset()
       } else {
-        throw new Error(result.message || "Une erreur est survenue lors de l'envoi du message")
+        throw new Error(result.message || 'Une erreur est survenue lors de l\'envoi du message')
       }
     } catch (error) {
       toast({
@@ -158,7 +158,7 @@ export function MessageWrite() {
         description:
           error instanceof Error
             ? error.message
-            : "Une erreur est survenue lors de l'envoi du message",
+            : 'Une erreur est survenue lors de l\'envoi du message',
       })
       console.error('Erreur:', error)
     } finally {

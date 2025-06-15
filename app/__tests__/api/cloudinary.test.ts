@@ -1,7 +1,7 @@
-import {getToken} from 'next-auth/jwt'
-import {NextResponse} from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { NextResponse } from 'next/server'
 
-import {GET} from '@/app/api/stats/cloudinary/route'
+import { GET } from '@/app/api/stats/cloudinary/route'
 import cloudinary from '@/lib/cloudinary'
 
 jest.mock('next/server', () => ({
@@ -11,7 +11,7 @@ jest.mock('next/server', () => ({
 }))
 jest.mock('next-auth/jwt', () => ({
   getToken: jest.fn().mockResolvedValue({
-    user: {_id: 'mockUserId', role: 'mockRole'},
+    user: { _id: 'mockUserId', role: 'mockRole' },
   }),
 }))
 jest.mock('@/lib/cloudinary', () => ({
@@ -44,13 +44,13 @@ describe('GET /api/stats/cloudinary', () => {
       },
     }
     ;(getToken as jest.Mock).mockResolvedValue({
-      user: {_id: 'mockUserId', role: 'mockRole'},
+      user: { _id: 'mockUserId', role: 'mockRole' },
     })
     ;(cloudinary.api.usage as jest.Mock).mockResolvedValue(mockStats)
 
     await GET(mockRequest as any)
 
-    expect(NextResponse.json).toHaveBeenCalledWith(mockStats, {status: 200})
+    expect(NextResponse.json).toHaveBeenCalledWith(mockStats, { status: 200 })
   })
 
   it('should return 401 if user is not authenticated', async () => {
@@ -59,7 +59,7 @@ describe('GET /api/stats/cloudinary', () => {
     await GET(mockRequest as any)
 
     expect(NextResponse.json).toHaveBeenCalledWith({
-      statusText: "Identifiez-vous d'abord pour accéder à cette ressource",
+      statusText: 'Identifiez-vous d\'abord pour accéder à cette ressource',
       status: 401,
     })
   })
@@ -67,15 +67,15 @@ describe('GET /api/stats/cloudinary', () => {
   it('should return 500 if there is an error', async () => {
     const errorMessage = 'Some error'
     ;(getToken as jest.Mock).mockResolvedValue({
-      user: {_id: 'mockUserId', role: 'mockRole'},
+      user: { _id: 'mockUserId', role: 'mockRole' },
     })
     ;(cloudinary.api.usage as jest.Mock).mockRejectedValue(new Error(errorMessage))
 
     await GET(mockRequest as any)
 
     expect(NextResponse.json).toHaveBeenCalledWith(
-      {success: false, message: errorMessage},
-      {status: 500},
+      { success: false, message: errorMessage },
+      { status: 500 },
     )
   })
 })

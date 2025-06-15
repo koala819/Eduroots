@@ -1,16 +1,17 @@
-import {Suspense} from 'react'
+import { Suspense } from 'react'
 
-import {GenderEnum, Student, Teacher, UserRoleEnum} from '@/types/user'
+import { GenderEnum, UserRoleEnum } from '@/types/supabase/user'
 
-import {UserDetailsClient} from '@/components/admin/atoms/client/UserDetails'
+import { UserDetailsClient } from '@/components/admin/atoms/client/UserDetails'
 import Loading from '@/components/admin/atoms/server/Loading'
-import {StudentAttendanceStats} from '@/components/admin/atoms/server/StudentAttendanceStats'
-import {StudentBehaviorStats} from '@/components/admin/atoms/server/StudentBehaviorStats'
-import {TeacherStatsServer} from '@/components/admin/atoms/server/TeacherStats'
-import {StudentCourses} from '@/components/admin/molecules/server/StudentCourses'
-import {Badge} from '@/components/ui/badge'
+import { StudentAttendanceStats } from '@/components/admin/atoms/server/StudentAttendanceStats'
+import { StudentBehaviorStats } from '@/components/admin/atoms/server/StudentBehaviorStats'
+import { TeacherStatsServer } from '@/components/admin/atoms/server/TeacherStats'
+import { StudentCourses } from '@/components/admin/molecules/server/StudentCourses'
+import { Badge } from '@/components/ui/badge'
+import { Student, Teacher } from '@/types/mongo/user'
 
-export const UserDetails = ({entity}: {entity: Student | Teacher}) => {
+export const UserDetails = ({ entity }: { entity: Student | Teacher }) => {
   if (entity.role === UserRoleEnum.Student) {
     const student = entity as Student
     if (!student) {
@@ -45,7 +46,9 @@ export const UserDetails = ({entity}: {entity: Student | Teacher}) => {
           </div>
         </div>
         <div>
-          <h4 className="font-semibold text-sm text-gray-500 mb-2">Matières enseignées</h4>
+          <h4 className="font-semibold text-sm text-gray-500 mb-2">
+            Matières enseignées
+          </h4>
           <div className="flex flex-wrap gap-2">
             {teacher.subjects?.map((subject) => (
               <Badge key={subject} variant="secondary">

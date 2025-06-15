@@ -1,8 +1,8 @@
 'use client'
 
-import {AlertCircle} from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
-import {Card, CardContent} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface StudentStatsErrorProps {
   message: string

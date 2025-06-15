@@ -2,9 +2,9 @@
 
 import React from 'react'
 
-import {Checkbox} from '@/components/ui/checkbox'
-import {FormControl, FormField, FormItem} from '@/components/ui/form'
-import {Label} from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormControl, FormField, FormItem } from '@/components/ui/form'
+import { Label } from '@/components/ui/label'
 
 interface CustomCheckboxProps<T extends {_id: string; firstname: string; lastname: string}> {
   items: T[]

@@ -1,12 +1,13 @@
-import {GraduationCap} from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {Teacher} from '@/types/user'
+import { CourseSession } from '@/types/mongo/course'
+import { Teacher } from '@/types/mongo/user'
 
-import {Badge} from '@/components/ui/badge'
-import {Card, CardContent} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 
-import {formatDayOfWeek} from '@/lib/utils'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 interface StudentCourseMobileProps {
   sessions: Array<{
@@ -15,10 +16,10 @@ interface StudentCourseMobileProps {
   }>
 }
 
-export const StudentCourseMobile = ({sessions}: StudentCourseMobileProps) => {
+export const StudentCourseMobile = ({ sessions }: StudentCourseMobileProps) => {
   return (
     <div className="space-y-4">
-      {sessions.map(({session, teacher}, index) => (
+      {sessions.map(({ session, teacher }, index) => (
         <Card key={`mobile-session-${index}`} className="w-full">
           <CardContent className="pt-6">
             <div className="space-y-4">

@@ -1,73 +1,98 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-import { ApiResponse } from '@/types/api'
-import { EntityStats, StudentStats, TeacherStats } from '@/types/stats'
-
-import dbConnect, { isConnected } from '@/backend/config/dbConnect'
-import { Attendance } from '@/backend/models/attendance.model'
-import { Course } from '@/backend/models/course.model'
-import { StudentStats as StudentStatsModel } from '@/backend/models/student-stats.model'
-import { TeacherStats as TeacherStatsModel } from '@/backend/models/teacher-stats.model'
-import { User } from '@/backend/models/user.model'
+import { ApiResponse } from '@/types/supabase/api'
+import { EntityStats, StudentStats, TeacherStats } from '@/types/mongo/stats'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/lib/stats/student'
-import { isValidObjectId } from 'mongoose'
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
-    throw new Error('Non authentifié')
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error) {
+      console.error('[AUTH_ERROR]', error)
+      throw new Error('Erreur d\'authentification')
+    }
+
+    if (!user) {
+      throw new Error('Non authentifié')
+    }
+
+    return { user }
+  } catch (error) {
+    console.error('[GET_SESSION_ERROR]', error)
+    throw new Error('Erreur lors de la vérification de l\'authentification')
   }
-  return session
 }
 
 export async function refreshEntityStats(
   forceUpdate: boolean = false,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-
   try {
-    if (!isConnected()) {
-      console.log('MongoDB not connected, reconnecting...')
-      await dbConnect()
-    }
+    await getSessionServer()
+    const supabase = await createClient()
 
     // Si forceUpdate est true, recalculer les statistiques
     if (forceUpdate) {
       // Récupérer tous les étudiants
-      const students = await User.find({ role: 'student', isActive: true })
-      console.log("📊 Nombre d'étudiants trouvés:", students.length)
+      const { data: students, error } = await supabase
+        .schema('education')
+        .from('users')
+        .select('id')
+        .eq('role', 'student')
+        .eq('is_active', true)
+
+      if (error) {
+        throw new Error(`Erreur lors de la récupération des étudiants: ${error.message}`)
+      }
+
+      console.log('📊 Nombre d\'étudiants trouvés:', students?.length || 0)
 
       // Recalculer les statistiques pour chaque étudiant
-      for (const student of students) {
-        console.log(
-          "📊 Recalcul des statistiques pour l'étudiant:",
-          student._id,
-        )
-        await calculateStudentAttendanceRate(student._id.toString())
+      if (students) {
+        for (const student of students) {
+          console.log('📊 Recalcul des statistiques pour l\'étudiant:', student.id)
+          await calculateStudentAttendanceRate(student.id)
+        }
       }
     }
 
     // Récupérer les statistiques mises à jour
-    const studentStats = await StudentStatsModel.find()
-      .sort({ lastUpdate: -1 })
-      .lean()
-    const teacherStats = await TeacherStatsModel.find()
-      .sort({ lastUpdate: -1 })
-      .lean()
+    const { data: studentStats, error: studentError } = await supabase
+      .schema('stats')
+      .from('student_stats')
+      .select('*')
+      .order('last_update', { ascending: false })
 
-    const serializedStudentStats = studentStats.map((stat) => ({
+    const { data: teacherStats, error: teacherError } = await supabase
+      .schema('stats')
+      .from('teacher_stats')
+      .select('*')
+      .order('last_update', { ascending: false })
+
+    if (studentError) {
+      const errorMsg = 'Erreur lors de la récupération des statistiques étudiants'
+      throw new Error(`${errorMsg}: ${studentError.message}`)
+    }
+
+    if (teacherError) {
+      const errorMsg = 'Erreur lors de la récupération des statistiques enseignants'
+      throw new Error(`${errorMsg}: ${teacherError.message}`)
+    }
+
+    const serializedStudentStats = (studentStats || []).map((stat: any) => ({
       ...(serializeData(stat) as object),
     })) as EntityStats[]
 
-    const serializedTeacherStats = teacherStats.map((stat) => ({
+    const serializedTeacherStats = (teacherStats || []).map((stat: any) => ({
       ...(serializeData(stat) as object),
     })) as EntityStats[]
 
@@ -75,14 +100,17 @@ export async function refreshEntityStats(
     const allStats = [...serializedStudentStats, ...serializedTeacherStats]
     return {
       success: true,
-      data: allStats ? serializeData(allStats) : null,
+      data: serializeData(allStats),
       message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
     console.error('[GET_ENTITY_STATS]', error)
-    throw new Error(
-      'Erreur lors de la récupération des statistiques des entités',
-    )
+    const errorMsg = 'Erreur lors de la récupération des statistiques des entités'
+    return {
+      success: false,
+      data: null,
+      message: error instanceof Error ? error.message : errorMsg,
+    }
   }
 }
 
@@ -94,16 +122,9 @@ export async function updateStudentStats(
   statsData: StudentStats,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
-    if (!isValidObjectId(id)) {
-      return {
-        success: false,
-        message: 'ID invalide',
-        data: null,
-      }
-    }
-
     // Validation des statsData pour un étudiant
     const requiredFields = [
       'attendanceRate',
@@ -118,24 +139,23 @@ export async function updateStudentStats(
       }
     }
 
-    const stats = await StudentStatsModel.findOneAndUpdate(
-      { userId: id },
-      {
-        $set: {
-          ...statsData,
-          lastUpdate: new Date(),
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).lean()
+    const { data: stats, error } = await supabase
+      .schema('education')
+      .from('student_stats')
+      .upsert({
+        user_id: id,
+        absences_rate: (statsData as any).absences_rate,
+        absences_count: (statsData as any).absences_count,
+        behavior_average: (statsData as any).behavior_average,
+        last_update: new Date().toISOString(),
+      })
+      .select()
+      .single()
 
-    if (!stats) {
+    if (error || !stats) {
       return {
         success: false,
-        message: 'Stats non trouvé',
+        message: 'Erreur lors de la mise à jour des statistiques',
         data: null,
       }
     }
@@ -145,8 +165,8 @@ export async function updateStudentStats(
 
     return {
       success: true,
-      data: stats ? serializeData(stats) : null,
-      message: 'Cours récupéré avec succès',
+      data: serializeData(stats),
+      message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
     console.error('[UPDATE_STUDENT_STATS]', error)
@@ -162,16 +182,9 @@ export async function updateTeacherStats(
   statsData: TeacherStats,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
-    if (!isValidObjectId(id)) {
-      return {
-        success: false,
-        message: 'ID invalide',
-        data: null,
-      }
-    }
-
     // Validation des statsData pour un professeur
     const requiredFields = ['attendanceRate', 'totalSessions']
 
@@ -183,24 +196,22 @@ export async function updateTeacherStats(
       }
     }
 
-    const stats = await TeacherStatsModel.findOneAndUpdate(
-      { userId: id },
-      {
-        $set: {
-          ...statsData,
-          lastUpdate: new Date(),
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).lean()
+    const { data: stats, error } = await supabase
+      .schema('education')
+      .from('teacher_stats')
+      .upsert({
+        user_id: id,
+        attendance_rate: (statsData as any).attendanceRate,
+        total_sessions: (statsData as any).totalSessions,
+        last_update: new Date().toISOString(),
+      })
+      .select()
+      .single()
 
-    if (!stats) {
+    if (error || !stats) {
       return {
         success: false,
-        message: 'Stats non trouvé',
+        message: 'Erreur lors de la mise à jour des statistiques',
         data: null,
       }
     }
@@ -211,8 +222,8 @@ export async function updateTeacherStats(
 
     return {
       success: true,
-      data: stats ? serializeData(stats) : null,
-      message: 'Cours récupéré avec succès',
+      data: serializeData(stats),
+      message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
     console.error('[UPDATE_TEACHER_STATS]', error)
@@ -223,57 +234,43 @@ export async function updateTeacherStats(
 /**
  * Récupère les statistiques globales
  */
-export async function refreshGlobalStats(): Promise<
-  ApiResponse<SerializedValue>
-> {
+export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
+  const supabase = await createClient()
 
   try {
-    if (!isConnected()) {
-      console.log('MongoDB not connected, connecting...')
-      await dbConnect()
 
-      // Add a short delay to ensure connection is fully ready
-      await new Promise((resolve) => setTimeout(resolve, 500))
+    // Récupérer les statistiques globales les plus récentes
+    const { data: globalStats, error } = await supabase
+      .schema('stats')
+      .from('global_stats')
+      .select('*')
+      .order('last_update', { ascending: false })
+      .limit(1)
+      .single()
 
-      // Double-check connection is established
-      if (!isConnected()) {
-        console.error('Failed to establish MongoDB connection after attempt')
-        throw new Error('Database connection failed')
-      }
+    if (error) {
+      throw new Error(`Erreur lors de la récupération des statistiques globales: ${error.message}`)
     }
 
-    // Use executeWithRetry for all database operations
-    const attendances = await executeWithRetry(() =>
-      Attendance.find({ isActive: true }).lean(),
-    )
+    if (!globalStats) {
+      throw new Error('Aucune statistique globale trouvée')
+    }
 
-    // Calculer la moyenne des taux de présence
-    let totalPresenceRate = 0
-    attendances.forEach((attendance) => {
-      totalPresenceRate += attendance.stats.presenceRate
-    })
-
-    const averagePresenceRate =
-      attendances.length > 0 ? totalPresenceRate / attendances.length : 0
-
-    const teachers = await User.find({ role: 'teacher', isActive: true })
-    const students = await User.find({ role: 'student', isActive: true })
-    const totalStudents = students.length
-
-    return {
+    const response = {
       success: true,
       data: serializeData({
-        presenceRate: averagePresenceRate,
-        totalStudents: totalStudents,
-        totalTeachers: teachers.length,
-        lastUpdate: new Date(),
+        presenceRate: globalStats.average_attendance_rate || 0,
+        totalStudents: globalStats.total_students || 0,
+        totalTeachers: globalStats.total_teachers || 0,
+        lastUpdate: globalStats.last_update,
       }),
-      message: 'Cours récupéré avec succès',
+      message: 'Statistiques globales récupérées avec succès',
     }
+
+    return response
   } catch (error) {
-    console.error('[GET_GLOBAL_STATS]', error)
-    throw new Error('Erreur lors de la récupération des statistiques globales')
+    throw new Error('Erreur lors de la récupération des statistiques globales' + error)
   }
 }
 
@@ -299,7 +296,7 @@ export async function getStudentAttendance(
     return {
       success: true,
       data: data ? serializeData(data) : null,
-      message: "Absences de l'étudiant récupérées avec succès",
+      message: 'Absences de l\'étudiant récupérées avec succès',
     }
   } catch (error) {
     console.error(
@@ -332,7 +329,7 @@ export async function getStudentBehavior(
     return {
       success: true,
       data: data ? serializeData(data) : null,
-      message: "Comportements de l'étudiant récupérés avec succès",
+      message: 'Comportements de l\'étudiant récupérés avec succès',
     }
   } catch (error) {
     console.error(
@@ -366,7 +363,7 @@ export async function getStudentGrade(
     return {
       success: true,
       data: data ? serializeData(data) : null,
-      message: "Notes de l'étudiant récupérés avec succès",
+      message: 'Notes de l\'étudiant récupérés avec succès',
     }
   } catch (error) {
     console.error(
@@ -384,55 +381,75 @@ export async function refreshTeacherStudentsStats(
   forceUpdate: boolean = false,
 ): Promise<ApiResponse<SerializedValue>> {
   const session = await getSessionServer()
+  const supabase = await createClient()
 
   try {
-    if (!isConnected()) {
-      console.log('MongoDB not connected, reconnecting...')
-      await dbConnect()
-    }
-
     // Si forceUpdate est true, recalculer les statistiques
     if (forceUpdate) {
       // Récupérer les cours du professeur
-      const courses = await Course.find({
-        teacher: session.user.id,
-        isActive: true,
-      })
+      const { data: teacherCourses, error: coursesError } = await supabase
+        .schema('education')
+        .from('courses_teacher')
+        .select(`
+          courses (
+            courses_sessions (
+              courses_sessions_students (
+                student_id
+              )
+            )
+          )
+        `)
+        .eq('teacher_id', session.user.id)
+
+      if (coursesError) {
+        throw new Error(`Erreur lors de la récupération des cours: ${coursesError.message}`)
+      }
 
       // Récupérer tous les élèves uniques des cours du professeur
       const studentIds = new Set<string>()
-      for (const course of courses) {
-        for (const session of course.sessions) {
-          session.students.forEach((student: { toString: () => string }) =>
-            studentIds.add(student.toString()),
-          )
+      if (teacherCourses) {
+        for (const teacherCourse of teacherCourses) {
+          const course = (teacherCourse as any).courses
+          if (course?.courses_sessions) {
+            for (const session of course.courses_sessions) {
+              if (session.courses_sessions_students) {
+                session.courses_sessions_students.forEach((enrollment: any) => {
+                  studentIds.add(enrollment.student_id)
+                })
+              }
+            }
+          }
         }
       }
 
-      console.log("📊 Nombre d'élèves du professeur trouvés:", studentIds.size)
+      console.log('📊 Nombre d\'élèves du professeur trouvés:', studentIds.size)
 
       // Recalculer les statistiques pour chaque élève du professeur
       const uniqueStudentIds = Array.from(studentIds)
       for (const studentId of uniqueStudentIds) {
-        console.log("📊 Recalcul des statistiques pour l'élève:", studentId)
+        console.log('📊 Recalcul des statistiques pour l\'élève:', studentId)
         await calculateStudentAttendanceRate(studentId)
       }
     }
 
     // Récupérer les statistiques mises à jour des élèves du professeur
-    const studentStats = await StudentStatsModel.find()
-      .sort({ lastUpdate: -1 })
-      .lean()
+    const { data: studentStats, error } = await supabase
+      .schema('education')
+      .from('student_stats')
+      .select('*')
+      .order('last_update', { ascending: false })
 
-    const serializedStudentStats = studentStats.map((stat) => ({
+    if (error) {
+      throw new Error(`Erreur lors de la récupération des statistiques: ${error.message}`)
+    }
+
+    const serializedStudentStats = (studentStats || []).map((stat: any) => ({
       ...(serializeData(stat) as object),
     })) as EntityStats[]
 
     return {
       success: true,
-      data: serializedStudentStats
-        ? serializeData(serializedStudentStats)
-        : null,
+      data: serializeData(serializedStudentStats),
       message: 'Statistiques des élèves mises à jour avec succès',
     }
   } catch (error) {
@@ -441,46 +458,4 @@ export async function refreshTeacherStudentsStats(
       'Erreur lors de la récupération des statistiques des élèves du professeur',
     )
   }
-}
-
-async function executeWithRetry<T>(
-  operation: () => Promise<T>,
-  maxRetries = 3,
-): Promise<T> {
-  let lastError
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      // Ensure DB connection before each attempt
-      await dbConnect()
-      return await operation()
-    } catch (error) {
-      console.error(
-        `Operation failed (attempt ${attempt}/${maxRetries}):`,
-        error,
-      )
-      lastError = error
-
-      // Only retry on connection-related errors
-      if (!isConnectionError(error)) {
-        throw error
-      }
-
-      // Wait before retrying (exponential backoff)
-      if (attempt < maxRetries) {
-        const delay = Math.min(100 * Math.pow(2, attempt), 3000)
-        await new Promise((resolve) => setTimeout(resolve, delay))
-      }
-    }
-  }
-  throw lastError
-}
-
-// Helper to identify connection-related errors
-function isConnectionError(error: any): boolean {
-  return (
-    error.name === 'MongooseError' &&
-    (error.message.includes('buffering timed out') ||
-      error.message.includes('failed to connect') ||
-      error.message.includes('Connection closed'))
-  )
 }

@@ -1,12 +1,12 @@
-import {SubjectNameEnum} from '@/types/course'
+import { SubjectNameEnum } from '@/types/mongo/course'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {Attendance} from '@/backend/models/attendance.model'
-import {Course} from '@/backend/models/course.model'
-import {User} from '@/backend/models/user.model'
+import dbConnect from '@/zOLDbackend/config/dbConnect'
+import { Attendance } from '@/zOLDbackend/models/zOLDattendance.model'
+import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
+import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import fs from 'fs/promises'
 import path from 'path'
-import {Types} from 'mongoose'
+import { Types } from 'mongoose'
 
 interface MorningCourseStats {
   arabe_9_10_45: number
@@ -115,7 +115,7 @@ async function verifyAttendanceSessions() {
   console.log('🔍 Vérification des références de session dans les courses...')
   const sessionStatus = await Promise.all(
     Array.from(uniqueSessionIds).map(async (sessionId) => {
-      const course = await Course.findOne({'sessions._id': sessionId}).lean()
+      const course = await Course.findOne({ 'sessions._id': sessionId }).lean()
 
       return {
         sessionId,
@@ -228,7 +228,7 @@ async function analyzeAndSuggestRepairs(
 
   // Récupérer toutes les sessions valides
   const validCourses = await Course.find().lean()
-  const teachersData = await User.find({role: 'teacher'}).lean()
+  const teachersData = await User.find({ role: 'teacher' }).lean()
 
   // Créer un map des enseignants pour un accès rapide
   const teachersMap = new Map()
@@ -255,10 +255,10 @@ async function analyzeAndSuggestRepairs(
       const teacherIds = Array.isArray(course.teacher)
         ? course.teacher.map((t: any) => (typeof t === 'object' ? t._id.toString() : t.toString()))
         : [
-            typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
-              ? (course.teacher as {_id: Types.ObjectId})._id.toString()
-              : (course.teacher as Types.ObjectId | string).toString(),
-          ]
+          typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
+            ? (course.teacher as {_id: Types.ObjectId})._id.toString()
+            : (course.teacher as Types.ObjectId | string).toString(),
+        ]
 
       // Récupérer les noms des enseignants
       const teacherNames = teacherIds.map((id: string) => {
@@ -403,9 +403,9 @@ async function analyzeAndSuggestRepairs(
 async function generateCorrectionScriptFile(highConfidenceMatches: any[]) {
   try {
     // Créer le contenu du script
-    let scriptContent = `// Script de correction des attendances avec sessions invalides\n`
+    let scriptContent = '// Script de correction des attendances avec sessions invalides\n'
     scriptContent += `// Généré le ${new Date().toISOString()}\n`
-    scriptContent += `// Ce script peut être exécuté dans MongoDB Compass ou via mongo shell\n\n`
+    scriptContent += '// Ce script peut être exécuté dans MongoDB Compass ou via mongo shell\n\n'
 
     // Ajouter chaque commande de mise à jour
     for (const match of highConfidenceMatches) {
@@ -414,10 +414,10 @@ async function generateCorrectionScriptFile(highConfidenceMatches: any[]) {
         scriptContent += `// Jour/Heure: ${match.potentialSessionMatch.weekday} ${match.potentialSessionMatch.time}\n`
         scriptContent += `// Enseignant(s): ${match.potentialSessionMatch.teacherNames.join(', ')}\n`
         scriptContent += `// Correspondance: ${(match.matchRatio * 100).toFixed(1)}% (${match.potentialSessionMatch.commonStudentsCount}/${match.potentialSessionMatch.totalStudents} étudiants)\n`
-        scriptContent += `db.attendances.updateOne(\n`
+        scriptContent += 'db.attendances.updateOne(\n'
         scriptContent += `  { _id: ObjectId("${match.attendanceId}") },\n`
         scriptContent += `  { $set: { course: ObjectId("${match.potentialSessionMatch.sessionId}") } }\n`
-        scriptContent += `);\n\n`
+        scriptContent += ');\n\n'
       }
     }
 
@@ -427,7 +427,7 @@ async function generateCorrectionScriptFile(highConfidenceMatches: any[]) {
 
     // Assurer que le répertoire de scripts existe
     const scriptsDir = path.join(process.cwd(), 'scripts')
-    await fs.mkdir(scriptsDir, {recursive: true})
+    await fs.mkdir(scriptsDir, { recursive: true })
 
     const filePath = path.join(scriptsDir, fileName)
 
@@ -438,7 +438,7 @@ async function generateCorrectionScriptFile(highConfidenceMatches: any[]) {
 
     return filePath
   } catch (error) {
-    console.error(`❌ Erreur lors de la génération du script de correction:`, error)
+    console.error('❌ Erreur lors de la génération du script de correction:', error)
     return null
   }
 }
@@ -486,10 +486,10 @@ async function analyzeMorningCourses() {
     const teacherIds = Array.isArray(course.teacher)
       ? course.teacher.map((t: any) => (typeof t === 'object' ? t._id.toString() : t.toString()))
       : [
-          typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
-            ? (course.teacher as {_id: Types.ObjectId})._id.toString()
-            : (course.teacher as Types.ObjectId | string).toString(),
-        ]
+        typeof course.teacher === 'object' && course.teacher !== null && '_id' in course.teacher
+          ? (course.teacher as {_id: Types.ObjectId})._id.toString()
+          : (course.teacher as Types.ObjectId | string).toString(),
+      ]
 
     // Analyser les sessions du matin (9h-12h30)
     const morningSessions = course.sessions.filter((session: any) => {

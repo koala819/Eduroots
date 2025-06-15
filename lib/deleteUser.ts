@@ -1,12 +1,12 @@
-import {toast} from 'react-toastify'
+import { toast } from 'react-toastify'
 
-import {fetchWithAuth} from '@/lib/fetchWithAuth'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
 
 export async function deleteUser(url: string, id: string) {
   try {
     const response = await fetchWithAuth(url, {
       method: 'DELETE',
-      body: {id},
+      body: { id },
     })
 
     if (response) {

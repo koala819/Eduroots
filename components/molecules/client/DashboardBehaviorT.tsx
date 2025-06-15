@@ -1,20 +1,21 @@
 'use client'
 
-import {useSession} from 'next-auth/react'
-import React, {useEffect, useState} from 'react'
+import { createClient } from '@/utils/supabase/client'
 
-import {AttendanceRecord} from '@/types/attendance'
+import React, { useEffect, useState } from 'react'
 
-import {BehaviorCreate} from '@/components/atoms/client/BehaviorCreate'
-import {BehaviorEdit} from '@/components/atoms/client/BehaviorEdit'
-import {BehaviorTable} from '@/components/atoms/client/BehaviorTable'
-import {Card, CardContent} from '@/components/ui/card'
-import {Sheet, SheetContent, SheetTitle} from '@/components/ui/sheet'
+import { AttendanceRecord } from '@/types/mongo/attendance'
 
-import {useAttendance} from '@/context/Attendances/client'
-import {useBehavior} from '@/context/Behaviors/client'
-import {useCourses} from '@/context/Courses/client'
-import {AnimatePresence} from 'framer-motion'
+import { BehaviorCreate } from '@/components/atoms/client/BehaviorCreate'
+import { BehaviorEdit } from '@/components/atoms/client/BehaviorEdit'
+import { BehaviorTable } from '@/components/atoms/client/BehaviorTable'
+import { Card, CardContent } from '@/components/ui/card'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+
+import { useAttendance } from '@/context/Attendances/client'
+import { useBehavior } from '@/context/Behaviors/client'
+import { useCourses } from '@/context/Courses/client'
+import { AnimatePresence } from 'framer-motion'
 import useCourseStore from '@/stores/useCourseStore'
 
 export const DashboardBehaviorT = ({
@@ -24,12 +25,12 @@ export const DashboardBehaviorT = ({
   courseId: string
   courseDates: Date[]
 }) => {
-  const {data: session} = useSession()
+  const [user, setUser] = useState<any>(null)
 
-  const {error: errorCourses} = useCourses()
-  const {allAttendance, fetchAttendances, getAttendanceById} = useAttendance()
-  const {fetchTeacherCourses, courses} = useCourseStore()
-  const {allBehaviors, fetchBehaviors, error, getBehaviorById} = useBehavior()
+  const { error: errorCourses } = useCourses()
+  const { allAttendance, fetchAttendances, getAttendanceById } = useAttendance()
+  const { fetchTeacherCourses, courses } = useCourseStore()
+  const { allBehaviors, fetchBehaviors, error, getBehaviorById } = useBehavior()
 
   const [isCreatingBehavior, setIsCreatingBehavior] = useState<boolean>(false)
   const [isEditingBehavior, setIsEditingBehavior] = useState<boolean>(false)
@@ -39,15 +40,27 @@ export const DashboardBehaviorT = ({
   const [isLoadingBehavior, setIsLoadingBehavior] = useState<boolean>(true)
 
   useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (user && !error) {
+        setUser(user)
+      }
+    }
+    getUser()
+  }, [])
+
+
+  useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id || !courseId) return
+      if (!user?.id || !courseId) return
 
       try {
         setIsLoadingBehavior(true)
         await Promise.all([
-          fetchTeacherCourses(session.user.id),
-          fetchAttendances({courseId}),
-          fetchBehaviors({courseId}),
+          fetchTeacherCourses(user.id),
+          fetchAttendances({ courseId }),
+          fetchBehaviors({ courseId }),
         ])
       } catch (err) {
         console.error('Error loading behavior data:', err)
@@ -57,7 +70,7 @@ export const DashboardBehaviorT = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -119,7 +132,7 @@ export const DashboardBehaviorT = ({
     await new Promise((resolve) => setTimeout(resolve, 100))
     // Recharger les données sans recharger toute la page
     if (courseId) {
-      await fetchAttendances({courseId})
+      await fetchAttendances({ courseId })
     }
   }
 
@@ -130,11 +143,11 @@ export const DashboardBehaviorT = ({
     setSelectedDate(null)
 
     // Puis rafraîchir les données
-    if (courseId && session?.user?.id) {
+    if (courseId && user?.id) {
       try {
         setIsLoadingBehavior(true)
         // Recharger les données de comportement uniquement
-        await fetchBehaviors({courseId})
+        await fetchBehaviors({ courseId })
       } catch (error) {
         console.error('Error refreshing data:', error)
       } finally {
@@ -151,11 +164,11 @@ export const DashboardBehaviorT = ({
             <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
             <div
               className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-              style={{animationDelay: '0.2s'}}
+              style={{ animationDelay: '0.2s' }}
             ></div>
             <div
               className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-              style={{animationDelay: '0.4s'}}
+              style={{ animationDelay: '0.4s' }}
             ></div>
           </div>
         </CardContent>

@@ -1,15 +1,15 @@
 'use client'
 
-import {Eye, EyeOff} from 'lucide-react'
-import {useState} from 'react'
-import {useForm} from 'react-hook-form'
-import {toast} from 'react-toastify'
+import { Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
 
-import {Button} from '@/components/ui/button'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
-import {Input} from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 
-import {zodResolver} from '@hookform/resolvers/zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 const formSchema = z
@@ -27,7 +27,7 @@ interface NewPasswordProps {
   onPasswordReset: () => void
 }
 
-const NewPassword: React.FC<NewPasswordProps> = ({email, onPasswordReset}) => {
+const NewPassword: React.FC<NewPasswordProps> = ({ email, onPasswordReset }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
@@ -46,7 +46,7 @@ const NewPassword: React.FC<NewPasswordProps> = ({email, onPasswordReset}) => {
     try {
       const options = {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
           newPassword: values.newPassword,
@@ -77,7 +77,7 @@ const NewPassword: React.FC<NewPasswordProps> = ({email, onPasswordReset}) => {
         <FormField
           control={form.control}
           name="newPassword"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Nouveau mot de passe</FormLabel>
               <FormControl>
@@ -102,7 +102,7 @@ const NewPassword: React.FC<NewPasswordProps> = ({email, onPasswordReset}) => {
         <FormField
           control={form.control}
           name="confirmPassword"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Confirmer le nouveau mot de passe</FormLabel>
               <FormControl>

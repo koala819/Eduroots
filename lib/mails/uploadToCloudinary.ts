@@ -1,4 +1,4 @@
-import {bufferToStream} from './bufferToStream'
+import { bufferToStream } from './bufferToStream'
 
 import cloudinary from '@/lib/cloudinary'
 

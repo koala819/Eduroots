@@ -1,8 +1,8 @@
-import {memo, useEffect, useState} from 'react'
+import { memo, useEffect, useState } from 'react'
 
-import {BackGroundPreview} from '@/components/root/BackGroundPreview'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
+import { BackGroundPreview } from '@/components/root/BackGroundPreview'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface ThemeInputProps {
   userType: string

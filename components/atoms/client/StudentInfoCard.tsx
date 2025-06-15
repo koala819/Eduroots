@@ -1,6 +1,6 @@
 'use client'
 
-import {ReactNode} from 'react'
+import { ReactNode } from 'react'
 
 interface InfoCardProps {
   title: string
@@ -9,7 +9,7 @@ interface InfoCardProps {
   color?: 'indigo' | 'rose' | 'emerald' | 'orange' | 'slate'
 }
 
-export const InfoCard = ({title, icon, items, color}: InfoCardProps) => {
+export const InfoCard = ({ title, icon, items, color }: InfoCardProps) => {
   const colorSchemes = {
     indigo: {
       bg: 'bg-gradient-to-br from-indigo-50 to-blue-50',

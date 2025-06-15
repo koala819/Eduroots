@@ -1,16 +1,16 @@
 'use client'
 
-import {GlobalStats} from '@/types/stats'
+import { GlobalStats } from '@/types/mongo/stats'
 
-import {Progress} from '@/components/ui/progress'
+import { Progress } from '@/components/ui/progress'
 
-import {convertToDate} from '@/lib/utils'
+import { convertToDate } from '@/utils/helpers'
 
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats
 }
 
-export const AttendanceStatsClient = ({globalStats}: AttendanceStatsClientProps) => {
+export const AttendanceStatsClient = ({ globalStats }: AttendanceStatsClientProps) => {
   // Fonction pour déterminer la couleur basée sur le taux de présence
   function getPresenceColor(rate: number) {
     if (rate >= 90) return 'text-green-600'

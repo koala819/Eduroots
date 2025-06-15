@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 import TogglePasswordVisibility from '@/components/atoms/client/TogglePasswordVisibility'
 

@@ -1,16 +1,16 @@
 'use client'
 
-import {CircleArrowLeft} from 'lucide-react'
-import {useState} from 'react'
+import { CircleArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import CheckMail from '@/components/atoms/CheckMail'
 import CheckOTP from '@/components/atoms/CheckOTP'
 import NewPassword from '@/components/atoms/NewPwd'
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
-import {motion} from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export default function PasswordReset() {
   const [step, setStep] = useState<string>('checkMail')
@@ -36,9 +36,9 @@ export default function PasswordReset() {
 
   return (
     <motion.div
-      initial={{opacity: 0, y: -50}}
-      animate={{opacity: 1, y: 0}}
-      transition={{duration: 0.5}}
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       className="w-full max-w-md mx-auto p-8 bg-white shadow-2xl rounded-xl"
     >
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">

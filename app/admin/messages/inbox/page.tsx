@@ -1,4 +1,4 @@
-import {Metadata} from 'next'
+import { Metadata } from 'next'
 
 import MessageContainer from '@/components/pages/client/MessageContainer'
 

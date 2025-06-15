@@ -1,13 +1,13 @@
 'use client'
 
-import {CalendarIcon, MessageSquareMore, Settings} from 'lucide-react'
+import { CalendarIcon, MessageSquareMore, Settings } from 'lucide-react'
 
 type FooterProps = {
   handleNavClick: (href: string) => void
   currentRoute: string
 }
 
-const FooterTeacher = ({handleNavClick, currentRoute}: FooterProps) => {
+const FooterTeacher = ({ handleNavClick, currentRoute }: FooterProps) => {
   const navItems = [
     {
       href: '/teacher/classroom',
@@ -30,7 +30,7 @@ const FooterTeacher = ({handleNavClick, currentRoute}: FooterProps) => {
     <div className="bg-white border-t shadow-lg h-16">
       <nav className="h-full max-w-lg mx-auto">
         <div className="flex justify-around items-center h-full relative">
-          {navItems.map(({href, label, Icon}) => {
+          {navItems.map(({ href, label, Icon }) => {
             const isActive = currentRoute.startsWith(href)
 
             return (

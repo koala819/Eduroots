@@ -1,12 +1,24 @@
 'use server'
 
-import {UserRoleEnum} from '@/types/user'
+import { createClient } from '@/utils/supabase/server'
+import { Database } from '@/types/supabase/db'
+import { UserRoleEnum } from '@/types/supabase/user'
+import { FormSchema } from '@/lib/validation/login-schema'
+import { createClient as supabaseClient } from '@supabase/supabase-js'
 
-import dbConnect from '@/backend/config/dbConnect'
-import {ConnectionLog} from '@/backend/models/connectionLog'
-import {User} from '@/backend/models/user.model'
-import {FormSchema} from '@/lib/validation/login-schema'
-import {compare} from 'bcryptjs'
+type ConnectionLogInsert =
+  Database['logs']['Tables']['connection_logs']['Insert'];
+
+const supabaseAdmin = supabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  },
+)
 
 export async function loginAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -22,39 +34,23 @@ export async function loginAction(formData: FormData) {
       userAgent,
     })
 
-    await dbConnect()
+    const supabase = await createClient()
 
-    // Création du log
-    const log = new ConnectionLog({
-      user: {
-        _id: null,
-        email,
-        role,
-      },
-      isSuccessful: false,
-      userAgent,
-    })
-    await log.save()
+    // 1. Vérifier si l'utilisateur existe dans education.users
+    const { data: users, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select(
+        'id, email, role, firstname, lastname, auth_id, secondary_email, parent2_auth_id',
+      )
+      .or(
+        `email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`,
+      )
+      .eq('role', role)
+      .eq('is_active', true)
+      .limit(1)
 
-    // Recherche de l'utilisateur
-    let user
-
-    if (role === UserRoleEnum.Admin) {
-      // Si le rôle est 'admin', chercher un utilisateur avec le rôle 'admin' ou 'bureau'
-      user = await User.findOne({
-        email,
-        role: {$in: [UserRoleEnum.Admin, UserRoleEnum.Bureau]},
-        isActive: true,
-      }).select('+password +role')
-    } else {
-      // Pour tous les autres rôles, utiliser la recherche originale
-      user = await User.findOne({email, role, isActive: true}).select('+password +role')
-    }
-
-    // Vérification du mot de passe
-    const isMatch = await compare(pwd, user.password)
-
-    if (!isMatch) {
+    if (userError || !users || users.length === 0) {
       return {
         success: false,
         error: 'CredentialsSignin',
@@ -62,59 +58,109 @@ export async function loginAction(formData: FormData) {
       }
     }
 
-    // Vérification du mot de passe par défaut
-    const defaultPwd = checkDefaultPassword(user)
-    if (defaultPwd) {
+    const user = users[0]
+
+    // 2. Créer le log avec les informations de l'utilisateur
+    const logData: ConnectionLogInsert = {
+      user_id: user.auth_id ?? null,
+      email,
+      role,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      is_successful: false,
+      user_agent: userAgent,
+      timestamp: new Date(),
+    }
+
+    const { data: log, error: logError } = await supabase
+      .schema('logs')
+      .from('connection_logs')
+      .insert([logData])
+      .select()
+      .single()
+
+    if (logError) {
+      console.error('Error creating connection log:', logError)
+    }
+
+    // Déterminer quel auth_id utiliser
+    const authId =
+      email.toLowerCase() === user.email.toLowerCase()
+        ? user.auth_id
+        : user.parent2_auth_id
+
+    if (!authId) {
       return {
-        success: true,
-        forcePasswordChange: true,
-        redirectUrl: '/rstPwd?forceChange=true',
-        message: 'Veuillez changer votre mot de passe pour des raisons de sécurité',
+        success: false,
+        error: 'CredentialsSignin',
+        message: 'Compte non lié. Veuillez réinitialiser votre mot de passe',
       }
     }
 
-    // IMPORTANT: Convertir les documents MongoDB en objets simples
-    // Ne retournez que les données essentielles et pas tout l'objet user
-    const userData = {
-      _id: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      // Autres propriétés essentielles mais pas le document complet
+    // 3. Authentification avec Supabase
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password: pwd,
+    })
+
+    if (authError) {
+      return {
+        success: false,
+        error: 'CredentialsSignin',
+        message: 'Identifiants incorrects. Veuillez réessayer',
+      }
     }
 
-    // Mise à jour du log
-    await ConnectionLog.findOneAndUpdate(
-      {'user.email': user.email, isSuccessful: false},
-      {
-        $set: {
-          user: userData, // Utilisez l'objet simplifié ici aussi
-          isSuccessful: true,
-        },
-      },
-      {new: true, sort: {timestamp: -1}},
-    )
+    // 4. Mise à jour du log avec succès
+    await supabase
+      .schema('logs')
+      .from('connection_logs')
+      .update({
+        is_successful: true,
+      })
+      .eq('id', log.id)
 
     return {
       success: true,
       status: 200,
       message: 'Connection successful',
-      user: userData, // Retournez des données sérialisables
+      role: user.role,
     }
   } catch (error: any) {
     console.error('Login error:', error)
     return {
       success: false,
-      error: error.name || 'UnknownError',
-      message: error.message || 'Une erreur est survenue',
+      error: error.name ?? 'UnknownError',
+      message: error.message ?? 'Une erreur est survenue',
     }
   }
 }
 
-function checkDefaultPassword(user: {role: UserRoleEnum; password: string}): boolean {
-  if (user.role === 'teacher' && user.password === process.env.TEACHER_PWD) {
-    return true
-  } else if (user.role === 'student' && user.password === process.env.STUDENT_PWD) {
-    return true
+export async function checkUserExists(email: string, role: string) {
+  const rolesInEnglish = {
+    enseignant: 'teacher',
+    famille: 'student',
+    bureau: 'bureau',
   }
-  return false
+  const roleInEnglish = rolesInEnglish[role as keyof typeof rolesInEnglish]
+  console.log('roleInEnglish', roleInEnglish)
+
+  const { data: users, error } = await supabaseAdmin
+    .schema('education')
+    .from('users')
+    .select('id, email, role')
+    .or(
+      `email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`,
+    )
+    .eq('role', roleInEnglish)
+
+  if (error) {
+    console.error('Erreur Supabase:', error)
+    throw new Error('Erreur lors de la vérification de l\'email')
+  }
+
+  return {
+    exists: users && users.length > 0,
+    user: users?.[0],
+  }
 }

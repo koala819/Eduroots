@@ -1,13 +1,14 @@
 'use client'
 
-import {CalendarDays, GraduationCap, Users} from 'lucide-react'
+import { CalendarDays, GraduationCap, Users } from 'lucide-react'
 
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {Teacher} from '@/types/user'
+import { CourseSession } from '@/types/mongo/course'
+import { Teacher } from '@/types/mongo/user'
 
-import {Badge} from '@/components/ui/badge'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 interface CoursesTableProps {
   sessions: Array<{
@@ -17,7 +18,7 @@ interface CoursesTableProps {
   formatDayOfWeek: (dayOfWeek: TimeSlotEnum) => string
 }
 
-export function CoursesTable({sessions, formatDayOfWeek}: CoursesTableProps) {
+export function CoursesTable({ sessions, formatDayOfWeek }: CoursesTableProps) {
   return (
     <Card className="w-full">
       <CardHeader>
@@ -40,13 +41,13 @@ export function CoursesTable({sessions, formatDayOfWeek}: CoursesTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sessions.map(({session, teacher}, index) => (
+            {sessions.map(({ session, teacher }, index) => (
               <TableRow key={`session-${index}`}>
                 <TableCell className="font-medium whitespace-nowrap">
-                  {formatDayOfWeek(session.timeSlot.dayOfWeek as TimeSlotEnum)}
+                  {formatDayOfWeek(session.timeSlot.day_of_week as TimeSlotEnum)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {session.timeSlot.startTime} - {session.timeSlot.endTime}
+                  {session.timeSlot.start_time} - {session.timeSlot.end_time}
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="flex items-center gap-1">
@@ -72,7 +73,7 @@ export function CoursesTable({sessions, formatDayOfWeek}: CoursesTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {session.timeSlot.classroomNumber}
+                  {session.timeSlot.classroom_number}
                 </TableCell>
               </TableRow>
             ))}

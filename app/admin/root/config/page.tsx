@@ -1,4 +1,4 @@
-import {AppConfigManager} from '@/components/root/AppConfigManager'
+import { AppConfigManager } from '@/components/root/AppConfigManager'
 
 const AppConfigManagerPage = () => {
   return <AppConfigManager />

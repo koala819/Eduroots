@@ -1,32 +1,47 @@
 'use client'
 
-import {ChevronLeft, ChevronRight, Clock, TreePalm} from 'lucide-react'
-import {useSession} from 'next-auth/react'
-import {useEffect, useState} from 'react'
+import { ChevronLeft, ChevronRight, Clock, TreePalm } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
-import {useRouter} from 'next/navigation'
-
-import {CourseSession, TimeSlotEnum} from '@/types/course'
-import {Period, PeriodTypeEnum} from '@/types/schedule'
+import { CourseSession } from '@/types/mongo/course'
+import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
 
 import PlanningDetailsCard from '@/components/admin/atoms/client/PlanningDetailsCard'
-import {TimeSlotColumn} from '@/components/admin/molecules/client/PlanningTimeSlotColumn'
-import {HolidaysCard} from '@/components/atoms/server/HolidaysCard'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
+import { TimeSlotColumn } from '@/components/admin/molecules/client/PlanningTimeSlotColumn'
+import { HolidaysCard } from '@/components/atoms/server/HolidaysCard'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-import {useCourses} from '@/context/Courses/client'
-import {useHolidays} from '@/context/Holidays/client'
-import {useSchedules} from '@/context/Schedules/client'
-import {formatDayOfWeek} from '@/lib/utils'
+import { useCourses } from '@/context/Courses/client'
+import { useHolidays } from '@/context/Holidays/client'
+import { useSchedules } from '@/context/Schedules/client'
+import { formatDayOfWeek } from '@/utils/helpers'
+import { TimeSlotEnum } from '@/types/supabase/courses'
 
 export default function PlanningGridClient() {
-  const {courses, isLoading, updateCourses} = useCourses()
-  const {holidays, isLoading: isLoadingHolidays} = useHolidays()
+  const { courses, isLoading, updateCourses } = useCourses()
+  const { holidays, isLoading: isLoadingHolidays } = useHolidays()
   const router = useRouter()
-  const {schedules, isLoading: loadingSchedules} = useSchedules()
-  const {data: session} = useSession()
+  const { schedules, isLoading: loadingSchedules } = useSchedules()
+  const [session, setSession] = useState<any>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setSession(user)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, user) => {
+      setSession(user)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0)
   const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null)
@@ -40,8 +55,8 @@ export default function PlanningGridClient() {
   const getSessionsForSlot = (timeSlot: TimeSlotEnum, period: Period) => {
     return courses
       .flatMap((course) =>
-        course.sessions.map((session) => {
-          const firstTeacher = Array.isArray(course.teacher) && course.teacher[0]
+        course.courses_sessions.map((session) => {
+          const firstTeacher = Array.isArray(course.courses_teacher) && course.courses_teacher[0]
           const teacherData = firstTeacher && 'firstname' in firstTeacher ? firstTeacher : null
 
           return {
@@ -49,23 +64,24 @@ export default function PlanningGridClient() {
             courseId: course.id,
             user: teacherData
               ? {
-                  id: teacherData.id,
-                  firstname: teacherData.firstname,
-                  lastname: teacherData.lastname,
-                  role: teacherData.role,
-                }
+                id: teacherData.users.id,
+                firstname: teacherData.users.firstname,
+                lastname: teacherData.users.lastname,
+                role: teacherData.users.role,
+              }
               : undefined,
           }
         }),
       )
       .filter((session) => {
-        if (!session?.timeSlot) {
-          console.error('Session invalide:', {session})
+        if (!session?.courses_sessions_timeslot) {
+          console.error('Session invalide:', { session })
           return false
         }
 
         return (
-          session.timeSlot.dayOfWeek === timeSlot && session.timeSlot.startTime === period.startTime
+          session.courses_sessions_timeslot[0].day_of_week === timeSlot &&
+          session.courses_sessions_timeslot[0].start_time === period.startTime
         )
       })
   }
@@ -180,7 +196,7 @@ export default function PlanningGridClient() {
       <HolidaysCard holidays={holidays} isLoading={isLoadingHolidays} />
 
       {/* Buttons Controls */}
-      {session?.user?.role === 'admin' && (
+      {session?.user?.user_metadata?.role === 'admin' && (
         <div className="sticky bottom-0 bg-gray-50 pb-4 space-y-4">
           <div className="flex gap-2 w-full">
             <Button

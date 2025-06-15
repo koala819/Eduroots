@@ -1,26 +1,36 @@
 'use server'
 
-import {getServerSession} from 'next-auth'
+import { createClient } from '@/utils/supabase/server'
+import { Database } from '@/types/supabase/db'
+import { ApiResponse } from '@/types/supabase/api'
+import { SerializedValue, serializeData } from '@/lib/serialization'
 
-import {ApiResponse} from '@/types/api'
-import {CourseSession} from '@/types/course'
-import {Teacher} from '@/types/user'
+type Teacher = Database['education']['Tables']['users']['Row'] & {
+  role: 'teacher';
+};
 
-import {Course} from '@/backend/models/course.model'
-import {User} from '@/backend/models/user.model'
-import {SerializedValue, serializeData} from '@/lib/serialization'
-import {isValidObjectId} from 'mongoose'
+type TeacherInsert = Database['education']['Tables']['users']['Insert'] & {
+  role: 'teacher';
+};
+
+type TeacherUpdate = Database['education']['Tables']['users']['Update'];
 
 async function getSessionServer() {
-  const session = await getServerSession()
-  if (!session || !session.user) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
     throw new Error('Non authentifié')
   }
-  return session
+
+  return { user }
 }
 
 export async function createTeacher(
-  teacherData: Omit<Teacher, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
+  teacherData: Omit<TeacherInsert, 'id' | 'created_at' | 'updated_at'>,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
@@ -34,17 +44,27 @@ export async function createTeacher(
       }
     }
 
-    const newUser = await User.create(teacherData)
-    if (!newUser) {
+    const supabase = await createClient()
+
+    const { data: newUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .insert([{ ...teacherData, role: 'teacher' }])
+      .select()
+      .single()
+
+    if (error || !newUser) {
+      console.error('[CREATE_TEACHER] Supabase error:', error)
       return {
         success: false,
         message: 'Professeur non créé',
         data: null,
       }
     }
+
     return {
       success: true,
-      data: serializeData({id: newUser._id}),
+      data: serializeData({ id: newUser.id }),
       message: 'Professeur créé avec succès',
     }
   } catch (error) {
@@ -53,10 +73,12 @@ export async function createTeacher(
   }
 }
 
-export async function deleteTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function deleteTeacher(
+  teacherId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    if (!teacherId || !isValidObjectId(teacherId)) {
+    if (!teacherId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -64,20 +86,23 @@ export async function deleteTeacher(teacherId: string): Promise<ApiResponse<Seri
       }
     }
 
-    const deletedUser = await User.findOneAndUpdate(
-      {
-        _id: teacherId,
-        role: 'teacher',
-        isActive: true,
-      },
-      {
-        isActive: false,
-        deletedAt: new Date(),
-      },
-      {new: true},
-    ).select('-password')
+    const supabase = await createClient()
 
-    if (!deletedUser) {
+    const { data: deletedUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+      })
+      .eq('id', teacherId)
+      .eq('role', 'teacher')
+      .eq('is_active', true)
+      .select()
+      .single()
+
+    if (error || !deletedUser) {
+      console.error('[DELETE_TEACHER] Supabase error:', error)
       return {
         success: false,
         message: 'Professeur non trouvé',
@@ -99,20 +124,26 @@ export async function deleteTeacher(teacherId: string): Promise<ApiResponse<Seri
 export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    const users = await User.find({
-      isActive: true,
-      role: 'teacher',
-    })
-      .select('-password')
-      .sort({firstname: 1, lastname: 1})
+    const supabase = await createClient()
 
-    if (!users) {
+    const { data: users, error } = await supabase
+      .schema('education')
+      .from('users')
+      .select('*')
+      .eq('is_active', true)
+      .eq('role', 'teacher')
+      .order('firstname', { ascending: true })
+      .order('lastname', { ascending: true })
+
+    if (error) {
+      console.error('[GET_ALL_TEACHERS] Supabase error:', error)
       return {
         success: false,
         message: 'Professeurs non trouvés',
         data: null,
       }
     }
+
     return {
       success: true,
       data: users ? serializeData(users) : null,
@@ -124,10 +155,12 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getOneTeacher(
+  teacherId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    if (!isValidObjectId(teacherId)) {
+    if (!teacherId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -135,19 +168,26 @@ export async function getOneTeacher(teacherId: string): Promise<ApiResponse<Seri
       }
     }
 
-    const user = await User.findOne({
-      isActive: true,
-      role: 'teacher',
-      _id: teacherId,
-    }).select('-password')
+    const supabase = await createClient()
 
-    if (!user) {
+    const { data: user, error } = await supabase
+      .schema('education')
+      .from('users')
+      .select('*')
+      .eq('is_active', true)
+      .eq('role', 'teacher')
+      .eq('id', teacherId)
+      .single()
+
+    if (error || !user) {
+      console.error('[GET_ONE_TEACHER] Supabase error:', error)
       return {
         success: false,
         message: 'Professeur non trouvé',
         data: null,
       }
     }
+
     return {
       success: true,
       data: user ? serializeData(user) : null,
@@ -165,13 +205,23 @@ export async function getStudentsByTeacher(
   await getSessionServer()
 
   try {
-    const teacher = await User.findOne({
-      _id: teacherId,
-      role: 'teacher',
-      isActive: true,
-    })
+    const supabase = await createClient()
 
-    if (!teacher) {
+    // Vérifier que le professeur existe
+    const { data: teacher, error: teacherError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id')
+      .eq('id', teacherId)
+      .eq('role', 'teacher')
+      .eq('is_active', true)
+      .single()
+
+    if (teacherError || !teacher) {
+      console.error(
+        '[GET_STUDENTS_BY_TEACHER] Teacher not found:',
+        teacherError,
+      )
       return {
         success: false,
         message: 'Professeur non trouvé',
@@ -179,45 +229,76 @@ export async function getStudentsByTeacher(
       }
     }
 
-    const courses = await Course.find({
-      teacher: teacherId,
-      isActive: true,
-    }).populate({
-      path: 'sessions.students',
-      select: 'secondaryEmail email firstname lastname dateOfBirth gender',
-      match: {isActive: true},
-    })
+    // Récupérer les cours avec leurs sessions et étudiants
+    const { data: courses, error: coursesError } = await supabase
+      .schema('education')
+      .from('courses')
+      .select(
+        `
+        id,
+        academic_year,
+        courses_sessions (
+          id,
+          subject,
+          level,
+          time_slot,
+          courses_sessions_students (
+            users (
+              id,
+              email,
+              secondary_email,
+              firstname,
+              lastname,
+              date_of_birth,
+              gender
+            )
+          )
+        )
+      `,
+      )
+      .eq('teacher_id', teacherId)
+      .eq('is_active', true)
 
-    // Nouvelle structure : regrouper par cours
-    const coursesWithStudents = courses.map((course) => {
-      // Transformer les sessions du cours
-      const sessionsWithStudents = course.sessions.map((session: CourseSession) => {
-        // Transformer les étudiants de la session
-        const students = session.students.map((student: any) => ({
-          _id: student._id,
-          firstname: student.firstname,
-          lastname: student.lastname,
-          email: student.email,
-          secondaryEmail: student.secondaryEmail,
-          gender: student.gender,
-          dateOfBirth: student.dateOfBirth,
-        }))
+    if (coursesError) {
+      console.error('[GET_STUDENTS_BY_TEACHER] Courses error:', coursesError)
+      throw new Error('Erreur lors de la récupération des cours')
+    }
+
+    // Transformer les données pour correspondre à l'ancienne structure
+    const coursesWithStudents =
+      courses?.map((course) => {
+        const sessionsWithStudents =
+          course.courses_sessions?.map((session) => {
+            const students =
+              session.courses_sessions_students?.map((studentRelation: any) => {
+                const user = studentRelation.users
+                return {
+                  _id: user?.id,
+                  id: user?.id,
+                  firstname: user?.firstname,
+                  lastname: user?.lastname,
+                  email: user?.email,
+                  secondaryEmail: user?.secondary_email,
+                  gender: user?.gender,
+                  dateOfBirth: user?.date_of_birth,
+                }
+              }) || []
+
+            return {
+              sessionId: session.id,
+              subject: session.subject,
+              level: session.level,
+              timeSlot: session.time_slot,
+              students,
+            }
+          }) || []
 
         return {
-          sessionId: session.id,
-          subject: session.subject,
-          level: session.level,
-          timeSlot: session.timeSlot,
-          students,
+          courseId: course.id,
+          academicYear: course.academic_year,
+          sessions: sessionsWithStudents,
         }
-      })
-
-      return {
-        courseId: course._id,
-        academicYear: course.academicYear,
-        sessions: sessionsWithStudents,
-      }
-    })
+      }) || []
 
     return {
       success: true,
@@ -226,17 +307,19 @@ export async function getStudentsByTeacher(
     }
   } catch (error) {
     console.error('[GET_STUDENTS_BY_TEACHER]', error)
-    throw new Error('Erreur lors de la récupération des étudiants du professeur')
+    throw new Error(
+      'Erreur lors de la récupération des étudiants du professeur',
+    )
   }
 }
 
 export async function updateTeacher(
   teacherId: string,
-  teacherData: Partial<Teacher>,
+  teacherData: TeacherUpdate,
 ): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
-    if (!teacherId || !isValidObjectId(teacherId)) {
+    if (!teacherId) {
       return {
         success: false,
         message: 'Id invalide',
@@ -244,17 +327,23 @@ export async function updateTeacher(
       }
     }
 
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        _id: teacherId,
-        role: 'teacher',
-        isActive: true,
-      },
-      {$set: teacherData},
-      {new: true},
-    ).select('-password')
+    const supabase = await createClient()
 
-    if (!updatedUser) {
+    const { data: updatedUser, error } = await supabase
+      .schema('education')
+      .from('users')
+      .update({
+        ...teacherData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', teacherId)
+      .eq('role', 'teacher')
+      .eq('is_active', true)
+      .select()
+      .single()
+
+    if (error || !updatedUser) {
+      console.error('[UPDATE_TEACHER] Supabase error:', error)
       return {
         success: false,
         message: 'Professeur non trouvé',
@@ -273,16 +362,20 @@ export async function updateTeacher(
   }
 }
 
-function validateRequiredFields(type: string, data: any): {isValid: boolean; message?: string} {
-  const baseFields = ['email', 'firstname', 'lastname', 'password']
-  const requiredFields = type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
+function validateRequiredFields(
+  type: string,
+  data: any,
+): { isValid: boolean; message?: string } {
+  const baseFields = ['email', 'firstname', 'lastname']
+  const requiredFields =
+    type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
 
   const missingFields = requiredFields.filter((field) => !data[field])
 
   return missingFields.length > 0
     ? {
-        isValid: false,
-        message: `Champs manquants: ${missingFields.join(', ')}`,
-      }
-    : {isValid: true}
+      isValid: false,
+      message: `Champs manquants: ${missingFields.join(', ')}`,
+    }
+    : { isValid: true }
 }
