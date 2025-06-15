@@ -1,26 +1,26 @@
-"use client";
+'use client'
 
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from '@/utils/supabase/client'
 import {
   BuildingOfficeIcon,
   AcademicCapIcon,
   HomeIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline'
 import {
   UserGroupIcon,
   EyeIcon,
   EyeSlashIcon,
-} from "@heroicons/react/24/solid";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
-import { z } from "zod";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+} from '@heroicons/react/24/solid'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { motion } from 'framer-motion'
+import { z } from 'zod'
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
 
-import { PWAButtonClient } from "@/components/atoms/client/PWAButton";
-import { Button } from "@/components/ui/button";
+import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -28,50 +28,50 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { loginAction } from "@/app/actions/auth";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import Link from 'next/link'
+import { loginAction } from '@/app/actions/auth'
 
 const formSchema = z.object({
   role: z.string({
-    required_error: "Veuillez sélectionner votre profil",
+    required_error: 'Veuillez sélectionner votre profil',
   }),
-  email: z.string().email("Email invalide"),
-  password: z.string().min(1, "Le mot de passe est requis"),
-});
+  email: z.string().email('Email invalide'),
+  password: z.string().min(1, 'Le mot de passe est requis'),
+})
 
 type FormValues = z.infer<typeof formSchema>;
 
 export const LoginClient = () => {
-  const { toast } = useToast();
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { toast } = useToast()
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: "",
-      email: "",
-      password: "",
+      role: '',
+      email: '',
+      password: '',
     },
-  });
+  })
 
   async function signInWithGoogle() {
-    const role = form.getValues("role");
+    const role = form.getValues('role')
     if (!role) {
-      form.setError("role", { message: "Veuillez sélectionner votre profil" });
-      return;
+      form.setError('role', { message: 'Veuillez sélectionner votre profil' })
+      return
     }
-    setLoading(true);
+    setLoading(true)
     try {
-      const supabase = createClient();
-      console.log("Tentative de connexion Google avec le rôle:", role);
+      const supabase = createClient()
+      console.log('Tentative de connexion Google avec le rôle:', role)
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/google-auth?role=${role}`,
           queryParams: {
@@ -79,52 +79,52 @@ export const LoginClient = () => {
             next: `/${role}`,
           },
         },
-      });
+      })
 
       if (error) {
-        console.error("Erreur lors de la connexion Google:", error);
-        setError(`Erreur lors de la connexion avec Google: ${error.message}`);
+        console.error('Erreur lors de la connexion Google:', error)
+        setError(`Erreur lors de la connexion avec Google: ${error.message}`)
       }
     } catch (error) {
-      console.error("Exception lors de la connexion Google:", error);
-      setError(`Erreur lors de la connexion avec Google: ${error}`);
+      console.error('Exception lors de la connexion Google:', error)
+      setError(`Erreur lors de la connexion avec Google: ${error}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function onSubmit(values: FormValues) {
-    setLoading(true);
-    setError("");
+    setLoading(true)
+    setError('')
 
     try {
-      const formData = new FormData();
-      formData.append("email", values.email);
-      formData.append("pwd", values.password);
-      formData.append("role", values.role);
-      formData.append("userAgent", navigator.userAgent);
+      const formData = new FormData()
+      formData.append('email', values.email)
+      formData.append('pwd', values.password)
+      formData.append('role', values.role)
+      formData.append('userAgent', navigator.userAgent)
 
-      const result = await loginAction(formData);
+      const result = await loginAction(formData)
 
       if (result.success === false) {
         toast({
-          variant: "destructive",
-          title: "Erreur",
+          variant: 'destructive',
+          title: 'Erreur',
           description: result.message,
-        });
-        return;
+        })
+        return
       }
 
-      router.push(`/${result.role}`);
+      router.push(`/${result.role}`)
       toast({
-        variant: "success",
-        title: "Succès",
-        description: "Vous êtes connecté",
-      });
+        variant: 'success',
+        title: 'Succès',
+        description: 'Vous êtes connecté',
+      })
     } catch (error: any) {
-      setError(error.message);
+      setError(error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -255,13 +255,13 @@ export const LoginClient = () => {
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
                             ${
-                              field.value === "bureau"
-                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
-                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
-                            }
+                    field.value === 'bureau'
+                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
+                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                    }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange("bureau")}
-                          aria-pressed={field.value === "bureau"}
+                          onClick={() => field.onChange('bureau')}
+                          aria-pressed={field.value === 'bureau'}
                         >
                           <BuildingOfficeIcon className="w-7 h-7 mb-1" />
                           <span className="font-medium text-xs sm:text-sm">
@@ -273,13 +273,13 @@ export const LoginClient = () => {
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
                             ${
-                              field.value === "teacher"
-                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
-                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
-                            }
+                    field.value === 'teacher'
+                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
+                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                    }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange("teacher")}
-                          aria-pressed={field.value === "teacher"}
+                          onClick={() => field.onChange('teacher')}
+                          aria-pressed={field.value === 'teacher'}
                         >
                           <AcademicCapIcon className="w-7 h-7 mb-1" />
                           <span className="font-medium text-xs sm:text-sm">
@@ -291,13 +291,13 @@ export const LoginClient = () => {
                           className={`w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center
                             justify-center rounded-xl border transition-all
                             ${
-                              field.value === "student"
-                                ? "bg-[#375073] text-white border-[#375073] shadow-lg"
-                                : "bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]"
-                            }
+                    field.value === 'student'
+                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
+                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                    }
                             focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
-                          onClick={() => field.onChange("student")}
-                          aria-pressed={field.value === "student"}
+                          onClick={() => field.onChange('student')}
+                          aria-pressed={field.value === 'student'}
                         >
                           <HomeIcon className="w-7 h-7 mb-1" />
                           <span className="font-medium text-xs sm:text-sm">
@@ -369,7 +369,7 @@ export const LoginClient = () => {
                         className="flex-1 text-[#4285F4] font-medium text-base text-center
                         transition-all duration-200 group-hover:text-white"
                       >
-                        {loading ? "Connexion..." : "Se connecter avec Google"}
+                        {loading ? 'Connexion...' : 'Se connecter avec Google'}
                       </span>
                     </Button>
                   </div>
@@ -409,10 +409,10 @@ export const LoginClient = () => {
                                 focus:border-[#375073] focus:outline-none focus:ring-2
                                  focus:ring-[#375073]/50 disabled:bg-gray-100
                                  disabled:cursor-not-allowed"
-                              disabled={loading || !form.watch("role")}
+                              disabled={loading || !form.watch('role')}
                             />
                           </FormControl>
-                          {!form.watch("role") && (
+                          {!form.watch('role') && (
                             <p className="text-sm text-red-500 t-1">
                               Sélectionnez d'abord votre profil
                             </p>
@@ -434,14 +434,14 @@ export const LoginClient = () => {
                             <div className="relative">
                               <Input
                                 {...field}
-                                type={showPassword ? "text" : "password"}
+                                type={showPassword ? 'text' : 'password'}
                                 placeholder="Entrez votre mot de passe"
                                 className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
                                 border border-gray-200 text-gray-900 lg:text-base
                                 focus:border-[#375073] focus:outline-none focus:ring-2
                                  focus:ring-[#375073]/50 disabled:bg-gray-100
                                  disabled:cursor-not-allowed"
-                                disabled={loading || !form.watch("role")}
+                                disabled={loading || !form.watch('role')}
                               />
                               <button
                                 type="button"
@@ -449,7 +449,7 @@ export const LoginClient = () => {
                                 className="absolute right-2.5 lg:right-3 top-2.5 lg:top-3
                                 text-gray-400 hover:text-[#375073] transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={loading || !form.watch("role")}
+                                disabled={loading || !form.watch('role')}
                               >
                                 {showPassword ? (
                                   <EyeSlashIcon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -459,7 +459,7 @@ export const LoginClient = () => {
                               </button>
                             </div>
                           </FormControl>
-                          {!form.watch("role") && (
+                          {!form.watch('role') && (
                             <p className="text-sm text-red-500 mt-1">
                               Sélectionnez d'abord votre profil
                             </p>
@@ -470,9 +470,9 @@ export const LoginClient = () => {
                     />
 
                     <div className="flex justify-end">
-                      {form.watch("role") ? (
+                      {form.watch('role') ? (
                         <Link
-                          href={`/forgot-password?role=${form.watch("role")}`}
+                          href={`/forgot-password?role=${form.watch('role')}`}
                           className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
         transition-colors font-medium"
                         >
@@ -495,7 +495,7 @@ export const LoginClient = () => {
                         focus:outline-none focus:ring-2 focus:ring-[#375073]/50
                         focus:ring-offset-2 text-sm lg:text-base"
                     >
-                      {loading ? "Connexion..." : "Se connecter"}
+                      {loading ? 'Connexion...' : 'Se connecter'}
                     </Button>
                   </div>
                 </div>
@@ -535,5 +535,5 @@ export const LoginClient = () => {
         </aside>
       </main>
     </motion.div>
-  );
-};
+  )
+}

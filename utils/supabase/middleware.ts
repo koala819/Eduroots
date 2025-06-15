@@ -1,12 +1,12 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
-  });
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
           try {
@@ -23,8 +23,8 @@ export async function middleware(request: NextRequest) {
                 name,
                 value,
                 ...options,
-              });
-            });
+              })
+            })
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
@@ -32,22 +32,22 @@ export async function middleware(request: NextRequest) {
           }
         },
       },
-    }
-  );
+    },
+  )
 
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession()
 
-  if (!session && request.nextUrl.pathname.startsWith("/teacher")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!session && request.nextUrl.pathname.startsWith('/teacher')) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return response;
+  return response
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

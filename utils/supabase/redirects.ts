@@ -1,4 +1,4 @@
-import { UserRoleEnum } from "@/types/supabase/user";
+import { UserRoleEnum } from '@/types/supabase/user'
 
 /**
  * Obtient l'URL de redirection en fonction du rôle de l'utilisateur
@@ -7,15 +7,15 @@ import { UserRoleEnum } from "@/types/supabase/user";
  */
 export function getRedirectUrl(role: string | UserRoleEnum): string {
   switch (role) {
-    case UserRoleEnum.Admin:
-    case UserRoleEnum.Bureau:
-      return "/admin";
-    case UserRoleEnum.Teacher:
-      return "/teacher";
-    case UserRoleEnum.Student:
-      return "/student";
-    default:
-      return "/link-account";
+  case UserRoleEnum.Admin:
+  case UserRoleEnum.Bureau:
+    return '/admin'
+  case UserRoleEnum.Teacher:
+    return '/teacher'
+  case UserRoleEnum.Student:
+    return '/student'
+  default:
+    return '/link-account'
   }
 }
 
@@ -26,14 +26,14 @@ export function getRedirectUrl(role: string | UserRoleEnum): string {
  */
 export function getRoleName(role: string | UserRoleEnum): string {
   switch (role) {
-    case UserRoleEnum.Admin:
-    case UserRoleEnum.Bureau:
-      return "Bureau";
-    case UserRoleEnum.Teacher:
-      return "Enseignant";
-    case UserRoleEnum.Student:
-      return "Famille";
-    default:
-      return "Accueil";
+  case UserRoleEnum.Admin:
+  case UserRoleEnum.Bureau:
+    return 'Bureau'
+  case UserRoleEnum.Teacher:
+    return 'Enseignant'
+  case UserRoleEnum.Student:
+    return 'Famille'
+  default:
+    return 'Accueil'
   }
 }

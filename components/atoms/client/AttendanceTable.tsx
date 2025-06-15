@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import { CheckCircle, Clock, Plus, Star, XCircle } from "lucide-react";
-import React from "react";
+import { CheckCircle, Clock, Plus, Star, XCircle } from 'lucide-react'
+import React from 'react'
 
-import { AttendanceDocument } from "@/types/mongo/mongoose";
+import { AttendanceDocument } from '@/types/mongo/mongoose'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,10 +13,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 
-import { useHolidays } from "@/context/Holidays/client";
-import { isWithinInterval } from "date-fns";
+import { useHolidays } from '@/context/Holidays/client'
+import { isWithinInterval } from 'date-fns'
 
 export const AttendanceTable = ({
   courseDates,
@@ -29,7 +29,7 @@ export const AttendanceTable = ({
   handleCreateAttendance: (date: string) => void;
   handleEditAttendance: (attendanceId: string, date: string) => void;
 }) => {
-  const { holidays } = useHolidays();
+  const { holidays } = useHolidays()
 
   return (
     <div className="overflow-x-auto -mx-2 sm:mx-0">
@@ -52,14 +52,14 @@ export const AttendanceTable = ({
                 isWithinInterval(date, {
                   start: new Date(holiday.start),
                   end: new Date(holiday.end),
-                })
-              );
+                }),
+              )
 
-              const today = new Date();
+              const today = new Date()
               const existingAttendance = allAttendance?.find(
                 (att) =>
-                  new Date(att.date).toDateString() === date.toDateString()
-              );
+                  new Date(att.date).toDateString() === date.toDateString(),
+              )
 
               // Attendances exists
               if (existingAttendance) {
@@ -84,7 +84,7 @@ export const AttendanceTable = ({
                           onClick={() =>
                             handleEditAttendance(
                               existingAttendance.id,
-                              date.toISOString()
+                              date.toISOString(),
                             )
                           }
                         >
@@ -93,7 +93,7 @@ export const AttendanceTable = ({
                       )}
                     </TableCell>
                   </TableRow>
-                );
+                )
               }
 
               //   Attendance missings
@@ -155,10 +155,10 @@ export const AttendanceTable = ({
                     )
                   )}
                 </React.Fragment>
-              );
+              )
             })}
         </TableBody>
       </Table>
     </div>
-  );
-};
+  )
+}

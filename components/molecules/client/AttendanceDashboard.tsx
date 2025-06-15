@@ -9,7 +9,11 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useAttendance } from '@/context/Attendances/client'
 import { useCourses } from '@/context/Courses/client'
 import { AnimatePresence } from 'framer-motion'
-import { EmptyContent, ErrorContent, LoadingContent } from '@/components/atoms/client/StatusContent'
+import {
+  EmptyContent,
+  ErrorContent,
+  LoadingContent,
+} from '@/components/atoms/client/StatusContent'
 import { User } from '@/types/supabase/db'
 import { getCourseSessionById } from '@/app/actions/context/courses'
 
@@ -18,17 +22,18 @@ export const AttendanceDashboard = ({
   students,
   courseDates,
 }: {
-  courseSessionId: string
-  students: User[]
-  courseDates: Date[]
-  }) => {
-
+  courseSessionId: string;
+  students: User[];
+  courseDates: Date[];
+}) => {
   const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
   const [courseId, setCourseId] = useState<string | null>(null)
   const { allAttendance, fetchAttendances, error } = useAttendance()
 
-  const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
-  const [isEditingAttendance, setIsEditingAttendance] = useState<boolean>(false)
+  const [isCreatingAttendance, setIsCreatingAttendance] =
+    useState<boolean>(false)
+  const [isEditingAttendance, setIsEditingAttendance] =
+    useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
@@ -56,15 +61,12 @@ export const AttendanceDashboard = ({
     loadData()
   }, [courseSessionId, fetchAttendances])
 
-
   function handleCreateAttendance(date: string) {
     setSelectedDate(date)
     setIsCreatingAttendance(true)
   }
 
   function handleEditAttendance(attendanceId: string, date: string) {
-    console.log('attendanceId handleEditAttendance', attendanceId)
-    console.log('date handleEditAttendance', date)
     setSelectedAttendanceId(attendanceId)
     setSelectedDate(date)
     setIsEditingAttendance(true)
@@ -93,7 +95,11 @@ export const AttendanceDashboard = ({
   }
 
   if (error || errorCourses) {
-    return <ErrorContent message={error ?? errorCourses ?? 'Une erreur est survenue'} />
+    return (
+      <ErrorContent
+        message={error ?? errorCourses ?? 'Une erreur est survenue'}
+      />
+    )
   }
 
   if (!allAttendance) {
@@ -116,8 +122,14 @@ export const AttendanceDashboard = ({
       </Card>
       <AnimatePresence>
         {isCreatingAttendance && (
-          <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
-            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+          <Sheet
+            open={isCreatingAttendance}
+            onOpenChange={setIsCreatingAttendance}
+          >
+            <SheetContent
+              side="right"
+              className="w-full sm:max-w-xl [&>button]:hidden"
+            >
               <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left text-[#375073]">
                 Nouvelle Feuille des Présences
               </SheetTitle>
@@ -133,8 +145,14 @@ export const AttendanceDashboard = ({
           </Sheet>
         )}
         {isEditingAttendance && (
-          <Sheet open={isEditingAttendance} onOpenChange={setIsEditingAttendance}>
-            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+          <Sheet
+            open={isEditingAttendance}
+            onOpenChange={setIsEditingAttendance}
+          >
+            <SheetContent
+              side="right"
+              className="w-full sm:max-w-xl [&>button]:hidden"
+            >
               <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left text-[#375073]">
                 Modifier la Feuille des Présences
               </SheetTitle>

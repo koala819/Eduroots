@@ -39,39 +39,46 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
     (Course & { sessions: CourseSession[] }) | null
   >(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<{
     [key: string]: boolean;
   }>({});
 
   useEffect(() => {
-    // console.log('date', date)
-    // console.log('courseId', courseId)
     async function fetchData() {
-      const attendance = await getAttendanceById(courseId, date);
-      // console.log('attendance', attendance)
-      if (attendance?.records) {
-        const recordsMap = attendance.records.reduce(
-          (
-            acc: { [x: string]: any },
-            record: { student: { _id: any }; isPresent: any }
-          ) => {
-            const studentId =
-              typeof record.student === "object"
-                ? record.student._id
-                : record.student;
-            acc[studentId] = record.isPresent;
-            return acc;
-          },
-          {} as { [key: string]: boolean }
-        );
-        setAttendanceRecords(recordsMap);
-      }
+      try {
+        const attendance = await getAttendanceById(courseId, date);
+        if (attendance?.records) {
+          const recordsMap = attendance.records.reduce(
+            (
+              acc: { [x: string]: any },
+              record: { student: { _id: any }; isPresent: any }
+            ) => {
+              const studentId =
+                typeof record.student === "object"
+                  ? record.student._id
+                  : record.student;
+              acc[studentId] = record.isPresent;
+              return acc;
+            },
+            {} as { [key: string]: boolean }
+          );
+          setAttendanceRecords(recordsMap);
+        }
 
-      const course = await getCourseSessionById(courseId);
-      setCourse(course as unknown as Course & { sessions: CourseSession[] });
+        const course = await getCourseSessionById(courseId);
+        if (!course) {
+          setError("Session non trouvée");
+          return;
+        }
+        setCourse(course as unknown as Course & { sessions: CourseSession[] });
+      } catch (err) {
+        setError("Erreur lors du chargement des données");
+        console.error("Erreur lors du chargement des données:", err);
+      }
     }
     fetchData();
-  }, [courseId, getAttendanceById]);
+  }, [courseId, getAttendanceById, date]);
 
   function handleTogglePresence(studentId: string) {
     setAttendanceRecords((prev) => ({
@@ -104,6 +111,14 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
     }
   }
 
+  if (error) {
+    return (
+      <div className="h-[200px] flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
   if (isLoadingAttendance || isLoadingCourse) {
     return (
       <div className="h-[200px] flex items-center justify-center">
@@ -128,7 +143,12 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.3 }}
         className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
+        aria-describedby="attendance-edit-description"
       >
+        <div id="attendance-edit-description" className="sr-only">
+          Formulaire de modification des présences pour la session du{" "}
+          {new Date(date).toLocaleDateString()}
+        </div>
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">

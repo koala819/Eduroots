@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 // import { signIn } from 'next-auth/react'
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast'
 
-import { UserRoleEnum } from "@/types/supabase/user";
+import { UserRoleEnum } from '@/types/supabase/user'
 
-import { PWAButtonClient } from "@/components/atoms/client/PWAButton";
-import { Button } from "@/components/ui/button";
+import { PWAButtonClient } from '@/components/atoms/client/PWAButton'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -21,155 +21,155 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 
 // import { loginAction } from '@/app/actions/auth'
-import { FormSchema, FormValues } from "@/lib/validation/login-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
+import { FormSchema, FormValues } from '@/lib/validation/login-schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { motion } from 'framer-motion'
 
 export const LoginClient = () => {
-  const { toast } = useToast();
-  const router = useRouter();
-  const [showPwd, setShowPwd] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { toast } = useToast()
+  const router = useRouter()
+  const [showPwd, setShowPwd] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      mail: "",
-      pwd: "",
+      mail: '',
+      pwd: '',
       role: undefined,
-      userAgent: "",
+      userAgent: '',
     },
-  });
+  })
 
   async function onSubmit(values: FormValues) {
-    setLoading(true);
+    setLoading(true)
 
-    const formData = new FormData();
-    formData.append("email", values.mail);
-    formData.append("pwd", values.pwd);
-    formData.append("role", values.role as string);
+    const formData = new FormData()
+    formData.append('email', values.mail)
+    formData.append('pwd', values.pwd)
+    formData.append('role', values.role as string)
 
     formData.append(
-      "userAgent",
-      typeof window !== "undefined" ? navigator.userAgent : ""
-    );
+      'userAgent',
+      typeof window !== 'undefined' ? navigator.userAgent : '',
+    )
 
     try {
-      const result = { success: true } as any;
+      const result = { success: true } as any
 
       if (!result?.success) {
         // Gérer les erreurs spécifiques
-        if (result?.error === "CredentialsSignin") {
+        if (result?.error === 'CredentialsSignin') {
           toast({
-            variant: "destructive",
-            title: "Erreur de connexion",
+            variant: 'destructive',
+            title: 'Erreur de connexion',
             description:
-              result.message || "Identifiants incorrects. Veuillez réessayer",
-          });
-          router.push("/unauthorized?error=CredentialsSignin");
-          return;
+              result.message || 'Identifiants incorrects. Veuillez réessayer',
+          })
+          router.push('/unauthorized?error=CredentialsSignin')
+          return
         }
 
         // Gérer les erreurs générales
         toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: result.message || "Une erreur est survenue",
-        });
-        return;
+          variant: 'destructive',
+          title: 'Erreur',
+          description: result.message || 'Une erreur est survenue',
+        })
+        return
       }
 
       // Gérer la redirection pour changement de mot de passe
       if (result.forcePasswordChange) {
         toast({
-          variant: "destructive",
-          title: "Mot de passe par défaut",
+          variant: 'destructive',
+          title: 'Mot de passe par défaut',
           description:
             result.message ||
-            "Veuillez changer votre mot de passe pour des raisons de sécurité",
-        });
-        router.push(result.redirectUrl);
-        return;
+            'Veuillez changer votre mot de passe pour des raisons de sécurité',
+        })
+        router.push(result.redirectUrl)
+        return
       }
 
       // Connexion réussie
       if (result.status === 200) {
-        console.log("🚀  result:", result);
-        setLoading(true);
+        console.log('🚀  result:', result)
+        setLoading(true)
 
         // Notification et redirection
         toast({
-          variant: "success",
-          title: "Connexion réussie",
+          variant: 'success',
+          title: 'Connexion réussie',
           description: `Redirection vers ${getRoleName(values.role)}...`,
-        });
+        })
 
         // Redirection en fonction du rôle
-        const path = getRedirectUrl(values.role);
+        const path = getRedirectUrl(values.role)
 
         // Attendre un court instant pour que la session soit complètement établie
         setTimeout(() => {
-          router.push(path);
+          router.push(path)
 
           // Si après un court délai nous sommes toujours sur la même page, forcer la redirection
           setTimeout(() => {
-            if (window.location.pathname === "/") {
-              console.log("Forcing navigation with window.location");
-              window.location.href = path;
+            if (window.location.pathname === '/') {
+              console.log('Forcing navigation with window.location')
+              window.location.href = path
             }
-          }, 1000);
-        }, 300);
+          }, 1000)
+        }, 300)
       }
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error('Error during login:', error)
       toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la connexion",
-      });
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la connexion',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   // Fonction utilitaire pour obtenir le nom du rôle pour le message toast
   function getRoleName(role: UserRoleEnum) {
     switch (role) {
-      case UserRoleEnum.Admin:
-      case UserRoleEnum.Bureau:
-        return "Bureau";
-      case UserRoleEnum.Teacher:
-        return "Enseignant";
-      case UserRoleEnum.Student:
-        return "Parent";
-      default:
-        return "Accueil";
+    case UserRoleEnum.Admin:
+    case UserRoleEnum.Bureau:
+      return 'Bureau'
+    case UserRoleEnum.Teacher:
+      return 'Enseignant'
+    case UserRoleEnum.Student:
+      return 'Parent'
+    default:
+      return 'Accueil'
     }
   }
 
   // Fonction utilitaire pour obtenir l'URL de redirection
   function getRedirectUrl(role: UserRoleEnum) {
     switch (role) {
-      case UserRoleEnum.Admin:
-      case UserRoleEnum.Bureau:
-        return "/admin";
-      case UserRoleEnum.Teacher:
-        return "/teacher";
-      case UserRoleEnum.Student:
-        return "/student";
-      default:
-        return "/home";
+    case UserRoleEnum.Admin:
+    case UserRoleEnum.Bureau:
+      return '/admin'
+    case UserRoleEnum.Teacher:
+      return '/teacher'
+    case UserRoleEnum.Student:
+      return '/student'
+    default:
+      return '/home'
     }
   }
 
@@ -202,7 +202,7 @@ export const LoginClient = () => {
         <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl space-y-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <input type="hidden" {...form.register("userAgent")} />
+              <input type="hidden" {...form.register('userAgent')} />
 
               <FormField
                 control={form.control}
@@ -298,7 +298,7 @@ export const LoginClient = () => {
                       <div className="relative">
                         <Input
                           {...field}
-                          type={showPwd ? "text" : "password"}
+                          type={showPwd ? 'text' : 'password'}
                           placeholder="••••••••"
                           className="w-full bg-gray-50 dark:bg-gray-700 border-0 rounded-xl
                           pl-12 pr-12 h-12"
@@ -371,7 +371,7 @@ export const LoginClient = () => {
                       Connexion...
                     </span>
                   ) : (
-                    "Se connecter"
+                    'Se connecter'
                   )}
                 </Button>
               </motion.div>
@@ -385,5 +385,5 @@ export const LoginClient = () => {
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}

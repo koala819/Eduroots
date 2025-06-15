@@ -5,19 +5,22 @@ import { Database } from '@/types/supabase/db'
 import { ApiResponse } from '@/types/supabase/api'
 import { SerializedValue, serializeData } from '@/lib/serialization'
 
-type Teacher = Database['public']['Tables']['users']['Row'] & {
-  role: 'teacher'
-}
+type Teacher = Database['education']['Tables']['users']['Row'] & {
+  role: 'teacher';
+};
 
-type TeacherInsert = Database['public']['Tables']['users']['Insert'] & {
-  role: 'teacher'
-}
+type TeacherInsert = Database['education']['Tables']['users']['Insert'] & {
+  role: 'teacher';
+};
 
-type TeacherUpdate = Database['public']['Tables']['users']['Update']
+type TeacherUpdate = Database['education']['Tables']['users']['Update'];
 
 async function getSessionServer() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error || !user) {
     throw new Error('Non authentifié')
@@ -70,7 +73,9 @@ export async function createTeacher(
   }
 }
 
-export async function deleteTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function deleteTeacher(
+  teacherId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!teacherId) {
@@ -150,7 +155,9 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneTeacher(teacherId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getOneTeacher(
+  teacherId: string,
+): Promise<ApiResponse<SerializedValue>> {
   await getSessionServer()
   try {
     if (!teacherId) {
@@ -211,7 +218,10 @@ export async function getStudentsByTeacher(
       .single()
 
     if (teacherError || !teacher) {
-      console.error('[GET_STUDENTS_BY_TEACHER] Teacher not found:', teacherError)
+      console.error(
+        '[GET_STUDENTS_BY_TEACHER] Teacher not found:',
+        teacherError,
+      )
       return {
         success: false,
         message: 'Professeur non trouvé',
@@ -223,7 +233,8 @@ export async function getStudentsByTeacher(
     const { data: courses, error: coursesError } = await supabase
       .schema('education')
       .from('courses')
-      .select(`
+      .select(
+        `
         id,
         academic_year,
         courses_sessions (
@@ -243,7 +254,8 @@ export async function getStudentsByTeacher(
             )
           )
         )
-      `)
+      `,
+      )
       .eq('teacher_id', teacherId)
       .eq('is_active', true)
 
@@ -253,37 +265,40 @@ export async function getStudentsByTeacher(
     }
 
     // Transformer les données pour correspondre à l'ancienne structure
-    const coursesWithStudents = courses?.map((course) => {
-      const sessionsWithStudents = course.courses_sessions?.map((session) => {
-        const students = session.courses_sessions_students?.map((studentRelation: any) => {
-          const user = studentRelation.users
-          return {
-            _id: user?.id,
-            id: user?.id,
-            firstname: user?.firstname,
-            lastname: user?.lastname,
-            email: user?.email,
-            secondaryEmail: user?.secondary_email,
-            gender: user?.gender,
-            dateOfBirth: user?.date_of_birth,
-          }
-        }) || []
+    const coursesWithStudents =
+      courses?.map((course) => {
+        const sessionsWithStudents =
+          course.courses_sessions?.map((session) => {
+            const students =
+              session.courses_sessions_students?.map((studentRelation: any) => {
+                const user = studentRelation.users
+                return {
+                  _id: user?.id,
+                  id: user?.id,
+                  firstname: user?.firstname,
+                  lastname: user?.lastname,
+                  email: user?.email,
+                  secondaryEmail: user?.secondary_email,
+                  gender: user?.gender,
+                  dateOfBirth: user?.date_of_birth,
+                }
+              }) || []
+
+            return {
+              sessionId: session.id,
+              subject: session.subject,
+              level: session.level,
+              timeSlot: session.time_slot,
+              students,
+            }
+          }) || []
 
         return {
-          sessionId: session.id,
-          subject: session.subject,
-          level: session.level,
-          timeSlot: session.time_slot,
-          students,
+          courseId: course.id,
+          academicYear: course.academic_year,
+          sessions: sessionsWithStudents,
         }
       }) || []
-
-      return {
-        courseId: course.id,
-        academicYear: course.academic_year,
-        sessions: sessionsWithStudents,
-      }
-    }) || []
 
     return {
       success: true,
@@ -292,7 +307,9 @@ export async function getStudentsByTeacher(
     }
   } catch (error) {
     console.error('[GET_STUDENTS_BY_TEACHER]', error)
-    throw new Error('Erreur lors de la récupération des étudiants du professeur')
+    throw new Error(
+      'Erreur lors de la récupération des étudiants du professeur',
+    )
   }
 }
 
@@ -345,9 +362,13 @@ export async function updateTeacher(
   }
 }
 
-function validateRequiredFields(type: string, data: any): {isValid: boolean; message?: string} {
+function validateRequiredFields(
+  type: string,
+  data: any,
+): { isValid: boolean; message?: string } {
   const baseFields = ['email', 'firstname', 'lastname']
-  const requiredFields = type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
+  const requiredFields =
+    type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
 
   const missingFields = requiredFields.filter((field) => !data[field])
 

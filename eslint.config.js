@@ -76,8 +76,5 @@ export default [
       "space-before-blocks": "error",
       "keyword-spacing": "error",
     },
-    linterOptions: {
-      fix: true,
-    },
   },
 ];
