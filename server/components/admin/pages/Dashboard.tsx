@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { AttendanceStatsDisplay } from '@/server/components/admin/atoms/AttendanceStatsDisplay'
 import { HighRiskStudentsButton } from '@/server/components/admin/atoms/HighRiskStudentsButton'
 import Loading from '@/server/components/admin/atoms/Loading'
-import { SchoolPeople } from '@/components/admin/organisms/server/SchoolPeople'
+import { SchoolPeople } from '@/server/components/admin/organisms/SchoolPeople'
 
 export const Dashboard = () => {
   return (
