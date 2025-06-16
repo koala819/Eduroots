@@ -1,27 +1,22 @@
 'use server'
 
-import { createClient } from '@/server/utils/supabase'
+import { getSessionServer } from '@/server/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
-import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior-payload'
+import {
+  CreateBehaviorPayload,
+  UpdateBehaviorPayload,
+  BehaviorRecordWithRelations,
+} from '@/types/behavior-payload'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { BehaviorRecord } from '@/types/db'
 
-
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return user
-}
 
 export async function createBehaviorRecord(
   data: CreateBehaviorPayload,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     const { course, sessionId, date, records } = data
@@ -108,7 +103,8 @@ export async function createBehaviorRecord(
         .eq('student_id', studentId)
 
       // Calculer la nouvelle moyenne
-      const allRatings = [...(studentBehaviors?.map((b) => b.rating) || []), record.rating]
+      const allRatings = [...(studentBehaviors?.map(
+        (b: BehaviorRecord) => b.rating) ?? []), record.rating]
       const behaviorAverage = allRatings
         .reduce((sum, rating) => sum + rating, 0) / allRatings.length
 
@@ -158,7 +154,8 @@ export async function createBehaviorRecord(
 
       if (sessionBehaviors && sessionBehaviors.length > 0) {
         const sessionBehaviorRate = sessionBehaviors
-          .reduce((sum, beh) => sum + beh.behavior_rate, 0) / sessionBehaviors.length
+          .reduce((sum: number, beh: { behavior_rate: number }) =>
+            sum + beh.behavior_rate, 0) / sessionBehaviors.length
 
         // Mettre à jour les stats de la session
         await supabase
@@ -216,7 +213,7 @@ export async function createBehaviorRecord(
 
 export async function deleteBehaviorRecord(id: string): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     if (!id) {
@@ -267,7 +264,7 @@ export async function fetchBehaviorsByCourse(
   courseId: string,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     const { data: behaviors, error } = await supabase
@@ -307,7 +304,7 @@ export async function getBehaviorByIdAndDate(
   date: string,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     let query = supabase
@@ -356,7 +353,7 @@ export async function getStudentBehaviorHistory(
   studentId: string,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     const { data: behaviors, error } = await supabase
@@ -385,7 +382,7 @@ export async function getStudentBehaviorHistory(
     }
 
     // Formater les données pour correspondre à l'ancien format
-    const formattedBehaviors = behaviors?.map((record) => ({
+    const formattedBehaviors = behaviors?.map((record: BehaviorRecordWithRelations) => ({
       id: record.behaviors?.id,
       date: record.behaviors?.date,
       records: [record], // Le record actuel
@@ -403,7 +400,7 @@ export async function getStudentBehaviorHistory(
           level: record.behaviors?.courses_sessions?.level,
         },
       },
-    })) || []
+    })) ?? []
 
     return {
       success: true,
@@ -420,7 +417,7 @@ export async function updateBehaviorRecord(
   data: UpdateBehaviorPayload,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
-  const supabase = await createClient()
+  const { supabase } = await getSessionServer()
 
   try {
     const { courseId, records, behaviorId, sessionId, date } = data
@@ -508,7 +505,8 @@ export async function updateBehaviorRecord(
 
       if (studentBehaviors && studentBehaviors.length > 0) {
         const behaviorAverage = studentBehaviors
-          .reduce((sum, b) => sum + b.rating, 0) / studentBehaviors.length
+          .reduce((sum: number, b: { rating: number }) =>
+            sum + b.rating, 0) / studentBehaviors.length
 
         await supabase
           .schema('stats')

@@ -13,12 +13,14 @@ import {
 import {
   CourseSessionTimeslot,
 } from '@/types/db'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export async function addStudentToCourse(
   courseId: string,
   studentId: string,
   timeSlot: AddStudentToCoursePayload['timeSlot'],
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -90,6 +92,7 @@ export async function checkTimeSlotOverlap(
   userId: string,
   excludeCourseId?: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -150,6 +153,7 @@ export async function checkTimeSlotOverlap(
 export async function createCourse(
   courseData: CreateCoursePayload,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -242,6 +246,7 @@ export async function createCourse(
 }
 
 export async function deleteCourse(courseId: string): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -273,6 +278,7 @@ export async function getCourseSessionById(
   id: string,
   fields?: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -363,6 +369,7 @@ export async function getCourseSessionById(
 export async function getStudentCourses(
   studentId: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -418,6 +425,7 @@ export async function getStudentCourses(
 export async function getTeacherCourses(
   teacherId: string,
 ): Promise<ApiResponse<CourseWithRelations[]>> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -469,6 +477,7 @@ export async function removeStudentFromCourse(
   courseId: string,
   studentId: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -511,6 +520,7 @@ export async function removeStudentFromCourse(
 export async function updateCourse(
   courseData: UpdateCoursePayload,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -604,6 +614,7 @@ export async function updateCourses(
   userRole: string,
   userId: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -718,6 +729,7 @@ export async function updateCourseSession(
   role: string,
   userId: string,
 ): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -798,6 +810,7 @@ export async function updateCourseSession(
 }
 
 async function calculateCourseStats(sessionId: string) {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
