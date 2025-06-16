@@ -1,11 +1,11 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
+import { createClient } from '@/server/utils/supabase'
 import { revalidatePath } from 'next/cache'
 
 import { ApiResponse } from '@/types/api'
-import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior'
-import { SerializedValue, serializeData } from '@/zUnused/serialization'
+// import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior'
+
 
 async function getAuthenticatedUser() {
   const supabase = await createClient()
@@ -19,8 +19,9 @@ async function getAuthenticatedUser() {
 }
 
 export async function createBehaviorRecord(
-  data: CreateBehaviorPayload,
-): Promise<ApiResponse<SerializedValue>> {
+  // data: CreateBehaviorPayload,
+  data: any,
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -85,7 +86,7 @@ export async function createBehaviorRecord(
       behavior_id: behavior.id,
       student_id: record.student,
       rating: record.rating,
-      comment: record.comment || null,
+      comment: record.comment ?? null,
     }))
 
     const { error: recordsError } = await supabase
@@ -215,7 +216,7 @@ export async function createBehaviorRecord(
   }
 }
 
-export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<SerializedValue>> {
+export async function deleteBehaviorRecord(id: string): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -266,7 +267,7 @@ export async function deleteBehaviorRecord(id: string): Promise<ApiResponse<Seri
 
 export async function fetchBehaviorsByCourse(
   courseId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -294,7 +295,7 @@ export async function fetchBehaviorsByCourse(
 
     return {
       success: true,
-      data: behaviors ? serializeData(behaviors) : null,
+      data: behaviors,
       message: 'Comportements récupérés avec succès',
     }
   } catch (error: any) {
@@ -306,7 +307,7 @@ export async function fetchBehaviorsByCourse(
 export async function getBehaviorByIdAndDate(
   courseId: string,
   date: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -344,7 +345,7 @@ export async function getBehaviorByIdAndDate(
 
     return {
       success: true,
-      data: behaviors ? serializeData(behaviors) : null,
+      data: behaviors,
       message: 'Comportement récupéré avec succès',
     }
   } catch (error: any) {
@@ -355,7 +356,7 @@ export async function getBehaviorByIdAndDate(
 
 export async function getStudentBehaviorHistory(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -408,7 +409,7 @@ export async function getStudentBehaviorHistory(
 
     return {
       success: true,
-      data: formattedBehaviors ? serializeData(formattedBehaviors) : null,
+      data: formattedBehaviors,
       message: 'Comportement de l\'étudiant récupéré avec succès',
     }
   } catch (error: any) {
@@ -418,8 +419,9 @@ export async function getStudentBehaviorHistory(
 }
 
 export async function updateBehaviorRecord(
-  data: UpdateBehaviorPayload,
-): Promise<ApiResponse<SerializedValue>> {
+  // data: UpdateBehaviorPayload,
+  data: any,
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 

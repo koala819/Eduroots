@@ -1,9 +1,8 @@
 'use server'
 
-import { Attendance } from '@/zUnused/types/attendance'
-import { SubjectNameEnum } from '@/zUnused/types/course'
-
+import { Attendance, AttendanceRecord } from '@/types/db'
 import { getStudentAttendanceHistory } from '@/server/actions/context/attendances'
+import { SubjectNameEnum } from '@/types/courses'
 
 export interface CalculatedStats {
   totalSessions: number
@@ -17,6 +16,14 @@ export interface CalculatedStats {
   presentDates: {date: string; subject: SubjectNameEnum}[]
 }
 
+interface AttendanceWithRecords extends Attendance {
+  attendance_records: (AttendanceRecord & {
+    course_session?: {
+      subject: SubjectNameEnum
+    }
+  })[]
+}
+
 export async function fetchStudentAttendanceStats(
   studentId: string,
 ): Promise<CalculatedStats | null> {
@@ -27,7 +34,7 @@ export async function fetchStudentAttendanceStats(
       throw new Error(response.message || 'Failed to fetch attendance history')
     }
 
-    const attendanceHistory = response.data
+    const attendanceHistory = response.data as AttendanceWithRecords[]
 
     const stats: CalculatedStats = {
       totalSessions: 0,
@@ -41,19 +48,13 @@ export async function fetchStudentAttendanceStats(
       presentDates: [],
     }
     if (attendanceHistory) {
-      ;(attendanceHistory as unknown as Attendance[]).forEach((attendance: Attendance) => {
-        const studentRecord = attendance.records.find((record) => {
-          if (!record.student) return false
-          const recordStudentId =
-            typeof record.student === 'string' ? record.student : record.student.id
-          return recordStudentId === studentId
-        })
+      attendanceHistory.forEach((attendance) => {
+        const studentRecord =
+          attendance.attendance_records.find((record) => {
+            return record.student_id === studentId
+          })
 
-        if (
-          studentRecord &&
-          typeof studentRecord.student !== 'string' &&
-          studentRecord.student.subjects
-        ) {
+        if ( studentRecord ) {
           const formattedDate = new Date(attendance.date).toLocaleDateString('fr-FR', {
             weekday: 'long',
             year: 'numeric',
@@ -64,33 +65,33 @@ export async function fetchStudentAttendanceStats(
           stats.dates.push(formattedDate)
 
           // On ajoute une seule entrée par date et par matière
-          const subjects = studentRecord.student.subjects as SubjectNameEnum[]
-          subjects.forEach((subject) => {
-            // Vérifier si cette combinaison date/matière existe déjà
-            const existingAbsenceEntry = stats.absenceDates.find(
-              (item) => item.date === formattedDate && item.subject === subject,
-            )
-            const existingPresenceEntry = stats.presentDates.find(
-              (item) => item.date === formattedDate && item.subject === subject,
-            )
+          const subject = studentRecord.course_session?.subject
 
-            if (!existingAbsenceEntry && !existingPresenceEntry) {
-              if (studentRecord.isPresent) {
-                stats.presentDates.push({
-                  date: formattedDate,
-                  subject: subject,
-                })
-              } else {
-                stats.absenceDates.push({
-                  date: formattedDate,
-                  subject: subject,
-                })
-              }
+          // Vérifier si cette combinaison date/matière existe déjà
+          const existingAbsenceEntry = stats.absenceDates.find(
+            (item) => item.date === formattedDate && item.subject === subject,
+          )
+          const existingPresenceEntry = stats.presentDates.find(
+            (item) => item.date === formattedDate && item.subject === subject,
+          )
+
+          if (!existingAbsenceEntry && !existingPresenceEntry) {
+            if (studentRecord.is_present) {
+              stats.presentDates.push({
+                date: formattedDate,
+                subject: subject as SubjectNameEnum,
+              })
+            } else {
+              stats.absenceDates.push({
+                date: formattedDate,
+                subject: subject as SubjectNameEnum,
+              })
             }
-          })
+          }
+
 
           // On ne compte qu'une fois pour les stats globales
-          if (studentRecord.isPresent) {
+          if (studentRecord.is_present) {
             stats.presentCount++
           } else {
             stats.absentCount++

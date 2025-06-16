@@ -2,17 +2,19 @@
 
 import { CalendarDays, Check, TrendingUp, Users, X } from 'lucide-react'
 
-import { SubjectNameEnum } from '@/zUnused/types/course'
+
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 
 import { CalculatedStats } from '@/server/actions/admin/student-stats-attendances'
+import { SubjectNameEnum } from '@/types/courses'
 
 interface StudentAttendanceStatsClientProps {
   stats: CalculatedStats
 }
 
-export function StudentAttendanceStatsClient({ stats }: StudentAttendanceStatsClientProps) {
+export function StudentAttendanceStatsClient(
+  { stats }: Readonly<StudentAttendanceStatsClientProps>) {
   // Calculer le statut de présence
   const attendanceStatus =
     stats.presenceRate >= 90
@@ -113,7 +115,8 @@ export function StudentAttendanceStatsClient({ stats }: StudentAttendanceStatsCl
                       {absencesForSubject.map((item, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-sm text-red-700"
+                          className="flex items-center gap-2 p-3
+                          bg-red-50 rounded-lg text-sm text-red-700"
                         >
                           <X className="h-4 w-4" />
                           {item.date}
@@ -150,7 +153,8 @@ export function StudentAttendanceStatsClient({ stats }: StudentAttendanceStatsCl
                       {presencesForSubject.map((item, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-2 p-3 bg-green-50 rounded-lg text-sm text-green-700"
+                          className="flex items-center gap-2 p-3
+                          bg-green-50 rounded-lg text-sm text-green-700"
                         >
                           <Check className="h-4 w-4" />
                           {item.date}

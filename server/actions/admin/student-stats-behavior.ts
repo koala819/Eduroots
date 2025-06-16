@@ -1,9 +1,6 @@
 'use server'
 
-import { BehaviorRecord } from '@/zUnused/types/behavior'
-import { SubjectNameEnum } from '@/zUnused/types/course'
-import { BehaviorDocument } from '@/zUnused/types/mongoose'
-
+import { SubjectNameEnum } from '@/types/courses'
 import { getStudentBehaviorHistory } from '@/server/actions/context/behaviors'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -23,6 +20,28 @@ export interface BehaviorStats {
   subjects: SubjectNameEnum[]
 }
 
+interface BehaviorWithDetails {
+  id: string
+  behavior_id: string
+  student_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+  course_session_id: string
+  date: string
+  behavior_rate: string
+  total_students: number
+  last_update: string
+  is_active: boolean
+  deleted_at: string | null
+  session_id: string
+  subject: SubjectNameEnum
+  level: string
+  course_id: string
+  academic_year: number
+}
+
 export async function fetchStudentBehaviorStats(studentId: string): Promise<BehaviorStats | null> {
   try {
     const response = await getStudentBehaviorHistory(studentId)
@@ -32,70 +51,34 @@ export async function fetchStudentBehaviorStats(studentId: string): Promise<Beha
     }
 
     // Typer explicitement les données selon la structure que l'API renvoie réellement
-    const behaviors = response.data as unknown as any[]
+    const behaviors = response.data as BehaviorWithDetails[]
 
     if (!Array.isArray(behaviors) || behaviors.length === 0) {
       return null
     }
 
-    // Calcul des statistiques avec vérification de type
-    const studentRatings = behaviors.flatMap((behavior) => {
-      if (!Array.isArray(behavior.records)) return []
-
-      return behavior.records
-        .filter((record: BehaviorDocument) => {
-          const studentObj = record.student
-          const recordStudentId = studentObj?.id || studentObj?._id
-          return recordStudentId === studentId
-        })
-        .map((record: BehaviorRecord) => Number(record.rating))
-        .filter((rating: number) => !isNaN(rating))
-    })
+    // Calcul des statistiques
+    const studentRatings = behaviors
+      .map((behavior) => Number(behavior.rating))
+      .filter((rating) => !isNaN(rating))
 
     if (studentRatings.length === 0) {
       return null
     }
 
     // Préparation des données pour le graphique
-    const chartData = behaviors
-      .map((behavior) => {
-        if (!Array.isArray(behavior.records)) return null
-
-        const studentRecord = behavior.records.find((record: BehaviorDocument) => {
-          const studentObj = record.student
-          return (studentObj?.id || studentObj?._id) === studentId
-        })
-
-        if (!studentRecord) return null
-
-        const session = behavior.courseDetails?.session
-        if (!session) return null
-
-        const subject = session.subject || 'Unknown'
-        const level = session.level || 'Unknown'
-
-        // Formater la date
-        const formattedDate = format(new Date(behavior.date), 'd MMM yyyy', {
-          locale: fr,
-        })
-
-        return {
-          date: formattedDate,
-          rating: Number(studentRecord.rating),
-          subject: subject as SubjectNameEnum,
-          level: level,
-          [subject]: Number(studentRecord.rating),
-        }
-      })
-      .filter((data): data is NonNullable<typeof data> => data !== null)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    const chartData = behaviors.map((behavior) => ({
+      date: format(new Date(behavior.date), 'd MMM yyyy', { locale: fr }),
+      rating: Number(behavior.rating),
+      subject: behavior.subject,
+      level: behavior.level,
+      [behavior.subject]: Number(behavior.rating),
+    })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     // Extraire la liste unique des matières
     const subjects = Array.from(
-      new Set(
-        behaviors.map((b) => b.courseDetails?.session?.subject || ('Unknown' as SubjectNameEnum)),
-      ),
-    ).filter((subject) => subject !== 'Unknown')
+      new Set(behaviors.map((b) => b.subject)),
+    )
 
     return {
       averageRating:
@@ -104,7 +87,7 @@ export async function fetchStudentBehaviorStats(studentId: string): Promise<Beha
       bestRating: Math.max(...studentRatings),
       worstRating: Math.min(...studentRatings),
       chartData,
-      subjects: subjects as SubjectNameEnum[],
+      subjects,
     }
   } catch (error) {
     console.error('Error fetching student behavior stats:', error)
