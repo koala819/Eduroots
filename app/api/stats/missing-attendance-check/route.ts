@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { generateDateRanges, getSessionServer } from '@/utils/server-helpers'
+import { generateDateRanges, getSessionServer } from '@/server/utils/server-helpers'
 
 type TeacherCourseWithSessions = {
   course_id: string

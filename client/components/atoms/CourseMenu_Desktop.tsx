@@ -3,7 +3,7 @@ import { CheckCircle2, Star, ArrowLeft, Clock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { CourseSessionWithRelations } from '@/types/courses'
 import { motion } from 'framer-motion'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 
 const views = [
   {

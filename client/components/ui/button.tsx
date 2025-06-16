@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ButtonVariant } from '@/zUnused/mongo/models'
 
 // import { useConfig } from '@/context/ConfigContext'
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 import { cva } from 'class-variance-authority'
 import { type VariantProps } from 'class-variance-authority'
 

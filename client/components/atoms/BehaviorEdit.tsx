@@ -24,7 +24,7 @@ import { Button } from '@/client/components/ui/button'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { useStudents } from '@/client/context/students'
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 import { motion } from 'framer-motion'
 
 interface BehaviorEditProps {

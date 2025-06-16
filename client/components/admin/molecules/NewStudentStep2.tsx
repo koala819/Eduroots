@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCourses } from '@/client/context/courses'
 import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 
 interface StepTwoProps {

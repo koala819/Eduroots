@@ -1,8 +1,8 @@
 'use server'
 
-import { ApiResponse } from '@/types/supabase/api'
-import { Grade, GradeRecord, Database } from '@/types/supabase/db'
-import { getSessionServer } from '@/utils/server-helpers'
+import { ApiResponse } from '@/types/api'
+import { Grade, GradeRecord, Database } from '@/types/db'
+import { getSessionServer } from '@/server/utils/server-helpers'
 
 function calculateGradeStats(records: GradeRecord[]) {
   const validGrades = records

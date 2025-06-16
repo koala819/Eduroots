@@ -4,7 +4,7 @@ import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Badge } from '@/client/components/ui/badge'
 import { Calendar, Clock, GraduationCap, Users, Building2 } from 'lucide-react'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { useRouter } from 'next/navigation'
 
 interface CourseGridProps {

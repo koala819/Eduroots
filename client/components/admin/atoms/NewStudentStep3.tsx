@@ -8,7 +8,7 @@ import { GenderEnum, User } from '@/zUnused/mongo/user'
 
 import { FormData } from '../../organisms/NewStudentForm'
 
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { motion } from 'framer-motion'

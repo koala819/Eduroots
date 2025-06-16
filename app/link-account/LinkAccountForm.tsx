@@ -7,7 +7,7 @@ import { useToast } from '@/client/hooks/use-toast'
 import { motion } from 'framer-motion'
 import { linkAccount } from '@/app/link-account/actions'
 import { useRouter } from 'next/navigation'
-import { getRoleName } from '@/utils/redirects'
+import { getRoleName } from '@/server/utils/redirects'
 
 interface LinkAccountFormProps {
   googleEmail: string

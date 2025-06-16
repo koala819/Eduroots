@@ -4,7 +4,7 @@ import { GlobalStats } from '@/zUnused/mongo/stats'
 
 import { Progress } from '@/client/components/ui/progress'
 
-import { convertToDate } from '@/utils/helpers'
+import { convertToDate } from '@/server/utils/helpers'
 
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats

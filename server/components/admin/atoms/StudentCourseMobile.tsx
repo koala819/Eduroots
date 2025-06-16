@@ -6,7 +6,7 @@ import { Teacher } from '@/zUnused/mongo/user'
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent } from '@/client/components/ui/card'
 
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 
 interface StudentCourseMobileProps {

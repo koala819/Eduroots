@@ -9,7 +9,7 @@ import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCa
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { useTeachers } from '@/client/context/teachers'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { createClient } from '@/client/utils/supabase'
 
 interface TimeSlot {

@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 
 interface Holiday {
   name: string

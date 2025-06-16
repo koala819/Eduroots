@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/compo
 import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
 import { useSchedules } from '@/client/context/schedules'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 
 const PlanningViewer = () => {
   const { toast } = useToast()

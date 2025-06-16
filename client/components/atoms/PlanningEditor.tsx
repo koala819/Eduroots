@@ -19,7 +19,7 @@ import { ScrollArea } from '@/client/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
 
 import { useCourses } from '@/client/context/courses'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { TimeSlotEnum } from '@/types/courses'

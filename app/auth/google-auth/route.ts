@@ -1,4 +1,4 @@
-import { getRedirectUrl } from '@/utils/redirects'
+import { getRedirectUrl } from '@/server/utils/redirects'
 import { createClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'

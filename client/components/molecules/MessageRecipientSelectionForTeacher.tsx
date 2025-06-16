@@ -17,7 +17,7 @@ import { Checkbox } from '@/client/components/ui/checkbox'
 import { Input } from '@/client/components/ui/input'
 
 import { useTeachers } from '@/client/context/teachers'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { calculateValidEmails, isValidStudent } from '@/zUnused/writeMessage'
 import useCourseStore from '@/client/stores/useCourseStore'
 

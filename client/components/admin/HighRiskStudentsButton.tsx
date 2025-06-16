@@ -5,7 +5,7 @@ import React from 'react'
 
 import Link from 'next/link'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 import { motion } from 'framer-motion'
 
 interface HighRiskStudentsButtonProps {

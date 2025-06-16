@@ -29,7 +29,7 @@ import {
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
 
-import { cn, convertToDate, getColorClass } from '@/utils/helpers'
+import { cn, convertToDate, getColorClass } from '@/server/utils/helpers'
 import { differenceInYears, parseISO } from 'date-fns'
 
 interface DesktopClassViewProps {

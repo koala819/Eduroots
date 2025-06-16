@@ -12,8 +12,8 @@ app/admin/compare-students/données_pour_comparaison.json
 # Backup before migration
 backup/
 zUnused/
-utils/db_migration/.env
-utils/db_migration/mongo_to_supabase_ids.json
+db_migration/.env
+db_migration/mongo_to_supabase_ids.json
 
 # Report after migration and/or update
 reports/

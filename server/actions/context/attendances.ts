@@ -7,7 +7,7 @@ import {
   CreateAttendancePayload,
   UpdateAttendancePayload,
 } from '@/types/attendance-payload'
-import { getAuthenticatedUser } from '@/utils/auth-helpers'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 
 export async function createAttendanceRecord(

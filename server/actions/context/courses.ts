@@ -1,6 +1,6 @@
 'use server'
 
-import { getSessionServer } from '@/utils/server-helpers'
+import { getSessionServer } from '@/server/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
 import {

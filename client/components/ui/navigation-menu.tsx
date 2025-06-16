@@ -3,7 +3,7 @@ import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu'
 import { cva } from 'class-variance-authority'
 import { ChevronDown } from 'lucide-react'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,

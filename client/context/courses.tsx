@@ -29,7 +29,7 @@ import {
 
 import { Database } from '@/types/db'
 import { TimeSlotEnum } from '@/types/courses'
-import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
+import { getAuthenticatedEducationUser } from '@/server/utils/auth-helpers'
 
 type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
   courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {

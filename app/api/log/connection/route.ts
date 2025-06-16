@@ -1,51 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-import dbConnect from '@/zOLDbackend/config/dbConnect'
-import { ConnectionLog } from '@/zOLDbackend/models/zOLDconnectionLog'
-import { Document, Types } from 'mongoose'
-
-interface IConnectionLog extends Document {
-  _id: Types.ObjectId
-  user: {
-    Id: Types.ObjectId
-    email: string
-    firstname: string
-    lastname: string
-    role: string
-  }
-  isSuccessful: boolean
-  timestamp: Date
-  userAgent: string
-}
+import { createClient } from '@/server/utils/supabase'
+import { Database } from '@/types/db'
 
 export async function GET() {
   try {
-    await dbConnect()
-    const logs = await ConnectionLog.find()
-      .sort({ timestamp: -1 })
-      .limit(100) // Limit to the last 100 logs for performance
-      .lean<IConnectionLog[]>() // Use lean() for better performance when you don't need Mongoose document methods
-      .exec()
+    const supabase = await createClient()
 
-    // console.log('logs', logs)
-    // Transform the logs to match the expected format
-    const transformedLogs = logs.map((log) => ({
-      _id: log._id.toString(),
-      user: {
-        Id: log.user.Id,
-        email: log.user.email,
-        firstname: log.user.firstname,
-        lastname: log.user.lastname,
-        role: log.user.role,
-      },
-      isSuccessful: log.isSuccessful,
-      timestamp: log.timestamp.toISOString(),
-      userAgent: log.userAgent,
-    }))
+    const { data: logs, error } = await supabase
+      .schema('logs')
+      .from('connection_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error) {
+      console.error('Error fetching connection logs:', error)
+      return NextResponse.json({
+        status: 500,
+        message: 'Error fetching connection logs',
+      })
+    }
 
     return NextResponse.json({
       status: 200,
-      logs: transformedLogs,
+      logs: logs,
     })
   } catch (error) {
     console.error('Error fetching connection logs:', error)
@@ -58,27 +36,50 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    await dbConnect()
+
     const body = await req.json()
     const { user, isSuccessful, userAgent } = body
 
-    const logData = {
-      user: {
-        _id: null,
-        email: user.email,
-        firstname: user.firstname || '',
-        lastname: user.lastname || '',
-        role: user.role,
-      },
-      isSuccessful,
-      userAgent,
+    const supabase = await createClient()
+    const { data: userData, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('firstname, lastname, email, role')
+      .eq('id', user.Id)
+      .single()
+
+    if (userError) {
+      console.error('Error fetching user:', userError)
+      return NextResponse.json({
+        status: 500,
+        message: 'Error fetching user',
+      })
+    }
+
+    const logData: Database['logs']['Tables']['connection_logs']['Insert'] = {
+      user_id: user.Id,
+      is_successful: isSuccessful,
+      timestamp: new Date(),
+      user_agent: userAgent,
+      firstname: userData.firstname,
+      lastname: userData.lastname,
+      email: userData.email,
+      role: userData.role,
     }
     // console.log('\n\n\nlogData', logData)
 
-    const log = new ConnectionLog(logData)
+    const { error: logError } = await supabase
+      .schema('logs')
+      .from('connection_logs')
+      .insert(logData)
 
-    // console.log('Unsaved log', log)
-    await log.save()
+    if (logError) {
+      console.error('Error logging connection attempt:', logError)
+      return NextResponse.json({
+        status: 500,
+        message: 'Error logging connection attempt',
+      })
+    }
 
     return NextResponse.json({
       status: 200,

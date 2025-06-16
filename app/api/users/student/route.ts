@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import { User } from '@/zOLDbackend/models/zOLDuser.model'
 import { validateRequest } from '@/lib/api.utils'
-import { formatName } from '@/utils/helpers'
+import { formatName } from '@/server/utils/helpers'
 
 export async function DELETE(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })

@@ -1,6 +1,6 @@
 import { getCourseSessionById } from '@/server/actions/context/courses'
 import { ErrorContent } from '@/client//components/atoms/StatusContent'
-import { generateSchoolDayDates } from '@/utils/server-helpers'
+import { generateSchoolDayDates } from '@/server/utils/server-helpers'
 import TeacherCourses from '@/client//components/pages/TeacherCourses'
 
 type Params = Promise<{ id: string }>

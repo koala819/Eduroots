@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { TeacherFormData } from './EditTeacherForm'
 
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 
 interface EditTeacherStep2Props {
   form: UseFormReturn<TeacherFormData>

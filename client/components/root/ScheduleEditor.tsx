@@ -15,7 +15,7 @@ import { Input } from '@/client/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
 
 import { useSchedules } from '@/client/context/schedules'
-import { formatDayOfWeek } from '@/utils/helpers'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 

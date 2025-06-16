@@ -25,7 +25,7 @@ import { Inter as FontSans } from 'next/font/google'
 import { ClearServiceWorkerCache } from '@/client/components/atoms/ClearServiceWorkerCache'
 import { Toaster } from '@/client/components/ui/toaster'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/server/utils/helpers'
 
 import '@/app/styles/globals.css'
 

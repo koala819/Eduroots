@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase'
 import { ApiResponse } from '@/types/api'
 import { Holiday } from '@/zUnused/mongo/holidays'
 import { SerializedValue, serializeData } from '@/zUnused/serialization'
-import { createDefaultHolidays } from '@/utils/server-helpers'
+import { createDefaultHolidays } from '@/server/utils/server-helpers'
 
 interface SaveHolidayData {
   updatedBy: string
