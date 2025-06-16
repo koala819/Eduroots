@@ -85,12 +85,12 @@ export type EntityStats = StudentStats | TeacherStats
 //   return 'totalStudents' in stats
 // }
 
-// // Type pour les statistiques globales
-// export interface GlobalStats {
-//   totalStudents: number
-//   totalTeachers: number
-//   lastUpdate: SerializableDate
-//   presenceRate: number
-// }
+// Type pour les statistiques globales
+export interface GlobalStats {
+  totalStudents: number
+  totalTeachers: number
+  lastUpdate: Date
+  presenceRate: number
+}
 
 // export type EntityType = 'students' | 'teachers'

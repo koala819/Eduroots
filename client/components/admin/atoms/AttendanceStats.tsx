@@ -4,8 +4,6 @@ import { GlobalStats } from '@/types/stats'
 
 import { Progress } from '@/client/components/ui/progress'
 
-import { convertToDate } from '@/server/utils/helpers'
-
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats
 }
@@ -18,9 +16,6 @@ export const AttendanceStatsClient = ({ globalStats }: AttendanceStatsClientProp
     if (rate >= 70) return 'text-yellow-600'
     return 'text-red-600'
   }
-
-  // Convertir la date sérialisée en Date native
-  const lastUpdateDate = convertToDate(globalStats.lastUpdate)
 
   return (
     <>
@@ -51,7 +46,7 @@ export const AttendanceStatsClient = ({ globalStats }: AttendanceStatsClientProp
       <div className="border rounded-lg p-3 sm:p-4">
         <div className="text-xs sm:text-sm text-gray-500">Dernière mise à jour</div>
         <div className="text-xs sm:text-sm mt-1">
-          {lastUpdateDate.toLocaleDateString('fr-FR', {
+          {globalStats.lastUpdate.toLocaleDateString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit',
           })}
