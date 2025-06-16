@@ -1,34 +1,14 @@
 'use server'
 
 import { ApiResponse } from '@/types/api'
-import { Grade, GradeRecord, Database } from '@/types/db'
+import { Grade, GradeRecord } from '@/types/db'
 import { getSessionServer } from '@/server/utils/server-helpers'
-
-function calculateGradeStats(records: GradeRecord[]) {
-  const validGrades = records
-    .filter((record) => !record.is_absent && record.value !== null)
-    .map((record) => record.value as number)
-
-  if (validGrades.length === 0) {
-    return {
-      stats_average_grade: 0,
-      stats_highest_grade: 0,
-      stats_lowest_grade: 0,
-      stats_absent_count: records.filter((record) => record.is_absent).length,
-      stats_total_students: records.length,
-    }
-  }
-
-  return {
-    stats_average_grade: validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length,
-    stats_highest_grade: Math.max(...validGrades),
-    stats_lowest_grade: Math.min(...validGrades),
-    stats_absent_count: records.filter((record) => record.is_absent).length,
-    stats_total_students: records.length,
-  }
-}
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { revalidatePath } from 'next/cache'
+import { CreateGradePayload, GradeStats } from '@/types/grade-payload'
 
 export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -72,8 +52,9 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
 }
 
 export async function createGradeRecord(
-  data: Database['education']['Tables']['grades']['Insert'],
+  data: CreateGradePayload,
 ): Promise<ApiResponse<null>> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -117,6 +98,9 @@ export async function createGradeRecord(
       throw new Error(`Erreur lors de la création des enregistrements: ${recordsError.message}`)
     }
 
+    revalidatePath('/courses/[courseId]/grades')
+    revalidatePath('/courses/[courseId]')
+
     return {
       success: true,
       message: 'Note enregistrée avec succès',
@@ -131,7 +115,8 @@ export async function createGradeRecord(
 export async function refreshGradeData(
   id?: string,
   fields?: string,
-): Promise<ApiResponse<Grade | Grade[] | { stats_average_grade: number, stats_highest_grade: number, stats_lowest_grade: number, stats_absent_count: number, stats_total_students: number }>> {
+): Promise<ApiResponse<Grade | Grade[] | GradeStats>> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -222,8 +207,9 @@ export async function refreshGradeData(
 
 export async function updateGradeRecord(
   gradeId: string,
-  data: Database['education']['Tables']['grades']['Insert'],
+  data: CreateGradePayload,
 ): Promise<ApiResponse<null>> {
+  await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
   try {
@@ -281,6 +267,9 @@ export async function updateGradeRecord(
       throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
     }
 
+    revalidatePath('/courses/[courseId]/grades')
+    revalidatePath('/courses/[courseId]')
+
     return {
       success: true,
       data: null,
@@ -289,5 +278,29 @@ export async function updateGradeRecord(
   } catch (error: any) {
     console.error('[UPDATE_GRADE_RECORD]', error)
     throw new Error('Erreur lors de la mise à jour du grade')
+  }
+}
+
+function calculateGradeStats(records: GradeRecord[]): GradeStats {
+  const validGrades = records
+    .filter((record) => !record.is_absent && record.value !== null)
+    .map((record) => record.value as number)
+
+  if (validGrades.length === 0) {
+    return {
+      stats_average_grade: 0,
+      stats_highest_grade: 0,
+      stats_lowest_grade: 0,
+      stats_absent_count: records.filter((record) => record.is_absent).length,
+      stats_total_students: records.length,
+    }
+  }
+
+  return {
+    stats_average_grade: validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length,
+    stats_highest_grade: Math.max(...validGrades),
+    stats_lowest_grade: Math.min(...validGrades),
+    stats_absent_count: records.filter((record) => record.is_absent).length,
+    stats_total_students: records.length,
   }
 }
