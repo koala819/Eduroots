@@ -14,6 +14,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ['**/node_modules', '**/.git', '**/dist', '**/build', '**/.next', '**/coverage', '**/tmp', '**/temp', '**/zUnused']
+      }
+    }
+    return config
+  },
   env: {
     ADMIN_ID_USER: process.env.ADMIN_ID_USER,
     BASIC_AUTH_PASSWORD: process.env.BASIC_AUTH_PASSWORD,
