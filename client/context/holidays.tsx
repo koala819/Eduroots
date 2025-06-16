@@ -15,7 +15,7 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { Holiday } from '@/zUnused/types/holidays'
+import { Holiday } from '@/types/holidays'
 
 import { getCurrentHolidays, saveHolidays } from '@/server/actions/api/holidays'
 
@@ -133,7 +133,7 @@ export const HolidaysProvider = ({
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Holiday Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -166,7 +166,7 @@ export const HolidaysProvider = ({
 
       // Extraire les vacances de la réponse
       const data = response.data as any
-      const holidays = data.holidays || []
+      const holidays = data.holidays ?? []
 
       dispatch({
         type: 'SET_HOLIDAYS',
@@ -190,7 +190,7 @@ export const HolidaysProvider = ({
 
         // Extraire les vacances de la réponse
         const data = response.data as any
-        const holidays = data.holidays || []
+        const holidays = data.holidays ?? []
 
         dispatch({
           type: 'SET_HOLIDAYS',

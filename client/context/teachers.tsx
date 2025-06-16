@@ -164,6 +164,36 @@ export const TeacherProvider = ({
     dispatch({ type: 'SET_SELECTED_COURSE_ID', payload: id })
   }, [])
 
+  const transformStudentToMapEntry = (student: {
+    id: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    secondaryEmail: string | null;
+    gender: string | null;
+    dateOfBirth: Date | null;
+  }): [string, StudentResponse] => [
+    student.id,
+    {
+      id: student.id,
+      email: student.email,
+      firstname: student.firstname,
+      lastname: student.lastname,
+      type: 'student',
+      subjects: null,
+      created_at: null,
+      updated_at: null,
+      gender: student.gender,
+      date_of_birth: student.dateOfBirth,
+      secondary_email: student.secondaryEmail,
+      phone: null,
+      school_year: null,
+    },
+  ]
+
+  const getAllStudentsFromSessions = (sessions: any[]) =>
+    sessions.flatMap((session) => session.students)
+
   const handleGetStudentsByTeacher = useCallback(
     async (teacherId: string): Promise<StudentResponse[]> => {
       dispatch({ type: 'SET_LOADING', payload: true })
@@ -175,28 +205,9 @@ export const TeacherProvider = ({
         const data = response.data
         const uniqueStudents = Array.from(
           new Map(
-            data.courses.flatMap((course) =>
-              course.sessions.flatMap((session) =>
-                session.students.map((student) => [
-                  student.id,
-                  {
-                    id: student.id,
-                    email: student.email,
-                    firstname: student.firstname,
-                    lastname: student.lastname,
-                    type: 'student',
-                    subjects: null,
-                    created_at: null,
-                    updated_at: null,
-                    gender: student.gender,
-                    date_of_birth: student.dateOfBirth,
-                    secondary_email: student.secondaryEmail,
-                    phone: null,
-                    school_year: null,
-                  },
-                ]),
-              ),
-            ),
+            data.courses
+              .flatMap((course) => getAllStudentsFromSessions(course.sessions))
+              .map(transformStudentToMapEntry),
           ).values(),
         ) as StudentResponse[]
         dispatch({ type: 'SET_STUDENTS', payload: uniqueStudents })

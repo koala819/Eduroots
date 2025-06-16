@@ -12,7 +12,6 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { Teacher } from '@/zUnused/types/user'
 import { CreateStudentPayload, StudentResponse } from '@/types/student-payload'
 
 import {
@@ -25,6 +24,7 @@ import {
 } from '@/server/actions/api/students'
 import { useCourses } from '@/client/context/courses'
 import { differenceInYears } from 'date-fns'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface StudentState {
   students: StudentResponse[]
@@ -83,7 +83,7 @@ interface StudentContextType extends StudentState {
   deleteStudent: (id: string) => Promise<void>
   getStudentAge: (dateOfBirth: string) => number
   getStudentsWithoutCourses: () => Promise<StudentResponse[]>
-  getTeachersForStudent: (studentId: string) => Promise<Teacher[]>
+  getTeachersForStudent: (studentId: string) => Promise<TeacherResponse[]>
 }
 
 const StudentContext = createContext<StudentContextType | null>(null)
@@ -151,22 +151,28 @@ export const StudentProvider = ({
   )
 
   const handleGetTeachersForStudent = useCallback(
-    async (studentId: string) => {
+    async (studentId: string): Promise<TeacherResponse[]> => {
       try {
         const response = await getTeachersForStudent(studentId)
-
-        if (!response.success) {
+        if (!response.success || !response.data) {
           throw new Error(response.message || 'Erreur lors de la récupération des professeurs')
         }
-
-        const teachers = response.data as unknown as Teacher[]
-        return teachers || []
+        return response.data.teachers.map((teacher) => ({
+          id: teacher.id,
+          email: teacher.email,
+          firstname: teacher.firstname,
+          lastname: teacher.lastname,
+          subjects: teacher.subjects || [],
+          type: 'teacher',
+          created_at: new Date(),
+          updated_at: new Date(),
+        }))
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la récupération des professeurs')
-        return []
+        console.error('[GET_TEACHERS_FOR_STUDENT]', error)
+        throw error
       }
     },
-    [handleError],
+    [],
   )
 
   const handleGetAllStudents = useCallback(async (): Promise<void> => {

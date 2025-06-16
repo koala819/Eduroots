@@ -27,7 +27,6 @@ import {
   updateBehaviorRecord,
 } from '@/server/actions/api/behaviors'
 
-// Étendre le type Behavior pour inclure les records
 export interface BehaviorRecord {
   id: string
   behavior_id: string

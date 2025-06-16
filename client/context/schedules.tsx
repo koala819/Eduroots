@@ -186,7 +186,7 @@ export const SchedulesProvider = ({
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Schedule Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',

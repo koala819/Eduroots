@@ -20,7 +20,6 @@ import {
   updateAttendanceRecord,
 } from '@/server/actions/api/attendances'
 
-// Types principaux déjà existants
 import { Attendance, AttendanceRecord } from '@/types/db'
 import {
   CreateAttendancePayload,
