@@ -1,6 +1,6 @@
 'use client'
 
-import { SubjectNameEnum } from '@/zUnused/types/course'
+import { SubjectNameEnum } from '@/types/courses'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 
@@ -11,7 +11,7 @@ interface StudentBehaviorStatsClientProps {
   stats: BehaviorStats
 }
 
-export function StudentBehaviorStatsClient({ stats }: StudentBehaviorStatsClientProps) {
+export function StudentBehaviorStatsClient({ stats }: Readonly<StudentBehaviorStatsClientProps>) {
   const subjectColors: Record<SubjectNameEnum, string> = {
     [SubjectNameEnum.Arabe]: '#2563eb',
     [SubjectNameEnum.EducationCulturelle]: '#16a34a',

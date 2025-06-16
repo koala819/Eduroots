@@ -14,7 +14,7 @@ export function StudentStatsError({
   message,
   description,
   variant = 'error',
-}: StudentStatsErrorProps) {
+}: Readonly<StudentStatsErrorProps>) {
   const bgColor = variant === 'error' ? 'bg-red-50' : 'bg-yellow-50'
   const borderColor = variant === 'error' ? 'border-red-200' : 'border-yellow-200'
   const textColor = variant === 'error' ? 'text-red-700' : 'text-gray-600'

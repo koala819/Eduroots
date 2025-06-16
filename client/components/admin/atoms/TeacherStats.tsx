@@ -11,7 +11,7 @@ interface TeacherStatsClientProps {
   stats: TeacherStats
 }
 
-export function TeacherStatsClient({ stats }: TeacherStatsClientProps) {
+export function TeacherStatsClient({ stats }: Readonly<TeacherStatsClientProps>) {
   return (
     <div className="mt-4 space-y-2">
       <h4 className="font-semibold text-sm text-gray-500">Statistiques</h4>

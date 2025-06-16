@@ -2,7 +2,8 @@
 
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum, Teacher } from '@/zUnused/types/user'
+import { GenderEnum } from '@/types/user'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface TeacherStats {
   totalStudents: number
@@ -26,7 +27,7 @@ interface TeacherStats {
 export const TeacherOption = ({
   teacher,
 }: {
-  teacher: Omit<Teacher, 'stats'> & {stats: TeacherStats}
+  teacher: Omit<TeacherResponse, 'stats'> & {stats: TeacherStats}
 }) => {
   return (
     <div className="flex flex-col space-y-1">

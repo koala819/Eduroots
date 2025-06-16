@@ -4,7 +4,7 @@ import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum, User } from '@/zUnused/types/user'
+import { GenderEnum } from '@/types/user'
 
 import { FormData } from '../../organisms/NewStudentForm'
 
@@ -12,10 +12,11 @@ import { formatDayOfWeek } from '@/server/utils/helpers'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { motion } from 'framer-motion'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface StepThreeProps {
   form: UseFormReturn<FormData>
-  teachers: User[]
+  teachers: TeacherResponse[]
 }
 
 const StepThree = ({ form, teachers }: StepThreeProps) => {
@@ -35,7 +36,8 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
   return (
     <div className="relative w-full max-w-4xl mx-auto">
       <motion.div
-        className="relative bg-gradient-to-br from-background via-background/95 to-background border border-border rounded-xl shadow-lg overflow-hidden"
+        className="relative bg-gradient-to-br from-background via-background/95 to-background
+        border border-border rounded-xl shadow-lg overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -43,7 +45,8 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
         {/* Header avec informations principales */}
         <div className="relative px-6 py-8 bg-gradient-to-r from-primary/5 to-primary/10">
           <motion.div className="space-y-4" {...fadeInUp}>
-            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary
+             to-primary/80 bg-clip-text text-transparent">
               {formValues.firstname} {formValues.lastname}
             </h2>
 
@@ -137,7 +140,8 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
               {formValues.selections?.map((selection, index) => (
                 <motion.div
                   key={index}
-                  className="relative p-4 bg-primary/5 rounded-lg transition-all hover:bg-primary/10"
+                  className="relative p-4 bg-primary/5 rounded-lg transition-all
+                   hover:bg-primary/10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}

@@ -7,7 +7,10 @@ interface StudentBehaviorErrorProps {
   variant?: 'error' | 'warning' | 'info'
 }
 
-export function StudentBehaviorError({ message, variant = 'error' }: StudentBehaviorErrorProps) {
+export function StudentBehaviorError({
+  message,
+  variant = 'error',
+}: Readonly<StudentBehaviorErrorProps>) {
   const styles = {
     error: {
       bg: 'bg-red-50',
