@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/utils/supabase'
+import { createClient } from '@/server/utils/supabase'
 import { ApiResponse } from '@/types/api'
 import {
   CreateAttendancePayload,

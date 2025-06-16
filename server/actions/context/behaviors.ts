@@ -2,9 +2,8 @@
 
 import { createClient } from '@/server/utils/supabase'
 import { revalidatePath } from 'next/cache'
-
 import { ApiResponse } from '@/types/api'
-// import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior'
+import { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior-payload'
 
 
 async function getAuthenticatedUser() {
@@ -19,8 +18,7 @@ async function getAuthenticatedUser() {
 }
 
 export async function createBehaviorRecord(
-  // data: CreateBehaviorPayload,
-  data: any,
+  data: CreateBehaviorPayload,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
@@ -419,8 +417,7 @@ export async function getStudentBehaviorHistory(
 }
 
 export async function updateBehaviorRecord(
-  // data: UpdateBehaviorPayload,
-  data: any,
+  data: UpdateBehaviorPayload,
 ): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
@@ -486,7 +483,7 @@ export async function updateBehaviorRecord(
       behavior_id: behaviorId,
       student_id: record.student,
       rating: record.rating,
-      comment: record.comment || null,
+      comment: record.comment ?? null,
     }))
 
     const { error: insertError } = await supabase
