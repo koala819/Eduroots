@@ -6,7 +6,7 @@ import { useToast } from '@/client/hooks/use-toast'
 
 import { Button } from '@/client/components/ui/button'
 
-import { calculateStats } from '@/server/actions/stats/calculate'
+import { calculateStats } from '@/server/utils/stats/calculate'
 import { useStats } from '@/client/context/stats'
 
 export default function StatsPage() {
@@ -34,7 +34,7 @@ export default function StatsPage() {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error.message || 'Erreur lors du calcul des statistiques',
+        description: error.message ?? 'Erreur lors du calcul des statistiques',
       })
     } finally {
       setIsCalculating(false)

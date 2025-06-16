@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
+import { createClient } from '@/server/utils/supabase'
 import { Database } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
 import { FormSchema } from '@/server/utils/login-schema'

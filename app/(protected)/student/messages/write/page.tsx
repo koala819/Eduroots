@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { MessageWrite } from '@/client//components/organisms/MessageWrite'
+import { MessageWrite } from '@/zUnused/MessageWrite'
 
 export const metadata: Metadata = {
   title: 'Ecrire un nouveau message',
