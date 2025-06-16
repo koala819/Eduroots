@@ -1,11 +1,10 @@
-import { Student } from '@/zUnused/types/user'
-
 import StudentContact from '@/server/components/atoms/StudentContact'
 import StudentChild from '@/server/components/molecules/StudentChild'
 import { Card, CardContent, CardFooter, CardHeader } from '@/client/components/ui/card'
+import { StudentResponse } from '@/types/student-payload'
 
 interface FamilyInfoCardProps {
-  data: Student[]
+  data: StudentResponse[]
 }
 
 const StudentInfo = ({ data }: FamilyInfoCardProps) => {
@@ -14,7 +13,7 @@ const StudentInfo = ({ data }: FamilyInfoCardProps) => {
       <CardHeader className="flex flex-row items-center gap-4 pb-4">
         <div>
           <h1 className="text-lg font-semibold">Famille {data[0].lastname}</h1>
-          <p className="text-sm text-slate-500">Année scolaire {data[0].schoolYear}</p>
+          <p className="text-sm text-slate-500">Année scolaire {data[0].school_year}</p>
         </div>
       </CardHeader>
 
@@ -24,10 +23,10 @@ const StudentInfo = ({ data }: FamilyInfoCardProps) => {
           <h2 className="text-sm font-semibold mb-3">Informations de contact</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <StudentContact label="Email principal" value={data[0].email} />
-            {data[0].secondaryEmail && (
-              <StudentContact label="Email secondaire" value={data[0].secondaryEmail} />
+            {data[0].secondary_email && (
+              <StudentContact label="Email secondaire" value={data[0].secondary_email} />
             )}
-            <StudentContact label="Téléphone" value={data[0].phone || ''} />
+            <StudentContact label="Téléphone" value={data[0].phone ?? ''} />
           </div>
         </div>
 
