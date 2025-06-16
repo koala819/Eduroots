@@ -1,18 +1,36 @@
 import { Clock } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/zUnused/types/course'
-import { Teacher } from '@/zUnused/types/user'
+import { SubjectNameEnum } from '@/types/courses'
 
 import { Card } from '@/client/components/ui/card'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
+import {
+  Select,
+  SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/client/components/ui/select'
+import { TeacherResponse } from '@/types/teacher-payload'
+
+interface SessionSelection {
+  subject: SubjectNameEnum
+  teacherId: string
+}
+
+interface SessionFormData {
+  selections: SessionSelection[]
+}
 
 interface SessionConfigProps {
   startTime: string
   endTime: string
-  form: UseFormReturn<any> // On pourrait typer plus précisément avec le type FormData
-  availableTeachers: Teacher[]
+  form: UseFormReturn<SessionFormData>
+  availableTeachers: TeacherResponse[]
   index: number
   onSubjectSelect: (index: number) => void
   onTeacherSelect: (
@@ -33,9 +51,6 @@ export const SessionConfig = ({
   onSubjectSelect,
   onTeacherSelect,
 }: SessionConfigProps) => {
-  // const currentSelection = form
-  //   .watch(`selections`)
-  //   .find((s: any) => s.startTime === startTime && s.endTime === endTime)
   const selections = form.watch('selections')
   const currentSelection = selections?.[index]
 

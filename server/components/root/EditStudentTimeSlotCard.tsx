@@ -1,6 +1,6 @@
 import { Clock } from 'lucide-react'
-
-import { TimeSlotEnum } from '@/zUnused/types/course'
+import { TimeSlotEnum } from '@/types/courses'
+import { cn } from '@/server/utils/helpers'
 
 interface TimeSlotConfig {
   id: TimeSlotEnum
@@ -20,13 +20,14 @@ export const TimeSlotCard = ({ config, isSelected, onSelect }: TimeSlotCardProps
   const timeRange = `${firstSession.startTime} - ${lastSession.endTime}`
 
   return (
-    <div
+    <button
       onClick={() => onSelect(config.id)}
-      className={`
-        bg-white rounded-lg md:rounded-xl p-3 md:p-4 cursor-pointer transition-all duration-200
-        hover:shadow-md border
-        ${isSelected ? 'ring-2 ring-primary shadow-sm' : ''}
-      `}
+      className={cn(
+        'w-full text-left bg-white rounded-lg md:rounded-xl',
+        'p-3 md:p-4 cursor-pointer transition-all duration-200',
+        'hover:shadow-md border',
+        isSelected && 'ring-2 ring-primary shadow-sm',
+      )}
     >
       <h3 className="font-medium text-gray-900 mb-2 md:mb-3 text-sm md:text-base">
         {config.label}
@@ -35,6 +36,6 @@ export const TimeSlotCard = ({ config, isSelected, onSelect }: TimeSlotCardProps
         <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 text-primary" />
         {timeRange}
       </div>
-    </div>
+    </button>
   )
 }
