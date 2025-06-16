@@ -3,35 +3,21 @@
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
+import { CourseWithRelations } from '@/types/courses'
 import {
-  CourseSession,
+  AddStudentToCoursePayload,
+  CreateCoursePayload,
+  UpdateCoursePayload,
+  UpdateCourseSessionPayload,
+} from '@/types/course-payload'
+import {
   CourseSessionTimeslot,
-  Database,
 } from '@/types/db'
-import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
-
-type CourseSessionWithRelations = CourseSession & {
-  courses_sessions_students?: Array<{
-    id: string;
-    student_id: string;
-    users?: {
-      id: string;
-      firstname: string;
-      lastname: string;
-      email: string;
-    };
-  }>;
-};
 
 export async function addStudentToCourse(
   courseId: string,
   studentId: string,
-  timeSlot: Pick<
-    CourseSessionTimeslot,
-    'day_of_week' | 'start_time' | 'end_time'
-  > & {
-    subject: string;
-  },
+  timeSlot: AddStudentToCoursePayload['timeSlot'],
 ): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
@@ -137,7 +123,7 @@ export async function checkTimeSlotOverlap(
     const newStartTime = timeToMinutes(timeSlot.start_time)
     const newEndTime = timeToMinutes(timeSlot.end_time)
 
-    for (const slot of existingSlots || []) {
+    for (const slot of existingSlots ?? []) {
       const existingStartTime = timeToMinutes(slot.start_time)
       const existingEndTime = timeToMinutes(slot.end_time)
 
@@ -162,19 +148,7 @@ export async function checkTimeSlotOverlap(
 }
 
 export async function createCourse(
-  courseData: Database['education']['Tables']['courses']['Insert'] & {
-    teacherIds: string[];
-    sessions: Array<{
-      subject: string;
-      level: string;
-      timeSlots: Array<{
-        day_of_week: TimeSlotEnum;
-        start_time: string;
-        end_time: string;
-        classroom_number: string | null;
-      }>;
-    }>;
-  },
+  courseData: CreateCoursePayload,
 ): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
@@ -354,10 +328,10 @@ export async function getCourseSessionById(
     }
 
     // Nettoyage des étudiants invalides
-    await cleanInvalidStudents(supabase, students || [])
+    await cleanInvalidStudents(supabase, students ?? [])
 
     // Récupération des informations des utilisateurs
-    const studentsWithUsers = await getStudentsWithUsers(supabase, students || [])
+    const studentsWithUsers = await getStudentsWithUsers(supabase, students ?? [])
 
     const response = {
       ...session,
@@ -482,7 +456,7 @@ export async function getTeacherCourses(
 
     return {
       success: true,
-      data: courses || [],
+      data: courses ?? [],
       message: 'Cours du prof récupérés avec succès',
     }
   } catch (error: any) {
@@ -510,7 +484,7 @@ export async function removeStudentFromCourse(
       )
     }
 
-    const sessionIds = sessions.map((s) => s.id)
+    const sessionIds = sessions.map((s: { id: string }) => s.id)
 
     const { error } = await supabase
       .schema('education')
@@ -534,17 +508,9 @@ export async function removeStudentFromCourse(
   }
 }
 
-export async function updateCourse(courseData: {
-  sessions: Array<{
-    id: string;
-    subject: string;
-    level: string;
-    timeSlot: Pick<
-      CourseSessionTimeslot,
-      'day_of_week' | 'start_time' | 'end_time' | 'classroom_number'
-    >;
-  }>;
-}): Promise<ApiResponse> {
+export async function updateCourse(
+  courseData: UpdateCoursePayload,
+): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
   try {
@@ -748,7 +714,7 @@ export async function updateCourses(
 export async function updateCourseSession(
   courseId: string,
   sessionIndex: number,
-  sessionData: Partial<CourseSession>,
+  sessionData: UpdateCourseSessionPayload['sessionData'],
   role: string,
   userId: string,
 ): Promise<ApiResponse> {
@@ -859,7 +825,12 @@ async function calculateCourseStats(sessionId: string) {
     let totalAbsences = 0
     let totalParticipation = 0
 
-    grades.forEach((grade) => {
+    type GradeRecord = {
+      is_absent: boolean
+      value: number | null
+    }
+
+    grades.forEach((grade: { grades_records?: GradeRecord[] }) => {
       grade.grades_records?.forEach((record: any) => {
         if (record.is_absent) {
           totalAbsences++
