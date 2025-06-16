@@ -1,35 +1,21 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
-
+import { getSessionServer } from '@/server/utils/server-helpers'
+import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
-import { Student } from '@/zUnused/types/user'
-import { SerializedValue, serializeData } from '@/zUnused/serialization'
-
-async function getSessionServer() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error) {
-    throw new Error('Erreur d\'authentification')
-  }
-
-  if (!user) {
-    throw new Error('Utilisateur non authentifié')
-  }
-
-  if (user.app_metadata?.provider === 'anonymous') {
-    throw new Error('Accès refusé aux utilisateurs anonymes')
-  }
-
-  return { user }
-}
+import {
+  CreateStudentPayload,
+  UpdateStudentPayload,
+  StudentResponse,
+  StudentWithTeachersResponse,
+} from '@/types/student-payload'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export async function createStudent(
-  studentData: Omit<Student, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  studentData: CreateStudentPayload,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     const validation = validateRequiredFields('student', studentData)
@@ -51,7 +37,7 @@ export async function createStudent(
         lastname: studentData.lastname,
         password: studentData.password,
         role: 'student',
-        type: (studentData as any).type,
+        type: studentData.type,
         is_active: true,
         created_at: new Date().toISOString(),
       })
@@ -66,9 +52,12 @@ export async function createStudent(
       }
     }
 
+    revalidatePath('/students')
+    revalidatePath('/dashboard')
+
     return {
       success: true,
-      data: serializeData({ id: newUser.id }),
+      data: { id: newUser.id },
       message: 'Etudiant créé avec succès',
     }
   } catch (error) {
@@ -77,9 +66,9 @@ export async function createStudent(
   }
 }
 
-export async function deleteStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+export async function deleteStudent(studentId: string): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     if (!studentId) {
@@ -111,6 +100,9 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse<Seri
       }
     }
 
+    revalidatePath('/students')
+    revalidatePath('/dashboard')
+
     return {
       success: true,
       data: null,
@@ -122,8 +114,9 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse<Seri
   }
 }
 
-export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
-  const supabase = await createClient()
+export async function getAllStudents(): Promise<ApiResponse<StudentResponse[]>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     const { data: users, error } = await supabase
@@ -131,6 +124,7 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
       .from('users')
       .select('*')
       .eq('role', 'student')
+      .eq('is_active', true)
       .order('firstname', { ascending: true })
       .order('lastname', { ascending: true })
 
@@ -149,7 +143,7 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
 
     return {
       success: true,
-      data: serializeData(users),
+      data: users,
       message: 'Tous les Etudiants récupérés avec succès',
     }
   } catch (error) {
@@ -158,9 +152,9 @@ export async function getAllStudents(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneStudent(studentId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+export async function getOneStudent(studentId: string): Promise<ApiResponse<StudentResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     if (!studentId) {
@@ -190,7 +184,7 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Seri
 
     return {
       success: true,
-      data: serializeData(user),
+      data: user,
       message: 'Etudiant récupéré avec succès',
     }
   } catch (error) {
@@ -201,9 +195,9 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Seri
 
 export async function getTeachersForStudent(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+): Promise<ApiResponse<StudentWithTeachersResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     if (!studentId) {
@@ -271,9 +265,24 @@ export async function getTeachersForStudent(
       }
     }
 
+    // Récupérer les informations de l'étudiant
+    const { data: student, error: studentError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .eq('id', studentId)
+      .single()
+
+    if (studentError || !student) {
+      throw new Error('Erreur lors de la récupération des informations de l\'étudiant')
+    }
+
     return {
       success: true,
-      data: serializeData(teachers),
+      data: {
+        ...student,
+        teachers,
+      },
       message: 'Professeurs récupérés avec succès',
     }
   } catch (error) {
@@ -288,10 +297,10 @@ export async function getTeachersForStudent(
 
 export async function updateStudent(
   studentId: string,
-  studentData: Partial<Student>,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  studentData: UpdateStudentPayload,
+): Promise<ApiResponse<StudentResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     if (!studentId) {
@@ -323,9 +332,12 @@ export async function updateStudent(
       }
     }
 
+    revalidatePath('/students')
+    revalidatePath(`/students/${studentId}`)
+
     return {
       success: true,
-      data: serializeData(updatedUser),
+      data: updatedUser,
       message: 'Etudiant mis à jour avec succès',
     }
   } catch (error) {
