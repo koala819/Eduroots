@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   BarChart2,
@@ -6,21 +6,23 @@ import {
   Clock,
   NotebookText,
   XCircle,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { BiFemale, BiMale } from "react-icons/bi";
-import { Course, CourseSession, User } from "@/types/supabase/db";
-import { GenderEnum } from "@/types/supabase/user";
-import { Button } from "@/components/ui/button";
-import { useAttendance } from "@/context/Attendances/client";
-import { useCourses } from "@/context/Courses/client";
-import { motion } from "framer-motion";
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BiFemale, BiMale } from 'react-icons/bi'
+import { User } from '@/types/supabase/db'
+import { GenderEnum } from '@/types/supabase/user'
+import { Button } from '@/components/ui/button'
+import { useAttendance } from '@/context/Attendances/client'
+import { useCourses } from '@/context/Courses/client'
+import { motion } from 'framer-motion'
+import { getCourseSessionById } from '@/app/actions/context/courses'
+import { CourseSessionWithRelations } from '@/types/supabase/courses'
 
 interface AttendanceEditProps {
   students: User[];
   onClose: () => void;
   date: string;
-  courseId: string;
+  courseSessionId: string;
   attendanceId: string;
 }
 
@@ -28,86 +30,97 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   students,
   onClose,
   date,
-  courseId,
+  courseSessionId,
   attendanceId,
 }) => {
   const { updateAttendanceRecord, isLoadingAttendance, getAttendanceById } =
-    useAttendance();
-  const { getCourseSessionById, isLoadingCourse } = useCourses();
+    useAttendance()
+  const { isLoadingCourse } = useCourses()
 
-  const [course, setCourse] = useState<
-    (Course & { sessions: CourseSession[] }) | null
-  >(null);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [course, setCourse] = useState<CourseSessionWithRelations | null>(null)
+  const [isUpdating, setIsUpdating] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
   const [attendanceRecords, setAttendanceRecords] = useState<{
     [key: string]: boolean;
-  }>({});
+  }>({})
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const attendance = await getAttendanceById(courseId, date);
-        if (attendance?.records) {
-          const recordsMap = attendance.records.reduce(
+        console.log('🔄 [AttendanceEdit] Chargement des données...')
+        const response = await getCourseSessionById(courseSessionId)
+        if (!response.success || !response.data) {
+          setError('Session non trouvée')
+          return
+        }
+        const courseId = response.data.courses.id
+        setCourse(response.data)
+
+        const attendance = await getAttendanceById(attendanceId)
+        console.log('📊 [AttendanceEdit] Données reçues:', attendance)
+
+        if (attendance?.data?.records) {
+          const recordsMap = attendance.data.records.reduce(
             (
               acc: { [x: string]: any },
-              record: { student: { _id: any }; isPresent: any }
+              record: { student_id: string; is_present: boolean },
             ) => {
-              const studentId =
-                typeof record.student === "object"
-                  ? record.student._id
-                  : record.student;
-              acc[studentId] = record.isPresent;
-              return acc;
+              acc[record.student_id] = record.is_present
+              return acc
             },
-            {} as { [key: string]: boolean }
-          );
-          setAttendanceRecords(recordsMap);
+            {} as { [key: string]: boolean },
+          )
+          console.log('✅ [AttendanceEdit] Records mappés:', recordsMap)
+          setAttendanceRecords(recordsMap)
+        } else {
+          const initialRecords = students.reduce(
+            (acc, student) => ({
+              ...acc,
+              [student.id]: false,
+            }),
+            {} as { [key: string]: boolean },
+          )
+          console.log('⚠️ [AttendanceEdit] Aucune donnée trouvée, initialisation avec:', initialRecords)
+          setAttendanceRecords(initialRecords)
         }
-
-        const course = await getCourseSessionById(courseId);
-        if (!course) {
-          setError("Session non trouvée");
-          return;
-        }
-        setCourse(course as unknown as Course & { sessions: CourseSession[] });
       } catch (err) {
-        setError("Erreur lors du chargement des données");
-        console.error("Erreur lors du chargement des données:", err);
+        console.error('❌ [AttendanceEdit] Erreur chargement:', err)
+        setError('Erreur lors du chargement des données')
       }
     }
-    fetchData();
-  }, [courseId, getAttendanceById, date]);
+    fetchData()
+  }, [courseSessionId, getAttendanceById, attendanceId, students])
 
   function handleTogglePresence(studentId: string) {
     setAttendanceRecords((prev) => ({
       ...prev,
       [studentId]: !prev[studentId],
-    }));
+    }))
   }
 
   async function handleSave() {
-    setIsUpdating(true);
+    setIsUpdating(true)
     try {
-      const records = Object.entries(attendanceRecords).map(
-        ([studentId, isPresent]) => ({
-          student: studentId,
-          isPresent,
-        })
-      );
+      console.log('🔄 [AttendanceEdit] Sauvegarde des données...')
+      const records = students.map((student) => ({
+        student: student.id,
+        isPresent: attendanceRecords[student.id] ?? false,
+      }))
+      console.log('📝 [AttendanceEdit] Records à sauvegarder:', records)
+
       await updateAttendanceRecord({
         attendanceId: attendanceId,
         date: date,
         records: records,
-      });
+      })
 
-      // Fermer le modal sans recharger la page
-      onClose();
+      console.log('✅ [AttendanceEdit] Données sauvegardées')
+      onClose()
     } catch (error) {
-      console.error("Error updating attendance:", error);
+      console.error('❌ [AttendanceEdit] Erreur sauvegarde:', error)
+      setError('Erreur lors de la mise à jour des présences')
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
   }
 
@@ -116,7 +129,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
       <div className="h-[200px] flex items-center justify-center">
         <div className="text-red-500">{error}</div>
       </div>
-    );
+    )
   }
 
   if (isLoadingAttendance || isLoadingCourse) {
@@ -125,28 +138,28 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: "0.2s" }}
+          style={{ animationDelay: '0.2s' }}
         ></div>
         <div
           className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: "0.4s" }}
+          style={{ animationDelay: '0.4s' }}
         ></div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="h-screen overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
+        animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
+        className="bg-white/10 p-4 rounded-lg shadow-md w-full pb-20"
         aria-describedby="attendance-edit-description"
       >
         <div id="attendance-edit-description" className="sr-only">
-          Formulaire de modification des présences pour la session du{" "}
+          Formulaire de modification des présences pour la session du{' '}
           {new Date(date).toLocaleDateString()}
         </div>
         <div className="space-y-6">
@@ -154,28 +167,28 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
             <div className="flex flex-col space-y-4">
               {/* Course Details */}
               {date && course && (
-                <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                <div className="bg-white/10 rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center sm:text-left">
                     {/* Level */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <BarChart2 className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        Niveau {course.sessions[0].level}
+                      <BarChart2 className="w-5 h-5 shrink-0 text-white" />
+                      <span className="text-sm text-white">
+                        Niveau {course.level}
                       </span>
                     </div>
 
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        {course.sessions[0].subject}
+                      <NotebookText className="w-5 h-5 shrink-0 text-white" />
+                      <span className="text-sm text-white">
+                        {course.subject}
                       </span>
                     </div>
 
                     {/* Date */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <Clock className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
+                      <Clock className="w-5 h-5 shrink-0 text-white" />
+                      <span className="text-sm text-white">
                         {new Date(date).toLocaleDateString()}
                       </span>
                     </div>
@@ -194,20 +207,22 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                     return (
                       <motion.li
                         key={student.id}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
+                        className="flex items-center justify-between p-4 bg-white/10 border
+                        border-white/20 rounded-lg shadow-sm hover:shadow-md transition-all
+                        duration-200 ease-in-out cursor-pointer hover:bg-white/20"
                         onClick={() => handleTogglePresence(student.id)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center space-x-3">
                           {student.gender === GenderEnum.Masculin ? (
-                            <BiMale className="h-6 w-6 text-blue-400" />
+                            <BiMale className="h-6 w-6 text-white" />
                           ) : (
-                            <BiFemale className="h-6 w-6 text-pink-400" />
+                            <BiFemale className="h-6 w-6 text-[#E84393]" />
                           )}
-                          <span className="font-medium text-gray-700">
+                          <span className="font-medium text-white">
                             {student.firstname}
-                            <span className="font-bold text-gray-900 ml-1">
+                            <span className="font-bold text-white ml-1">
                               {student.lastname}
                             </span>
                           </span>
@@ -215,8 +230,8 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                         <motion.div
                           className={`transition-all duration-300 ${
                             attendanceRecords[student.id]
-                              ? "text-green-500 bg-green-50"
-                              : "text-red-500 bg-red-50"
+                              ? 'text-green-400 bg-green-900/30'
+                              : 'text-red-400 bg-red-900/30'
                           } p-2 rounded-full`}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
@@ -228,7 +243,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
                           )}
                         </motion.div>
                       </motion.li>
-                    );
+                    )
                   })}
               </ul>
             </div>
@@ -237,19 +252,19 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
             <div className="max-w-4xl mx-auto">
               <div className="flex justify-end space-x-4">
                 <Button
-                  onClick={handleSave}
-                  variant="teacherDefault"
-                  className="bg-gray-900 hover:bg-gray-800 text-white"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? "Mise à jour..." : "Mettre à jour"}
-                </Button>
-                <Button
                   variant="teacherWarning"
-                  className="border-gray-400 text-white"
+                  className="bg-red-500 text-white hover:bg-red-600"
                   onClick={() => onClose()}
                 >
                   Annuler
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  variant="teacherDefault"
+                  className="bg-white text-[#375073] hover:bg-white/90"
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
                 </Button>
               </div>
             </div>
@@ -257,5 +272,5 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
         </div>
       </motion.div>
     </div>
-  );
-};
+  )
+}

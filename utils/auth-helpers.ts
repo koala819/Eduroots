@@ -1,10 +1,12 @@
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/utils/supabase/server'
 import { User } from '@supabase/supabase-js'
 
 /**
  * Vérifie si l'utilisateur est authentifié et a un rôle valide
  */
-export async function checkUserAuth(user: User | null): Promise<{ isAuthenticated: boolean; role?: string }> {
+export async function checkUserAuth(
+  user: User | null):
+  Promise<{ isAuthenticated: boolean; role?: string }> {
   if (!user) {
     return { isAuthenticated: false }
   }
@@ -17,11 +19,22 @@ export async function checkUserAuth(user: User | null): Promise<{ isAuthenticate
   return { isAuthenticated: true, role }
 }
 
+export async function getAuthenticatedUser() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    throw new Error('Non authentifié')
+  }
+
+  return user
+}
+
 /**
  * Récupère l'ID de l'utilisateur dans education.users en vérifiant auth_id et parent2_auth_id
  */
 export async function getEducationUserId(authUserId: string): Promise<string | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: user, error } = await supabase
     .schema('education')

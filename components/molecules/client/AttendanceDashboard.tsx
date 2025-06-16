@@ -9,11 +9,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useAttendance } from '@/context/Attendances/client'
 import { useCourses } from '@/context/Courses/client'
 import { AnimatePresence } from 'framer-motion'
-import {
-  EmptyContent,
-  ErrorContent,
-  LoadingContent,
-} from '@/components/atoms/client/StatusContent'
+import { EmptyContent, ErrorContent, LoadingContent } from '@/components/atoms/client/StatusContent'
 import { User } from '@/types/supabase/db'
 import { getCourseSessionById } from '@/app/actions/context/courses'
 
@@ -22,18 +18,16 @@ export const AttendanceDashboard = ({
   students,
   courseDates,
 }: {
-  courseSessionId: string;
-  students: User[];
-  courseDates: Date[];
+  courseSessionId: string
+  students: User[]
+  courseDates: Date[]
 }) => {
   const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
   const [courseId, setCourseId] = useState<string | null>(null)
-  const { allAttendance, fetchAttendances, error } = useAttendance()
+  const { allAttendance, fetchAttendances, error: attendanceError } = useAttendance()
 
-  const [isCreatingAttendance, setIsCreatingAttendance] =
-    useState<boolean>(false)
-  const [isEditingAttendance, setIsEditingAttendance] =
-    useState<boolean>(false)
+  const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
+  const [isEditingAttendance, setIsEditingAttendance] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
@@ -41,18 +35,20 @@ export const AttendanceDashboard = ({
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('🔄 [AttendanceDashboard] Chargement initial des données...')
         const response = await getCourseSessionById(courseSessionId)
         if (!response.success || !response.data) {
-          console.error('Error loading course session:', response.message)
+          console.error('❌ [AttendanceDashboard] Erreur chargement session:', response.message)
           return
         }
 
         const courseId = response.data.courses.id
+        console.log('✅ [AttendanceDashboard] CourseId récupéré:', courseId)
         setCourseId(courseId)
 
         await fetchAttendances({ courseId })
       } catch (err) {
-        console.error('Error loading data:', err)
+        console.error('❌ [AttendanceDashboard] Erreur chargement:', err)
       } finally {
         setIsLoadingAttendance(false)
       }
@@ -83,26 +79,38 @@ export const AttendanceDashboard = ({
   }
 
   async function handleCloseEdit() {
+    console.log('🔄 [AttendanceDashboard] Fermeture modal édition...')
     setIsEditingAttendance(false)
-    // Recharger les données sans recharger toute la page
+
+    // Attendre que le modal soit complètement fermé
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    // Recharger les données
     if (courseId) {
-      await fetchAttendances({ courseId })
+      console.log('🔄 [AttendanceDashboard] Rechargement après édition...')
+      try {
+        await fetchAttendances({ courseId })
+        console.log('✅ [AttendanceDashboard] Données rechargées')
+      } catch (error) {
+        console.error('❌ [AttendanceDashboard] Erreur rechargement:', error)
+      }
     }
   }
+
+  // Ajouter un log pour voir quand le composant reçoit de nouvelles données
+  useEffect(() => {
+    console.log('📊 [AttendanceDashboard] allAttendance mis à jour:', allAttendance)
+  }, [allAttendance])
 
   if (isLoadingCourses || isLoadingAttendance) {
     return <LoadingContent />
   }
 
-  if (error || errorCourses) {
-    return (
-      <ErrorContent
-        message={error ?? errorCourses ?? 'Une erreur est survenue'}
-      />
-    )
+  if (attendanceError || errorCourses) {
+    return <ErrorContent message={attendanceError ?? errorCourses ?? 'Une erreur est survenue'} />
   }
 
-  if (!allAttendance) {
+  if (!allAttendance || allAttendance.length === 0) {
     return <EmptyContent />
   }
 
@@ -122,15 +130,10 @@ export const AttendanceDashboard = ({
       </Card>
       <AnimatePresence>
         {isCreatingAttendance && (
-          <Sheet
-            open={isCreatingAttendance}
-            onOpenChange={setIsCreatingAttendance}
-          >
-            <SheetContent
-              side="right"
-              className="w-full sm:max-w-xl [&>button]:hidden"
-            >
-              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left text-[#375073]">
+          <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
+            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center
+               sm:text-left text-[#375073]">
                 Nouvelle Feuille des Présences
               </SheetTitle>
               {selectedDate && (
@@ -145,20 +148,22 @@ export const AttendanceDashboard = ({
           </Sheet>
         )}
         {isEditingAttendance && (
-          <Sheet
-            open={isEditingAttendance}
-            onOpenChange={setIsEditingAttendance}
-          >
+          <Sheet open={isEditingAttendance} onOpenChange={setIsEditingAttendance}>
             <SheetContent
               side="right"
-              className="w-full sm:max-w-xl [&>button]:hidden"
+              className="w-full sm:max-w-xl [&>button]:hidden
+                bg-[#375073]"
             >
-              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left text-[#375073]">
+              <SheetTitle
+                className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8
+                  text-center sm:text-left text-white
+                  border-b border-white/20 pb-4"
+              >
                 Modifier la Feuille des Présences
               </SheetTitle>
               {selectedAttendanceId && selectedDate && (
                 <AttendanceEdit
-                  courseId={courseId!}
+                  courseSessionId={courseSessionId}
                   onClose={handleCloseEdit}
                   date={selectedDate}
                   students={students}

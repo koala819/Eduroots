@@ -1,26 +1,18 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-
+import { createClient } from '@/utils/supabase/server'
 import { ApiResponse } from '@/types/supabase/api'
-import { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/mongo/attendance'
-import { SerializedValue, serializeData } from '@/lib/serialization'
+import {
+  CreateAttendancePayload,
+  UpdateAttendancePayload,
+} from '@/utils/supabase/attendance-payload'
+import { getAuthenticatedUser } from '@/utils/auth-helpers'
 
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return user
-}
 
 export async function createAttendanceRecord(
   data: CreateAttendancePayload,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -71,7 +63,6 @@ export async function createAttendanceRecord(
         presence_rate: presenceRate,
         total_students: totalStudents,
         last_update: new Date().toISOString(),
-        is_active: true,
       })
       .select()
       .single()
@@ -83,9 +74,9 @@ export async function createAttendanceRecord(
     // Créer les enregistrements de présence pour chaque étudiant
     const attendanceRecords = records.map((record) => ({
       attendance_id: attendance.id,
-      student_id: record.student,
+      student_id: record.studentId,
       is_present: record.isPresent,
-      comment: record.comment || null,
+      comment: record.comment ?? null,
     }))
 
     const { error: recordsError } = await supabase
@@ -124,7 +115,7 @@ export async function createAttendanceRecord(
 
     // Mise à jour des statistiques étudiants
     const updatePromises = records.map(async (record) => {
-      const studentId = record.student
+      const studentId = record.studentId
 
       // Obtenir les stats existantes de l'étudiant
       const { data: existingStats } = await supabase
@@ -147,7 +138,7 @@ export async function createAttendanceRecord(
           .select('*', { count: 'exact' })
           .eq('student_id', studentId)
 
-        const totalSessionsCount = (totalSessions || 0) + 1
+        const totalSessionsCount = (totalSessions ?? 0) + 1
         const absenceRate = totalSessionsCount > 0 ? (totalAbsences / totalSessionsCount) * 100 : 0
 
         await supabase
@@ -233,54 +224,39 @@ export async function createAttendanceRecord(
     console.error('[CREATE_ATTENDANCE_RECORD]', error)
     return {
       success: false,
-      message: error.message || 'Erreur lors de la création de la présence',
+      message: error.message ?? 'Erreur lors de la création de la présence',
       data: null,
     }
   }
 }
 
-export async function deleteAttendanceRecord(
+export async function deleteAttendance(
   attendanceId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
   const supabase = await createClient()
 
   try {
-    // Supprimer d'abord les enregistrements liés
-    const { error: recordsError } = await supabase
-      .schema('education')
-      .from('attendance_records')
-      .delete()
-      .eq('attendance_id', attendanceId)
-
-    if (recordsError) {
-      throw new Error(`Erreur lors de la suppression des enregistrements: ${recordsError.message}`)
-    }
-
-    // Puis supprimer l'enregistrement principal
-    const { error: attendanceError } = await supabase
+    const { data: attendance, error } = await supabase
       .schema('education')
       .from('attendances')
       .delete()
       .eq('id', attendanceId)
+      .select()
+      .single()
 
-    if (attendanceError) {
-      throw new Error(`Erreur lors de la suppression de la présence: ${attendanceError.message}`)
+    if (error) {
+      throw new Error(`Erreur lors de la suppression: ${error.message}`)
     }
-
-    revalidatePath('/courses/[courseId]/attendance')
 
     return {
       success: true,
-      message: 'Présence supprimée avec succès',
-      data: null,
+      data: attendance,
+      message: 'Absence supprimée avec succès',
     }
   } catch (error: any) {
-    console.error('[DELETE_ATTENDANCE_RECORD]', error)
-    return {
-      success: false,
-      message: error.message || 'Erreur lors de la suppression de la présence',
-      data: null,
-    }
+    console.error('Error deleting attendance record:', error)
+    throw error
   }
 }
 
@@ -288,7 +264,7 @@ export async function getAttendanceById(
   courseId: string,
   date?: string,
   checkToday?: boolean,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -330,7 +306,7 @@ export async function getAttendanceById(
 
     return {
       success: true,
-      data: attendances ? serializeData(attendances) : null,
+      data: attendances,
       message: 'Absence récupérée avec succès',
     }
   } catch (error: any) {
@@ -341,7 +317,7 @@ export async function getAttendanceById(
 
 export async function getStudentAttendanceHistory(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -367,7 +343,7 @@ export async function getStudentAttendanceHistory(
 
     return {
       success: true,
-      data: attendances ? serializeData(attendances) : null,
+      data: attendances,
       message: 'Historique de présence récupéré avec succès',
     }
   } catch (error: any) {
@@ -378,7 +354,7 @@ export async function getStudentAttendanceHistory(
 
 export async function restoreAttendance(
   attendanceId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -386,12 +362,8 @@ export async function restoreAttendance(
     const { data: attendance, error } = await supabase
       .schema('education')
       .from('attendances')
-      .update({
-        is_active: true,
-        deleted_at: null,
-      })
-      .eq('id', attendanceId)
       .select()
+      .eq('id', attendanceId)
       .single()
 
     if (error) {
@@ -400,7 +372,7 @@ export async function restoreAttendance(
 
     return {
       success: true,
-      data: serializeData(attendance),
+      data: attendance,
       message: 'Enregistrement restauré avec succès',
     }
   } catch (error: any) {
@@ -411,7 +383,7 @@ export async function restoreAttendance(
 
 export async function softDeleteAttendance(
   attendanceId: string,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -419,10 +391,7 @@ export async function softDeleteAttendance(
     const { data: attendance, error } = await supabase
       .schema('education')
       .from('attendances')
-      .update({
-        is_active: false,
-        deleted_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', attendanceId)
       .select()
       .single()
@@ -433,7 +402,7 @@ export async function softDeleteAttendance(
 
     return {
       success: true,
-      data: attendance ? serializeData(attendance) : null,
+      data: attendance,
       message: 'Absence supprimée avec succès',
     }
   } catch (error: any) {
@@ -444,7 +413,7 @@ export async function softDeleteAttendance(
 
 export async function updateAttendanceRecord(
   data: UpdateAttendancePayload,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const supabase = await createClient()
 
@@ -483,7 +452,36 @@ export async function updateAttendanceRecord(
     const presentStudents = records.filter((record) => record.isPresent).length
     const presenceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0
 
-    // Mettre à jour l'enregistrement principal
+    // 1. Supprimer d'abord les anciens enregistrements
+    const { error: deleteError } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .delete()
+      .eq('attendance_id', attendanceId)
+
+    if (deleteError) {
+      throw new Error(`Erreur lors de la suppression des anciens enregistrements:
+        ${deleteError.message}`)
+    }
+
+    // 2. Créer les nouveaux enregistrements
+    const newRecords = records.map((record) => ({
+      attendance_id: attendanceId,
+      student_id: record.studentId,
+      is_present: record.isPresent,
+      comment: record.comment ?? null,
+    }))
+
+    const { error: insertError } = await supabase
+      .schema('education')
+      .from('attendance_records')
+      .insert(newRecords)
+
+    if (insertError) {
+      throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
+    }
+
+    // 3. Mettre à jour l'enregistrement principal
     const { error: updateError } = await supabase
       .schema('education')
       .from('attendances')
@@ -498,38 +496,14 @@ export async function updateAttendanceRecord(
       throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`)
     }
 
-    // Supprimer les anciens enregistrements
-    await supabase
-      .schema('education')
-      .from('attendance_records')
-      .delete()
-      .eq('attendance_id', attendanceId)
-
-    // Créer les nouveaux enregistrements
-    const newRecords = records.map((record: any) => ({
-      attendance_id: attendanceId,
-      student_id: record.student,
-      is_present: record.isPresent,
-      comment: record.comment || null,
-    }))
-
-    const { error: insertError } = await supabase
-      .schema('education')
-      .from('attendance_records')
-      .insert(newRecords)
-
-    if (insertError) {
-      throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
-    }
-
-    // Mettre à jour les statistiques étudiants si nécessaire
-    // (logique similaire à createAttendanceRecord)
-
-    revalidatePath('/courses/[courseId]/attendance')
+    revalidatePath('/courses/[courseId]/attendance', 'page')
     if (oldAttendance.course_id) {
-      revalidatePath(`/courses/${oldAttendance.course_id}/attendance`)
-      revalidatePath(`/courses/${oldAttendance.course_id}`)
+      revalidatePath(`/courses/${oldAttendance.course_id}/attendance`, 'page')
+      revalidatePath(`/courses/${oldAttendance.course_id}`, 'page')
     }
+
+    // Forcer un délai pour s'assurer que la revalidation est terminée
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     return {
       success: true,
@@ -537,10 +511,10 @@ export async function updateAttendanceRecord(
       data: null,
     }
   } catch (error: any) {
-    console.error('[UPDATE_ATTENDANCE_RECORD]', error)
+    console.error('❌ Erreur globale mise à jour présence:', error)
     return {
       success: false,
-      message: error.message || 'Erreur lors de la mise à jour de la présence',
+      message: error.message ?? 'Erreur lors de la mise à jour de la présence',
       data: null,
     }
   }

@@ -1,9 +1,9 @@
 'use client'
 
-import { CheckCircle, Clock, Plus, Star, XCircle } from 'lucide-react'
+import { CheckCircle, Clock, Plus, XCircle } from 'lucide-react'
 import React from 'react'
 
-import { AttendanceDocument } from '@/types/mongo/mongoose'
+import { Attendance } from '@/types/supabase/db'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -18,17 +18,19 @@ import {
 import { useHolidays } from '@/context/Holidays/client'
 import { isWithinInterval } from 'date-fns'
 
-export const AttendanceTable = ({
+interface AttendanceTableProps {
+  courseDates: Date[]
+  allAttendance: Attendance[]
+  handleCreateAttendance: (date: string) => void
+  handleEditAttendance: (attendanceId: string, date: string) => void
+}
+
+export function AttendanceTable({
   courseDates,
   allAttendance,
   handleCreateAttendance,
   handleEditAttendance,
-}: {
-  courseDates: Date[];
-  allAttendance: AttendanceDocument[];
-  handleCreateAttendance: (date: string) => void;
-  handleEditAttendance: (attendanceId: string, date: string) => void;
-}) => {
+}: Readonly<AttendanceTableProps>) {
   const { holidays } = useHolidays()
 
   return (
@@ -60,6 +62,7 @@ export const AttendanceTable = ({
                 (att) =>
                   new Date(att.date).toDateString() === date.toDateString(),
               )
+              console.log('existingAttendance', existingAttendance)
 
               // Attendances exists
               if (existingAttendance) {
@@ -78,19 +81,18 @@ export const AttendanceTable = ({
                       </div>
                     </TableCell>
                     <TableCell className="text-right sm:text-left">
-                      {!existingAttendance.warning && (
-                        <Button
-                          className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-[#375073] hover:bg-[#375073]/90 text-white"
-                          onClick={() =>
-                            handleEditAttendance(
-                              existingAttendance.id,
-                              date.toISOString(),
-                            )
-                          }
-                        >
-                          Modifier
-                        </Button>
-                      )}
+                      <Button
+                        className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-[#375073]
+                        hover:bg-[#375073]/90 text-white"
+                        onClick={() =>
+                          handleEditAttendance(
+                            existingAttendance.id,
+                            date.toISOString(),
+                          )
+                        }
+                      >
+                        Modifier
+                      </Button>
                     </TableCell>
                   </TableRow>
                 )
@@ -100,27 +102,31 @@ export const AttendanceTable = ({
               return (
                 <React.Fragment key={date.toISOString()}>
                   {today < date ? (
-                    <TableRow className="bg-blue-50 hover:bg-blue-100/50 transition-colors duration-200">
-                      <TableCell colSpan={3} className="py-4 px-4">
-                        <div className="flex flex-row sm:items-center justify-between gap-2">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 shrink-0">
-                              <Clock className="h-5 w-5 text-blue-600" />
+                    <TableRow
+                      className="bg-gray-50"
+                    >
+                      <TableCell colSpan={3} className="py-6 px-4">
+                        <div className="flex flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg
+                              bg-gray-100 shadow-sm shrink-0"
+                            >
+                              <Clock className="h-6 w-6 text-gray-400" />
                             </div>
                             <div>
-                              <p className="font-medium text-blue-900 text-sm sm:text-base">
+                              <p className="font-medium text-gray-700 text-base sm:text-lg">
                                 Prochaine séance
                               </p>
-                              <p className="text-xs sm:text-sm text-blue-600">
+                              <p className="text-sm text-gray-500 mt-1">
                                 {date.toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
-                            <Star className="h-4 w-4 text-yellow-400" />
-                            <span className="text-xs sm:text-sm text-blue-700 font-medium">
-                              À venir
-                            </span>
+                          <div className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base
+                            bg-gray-100 text-gray-700 font-medium
+                            rounded-lg shadow-sm"
+                          >
+                            À venir
                           </div>
                         </div>
                       </TableCell>

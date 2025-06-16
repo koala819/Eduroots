@@ -1,7 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { CourseSession, User, CourseSessionTimeslot, Course, CourseSessionStudent } from '@/types/supabase/db'
+import {
+  CourseSession,
+  User,
+  CourseSessionTimeslot,
+  Course,
+  CourseSessionStudent,
+} from '@/types/supabase/db'
 import { AttendanceDashboard } from '@/components/molecules/client/AttendanceDashboard'
 import { CourseMenuDesktop } from '@/components/atoms/client/CourseMenu_Desktop'
 import { CourseMenuMobile } from '@/components/atoms/client/CourseMenu_Mobile'
@@ -34,7 +40,8 @@ export default function TeacherCourses({
     if (!selectedSession?.courses_sessions_students) return []
 
     return selectedSession.courses_sessions_students
-      .filter((student) => student.users) // On ne garde que les étudiants avec des données utilisateur
+      // On ne garde que les étudiants avec des données utilisateur
+      .filter((student) => student.users)
       .map((student) => student.users)
       .sort((a, b) => {
         if (!a.lastname || !b.lastname) return 0

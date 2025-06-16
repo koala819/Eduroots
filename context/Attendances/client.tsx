@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  ReactNode,
   createContext,
   useCallback,
   useContext,
@@ -12,17 +11,8 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 import {
-  AttendanceRecord,
-  AttendanceStats, GroupedAbsences,
-  CreateAttendancePayload,
-  DuplicateRecords,
-  UpdateAttendancePayload,
-} from '@/types/mongo/attendance'
-import { AttendanceDocument } from '@/types/mongo/mongoose'
-
-import {
   createAttendanceRecord,
-  deleteAttendanceRecord,
+  deleteAttendance,
   getAttendanceById,
   getStudentAttendanceHistory,
   restoreAttendance,
@@ -30,31 +20,29 @@ import {
   updateAttendanceRecord,
 } from '@/app/actions/context/attendances'
 
-interface AttendanceState {
-  attendanceRecords: AttendanceRecord[]
-  duplicateAttendanceEntries: DuplicateRecords[]
-  error: string | null
-  isLoading: boolean
-  isLoadingAttendance: boolean
-  registeredStudentIds: string[]
-  studentsByAbsenceLevel: GroupedAbsences
-  stats: AttendanceStats | null
-  deletedRecords: AttendanceRecord[]
-  allAttendance: AttendanceDocument[] | null
-  checkOneAttendance: AttendanceDocument | null
-  todayAttendance: AttendanceDocument | null
-}
+// Types principaux déjà existants
+import { Attendance, AttendanceRecord } from '@/types/supabase/db'
+import {
+  CreateAttendancePayload,
+  UpdateAttendancePayload,
+} from '@/utils/supabase/attendance-payload'
+import {
+  AttendanceState,
+  AttendanceStats,
+  DuplicateRecords,
+  GroupedAbsences,
+} from '@/types/supabase/attendance'
 
 interface AttendanceProviderProps {
-  children: ReactNode
-  initialAttendanceData?: AttendanceDocument[] | null
+  children: React.ReactNode
+  initialAttendanceData?: Attendance[] | null
 }
 
 type AttendanceAction =
   | {type: 'SET_LOADING_ATTENDANCE'; payload: boolean}
-  | {type: 'SET_ALL_ATTENDANCE'; payload: AttendanceDocument[]}
-  | {type: 'SET_ONE_ATTENDANCE'; payload: AttendanceDocument}
-  | {type: 'SET_TODAY_ATTENDANCE'; payload: AttendanceDocument}
+  | {type: 'SET_ALL_ATTENDANCE'; payload: Attendance[]}
+  | {type: 'SET_ONE_ATTENDANCE'; payload: Attendance}
+  | {type: 'SET_TODAY_ATTENDANCE'; payload: Attendance}
   | {type: 'CREATE_ATTENDANCE'; payload: AttendanceRecord}
   | {type: 'DELETE_ATTENDANCE'; payload: string}
   | {type: 'SOFT_DELETE_ATTENDANCE'; payload: string}
@@ -69,7 +57,7 @@ type AttendanceAction =
   | {type: 'SET_ATTENDANCE_RECORDS'; payload: AttendanceRecord[]}
   | {type: 'SET_DUPLICATES'; payload: DuplicateRecords[]}
   | {type: 'SET_ERROR'; payload: string | null}
-  | {type: 'SET_GROUPED_STUDENTS'; payload: Record<string, any[]>}
+  | {type: 'SET_GROUPED_STUDENTS'; payload: GroupedAbsences}
   | {type: 'SET_LOADING'; payload: boolean}
   | {type: 'SET_STUDENT_IDS'; payload: string[]}
   | {type: 'UPDATE_SINGLE_RECORD'; payload: AttendanceRecord}
@@ -162,17 +150,14 @@ function attendanceReducer(state: AttendanceState, action: AttendanceAction): At
       ...state,
       attendanceRecords: [...state.attendanceRecords, action.payload],
     }
+
   case 'SOFT_DELETE_ATTENDANCE':
     return {
       ...state,
-      attendanceRecords: state.attendanceRecords.map((record) =>
-        record.id === action.payload
-          ? { ...record, isActive: false, deletedAt: new Date() }
-          : record,
-      ),
+      attendanceRecords: state.attendanceRecords.filter((record) => record.id !== action.payload),
       deletedRecords: [
         ...state.deletedRecords,
-          state.attendanceRecords.find((r) => r.id === action.payload)!,
+        state.attendanceRecords.find((r) => r.id === action.payload)!,
       ],
     }
 
@@ -181,11 +166,7 @@ function attendanceReducer(state: AttendanceState, action: AttendanceAction): At
       ...state,
       attendanceRecords: [
         ...state.attendanceRecords,
-        {
-          ...state.deletedRecords.find((r) => r.id === action.payload)!,
-          isActive: true,
-          deletedAt: null,
-        },
+        state.deletedRecords.find((r) => r.id === action.payload)!,
       ],
       deletedRecords: state.deletedRecords.filter((r) => r.id !== action.payload),
     }
@@ -204,7 +185,7 @@ function attendanceReducer(state: AttendanceState, action: AttendanceAction): At
 interface AttendanceContextType extends Omit<AttendanceState, 'isLoading' | 'error'> {
   // Méthodes
   createAttendanceRecord: (data: CreateAttendancePayload) => Promise<void>
-  deleteAttendanceRecord: (id: string) => Promise<void>
+  deleteAttendance: (id: string) => Promise<void>
   fetchAttendances: ({
     courseId,
     sessionId,
@@ -236,17 +217,21 @@ export const AttendancesProvider = ({
 
   const initialState: AttendanceState = {
     attendanceRecords: [],
-    registeredStudentIds: [],
-    duplicateAttendanceEntries: [],
-    studentsByAbsenceLevel: {},
     isLoading: false,
     isLoadingAttendance: false,
     error: null,
-    stats: null,
-    deletedRecords: [],
     allAttendance: initialAttendanceData || [],
     checkOneAttendance: null,
     todayAttendance: null,
+    duplicateAttendanceEntries: [],
+    registeredStudentIds: [],
+    studentsByAbsenceLevel: {
+      critical: [],
+      warning: [],
+      normal: [],
+    },
+    stats: null,
+    deletedRecords: [],
   }
 
   const [state, dispatch] = useReducer(attendanceReducer, initialState)
@@ -271,90 +256,111 @@ export const AttendancesProvider = ({
   const handleFetchAttendances = useCallback(
     async ({
       courseId,
-      sessionId,
       checkToday,
     }: {
       courseId: string
       sessionId?: string
       checkToday?: boolean
     }) => {
-      dispatch({ type: 'SET_LOADING_ATTENDANCE', payload: true })
       try {
-        const response = await getAttendanceById(courseId, sessionId ?? '', checkToday)
-        // Check if the response is successful and has data
-        if (!response.success || !response.data) {
-          throw new Error(response.message || 'Failed to fetch attendance data')
+        dispatch({ type: 'SET_LOADING_ATTENDANCE', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
+
+        const response = await getAttendanceById(
+          courseId,
+          checkToday ? new Date().toISOString() : '',
+        )
+        if (!response.success) {
+          throw new Error(response.error ?? 'Erreur lors de la récupération des présences')
         }
 
-        if (sessionId) {
-          dispatch({
-            type: 'SET_ONE_ATTENDANCE',
-            payload: response.data as AttendanceDocument,
-          })
-        } else if (checkToday) {
-          dispatch({
-            type: 'SET_TODAY_ATTENDANCE',
-            payload: response.data as AttendanceDocument,
-          })
+        const data = response.data as unknown
+        if (checkToday) {
+          if (Array.isArray(data)) {
+            throw new Error('Données de présence invalides')
+          }
+          dispatch({ type: 'SET_TODAY_ATTENDANCE', payload: data as Attendance })
         } else {
-          dispatch({
-            type: 'SET_ALL_ATTENDANCE',
-            payload: response.data as AttendanceDocument[],
-          })
+          if (!Array.isArray(data)) {
+            throw new Error('Données de présence invalides')
+          }
+          dispatch({ type: 'SET_ALL_ATTENDANCE', payload: data as Attendance[] })
         }
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la récupération des présences')
+        console.error('Erreur lors de la récupération des présences:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
       } finally {
         dispatch({ type: 'SET_LOADING_ATTENDANCE', payload: false })
       }
     },
-    [handleError],
+    [],
   )
 
   // Fonction pour récupérer les détails d'une présence par ID
   const handleGetAttendanceById = useCallback(
     async (courseId: string, date: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
       try {
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
+
         const response = await getAttendanceById(courseId, date)
         if (!response.success) {
-          throw new Error(response.message || 'Failed to fetch attendance data')
+          throw new Error(response.error ?? 'Erreur lors de la récupération de la présence')
         }
-        return response.data
+
+        const data = response.data as unknown
+        if (Array.isArray(data)) {
+          throw new Error('Données de présence invalides')
+        }
+        dispatch({ type: 'SET_ONE_ATTENDANCE', payload: data as Attendance })
+        return data as Attendance
       } catch (error) {
-        handleError(
-          error as Error,
-          `Erreur lors de la récupération de la présence pour le cours ${courseId}`,
-        )
-        return null
+        console.error('Erreur lors de la récupération de la présence:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
+        throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError],
+    [],
   )
 
   // Fonction pour récupérer l'historique des présences d'un étudiant
   const handleGetStudentAttendanceHistory = useCallback(
     async (studentId: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
       try {
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
+
         const response = await getStudentAttendanceHistory(studentId)
         if (!response.success) {
-          throw new Error(response.message || 'Failed to fetch attendance history')
+          throw new Error(response.error ?? 'Erreur lors de la récupération de l\'historique')
         }
-        return response.data
+
+        const data = response.data as unknown
+        if (!Array.isArray(data)) {
+          throw new Error('Données d\'historique invalides')
+        }
+        dispatch({ type: 'SET_ATTENDANCE_RECORDS', payload: data as AttendanceRecord[] })
+        return data as AttendanceRecord[]
       } catch (error) {
-        handleError(
-          error as Error,
-          `Erreur lors de la récupération de l'historique des présences de l'étudiant ${studentId}`,
-        )
-        return []
+        console.error('Erreur lors de la récupération de l\'historique:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
+        throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError],
+    [],
   )
 
   // Fonction pour créer un nouvel enregistrement de présence
@@ -392,30 +398,43 @@ export const AttendancesProvider = ({
   // Fonction pour supprimer un enregistrement de présence
   const handleDeleteAttendanceRecord = useCallback(
     async (id: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
       try {
-        startTransition(async () => {
-          const response = await deleteAttendanceRecord(id)
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
 
-          if (!response.success) {
-            throw new Error(response.error ?? 'Erreur lors de la suppression de la présence')
-          }
+        const response = await deleteAttendance(id)
+        if (!response.success) {
+          throw new Error(response.error ?? 'Erreur lors de la suppression de la présence')
+        }
 
-          dispatch({ type: 'DELETE_ATTENDANCE', payload: id })
-
-          toast({
-            title: 'Succès',
-            description: 'Présence supprimée avec succès',
-            duration: 3000,
+        // Mettre à jour l'état en supprimant la présence
+        if (state.allAttendance) {
+          dispatch({
+            type: 'SET_ALL_ATTENDANCE',
+            payload: state.allAttendance.filter((attendance) => attendance.id !== id),
           })
+        }
+
+        toast({
+          title: 'Succès',
+          description: 'Présence supprimée avec succès',
         })
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la suppression de la présence')
+        console.error('Erreur lors de la suppression de la présence:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Une erreur est survenue',
+          variant: 'destructive',
+        })
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError, toast],
+    [state.allAttendance, toast],
   )
 
   // Fonction pour mettre à jour un enregistrement de présence
@@ -449,97 +468,127 @@ export const AttendancesProvider = ({
   // Fonction pour archiver un enregistrement de présence
   const handleSoftDeleteAttendance = useCallback(
     async (id: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
       try {
-        startTransition(async () => {
-          const response = await softDeleteAttendance(id)
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
 
-          if (
-            !response ||
-            (typeof response === 'object' && 'success' in response && !response.success)
-          ) {
-            throw new Error('Erreur lors de l\'archivage de la présence')
-          }
+        const response = await softDeleteAttendance(id)
+        if (!response.success) {
+          throw new Error(response.error ??
+          'Erreur lors de la suppression temporaire de la présence')
+        }
 
-          dispatch({ type: 'SOFT_DELETE_ATTENDANCE', payload: id })
-
-          toast({
-            title: 'Succès',
-            description: 'Enregistrement archivé avec succès',
+        // Mettre à jour l'état en marquant la présence comme supprimée
+        if (state.allAttendance) {
+          dispatch({
+            type: 'SET_ALL_ATTENDANCE',
+            payload: state.allAttendance.map((attendance) =>
+              attendance.id === id ? { ...attendance, is_active: false } : attendance,
+            ),
           })
+        }
+
+        toast({
+          title: 'Succès',
+          description: 'Présence supprimée temporairement avec succès',
         })
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de l\'archivage de la présence')
+        console.error('Erreur lors de la suppression temporaire de la présence:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Une erreur est survenue',
+          variant: 'destructive',
+        })
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError, toast],
+    [state.allAttendance, toast],
   )
 
   // Fonction pour restaurer un enregistrement de présence archivé
   const handleRestoreAttendance = useCallback(
     async (id: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true })
       try {
-        startTransition(async () => {
-          const response = await restoreAttendance(id)
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'SET_ERROR', payload: null })
 
-          if (!response.success) {
-            throw new Error(response.message || 'Erreur lors de la restauration de la présence')
-          }
+        const response = await restoreAttendance(id)
+        if (!response.success) {
+          throw new Error(response.error ?? 'Erreur lors de la restauration de la présence')
+        }
 
-          dispatch({ type: 'RESTORE_ATTENDANCE', payload: id })
-
-          toast({
-            title: 'Succès',
-            description: 'Enregistrement restauré avec succès',
+        // Mettre à jour l'état en restaurant la présence
+        if (state.allAttendance) {
+          dispatch({
+            type: 'SET_ALL_ATTENDANCE',
+            payload: state.allAttendance.map((attendance) =>
+              attendance.id === id ? { ...attendance, is_active: true } : attendance,
+            ),
           })
+        }
+
+        toast({
+          title: 'Succès',
+          description: 'Présence restaurée avec succès',
         })
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la restauration de la présence')
+        console.error('Erreur lors de la restauration de la présence:', error)
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error instanceof Error ? error.message : 'Une erreur est survenue',
+        })
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Une erreur est survenue',
+          variant: 'destructive',
+        })
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError, toast],
+    [state.allAttendance, toast],
   )
 
   // Compiler les valeurs du contexte
   const value = useMemo(
     () => ({
       ...state,
+      isPending,
       createAttendanceRecord: handleCreateAttendanceRecord,
-      deleteAttendanceRecord: handleDeleteAttendanceRecord,
+      deleteAttendance: handleDeleteAttendanceRecord,
       fetchAttendances: handleFetchAttendances,
       getAttendanceById: handleGetAttendanceById,
       getStudentAttendanceHistory: handleGetStudentAttendanceHistory,
       updateAttendanceRecord: handleUpdateAttendanceRecord,
-      softDeleteAttendance: handleSoftDeleteAttendance,
       restoreAttendance: handleRestoreAttendance,
-      isPending,
+      softDeleteAttendance: handleSoftDeleteAttendance,
     }),
     [
       state,
+      isPending,
       handleCreateAttendanceRecord,
       handleDeleteAttendanceRecord,
       handleFetchAttendances,
       handleGetAttendanceById,
       handleGetStudentAttendanceHistory,
       handleUpdateAttendanceRecord,
-      handleSoftDeleteAttendance,
       handleRestoreAttendance,
-      isPending,
+      handleSoftDeleteAttendance,
     ],
   )
 
   return <AttendanceContext.Provider value={value}>{children}</AttendanceContext.Provider>
 }
 
-export const useAttendance = () => {
+export const useAttendances = () => {
   const context = useContext(AttendanceContext)
   if (!context) {
-    throw new Error('useAttendance must be used within an AttendancesProvider')
+    throw new Error('useAttendances doit être utilisé à l\'intérieur d\'un AttendancesProvider')
   }
   return context
 }

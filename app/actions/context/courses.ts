@@ -3,27 +3,34 @@
 import { getSessionServer } from '@/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/supabase/api'
-import { CourseSession, CourseSessionTimeslot, Database } from '@/types/supabase/db'
-import { CourseWithRelations,TimeSlotEnum } from '@/types/supabase/courses'
+import {
+  CourseSession,
+  CourseSessionTimeslot,
+  Database,
+} from '@/types/supabase/db'
+import { CourseWithRelations, TimeSlotEnum } from '@/types/supabase/courses'
 
 type CourseSessionWithRelations = CourseSession & {
   courses_sessions_students?: Array<{
-    id: string
-    student_id: string
+    id: string;
+    student_id: string;
     users?: {
-      id: string
-      firstname: string
-      lastname: string
-      email: string
-    }
-  }>
-}
+      id: string;
+      firstname: string;
+      lastname: string;
+      email: string;
+    };
+  }>;
+};
 
 export async function addStudentToCourse(
   courseId: string,
   studentId: string,
-  timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time'> & {
-    subject: string
+  timeSlot: Pick<
+    CourseSessionTimeslot,
+    'day_of_week' | 'start_time' | 'end_time'
+  > & {
+    subject: string;
   },
 ): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
@@ -90,7 +97,10 @@ export async function addStudentToCourse(
 }
 
 export async function checkTimeSlotOverlap(
-  timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time'>,
+  timeSlot: Pick<
+    CourseSessionTimeslot,
+    'day_of_week' | 'start_time' | 'end_time'
+  >,
   userId: string,
   excludeCourseId?: string,
 ): Promise<ApiResponse> {
@@ -100,7 +110,8 @@ export async function checkTimeSlotOverlap(
     let query = supabase
       .schema('education')
       .from('courses_sessions_timeslot')
-      .select(`
+      .select(
+        `
         *,
         courses_sessions (
           *,
@@ -108,7 +119,8 @@ export async function checkTimeSlotOverlap(
             teacher_id
           )
         )
-      `)
+      `,
+      )
       .eq('day_of_week', timeSlot.day_of_week)
       .eq('courses_sessions.courses_teacher.teacher_id', userId)
 
@@ -151,17 +163,17 @@ export async function checkTimeSlotOverlap(
 
 export async function createCourse(
   courseData: Database['education']['Tables']['courses']['Insert'] & {
-    teacherIds: string[]
+    teacherIds: string[];
     sessions: Array<{
-      subject: string
-      level: string
+      subject: string;
+      level: string;
       timeSlots: Array<{
-        day_of_week: TimeSlotEnum
-        start_time: string
-        end_time: string
-        classroom_number: string | null
-      }>
-    }>
+        day_of_week: TimeSlotEnum;
+        start_time: string;
+        end_time: string;
+        classroom_number: string | null;
+      }>;
+    }>;
   },
 ): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
@@ -176,7 +188,9 @@ export async function createCourse(
       .single()
 
     if (courseError || !course) {
-      throw new Error(`Erreur lors de la création du cours: ${courseError?.message}`)
+      throw new Error(
+        `Erreur lors de la création du cours: ${courseError?.message}`,
+      )
     }
 
     // 2. Insérer les relations profs-cours
@@ -192,7 +206,9 @@ export async function createCourse(
         .insert(teacherRelations)
 
       if (teacherError) {
-        throw new Error(`Erreur lors de l'association des professeurs: ${teacherError.message}`)
+        throw new Error(
+          `Erreur lors de l'association des professeurs: ${teacherError.message}`,
+        )
       }
     }
 
@@ -214,7 +230,9 @@ export async function createCourse(
         .single()
 
       if (sessionError || !session) {
-        throw new Error(`Erreur lors de la création de la session: ${sessionError?.message}`)
+        throw new Error(
+          `Erreur lors de la création de la session: ${sessionError?.message}`,
+        )
       }
 
       // Insérer les créneaux
@@ -232,7 +250,9 @@ export async function createCourse(
         .insert(timeSlots)
 
       if (timeslotError) {
-        throw new Error(`Erreur lors de la création des créneaux: ${timeslotError.message}`)
+        throw new Error(
+          `Erreur lors de la création des créneaux: ${timeslotError.message}`,
+        )
       }
     }
 
@@ -282,7 +302,7 @@ export async function getCourseSessionById(
   const { supabase } = await getSessionServer()
 
   try {
-    // console.log('1. Récupération de la session de base')
+    // console.log('\n\n\n1. Récupération de la session de base\n\n\n with id:', id)
     const { data: session, error: sessionError } = await supabase
       .schema('education')
       .from('courses_sessions')
@@ -299,7 +319,7 @@ export async function getCourseSessionById(
       }
     }
 
-    // console.log('2. Récupération du cours')
+    // Récupération du cours
     const { data: course, error: courseError } = await supabase
       .schema('education')
       .from('courses')
@@ -311,7 +331,7 @@ export async function getCourseSessionById(
       console.error('[GET_COURSE_BY_ID] Course Error:', courseError)
     }
 
-    // console.log('3. Récupération des horaires')
+    // Récupération des horaires
     const { data: timeslots, error: timeslotError } = await supabase
       .schema('education')
       .from('courses_sessions_timeslot')
@@ -322,7 +342,7 @@ export async function getCourseSessionById(
       console.error('[GET_COURSE_BY_ID] Timeslot Error:', timeslotError)
     }
 
-    // console.log('4. Récupération des étudiants')
+    // Récupération des étudiants
     const { data: students, error: studentsError } = await supabase
       .schema('education')
       .from('courses_sessions_students')
@@ -333,32 +353,11 @@ export async function getCourseSessionById(
       console.error('[GET_COURSE_BY_ID] Students Error:', studentsError)
     }
 
-    // console.log('5. Récupération des informations des utilisateurs')
-    const studentsWithUsers = await Promise.all(
-      students?.map(async (student) => {
-        if (!student.student_id) {
-          console.log('Étudiant sans student_id:', student)
-          return student
-        }
+    // Nettoyage des étudiants invalides
+    await cleanInvalidStudents(supabase, students || [])
 
-        const { data: user, error: userError } = await supabase
-          .schema('education')
-          .from('users')
-          .select('*')
-          .eq('id', student.student_id)
-          .single()
-
-        if (userError) {
-          console.error('[GET_COURSE_BY_ID] User Error:', userError)
-          return student
-        }
-
-        return {
-          ...student,
-          user,
-        }
-      }) || [],
-    )
+    // Récupération des informations des utilisateurs
+    const studentsWithUsers = await getStudentsWithUsers(supabase, students || [])
 
     const response = {
       ...session,
@@ -387,14 +386,17 @@ export async function getCourseSessionById(
   }
 }
 
-export async function getStudentCourses(studentId: string): Promise<ApiResponse> {
+export async function getStudentCourses(
+  studentId: string,
+): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
   try {
     const { data: enrollments, error } = await supabase
       .schema('education')
       .from('courses_sessions_students')
-      .select(`
+      .select(
+        `
         *,
         courses_sessions (
           *,
@@ -411,7 +413,8 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse>
             )
           )
         )
-      `)
+      `,
+      )
       .eq('student_id', studentId)
       .eq('courses_sessions.courses.is_active', true)
 
@@ -438,14 +441,17 @@ export async function getStudentCourses(studentId: string): Promise<ApiResponse>
   }
 }
 
-export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<CourseWithRelations[]>> {
+export async function getTeacherCourses(
+  teacherId: string,
+): Promise<ApiResponse<CourseWithRelations[]>> {
   const { supabase } = await getSessionServer()
 
   try {
     const { data: courses, error } = await supabase
       .schema('education')
       .from('courses')
-      .select(`
+      .select(
+        `
         *,
         courses_teacher!inner (
           teacher_id
@@ -465,7 +471,8 @@ export async function getTeacherCourses(teacherId: string): Promise<ApiResponse<
             student_id
           )
         )
-      `)
+      `,
+      )
       .eq('is_active', true)
       .eq('courses_teacher.teacher_id', teacherId)
 
@@ -498,7 +505,9 @@ export async function removeStudentFromCourse(
       .eq('course_id', courseId)
 
     if (sessionsError || !sessions?.length) {
-      throw new Error(`Erreur lors de la récupération des sessions: ${sessionsError?.message}`)
+      throw new Error(
+        `Erreur lors de la récupération des sessions: ${sessionsError?.message}`,
+      )
     }
 
     const sessionIds = sessions.map((s) => s.id)
@@ -525,16 +534,17 @@ export async function removeStudentFromCourse(
   }
 }
 
-export async function updateCourse(
-  courseData: {
-    sessions: Array<{
-      id: string
-      subject: string
-      level: string
-      timeSlot: Pick<CourseSessionTimeslot, 'day_of_week' | 'start_time' | 'end_time' | 'classroom_number'>
-    }>
-  },
-): Promise<ApiResponse> {
+export async function updateCourse(courseData: {
+  sessions: Array<{
+    id: string;
+    subject: string;
+    level: string;
+    timeSlot: Pick<
+      CourseSessionTimeslot,
+      'day_of_week' | 'start_time' | 'end_time' | 'classroom_number'
+    >;
+  }>;
+}): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
   try {
@@ -550,7 +560,9 @@ export async function updateCourse(
         .eq('id', sessionData.id)
 
       if (sessionError) {
-        throw new Error(`Erreur lors de la mise à jour de la session: ${sessionError.message}`)
+        throw new Error(
+          `Erreur lors de la mise à jour de la session: ${sessionError.message}`,
+        )
       }
 
       const { error: timeslotError } = await supabase
@@ -565,7 +577,9 @@ export async function updateCourse(
         .eq('course_sessions_id', sessionData.id)
 
       if (timeslotError) {
-        throw new Error(`Erreur lors de la mise à jour du créneau: ${timeslotError.message}`)
+        throw new Error(
+          `Erreur lors de la mise à jour du créneau: ${timeslotError.message}`,
+        )
       }
     }
 
@@ -573,7 +587,8 @@ export async function updateCourse(
     const { data: updatedCourse, error: fetchError } = await supabase
       .schema('education')
       .from('courses')
-      .select(`
+      .select(
+        `
         *,
         courses_teacher (
           *,
@@ -597,12 +612,15 @@ export async function updateCourse(
           ),
           courses_sessions_timeslot (*)
         )
-      `)
+      `,
+      )
       .eq('id', courseData.sessions[0].id)
       .single()
 
     if (fetchError) {
-      throw new Error(`Erreur lors de la récupération du cours mis à jour: ${fetchError.message}`)
+      throw new Error(
+        `Erreur lors de la récupération du cours mis à jour: ${fetchError.message}`,
+      )
     }
 
     return {
@@ -616,7 +634,10 @@ export async function updateCourse(
   }
 }
 
-export async function updateCourses(userRole: string, userId: string): Promise<ApiResponse> {
+export async function updateCourses(
+  userRole: string,
+  userId: string,
+): Promise<ApiResponse> {
   const { supabase } = await getSessionServer()
 
   try {
@@ -627,7 +648,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
       query = supabase
         .schema('education')
         .from('courses')
-        .select(`
+        .select(
+          `
           *,
           courses_teacher!inner (
             *,
@@ -642,7 +664,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
             *,
             courses_sessions_timeslot (*)
           )
-        `)
+        `,
+        )
         .eq('is_active', true)
         .eq('courses_teacher.teacher_id', userId)
     } else if (userRole === 'student') {
@@ -650,7 +673,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
       query = supabase
         .schema('education')
         .from('courses')
-        .select(`
+        .select(
+          `
           *,
           courses_sessions!inner (
             *,
@@ -665,7 +689,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
             ),
             courses_sessions_timeslot (*)
           )
-        `)
+        `,
+        )
         .eq('is_active', true)
         .eq('courses_sessions.courses_sessions_students.student_id', userId)
     } else {
@@ -673,7 +698,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
       query = supabase
         .schema('education')
         .from('courses')
-        .select(`
+        .select(
+          `
           *,
           courses_teacher (
             *,
@@ -697,7 +723,8 @@ export async function updateCourses(userRole: string, userId: string): Promise<A
             ),
             courses_sessions_timeslot (*)
           )
-        `)
+        `,
+        )
         .eq('is_active', true)
     }
 
@@ -731,11 +758,13 @@ export async function updateCourseSession(
     const { data: course, error: courseError } = await supabase
       .schema('education')
       .from('courses')
-      .select(`
+      .select(
+        `
         *,
         courses_teacher (teacher_id),
         courses_sessions (*)
-      `)
+      `,
+      )
       .eq('id', courseId)
       .single()
 
@@ -748,7 +777,9 @@ export async function updateCourseSession(
     }
 
     if (role === 'teacher') {
-      const isTeacher = course.courses_teacher.some((ct: any) => ct.teacher_id === userId)
+      const isTeacher = course.courses_teacher.some(
+        (ct: any) => ct.teacher_id === userId,
+      )
       if (!isTeacher) {
         return {
           success: false,
@@ -807,10 +838,12 @@ async function calculateCourseStats(sessionId: string) {
     const { data: grades, error } = await supabase
       .schema('education')
       .from('grades')
-      .select(`
+      .select(
+        `
         *,
         grades_records (*)
-      `)
+      `,
+      )
       .eq('course_session_id', sessionId)
 
     if (error || !grades || grades.length === 0) {
@@ -839,9 +872,11 @@ async function calculateCourseStats(sessionId: string) {
     })
 
     return {
-      averageGrade: totalParticipation > 0 ? totalGrades / totalParticipation : 0,
+      averageGrade:
+        totalParticipation > 0 ? totalGrades / totalParticipation : 0,
       totalAbsences,
-      participationRate: totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
+      participationRate:
+        totalStudents > 0 ? (totalParticipation / totalStudents) * 100 : 0,
     }
   } catch (error) {
     console.error('Error calculating course stats:', error)
@@ -851,6 +886,62 @@ async function calculateCourseStats(sessionId: string) {
       participationRate: 0,
     }
   }
+}
+
+async function cleanInvalidStudents(supabase: any, students: any[]) {
+  const invalidStudents = students?.filter((student) => !student.student_id) || []
+  if (invalidStudents.length === 0) return
+
+  console.warn(`[GET_COURSE_BY_ID] ${invalidStudents.length} étudiants invalides trouvés`)
+
+  for (const student of invalidStudents) {
+    const { data: user, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id')
+      .eq('mongo_id', student.mongo_student_id)
+      .single()
+
+    if (userError || !user) {
+      console.warn(`[GET_COURSE_BY_ID] Suppression de l'étudiant ${student.mongo_student_id}
+        (n'existe pas dans users)`)
+      const { error: deleteError } = await supabase
+        .schema('education')
+        .from('courses_sessions_students')
+        .delete()
+        .eq('id', student.id)
+
+      if (deleteError) {
+        console.error('[GET_COURSE_BY_ID] Erreur lors de la suppression:', deleteError)
+      }
+    } else {
+      console.error(`[GET_COURSE_BY_ID] Erreur de données: étudiant ${student.mongo_student_id}
+        existe dans users mais n'a pas de student_id`)
+    }
+  }
+}
+
+async function getStudentsWithUsers(supabase: any, students: any[]) {
+  return Promise.all(
+    students?.filter((student) => student.student_id).map(async (student) => {
+      const { data: user, error: userError } = await supabase
+        .schema('education')
+        .from('users')
+        .select('*')
+        .eq('id', student.student_id)
+        .single()
+
+      if (userError) {
+        console.error('[GET_COURSE_BY_ID] User Error:', userError)
+        return student
+      }
+
+      return {
+        ...student,
+        users: user,
+      }
+    }) || [],
+  )
 }
 
 function timeToMinutes(time: string): number {

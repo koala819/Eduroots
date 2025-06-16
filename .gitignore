@@ -1,6 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 .cursor/
 
+# VS Code
+.vscode/
+
 # Insert data from excel file
 migrations/studentsList.xlsx
 app/admin/compare-students/données_pour_comparaison.json
