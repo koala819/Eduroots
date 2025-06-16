@@ -1,38 +1,22 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
-import { Database } from '@/types/db'
+import { getSessionServer } from '@/server/utils/server-helpers'
+import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
-import { SerializedValue, serializeData } from '@/zUnused/serialization'
-
-type Teacher = Database['education']['Tables']['users']['Row'] & {
-  role: 'teacher';
-};
-
-type TeacherInsert = Database['education']['Tables']['users']['Insert'] & {
-  role: 'teacher';
-};
-
-type TeacherUpdate = Database['education']['Tables']['users']['Update'];
-
-async function getSessionServer() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return { user }
-}
+import {
+  CreateTeacherPayload,
+  UpdateTeacherPayload,
+  TeacherResponse,
+  TeacherWithStudentsResponse,
+} from '@/types/teacher-payload'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export async function createTeacher(
-  teacherData: Omit<TeacherInsert, 'id' | 'created_at' | 'updated_at'>,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  teacherData: CreateTeacherPayload,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
   try {
     const validation = validateRequiredFields('teacher', teacherData)
 
@@ -43,8 +27,6 @@ export async function createTeacher(
         data: null,
       }
     }
-
-    const supabase = await createClient()
 
     const { data: newUser, error } = await supabase
       .schema('education')
@@ -62,9 +44,12 @@ export async function createTeacher(
       }
     }
 
+    revalidatePath('/teachers')
+    revalidatePath('/dashboard')
+
     return {
       success: true,
-      data: serializeData({ id: newUser.id }),
+      data: { id: newUser.id },
       message: 'Professeur créé avec succès',
     }
   } catch (error) {
@@ -73,10 +58,10 @@ export async function createTeacher(
   }
 }
 
-export async function deleteTeacher(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+export async function deleteTeacher(teacherId: string): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
   try {
     if (!teacherId) {
       return {
@@ -85,8 +70,6 @@ export async function deleteTeacher(
         data: null,
       }
     }
-
-    const supabase = await createClient()
 
     const { data: deletedUser, error } = await supabase
       .schema('education')
@@ -110,6 +93,9 @@ export async function deleteTeacher(
       }
     }
 
+    revalidatePath('/teachers')
+    revalidatePath('/dashboard')
+
     return {
       success: true,
       data: null,
@@ -121,11 +107,11 @@ export async function deleteTeacher(
   }
 }
 
-export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  try {
-    const supabase = await createClient()
+export async function getAllTeachers(): Promise<ApiResponse<TeacherResponse[]>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
+  try {
     const { data: users, error } = await supabase
       .schema('education')
       .from('users')
@@ -146,7 +132,7 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
 
     return {
       success: true,
-      data: users ? serializeData(users) : null,
+      data: users,
       message: 'Tous les Professeurs récupérés avec succès',
     }
   } catch (error) {
@@ -155,10 +141,10 @@ export async function getAllTeachers(): Promise<ApiResponse<SerializedValue>> {
   }
 }
 
-export async function getOneTeacher(
-  teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+export async function getOneTeacher(teacherId: string): Promise<ApiResponse<TeacherResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
   try {
     if (!teacherId) {
       return {
@@ -167,8 +153,6 @@ export async function getOneTeacher(
         data: null,
       }
     }
-
-    const supabase = await createClient()
 
     const { data: user, error } = await supabase
       .schema('education')
@@ -190,7 +174,7 @@ export async function getOneTeacher(
 
     return {
       success: true,
-      data: user ? serializeData(user) : null,
+      data: user,
       message: 'Professeur récupéré avec succès',
     }
   } catch (error) {
@@ -201,27 +185,23 @@ export async function getOneTeacher(
 
 export async function getStudentsByTeacher(
   teacherId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+): Promise<ApiResponse<TeacherWithStudentsResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
-    const supabase = await createClient()
-
     // Vérifier que le professeur existe
     const { data: teacher, error: teacherError } = await supabase
       .schema('education')
       .from('users')
-      .select('id')
+      .select('id, email, firstname, lastname, subjects, created_at, updated_at')
       .eq('id', teacherId)
       .eq('role', 'teacher')
       .eq('is_active', true)
       .single()
 
     if (teacherError || !teacher) {
-      console.error(
-        '[GET_STUDENTS_BY_TEACHER] Teacher not found:',
-        teacherError,
-      )
+      console.error('[GET_STUDENTS_BY_TEACHER] Teacher not found:', teacherError)
       return {
         success: false,
         message: 'Professeur non trouvé',
@@ -233,8 +213,7 @@ export async function getStudentsByTeacher(
     const { data: courses, error: coursesError } = await supabase
       .schema('education')
       .from('courses')
-      .select(
-        `
+      .select(`
         id,
         academic_year,
         courses_sessions (
@@ -254,8 +233,7 @@ export async function getStudentsByTeacher(
             )
           )
         )
-      `,
-      )
+      `)
       .eq('teacher_id', teacherId)
       .eq('is_active', true)
 
@@ -264,60 +242,48 @@ export async function getStudentsByTeacher(
       throw new Error('Erreur lors de la récupération des cours')
     }
 
-    // Transformer les données pour correspondre à l'ancienne structure
-    const coursesWithStudents =
-      courses?.map((course) => {
-        const sessionsWithStudents =
-          course.courses_sessions?.map((session) => {
-            const students =
-              session.courses_sessions_students?.map((studentRelation: any) => {
-                const user = studentRelation.users
-                return {
-                  _id: user?.id,
-                  id: user?.id,
-                  firstname: user?.firstname,
-                  lastname: user?.lastname,
-                  email: user?.email,
-                  secondaryEmail: user?.secondary_email,
-                  gender: user?.gender,
-                  dateOfBirth: user?.date_of_birth,
-                }
-              }) || []
-
-            return {
-              sessionId: session.id,
-              subject: session.subject,
-              level: session.level,
-              timeSlot: session.time_slot,
-              students,
-            }
-          }) || []
-
-        return {
-          courseId: course.id,
-          academicYear: course.academic_year,
-          sessions: sessionsWithStudents,
-        }
-      }) || []
+    // Transformer les données pour correspondre à la structure attendue
+    const coursesWithStudents = courses?.map((course) => ({
+      courseId: course.id,
+      academicYear: course.academic_year,
+      sessions: course.courses_sessions?.map((session) => ({
+        sessionId: session.id,
+        subject: session.subject,
+        level: session.level,
+        timeSlot: session.time_slot,
+        students: session.courses_sessions_students?.map((studentRelation: any) => ({
+          id: studentRelation.users.id,
+          firstname: studentRelation.users.firstname,
+          lastname: studentRelation.users.lastname,
+          email: studentRelation.users.email,
+          secondaryEmail: studentRelation.users.secondary_email,
+          gender: studentRelation.users.gender,
+          dateOfBirth: studentRelation.users.date_of_birth,
+        })) || [],
+      })) || [],
+    })) || []
 
     return {
       success: true,
-      data: coursesWithStudents ? serializeData(coursesWithStudents) : null,
+      data: {
+        ...teacher,
+        courses: coursesWithStudents,
+      },
       message: 'Cours et leurs étudiants récupérés avec succès',
     }
   } catch (error) {
     console.error('[GET_STUDENTS_BY_TEACHER]', error)
-    throw new Error(
-      'Erreur lors de la récupération des étudiants du professeur',
-    )
+    throw new Error('Erreur lors de la récupération des étudiants du professeur')
   }
 }
 
 export async function updateTeacher(
   teacherId: string,
-  teacherData: TeacherUpdate,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+  teacherData: UpdateTeacherPayload,
+): Promise<ApiResponse<TeacherResponse>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
   try {
     if (!teacherId) {
       return {
@@ -326,8 +292,6 @@ export async function updateTeacher(
         data: null,
       }
     }
-
-    const supabase = await createClient()
 
     const { data: updatedUser, error } = await supabase
       .schema('education')
@@ -351,9 +315,12 @@ export async function updateTeacher(
       }
     }
 
+    revalidatePath('/teachers')
+    revalidatePath(`/teachers/${teacherId}`)
+
     return {
       success: true,
-      data: updatedUser ? serializeData(updatedUser) : null,
+      data: updatedUser,
       message: 'Professeur mis à jour avec succès',
     }
   } catch (error) {
