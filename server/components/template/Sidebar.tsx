@@ -1,4 +1,5 @@
 'use client'
+
 import { LogOut } from 'lucide-react'
 import { cn, logoutHandler } from '@/server/utils/helpers'
 import EdurootsLogo from '@/public/Logo-blanc.webp'
