@@ -2,7 +2,7 @@ import { Share } from 'lucide-react'
 
 import { Card, CardContent } from '@/client/components/ui/card'
 
-import { IOSInstallInstructionsClient } from '../../../client/components/atoms/IOSInstallInstructions'
+import { IOSInstallInstructionsClient } from '@/client/components/atoms/IOSInstallInstructions'
 
 interface IOSInstallInstructionsContentProps {
   isInstalled: boolean
@@ -25,7 +25,8 @@ export const IOSInstallInstructionsContent = ({
           </div>
           <ol className="space-y-4 text-slate-700">
             <li className="flex items-start space-x-3">
-              <span className="flex h-6 w-6 mt-0.5 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-sm">
+              <span className="flex h-6 w-6 mt-0.5 shrink-0
+              items-center justify-center rounded-full bg-blue-500 text-white text-sm">
                 1
               </span>
               <span>
@@ -34,7 +35,8 @@ export const IOSInstallInstructionsContent = ({
               </span>
             </li>
             <li className="flex items-start space-x-3">
-              <span className="flex h-6 w-6 mt-0.5 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-sm">
+              <span className="flex h-6 w-6 mt-0.5 shrink-0
+              items-center justify-center rounded-full bg-blue-500 text-white text-sm">
                 2
               </span>
               <span>
@@ -43,7 +45,8 @@ export const IOSInstallInstructionsContent = ({
               </span>
             </li>
             <li className="flex items-start space-x-3">
-              <span className="flex h-6 w-6 mt-0.5 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-sm">
+              <span className="flex h-6 w-6 mt-0.5 shrink-0
+              items-center justify-center rounded-full bg-blue-500 text-white text-sm">
                 3
               </span>
               <span>

@@ -1,6 +1,11 @@
 import { Button } from '@/client/components/ui/button'
 
-import { MenuItem } from '@/app/(protected)/teacher/profiles/page'
+type MenuItem = {
+  icon: React.ReactNode
+  title: string
+  color?: string
+  onClick: () => void
+}
 
 export const ProfileItem = ({
   icon,
