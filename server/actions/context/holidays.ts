@@ -1,31 +1,15 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
-
+import { createDefaultHolidays,getSessionServer } from '@/server/utils/server-helpers'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
-import { Holiday } from '@/zUnused/types/holidays'
 import { SerializedValue, serializeData } from '@/zUnused/serialization'
-import { createDefaultHolidays } from '@/server/utils/server-helpers'
-
-interface SaveHolidayData {
-  updatedBy: string
-  holidays: Holiday[]
-}
-
-async function getSessionServer() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return { user }
-}
+import { SaveHolidayPayload } from '@/types/holiday-payload'
 
 export async function getCurrentHolidays(userId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     // Cherche la config active la plus récente
@@ -63,10 +47,10 @@ export async function getCurrentHolidays(userId: string): Promise<ApiResponse<Se
 }
 
 export async function saveHolidays(
-  holidayData: SaveHolidayData,
+  holidayData: SaveHolidayPayload,
 ): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
   const currentYear = new Date().getFullYear().toString()
   const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
 
@@ -105,6 +89,9 @@ export async function saveHolidays(
     if (error) {
       throw new Error(`Erreur lors de la sauvegarde: ${error.message}`)
     }
+
+    revalidatePath('/settings/holidays')
+    revalidatePath('/settings')
 
     return {
       success: true,
