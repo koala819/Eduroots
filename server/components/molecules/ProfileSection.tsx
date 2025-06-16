@@ -1,7 +1,6 @@
-import { ProfileItem } from '@/server/components/atoms/ProfilItem'
+import { ProfileItem, MenuItem as TypeItem } from '@/server/components/atoms/ProfilItem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 
-import { MenuItem as TypeItem } from '@/app/(protected)/teacher/profiles/page'
 
 type ProfileSectionProps = {
   title: string

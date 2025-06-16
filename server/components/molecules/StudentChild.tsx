@@ -2,15 +2,18 @@ import { Calendar } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
 import { Course } from '@/zUnused/types/course'
-import { GenderEnum, Student,Teacher } from '@/zUnused/types/user'
+
 
 import StudentAvatar from '@/server/components/atoms/StudentAvatar'
 
 import { getStudentCourses } from '@/server/actions/context/courses'
 import { getTeachersForStudent } from '@/server/actions/context/students'
+import { GenderEnum } from '@/types/user'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
-async function StudentChild({ child }: {child: Student}) {
-  const studentId = child._id || child.id
+async function StudentChild({ child }: Readonly<{ child: StudentResponse }>) {
+  const studentId = child.id
   const teacherInfo = await getStudentInfo(studentId)
 
   async function getStudentInfo(studentId: string) {
@@ -27,9 +30,9 @@ async function StudentChild({ child }: {child: Student}) {
 
       // Récupérer le premier professeur
       // Vérifier si teachers.data est un tableau avant d'accéder à l'index 0
-      let teacher: Teacher | null = null
+      let teacher: TeacherResponse | null = null
       if (teachers.data && Array.isArray(teachers.data) && teachers.data.length > 0) {
-        teacher = teachers.data[0] as unknown as Teacher
+        teacher = teachers.data[0] as TeacherResponse
       } else {
         return null
       }
@@ -75,15 +78,19 @@ async function StudentChild({ child }: {child: Student}) {
   }
 
   return (
-    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all duration-300 group">
+    <div className="bg-white p-5 rounded-lg shadow-sm border
+    border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all duration-300 group">
       {/* Le reste de votre JSX reste identique, sans les états de chargement */}
       <div className="flex gap-4">
-        <div className="w-14 h-14 shrink-0 rounded-full bg-indigo-50 overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+        <div className="w-14 h-14 shrink-0 rounded-full
+        bg-indigo-50 overflow-hidden flex items-center
+        justify-center group-hover:scale-105 transition-transform duration-300">
           <StudentAvatar initials={child.lastname.charAt(0) + child.firstname.charAt(0)} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-base mb-2 group-hover:text-indigo-600 transition-colors flex items-center">
+          <h3 className="font-semibold text-base mb-2
+          group-hover:text-indigo-600 transition-colors flex items-center">
             {child.lastname + ' ' + child.firstname}
             <span className="ml-2">
               {child.gender === GenderEnum.Masculin ? (
@@ -121,8 +128,8 @@ async function StudentChild({ child }: {child: Student}) {
             <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
               <Calendar className="w-4 h-4 text-indigo-500" />
               <span>
-                {child.dateOfBirth
-                  ? new Date(child.dateOfBirth).toLocaleDateString('fr-FR', {
+                {child.date_of_birth
+                  ? new Date(child.date_of_birth).toLocaleDateString('fr-FR', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',

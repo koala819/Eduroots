@@ -1,6 +1,6 @@
 import { Button } from '@/client/components/ui/button'
 
-type MenuItem = {
+export type MenuItem = {
   icon: React.ReactNode
   title: string
   color?: string
