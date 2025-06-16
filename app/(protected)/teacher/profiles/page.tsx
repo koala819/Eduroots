@@ -3,9 +3,9 @@
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { useStats } from '@/context/Stats/client'
-import { createClient } from '@/utils/supabase/client'
+import { useToast } from '@/client/hooks/use-toast'
+import { useStats } from '@/client/context/stats'
+import { createClient } from '@/client/utils/supabase'
 
 const ProfilePage = () => {
   const router = useRouter()

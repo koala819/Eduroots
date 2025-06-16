@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { EditTeacherForm } from '@/components/root/EditTeacherForm'
+import { EditTeacherForm } from '@/client//components/root/EditTeacherForm'
 
 export const metadata: Metadata = {
   title: 'Modifier un Enseignant',

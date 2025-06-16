@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { generateDateRanges, getSessionServer } from '@/utils/server-helpers'
-import { Database } from '@/types/supabase/db'
+import { Database } from '@/types/db'
 
 // Type de base pour un comportement
 type BaseBehavior = Database['education']['Tables']['behaviors']['Row'] & {

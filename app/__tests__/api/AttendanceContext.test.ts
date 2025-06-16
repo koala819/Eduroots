@@ -1,4 +1,4 @@
-import { fetchWithAuth } from '../../../lib/fetchWithAuth'
+import { fetchWithAuth } from '../../../server/utils/fetchWithAuth'
 
 jest.mock('../../../lib/fetchWithAuth', () => ({
   fetchWithAuth: jest.fn(),

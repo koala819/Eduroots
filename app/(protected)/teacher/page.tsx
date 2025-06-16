@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase'
 import { TeacherWelcome } from './TeacherWelcome'
 
 export default async function TeacherDashboardPage() {

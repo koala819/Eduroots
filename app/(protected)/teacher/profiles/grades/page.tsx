@@ -3,22 +3,22 @@
 import { ChevronRight, CircleArrowLeft, Plus, Trophy } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { SubjectNameEnum } from '@/types/mongo/course'
-import { GradeTypeEnum, PopulatedGrade } from '@/types/mongo/grade'
+import { useToast } from '@/client/hooks/use-toast'
+import { SubjectNameEnum } from '@/zUnused/mongo/course'
+import { GradeTypeEnum, PopulatedGrade } from '@/zUnused/mongo/grade'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useGrades } from '@/context/Grades/client'
+} from '@/client/components/ui/accordion'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { useGrades } from '@/client/context/grades'
 import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 
 const GradesPage = () => {
   const { toast } = useToast()

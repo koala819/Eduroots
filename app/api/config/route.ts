@@ -1,7 +1,7 @@
 import { getToken } from 'next-auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { AppConfigDocument } from '@/types/mongo/models'
+import { AppConfigDocument } from '@/zUnused/mongo/models'
 
 import dbConnect from '@/zOLDbackend/config/dbConnect'
 import { AppConfig } from '@/backend/models/appConfig'

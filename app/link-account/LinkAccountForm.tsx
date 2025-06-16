@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/client/components/ui/button'
+import { Input } from '@/client/components/ui/input'
+import { useToast } from '@/client/hooks/use-toast'
 import { motion } from 'framer-motion'
 import { linkAccount } from '@/app/link-account/actions'
 import { useRouter } from 'next/navigation'
-import { getRoleName } from '@/utils/supabase/redirects'
+import { getRoleName } from '@/utils/redirects'
 
 interface LinkAccountFormProps {
   googleEmail: string

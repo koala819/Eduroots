@@ -3,31 +3,31 @@
 import { CalendarIcon, CircleArrowLeft, ClipboardEdit } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { SubjectNameEnum } from '@/types/mongo/course'
-import { CreateGradeDTO, GradeRecord, GradeTypeEnum } from '@/types/mongo/grade'
-import { Student } from '@/types/mongo/user'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
+import { useToast } from '@/client/hooks/use-toast'
+import { SubjectNameEnum } from '@/zUnused/mongo/course'
+import { CreateGradeDTO, GradeRecord, GradeTypeEnum } from '@/zUnused/mongo/grade'
+import { Student } from '@/zUnused/mongo/user'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { Checkbox } from '@/client/components/ui/checkbox'
+import { Input } from '@/client/components/ui/input'
+import { Label } from '@/client/components/ui/label'
+import { Progress } from '@/client/components/ui/progress'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useCourses } from '@/context/Courses/client'
-import { useGrades } from '@/context/Grades/client'
+} from '@/client/components/ui/select'
+import { useCourses } from '@/client/context/courses'
+import { useGrades } from '@/client/context/grades'
 import { formatDayOfWeek } from '@/utils/helpers'
-import useCourseStore from '@/stores/useCourseStore'
+import useCourseStore from '@/client/stores/useCourseStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 
 export default function CreateGradePage() {
   const { teacherCourses, isLoading } = useCourses()

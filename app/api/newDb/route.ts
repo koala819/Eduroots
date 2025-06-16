@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { TimeEnum } from '@/types/mongo/course'
-import type { Student, Teacher } from '@/types/mongo/user'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/supabase/user'
+import { TimeEnum } from '@/zUnused/mongo/course'
+import type { Student, Teacher } from '@/zUnused/mongo/user'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
 import { Course } from '@/zOLDbackend/models/zOLDcourse.model'
 import { User } from '@/zOLDbackend/models/zOLDuser.model'
@@ -10,7 +10,7 @@ import type {
   CourseSessionDataType,
   StudentDataType,
   TeacherDataType,
-} from '@/lib/import'
+} from '@/zUnused/import'
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {

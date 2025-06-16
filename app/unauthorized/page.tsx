@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/client/components/ui/button'
 
 const ErrorContent = () => {
   const searchParams = useSearchParams()

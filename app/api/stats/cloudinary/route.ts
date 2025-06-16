@@ -1,7 +1,7 @@
 import { getToken } from 'next-auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
-import cloudinary from '@/lib/cloudinary'
+import cloudinary from '@/server/utils/cloudinary'
 
 export async function GET(req: NextRequest) {
   try {

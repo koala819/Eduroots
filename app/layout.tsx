@@ -22,12 +22,12 @@ import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
 
 
-import { ClearServiceWorkerCache } from '@/components/atoms/client/ClearServiceWorkerCache'
-import { Toaster } from '@/components/ui/toaster'
+import { ClearServiceWorkerCache } from '@/client/components/atoms/ClearServiceWorkerCache'
+import { Toaster } from '@/client/components/ui/toaster'
 
 import { cn } from '@/utils/helpers'
 
-import '@/styles/globals.css'
+import '@/app/styles/globals.css'
 
 export const dynamic = 'force-dynamic'
 const fontSans = FontSans({

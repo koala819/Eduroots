@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 
 import { GET } from '@/app/api/stats/cloudinary/route'
-import cloudinary from '@/lib/cloudinary'
+import cloudinary from '@/server/utils/cloudinary'
 
 jest.mock('next/server', () => ({
   NextResponse: {

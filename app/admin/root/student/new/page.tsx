@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import NewStudentForm from '@/components/admin/organisms/client/NewStudentForm'
+import NewStudentForm from '@/client//components/organisms/NewStudentForm'
 
 export const metadata: Metadata = {
   title: 'Création nouvel Elève',

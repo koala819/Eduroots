@@ -1,4 +1,4 @@
-import { LoginClient } from '@/components/atoms/client/Login'
+import { LoginClient } from '@/client/components/atoms/Login'
 
 import type { Metadata, Viewport } from 'next'
 

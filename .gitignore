@@ -11,10 +11,7 @@ app/admin/compare-students/données_pour_comparaison.json
 
 # Backup before migration
 backup/
-utils/@dejaFait
-utils/script
-utils/tuto
-utils/compare
+zUnused/
 utils/db_migration/.env
 utils/db_migration/mongo_to_supabase_ids.json
 

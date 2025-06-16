@@ -1,7 +1,7 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 import LinkAccountForm from './LinkAccountForm'
-import { getRedirectUrl } from '@/utils/supabase/redirects'
+import { getRedirectUrl } from '@/utils/redirects'
 
 export default async function LinkAccountPage({
   searchParams,

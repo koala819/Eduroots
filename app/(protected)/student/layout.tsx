@@ -1,7 +1,7 @@
 'use client'
 
-import { Header } from '@/components/atoms/StudentHeader'
-import StudentNavbar from '@/components/atoms/StudentNavbar'
+import { Header } from '@/zUnused/StudentHeader'
+import StudentNavbar from '@/zUnused/StudentNavbar'
 
 export default function StudentLayout({
   children,

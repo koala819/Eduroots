@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import GlobalServerProvider from '@/components/providers/server/GlobalServerProvider'
-import { createClient } from '@/utils/supabase/server'
-import { CustomLayout } from '@/components/template/CustomLayout'
+import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
+import { createClient } from '@/utils/supabase'
+import { CustomLayout } from '@/server/components/template/CustomLayout'
 
 const navItems = [
   { href: '/admin', label: 'Tableau de bord', Icon: 'Home' },

@@ -6,21 +6,21 @@ import React from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/client/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum } from '@/types/mongo/course'
-import { Period, PeriodTypeEnum } from '@/types/supabase/schedule'
-import { TimeSlotEnum } from '@/types/supabase/courses'
+import { CourseSession, SubjectNameEnum } from '@/zUnused/mongo/course'
+import { Period, PeriodTypeEnum } from '@/types/schedule'
+import { TimeSlotEnum } from '@/types/courses'
 
-import { PlanningEditor } from '@/components/atoms/client/PlanningEditor'
-import { HolidaysCard } from '@/components/atoms/server/HolidaysCard'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PlanningEditor } from '@/client/components/atoms/PlanningEditor'
+import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 
-import { useCourses } from '@/context/Courses/client'
-import { useHolidays } from '@/context/Holidays/client'
-import { useSchedules } from '@/context/Schedules/client'
+import { useCourses } from '@/client/context/courses'
+import { useHolidays } from '@/client/context/holidays'
+import { useSchedules } from '@/client/context/schedules'
 import { formatDayOfWeek } from '@/utils/helpers'
 
 const PlanningViewer = () => {

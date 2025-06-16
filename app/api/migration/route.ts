@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { statsGradesClean } from '@/lib/stats/grade'
-import { checkAttendances } from '@/migrations/attendanceCHECK'
-import checkRemainingFullSessions from '@/migrations/coursesCheckLongSessions'
-import { checkGradesDuplicates } from '@/migrations/gradeDuplicate'
-import { statsGradesUpdate } from '@/migrations/stats-Grades-update'
-import { statsStudentCheck } from '@/migrations/stats-Students-check'
-import { statsTeacherCheck } from '@/migrations/stats-Teachers-check'
-import { statsTeacherUpdate } from '@/migrations/stats-Teachers-update'
-import { statsStudentUpdate } from '@/migrations/stats-student-update'
-import { checkStats } from '@/migrations/statsCHECK'
+import { statsGradesClean } from '@/zUnused/stats/grade'
+import { checkAttendances } from '@/zUnused/migrations/attendanceCHECK'
+import checkRemainingFullSessions from '@/zUnused/migrations/coursesCheckLongSessions'
+import { checkGradesDuplicates } from '@/zUnused/migrations/gradeDuplicate'
+import { statsGradesUpdate } from '@/zUnused/migrations/stats-Grades-update'
+import { statsStudentCheck } from '@/zUnused/migrations/stats-Students-check'
+import { statsTeacherCheck } from '@/zUnused/migrations/stats-Teachers-check'
+import { statsTeacherUpdate } from '@/zUnused/migrations/stats-Teachers-update'
+import { statsStudentUpdate } from '@/zUnused/migrations/stats-student-update'
+import { checkStats } from '@/zUnused/migrations/statsCHECK'
 
 type MigrationFunction = () => Promise<{
   success: boolean

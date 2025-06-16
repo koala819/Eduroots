@@ -3,14 +3,14 @@
 import { CircleArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { SubjectNameEnum, TimeEnum, TimeSlotEnum } from '@/types/mongo/course'
-import { ProfileCourseCard } from '@/components/organisms/client/ProfileCourseCard'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useTeachers } from '@/context/Teachers/client'
+import { useToast } from '@/client/hooks/use-toast'
+import { SubjectNameEnum, TimeEnum, TimeSlotEnum } from '@/zUnused/mongo/course'
+import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { useTeachers } from '@/client/context/teachers'
 import { formatDayOfWeek } from '@/utils/helpers'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 
 interface TimeSlot {
   id: string

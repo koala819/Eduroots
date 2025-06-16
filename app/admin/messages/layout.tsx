@@ -1,4 +1,4 @@
-import MailboxLayout from '@/components/template/MailboxLayout'
+import MailboxLayout from '@/zUnused/MailboxLayout'
 
 export default function AdminMailboxLayout({ children }: {children: React.ReactNode}) {
   return (

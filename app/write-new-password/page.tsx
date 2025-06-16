@@ -1,11 +1,11 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useToast } from '@/client/hooks/use-toast'
+import { Button } from '@/client/components/ui/button'
+import { Input } from '@/client/components/ui/input'
 
 export default function WriteNewPassword() {
   const [password, setPassword] = useState('')

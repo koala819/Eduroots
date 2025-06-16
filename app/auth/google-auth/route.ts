@@ -1,5 +1,5 @@
-import { getRedirectUrl } from '@/utils/supabase/redirects'
-import { createClient } from '@/utils/supabase/server'
+import { getRedirectUrl } from '@/utils/redirects'
+import { createClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'
 

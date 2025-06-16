@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { calculateStudentBehaviorRate } from '@/lib/stats/student'
+import { calculateStudentBehaviorRate } from '@/zUnused/stats/student'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/client/components/ui/alert'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
 import {
   Card,
   CardContent,
@@ -12,10 +12,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from '@/client/components/ui/card'
+import { Separator } from '@/client/components/ui/separator'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/client/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 
 interface Discrepancy {
   field: string

@@ -1,8 +1,8 @@
-import { TimeSlotEnum } from '@/types/supabase/courses'
-import { ButtonVariant, ThemeConfig } from '@/types/mongo/models'
+import { TimeSlotEnum } from '@/types/courses'
+// import { ButtonVariant, ThemeConfig } from '@/zUnused/mongo/models'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -34,18 +34,18 @@ export function formatAdminConfigTitle(title: string) {
   return title
 }
 
-export function generateDefaultTheme(role: 'teacher' | 'student' | 'bureau'): ThemeConfig {
-  const buttonVariants = {} as Record<ButtonVariant, string>
-  ;(['Cancel', 'Default', 'Secondary', 'Tertiary', 'Warning'] as const).forEach((variant) => {
-    buttonVariants[`${role}${variant}` as ButtonVariant] = ''
-  })
+// export function generateDefaultTheme(role: 'teacher' | 'student' | 'bureau'): ThemeConfig {
+//   const buttonVariants = {} as Record<ButtonVariant, string>
+//   ;(['Cancel', 'Default', 'Secondary', 'Tertiary', 'Warning'] as const).forEach((variant) => {
+//     buttonVariants[`${role}${variant}` as ButtonVariant] = ''
+//   })
 
-  return {
-    buttonVariants,
-    cardHeader: '',
-    loader: '', // Un loader par défaut générique
-  }
-}
+//   return {
+//     buttonVariants,
+//     cardHeader: '',
+//     loader: '', // Un loader par défaut générique
+//   }
+// }
 
 export function getColorClass(absences: number): string {
   if (absences === 0) {

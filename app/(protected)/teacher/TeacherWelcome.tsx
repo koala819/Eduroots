@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 
-import DashboardCard from '@/components/atoms/client/TeacherDashBoardCard'
-import { Card } from '@/components/ui/card'
+import DashboardCard from '@/client/components/atoms/TeacherDashBoardCard'
+import { Card } from '@/client/components/ui/card'
 
 interface TeacherWelcomeProps {
   user: {

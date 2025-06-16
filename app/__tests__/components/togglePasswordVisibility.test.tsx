@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import TogglePasswordVisibility from '@/components/atoms/client/TogglePasswordVisibility'
+import TogglePasswordVisibility from '@/client//components/atoms/TogglePasswordVisibility'
 
 const mockProps = {
   showPwd: false,

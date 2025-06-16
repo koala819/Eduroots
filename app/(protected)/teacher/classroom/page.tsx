@@ -1,13 +1,13 @@
 import { Metadata } from 'next'
-import { getTeacherCourses } from '@/app/actions/context/courses'
+import { getTeacherCourses } from '@/server/actions/context/courses'
 import { Suspense } from 'react'
 import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
-import { CourseGrid } from '@/components/molecules/client/CourseGrid'
+import { CourseGrid } from '@/client/components/molecules/CourseGrid'
 import {
   LoadingContent,
   EmptyContent,
   ErrorContent,
-} from '@/components/atoms/client/StatusContent'
+} from '@/client//components/atoms/StatusContent'
 import { getSessionServer } from '@/utils/server-helpers'
 
 export const metadata: Metadata = {

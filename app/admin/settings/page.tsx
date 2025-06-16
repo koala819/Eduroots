@@ -21,19 +21,19 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/client/utils/supabase'
 
-import { EntityType } from '@/types/mongo/stats'
-import { Student, Teacher } from '@/types/mongo/user'
+import { EntityType } from '@/zUnused/mongo/stats'
+import { Student, Teacher } from '@/zUnused/mongo/user'
 
-import { UserListDialog } from '@/components/admin/atoms/client/UserListDialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card'
 
-import { useStudents } from '@/context/Students/client'
-import { useTeachers } from '@/context/Teachers/client'
+import { useStudents } from '@/client/context/students'
+import { useTeachers } from '@/client/context/teachers'
 
 // Définition des types pour les actions
 type ActionVariant =

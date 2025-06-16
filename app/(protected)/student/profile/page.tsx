@@ -5,7 +5,7 @@ import { Student } from '@/types/mongo/user'
 
 import StudentInfo from '@/components/organisms/server/StudentInfo'
 
-import { getAllStudents } from '@/app/actions/context/students'
+import { getAllStudents } from '@/app/server/actions/context/students'
 import { authOptions } from '@/lib/authOptions'
 
 export default async function FamilyPage() {

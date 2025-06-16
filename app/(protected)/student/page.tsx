@@ -1,11 +1,11 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 
 import { Student } from '@/types/mongo/user'
 
-import StudentDashboard from '@/components/organisms/client/StudentDashboard'
+import StudentDashboard from '@/client//components/organisms/StudentDashboard'
 
-import { getAllStudents } from '@/app/actions/context/students'
+import { getAllStudents } from '@/app/server/actions/context/students'
 
 export const metadata = {
   title: 'Dashboard Étudiant | École',
