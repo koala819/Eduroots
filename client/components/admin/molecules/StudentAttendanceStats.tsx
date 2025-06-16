@@ -2,7 +2,7 @@
 
 import { CalendarDays, Check, TrendingUp, Users, X } from 'lucide-react'
 
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
+import { SubjectNameEnum } from '@/zUnused/types/course'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 

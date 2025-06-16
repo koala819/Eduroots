@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
+import { SubjectNameEnum } from '@/zUnused/types/course'
 
 interface SubjectGrade {
   subject: string

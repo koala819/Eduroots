@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { AttendanceRecord } from '@/zUnused/mongo/attendance'
+import { AttendanceRecord } from '@/zUnused/types/attendance'
 
 import { Attendance } from '@/zOLDbackend/models/zOLDattendance.model'
 import { validateRequest } from '@/lib/api.utils'

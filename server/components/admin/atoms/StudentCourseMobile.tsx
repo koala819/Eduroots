@@ -1,7 +1,7 @@
 import { GraduationCap } from 'lucide-react'
 
-import { CourseSession } from '@/zUnused/mongo/course'
-import { Teacher } from '@/zUnused/mongo/user'
+import { CourseSession } from '@/zUnused/types/course'
+import { Teacher } from '@/zUnused/types/user'
 
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent } from '@/client/components/ui/card'

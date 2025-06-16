@@ -1,10 +1,10 @@
 'use server'
 
-import { BehaviorRecord } from '@/types/mongo/behavior'
-import { SubjectNameEnum } from '@/types/mongo/course'
-import { BehaviorDocument } from '@/types/mongo/mongoose'
+import { BehaviorRecord } from '@/zUnused/types/behavior'
+import { SubjectNameEnum } from '@/zUnused/types/course'
+import { BehaviorDocument } from '@/zUnused/types/mongoose'
 
-import { getStudentBehaviorHistory } from '@/app/server/actions/context/behaviors'
+import { getStudentBehaviorHistory } from '@/server/actions/context/behaviors'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 

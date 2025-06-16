@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase'
 
 import { ApiResponse } from '@/types/api'
-import { Holiday } from '@/zUnused/mongo/holidays'
+import { Holiday } from '@/zUnused/types/holidays'
 import { SerializedValue, serializeData } from '@/zUnused/serialization'
 import { createDefaultHolidays } from '@/server/utils/server-helpers'
 

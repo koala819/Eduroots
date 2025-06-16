@@ -1,8 +1,8 @@
 import { Calendar } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { Course } from '@/zUnused/mongo/course'
-import { GenderEnum, Student,Teacher } from '@/zUnused/mongo/user'
+import { Course } from '@/zUnused/types/course'
+import { GenderEnum, Student,Teacher } from '@/zUnused/types/user'
 
 import StudentAvatar from '@/server/components/atoms/StudentAvatar'
 

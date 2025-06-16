@@ -12,7 +12,7 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { Student, Teacher } from '@/zUnused/mongo/user'
+import { Student, Teacher } from '@/zUnused/types/user'
 
 import {
   createStudent as createStudentAction,

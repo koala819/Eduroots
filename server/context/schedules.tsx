@@ -1,6 +1,6 @@
 'use server'
 
-import { DaySchedule } from '@/zUnused/mongo/schedule'
+import { DaySchedule } from '@/zUnused/types/schedule'
 
 import { getCurrentSchedule } from '@/server/actions/context/schedules'
 import { SchedulesProvider } from '@/client/context/schedules'

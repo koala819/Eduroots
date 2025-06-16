@@ -1,6 +1,6 @@
 'use server'
 
-import { BehaviorDocument } from '@/zUnused/mongo/mongoose'
+import { BehaviorDocument } from '@/zUnused/types/mongoose'
 
 import { fetchBehaviorsByCourse } from '@/server/actions/context/behaviors'
 import { BehaviorProvider } from '@/client/context/behaviors'

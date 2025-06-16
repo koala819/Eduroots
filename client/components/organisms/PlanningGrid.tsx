@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/client/utils/supabase'
 
-import { CourseSession } from '@/zUnused/mongo/course'
+import { CourseSession } from '@/zUnused/types/course'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 import PlanningDetailsCard from '@/client//components/admin/atoms/PlanningDetailsCard'

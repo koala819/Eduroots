@@ -1,7 +1,7 @@
 'use client'
 
-import { CourseSession } from '@/zUnused/mongo/course'
-import { GenderEnum, Student } from '@/zUnused/mongo/user'
+import { CourseSession } from '@/zUnused/types/course'
+import { GenderEnum, Student } from '@/zUnused/types/user'
 
 import { StatsCard } from '@/server/components/admin/atoms/PlanningStatCard'
 

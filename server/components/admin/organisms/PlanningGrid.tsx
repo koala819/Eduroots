@@ -1,4 +1,4 @@
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
+import { SubjectNameEnum } from '@/zUnused/types/course'
 
 import PlanningGridClient from '@/client//components/organisms/PlanningGrid'
 

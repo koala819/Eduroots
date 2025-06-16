@@ -2,8 +2,8 @@
 
 import { CalendarDays, GraduationCap, Users } from 'lucide-react'
 
-import { CourseSession } from '@/zUnused/mongo/course'
-import { Teacher } from '@/zUnused/mongo/user'
+import { CourseSession } from '@/zUnused/types/course'
+import { Teacher } from '@/zUnused/types/user'
 
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card'

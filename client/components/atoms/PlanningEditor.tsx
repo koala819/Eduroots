@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 
 import { toast } from '@/client/hooks/use-toast'
 
-import { CourseSession, LevelEnum, SubjectNameEnum } from '@/zUnused/mongo/course'
+import { CourseSession, LevelEnum, SubjectNameEnum } from '@/zUnused/types/course'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 import { Button } from '@/client/components/ui/button'

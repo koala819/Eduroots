@@ -3,9 +3,9 @@
 import { useCallback, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
-import { TeacherStats } from '@/zUnused/mongo/stats'
-import { GenderEnum, Teacher } from '@/zUnused/mongo/user'
+import { SubjectNameEnum } from '@/zUnused/types/course'
+import { TeacherStats } from '@/zUnused/types/stats'
+import { GenderEnum, Teacher } from '@/zUnused/types/user'
 
 import { TeacherOption } from '@/client//components/admin/atoms/NewStudentTeacherOption'
 import { FormData } from '@/client//components/organisms/NewStudentForm'

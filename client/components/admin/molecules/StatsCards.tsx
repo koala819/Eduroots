@@ -1,8 +1,8 @@
 import { ChevronRight, GraduationCap, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import { EntityType } from '@/zUnused/mongo/stats'
-import { Student, Teacher } from '@/zUnused/mongo/user'
+import { EntityType } from '@/zUnused/types/stats'
+import { Student, Teacher } from '@/zUnused/types/user'
 
 import { UserListDialog } from '@/client//components/admin/atoms/UserListDialog'
 import { Card, CardContent } from '@/client/components/ui/card'

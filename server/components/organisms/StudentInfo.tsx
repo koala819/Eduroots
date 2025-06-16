@@ -1,4 +1,4 @@
-import { Student } from '@/zUnused/mongo/user'
+import { Student } from '@/zUnused/types/user'
 
 import StudentContact from '@/server/components/atoms/StudentContact'
 import StudentChild from '@/server/components/molecules/StudentChild'

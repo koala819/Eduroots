@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/mongo/course'
-import { CourseDocument } from '@/zUnused/mongo/mongoose'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course'
+import { CourseDocument } from '@/zUnused/types/mongoose'
 import { UserRoleEnum } from '@/types/user'
 
 import StepOne from '@/client//components/root/NewTeacherStep1'
@@ -19,7 +19,7 @@ import { useCourses } from '@/client/context/courses'
 import { useTeachers } from '@/client/context/teachers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Teacher } from '@/zUnused/mongo/user'
+import { Teacher } from '@/zUnused/types/user'
 
 const teacherSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum } from '@/zUnused/mongo/course'
+import { CourseSession, SubjectNameEnum } from '@/zUnused/types/course'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
 import StepOne from '@/client//components/admin/atoms/NewStudentStep1'
@@ -24,7 +24,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import useCourseStore from '@/client/stores/useCourseStore'
 import { TimeSlotEnum } from '@/types/courses'
-import { Student } from '@/zUnused/mongo/user'
+import { Student } from '@/zUnused/types/user'
 
 const studentSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),

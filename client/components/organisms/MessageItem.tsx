@@ -3,7 +3,7 @@
 import { Mail as MailIcon, Paperclip } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Mail } from '@/zUnused/mongo/models'
+import { Mail } from '@/zUnused/types/models'
 
 import { MessageViewer } from '@/client//components/organisms/MessageViewer'
 

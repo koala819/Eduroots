@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { PopulatedCourse } from '@/zUnused/mongo/course'
-import { CourseStats, StudentStats } from '@/zUnused/mongo/stats'
-import { Student, Teacher } from '@/zUnused/mongo/user'
+import { PopulatedCourse } from '@/zUnused/types/course'
+import { CourseStats, StudentStats } from '@/zUnused/types/stats'
+import { Student, Teacher } from '@/zUnused/types/user'
 
 import StudentSelector from '@/client//components/atoms/StudentSelector'
 import StudentDetailsSkeleton from '@/server/components/atoms/StudentDetailsSkeleton'

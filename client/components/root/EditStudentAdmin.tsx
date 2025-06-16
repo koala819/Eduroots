@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { GenderEnum } from '@/zUnused/mongo/user'
+import { GenderEnum } from '@/zUnused/types/user'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'

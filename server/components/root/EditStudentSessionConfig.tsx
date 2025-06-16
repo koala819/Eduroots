@@ -1,8 +1,8 @@
 import { Clock } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
-import { Teacher } from '@/zUnused/mongo/user'
+import { SubjectNameEnum } from '@/zUnused/types/course'
+import { Teacher } from '@/zUnused/types/user'
 
 import { Card } from '@/client/components/ui/card'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'

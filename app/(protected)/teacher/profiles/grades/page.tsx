@@ -4,8 +4,8 @@ import { ChevronRight, CircleArrowLeft, Plus, Trophy } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum } from '@/zUnused/mongo/course'
-import { GradeTypeEnum, PopulatedGrade } from '@/zUnused/mongo/grade'
+import { SubjectNameEnum } from '@/zUnused/types/course'
+import { GradeTypeEnum, PopulatedGrade } from '@/zUnused/types/grade'
 import {
   Accordion,
   AccordionContent,

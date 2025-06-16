@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/zUnused/mongo/course'
+import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/zUnused/types/course'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'

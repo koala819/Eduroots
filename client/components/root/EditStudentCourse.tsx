@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE } from '@/zUnused/mongo/course'
-import { Teacher } from '@/zUnused/mongo/user'
+import { PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE } from '@/zUnused/types/course'
+import { Teacher } from '@/zUnused/types/user'
 
 import { SessionConfig } from '@/server/components/root/EditStudentSessionConfig'
 import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { Message } from '@/zUnused/mongo/message'
+import { Message } from '@/zUnused/types/message'
 
 import { MessageAttachment } from '@/client//components/atoms/MessageAttachment'
 import { MessageActionButtons } from '@/client//components/molecules/MessageActionButtons'

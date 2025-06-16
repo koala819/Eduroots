@@ -1,6 +1,6 @@
 'use server'
 
-import { Teacher } from '@/zUnused/mongo/user'
+import { Teacher } from '@/zUnused/types/user'
 
 import { getAllTeachers } from '@/server/actions/context/teachers'
 import { TeacherProvider } from '@/client/context/teachers'

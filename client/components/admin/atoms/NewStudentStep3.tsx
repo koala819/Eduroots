@@ -4,7 +4,7 @@ import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum, User } from '@/zUnused/mongo/user'
+import { GenderEnum, User } from '@/zUnused/types/user'
 
 import { FormData } from '../../organisms/NewStudentForm'
 

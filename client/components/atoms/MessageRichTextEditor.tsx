@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Editor } from '@tinymce/tinymce-react'
 
-import type { MyQuillComponentProps } from '@/zUnused/mongo/models'
+import type { MyQuillComponentProps } from '@/zUnused/types/models'
 
 const TINYMCE_CONFIG = {
   height: 300,

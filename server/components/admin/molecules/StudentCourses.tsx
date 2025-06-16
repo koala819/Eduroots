@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react'
 
-import { TimeSlotEnum } from '@/zUnused/mongo/course'
+import { TimeSlotEnum } from '@/zUnused/types/course'
 
 import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTable'
 import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'

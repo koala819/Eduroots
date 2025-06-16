@@ -19,8 +19,8 @@ import {
   CreateBehaviorPayload,
   DuplicateBehavior,
   UpdateBehaviorPayload,
-} from '@/zUnused/mongo/behavior'
-import { BehaviorDocument } from '@/zUnused/mongo/mongoose'
+} from '@/zUnused/types/behavior'
+import { BehaviorDocument } from '@/zUnused/types/mongoose'
 
 import {
   createBehaviorRecord,

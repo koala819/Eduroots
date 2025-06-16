@@ -1,11 +1,11 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 
-import { Student } from '@/types/mongo/user'
+import { Student } from '@/zUnused/types/user'
 
 import StudentInfo from '@/components/organisms/server/StudentInfo'
 
-import { getAllStudents } from '@/app/server/actions/context/students'
+import { getAllStudents } from '@/server/actions/context/students'
 import { authOptions } from '@/lib/authOptions'
 
 export default async function FamilyPage() {

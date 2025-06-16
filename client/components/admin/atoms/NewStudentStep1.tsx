@@ -2,7 +2,7 @@
 
 import { UseFormReturn } from 'react-hook-form'
 
-import { GenderEnum } from '@/zUnused/mongo/user'
+import { GenderEnum } from '@/zUnused/types/user'
 
 import { FormData } from '@/client//components/organisms/NewStudentForm'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'

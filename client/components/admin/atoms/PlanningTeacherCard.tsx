@@ -1,6 +1,6 @@
 'use client'
 
-import { CourseSession, SubjectNameEnum } from '@/zUnused/mongo/course'
+import { CourseSession, SubjectNameEnum } from '@/zUnused/types/course'
 
 export const TeacherCard = ({ session, onClick }: {session: CourseSession; onClick: () => void}) => {
   const baseClasses =

@@ -1,9 +1,9 @@
 'use server'
 
-import { Attendance } from '@/types/mongo/attendance'
-import { SubjectNameEnum } from '@/types/mongo/course'
+import { Attendance } from '@/zUnused/types/attendance'
+import { SubjectNameEnum } from '@/zUnused/types/course'
 
-import { getStudentAttendanceHistory } from '@/app/server/actions/context/attendances'
+import { getStudentAttendanceHistory } from '@/server/actions/context/attendances'
 
 export interface CalculatedStats {
   totalSessions: number

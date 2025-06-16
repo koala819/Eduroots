@@ -3,7 +3,7 @@
 import { Book, GraduationCap } from 'lucide-react'
 import 'react'
 
-import { TimeSlotEnum } from '@/zUnused/mongo/course'
+import { TimeSlotEnum } from '@/zUnused/types/course'
 
 import { GradeCard } from '@/client//components/atoms/StudentGradeCard'
 import { InfoCard } from '@/client//components/atoms/StudentInfoCard'

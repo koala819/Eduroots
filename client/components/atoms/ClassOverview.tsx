@@ -3,7 +3,7 @@
 import { ClipboardList, Star } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum } from '@/zUnused/mongo/user'
+import { GenderEnum } from '@/zUnused/types/user'
 
 import { StudentWithDetails as StudentType } from '@/client//components/organisms/ProfileCourseCard'
 import { Badge } from '@/client/components/ui/badge'

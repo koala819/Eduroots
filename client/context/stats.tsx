@@ -18,7 +18,7 @@ import {
   TeacherStats,
   isStudentStats,
   isTeacherStats,
-} from '@/zUnused/mongo/stats'
+} from '@/zUnused/types/stats'
 
 import {
   getStudentAttendance,

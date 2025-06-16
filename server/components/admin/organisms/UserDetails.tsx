@@ -9,7 +9,7 @@ import { StudentBehaviorStats } from '@/client/components/admin/atoms/StudentBeh
 import { TeacherStatsServer } from '@/client/components/admin/atoms/TeacherStats'
 import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
 import { Badge } from '@/client/components/ui/badge'
-import { Student, Teacher } from '@/zUnused/mongo/user'
+import { Student, Teacher } from '@/zUnused/types/user'
 
 export const UserDetails = ({ entity }: { entity: Student | Teacher }) => {
   if (entity.role === UserRoleEnum.Student) {

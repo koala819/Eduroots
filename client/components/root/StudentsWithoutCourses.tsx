@@ -3,7 +3,7 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Student } from '@/zUnused/mongo/user'
+import { Student } from '@/zUnused/types/user'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/client/components/ui/table'

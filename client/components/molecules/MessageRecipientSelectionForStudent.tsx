@@ -5,8 +5,8 @@ import { UseFormReturn } from 'react-hook-form'
 
 import { Session } from 'next-auth'
 
-import { Teacher } from '@/zUnused/mongo/user'
-import { FormFields } from '@/zUnused/mongo/writeMessage'
+import { Teacher } from '@/zUnused/types/user'
+import { FormFields } from '@/zUnused/types/writeMessage'
 
 import { Badge } from '@/client/components/ui/badge'
 

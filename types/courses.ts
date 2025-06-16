@@ -1,21 +1,55 @@
 import { Database } from './db'
 
+export enum SubjectNameEnum {
+  Arabe = 'Arabe',
+  EducationCulturelle = 'Education Culturelle',
+}
+
+export enum LevelEnum {
+  Zero = '0',
+  Zero2 = '0-2',
+  One = '1',
+  One2 = '1-2',
+  Two = '2',
+  Two2 = '2-2',
+  Three = '3',
+  Three2 = '3-2',
+  Four = '4',
+  Four2 = '4-2',
+  Five = '5',
+  Six = '6',
+}
+
+export const enum TimeEnum {
+  MorningStart = '09:00',
+  MorningPause = '10:45',
+  MorningEnd = '12:30',
+  AfternoonStart = '14:00',
+  AfternoonPause = '15:45',
+  AfternoonEnd = '17:30',
+}
+
 export type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
   courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {
     users: Database['education']['Tables']['users']['Row']
   })[]
   courses_sessions: (Database['education']['Tables']['courses_sessions']['Row'] & {
-    courses_sessions_students: (Database['education']['Tables']['courses_sessions_students']['Row'] & {
-      users: Database['education']['Tables']['users']['Row']
-    })[]
+    courses_sessions_students:
+    (
+      Database['education']['Tables']['courses_sessions_students']['Row'] &
+      { users: Database['education']['Tables']['users']['Row'] }
+    )[]
     courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
   })[]
 }
 
-export type CourseSessionWithRelations = Database['education']['Tables']['courses_sessions']['Row'] & {
-  courses_sessions_students: (Database['education']['Tables']['courses_sessions_students']['Row'] & {
-    users: Database['education']['Tables']['users']['Row']
-  })[]
+export type CourseSessionWithRelations =
+  Database['education']['Tables']['courses_sessions']['Row'] & {
+    courses_sessions_students:
+    (
+      Database['education']['Tables']['courses_sessions_students']['Row'] &
+      { users: Database['education']['Tables']['users']['Row'] }
+    )[]
   courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
 }
 
@@ -31,3 +65,4 @@ export enum TimeSlotEnum {
   SATURDAY_AFTERNOON = 'saturday_afternoon',
   SUNDAY_MORNING = 'sunday_morning',
 }
+

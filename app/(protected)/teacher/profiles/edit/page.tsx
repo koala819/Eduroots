@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum } from '@/zUnused/mongo/course'
+import { CourseSession, SubjectNameEnum } from '@/zUnused/types/course'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 import { TimeSlotEnum } from '@/types/courses'
 

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { FixedSizeList as List } from 'react-window'
 
-import { Student } from '@/zUnused/mongo/user'
-import { FormFields, RecipientType, SelectionModeType } from '@/zUnused/mongo/writeMessage'
+import { Student } from '@/zUnused/types/user'
+import { FormFields, RecipientType, SelectionModeType } from '@/zUnused/types/writeMessage'
 
 import { CustomCheckbox } from '@/client//components/atoms/MessageCustomCheckbox'
 import { Badge } from '@/client/components/ui/badge'

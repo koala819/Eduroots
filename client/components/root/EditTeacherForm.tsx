@@ -7,9 +7,9 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/mongo/course'
-import { CourseDocument } from '@/zUnused/mongo/mongoose'
-import { Teacher } from '@/zUnused/mongo/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course'
+import { CourseDocument } from '@/zUnused/types/mongoose'
+import { Teacher } from '@/zUnused/types/user'
 
 import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
 import EditTeacherStep2 from '@/client//components/root/EditTeacherStep2'

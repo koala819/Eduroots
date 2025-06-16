@@ -3,7 +3,7 @@
 import { Mail, Reply, Trash } from 'lucide-react'
 import { memo, useCallback } from 'react'
 
-import type { Message } from '@/zUnused/mongo/message'
+import type { Message } from '@/zUnused/types/message'
 
 import { MessageReplyComposer } from '@/client//components/molecules/MessageReplyComposer'
 import {

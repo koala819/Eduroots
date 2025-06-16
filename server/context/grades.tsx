@@ -1,6 +1,6 @@
 'use server'
 
-import { PopulatedGrade } from '@/zUnused/mongo/grade'
+import { PopulatedGrade } from '@/zUnused/types/grade'
 
 import { getTeacherGrades } from '@/server/actions/context/grades'
 import { GradesProvider } from '@/client/context/grades'

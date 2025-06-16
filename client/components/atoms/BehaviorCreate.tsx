@@ -4,9 +4,9 @@ import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { AttendanceRecord } from '@/zUnused/mongo/attendance'
-import { PopulatedCourse } from '@/zUnused/mongo/course'
-import { GenderEnum, Student } from '@/zUnused/mongo/user'
+import { AttendanceRecord } from '@/zUnused/types/attendance'
+import { PopulatedCourse } from '@/zUnused/types/course'
+import { GenderEnum, Student } from '@/zUnused/types/user'
 
 import {
   AlertDialog,

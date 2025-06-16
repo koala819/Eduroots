@@ -1,6 +1,6 @@
 'use server'
 
-import { Holiday } from '@/zUnused/mongo/holidays'
+import { Holiday } from '@/zUnused/types/holidays'
 
 import { getCurrentHolidays } from '@/server/actions/context/holidays'
 import { HolidaysProvider } from '@/client/context/holidays'

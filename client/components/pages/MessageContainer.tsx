@@ -7,7 +7,7 @@ import { Session } from 'next-auth'
 
 import { useMailsManager } from '@/client/hooks/useMailsManager'
 
-import { MessageContainerProps } from '@/zUnused/mongo/models'
+import { MessageContainerProps } from '@/zUnused/types/models'
 
 import MessageList from '@/components/template/client/MessageList'
 
