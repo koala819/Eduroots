@@ -13,45 +13,53 @@ import {
 import { useToast } from '@/client/hooks/use-toast'
 
 import { GroupedStudents } from '@/zUnused/types/course'
-import { StudentDocument } from '@/zUnused/types/mongoose'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { TeacherResponse, CreateTeacherPayload } from '@/types/teacher-payload'
+import { StudentResponse } from '@/types/student-payload'
 
 import {
   createTeacher as createTeacherAction,
   deleteTeacher as deleteTeacherAction,
   getAllTeachers,
   getOneTeacher,
-  getStudentsByTeacher as getStudentsByTeacherAction,
   updateTeacher as updateTeacherAction,
-} from '@/server/actions/context/teachers'
+  getStudentsByTeacher as getStudentsByTeacherAction,
+} from '@/server/actions/api/teachers'
 
 interface TeacherState {
-  teachers: Teacher[]
+  teachers: TeacherResponse[]
   isLoading: boolean
   error: string | null
-  students: StudentDocument[] | null // Ajout pour stocker les étudiants récupérés
+  students: StudentResponse[] | null
   groupedStudents: GroupedStudents[] | null
   selectedCourseId: string | null
 }
 
 interface TeachersProviderProps {
   children: ReactNode
-  initialTeachersData?: Teacher[] | null
+  initialTeachersData?: TeacherResponse[] | null
 }
 
 type TeacherAction =
-  | {type: 'SET_TEACHERS'; payload: Teacher[]}
+  | {type: 'SET_TEACHERS'; payload: TeacherResponse[]}
   | {type: 'SET_LOADING'; payload: boolean}
   | {type: 'SET_ERROR'; payload: string | null}
-  | {type: 'ADD_TEACHER'; payload: Teacher}
-  | {type: 'UPDATE_TEACHER'; payload: Teacher}
+  | {type: 'ADD_TEACHER'; payload: TeacherResponse}
+  | {type: 'UPDATE_TEACHER'; payload: TeacherResponse}
   | {type: 'DELETE_TEACHER'; payload: string}
-  | {type: 'SET_STUDENTS'; payload: StudentDocument[]}
+  | {type: 'SET_STUDENTS'; payload: StudentResponse[]}
   | {type: 'SET_GROUPED_STUDENTS'; payload: GroupedStudents[]}
   | {type: 'SET_SELECTED_COURSE_ID'; payload: string}
   | {
       type: 'UPDATE_TEACHER_STATS'
-      payload: {id: string; stats: Teacher['stats']}
+      payload: {
+        id: string
+        stats: {
+          studentCount: number
+          courseCount: number
+          attendanceRate: number
+          averageStudentSuccess: number
+        }
+      }
     }
 
 function teacherReducer(state: TeacherState, action: TeacherAction): TeacherState {
@@ -113,20 +121,21 @@ function teacherReducer(state: TeacherState, action: TeacherAction): TeacherStat
 }
 
 interface TeacherContextType extends TeacherState {
-  getOneTeacher: (id: string) => Promise<Teacher>
+  getOneTeacher: (id: string) => Promise<TeacherResponse>
   getAllTeachers: () => Promise<void>
-  createTeacher: (
-    teacherData: Omit<Teacher, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-  ) => Promise<Teacher>
-  updateTeacher: (id: string, teacherData: Partial<Teacher>) => Promise<void>
+  createTeacher: (teacherData: CreateTeacherPayload) => Promise<TeacherResponse>
+  updateTeacher: (id: string, teacherData: Partial<TeacherResponse>) => Promise<void>
   deleteTeacher: (id: string) => Promise<void>
-  getStudentsByTeacher: (teacherId: string) => Promise<Student[]>
+  getStudentsByTeacher: (teacherId: string) => Promise<StudentResponse[]>
   setSelectedCourseId: (id: string) => void
 }
 
 const TeacherContext = createContext<TeacherContextType | null>(null)
 
-export const TeacherProvider = ({ children, initialTeachersData = null }: TeachersProviderProps) => {
+export const TeacherProvider = ({
+  children,
+  initialTeachersData = null,
+}: TeachersProviderProps) => {
   const { toast } = useToast()
 
   // Utiliser les données initiales si disponibles
@@ -141,68 +150,69 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
 
   const [state, dispatch] = useReducer(teacherReducer, initialState)
 
-  const handleError = useCallback(
-    (error: Error, customMessage?: string) => {
-      console.error('Teacher Error:', error)
-      const errorMessage = customMessage || error.message
-      dispatch({ type: 'SET_ERROR', payload: errorMessage })
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: errorMessage,
-        duration: 5000,
-      })
-    },
-    [toast],
-  )
+  const handleError = (error: Error, message: string) => {
+    console.error(message, error)
+    dispatch({ type: 'SET_ERROR', payload: message })
+    toast({
+      variant: 'destructive',
+      title: 'Erreur',
+      description: message,
+    })
+  }
 
   const setSelectedCourseId = useCallback((id: string) => {
     dispatch({ type: 'SET_SELECTED_COURSE_ID', payload: id })
   }, [])
 
   const handleGetStudentsByTeacher = useCallback(
-    async (teacherId: string): Promise<Student[]> => {
+    async (teacherId: string): Promise<StudentResponse[]> => {
       dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await getStudentsByTeacherAction(teacherId)
-
-        if (!response.success) {
-          throw new Error(
-            response.message || 'Erreur lors de la récupération des étudiants du professeur',
-          )
+        if (!response.success || !response.data) {
+          throw new Error('Erreur lors de la récupération des étudiants')
         }
-
-        // Extraire les données nécessaires
-        const allStudents = new Set<string>()
-        const coursesData = response.data as unknown as GroupedStudents[]
-
-        coursesData.forEach((course: any) => {
-          course.sessions.forEach((session: any) => {
-            session.students.forEach((student: any) => {
-              allStudents.add(JSON.stringify(student)) // On utilise JSON.stringify pour gérer la déduplication d'objets
-            })
-          })
-        })
-
-        // Conversion en tableau et parsing des étudiants uniques
-        const uniqueStudents = Array.from(allStudents).map((student: string) => JSON.parse(student))
-
-        dispatch({ type: 'SET_GROUPED_STUDENTS', payload: coursesData })
+        const data = response.data
+        const uniqueStudents = Array.from(
+          new Map(
+            data.courses.flatMap((course) =>
+              course.sessions.flatMap((session) =>
+                session.students.map((student) => [
+                  student.id,
+                  {
+                    id: student.id,
+                    email: student.email,
+                    firstname: student.firstname,
+                    lastname: student.lastname,
+                    type: 'student',
+                    subjects: null,
+                    created_at: null,
+                    updated_at: null,
+                    gender: student.gender,
+                    date_of_birth: student.dateOfBirth,
+                    secondary_email: student.secondaryEmail,
+                    phone: null,
+                    school_year: null,
+                  },
+                ]),
+              ),
+            ),
+          ).values(),
+        ) as StudentResponse[]
         dispatch({ type: 'SET_STUDENTS', payload: uniqueStudents })
-
         return uniqueStudents
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la récupération des étudiants du professeur')
+        handleError(error as Error, 'Erreur lors de la récupération des étudiants')
         throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError],
+    [dispatch, handleError],
   )
 
   const handleGetOneTeacher = useCallback(
-    async (id: string): Promise<Teacher> => {
+    async (id: string): Promise<TeacherResponse> => {
       try {
         const response = await getOneTeacher(id)
 
@@ -210,7 +220,7 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
           throw new Error(response.message || 'Erreur lors de la récupération du professeur')
         }
 
-        const teacher = response.data as unknown as Teacher
+        const teacher = response.data as TeacherResponse
         return teacher
       } catch (error) {
         handleError(error as Error, 'Erreur lors de la récupération du professeur')
@@ -235,10 +245,10 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
       }
 
       // Extraire les professeurs de la réponse
-      const data = response.data as any
-      const teachers = data || []
+      const data = response.data as TeacherResponse[]
+      const teachers = data ?? []
 
-      dispatch({ type: 'SET_TEACHERS', payload: teachers as Teacher[] })
+      dispatch({ type: 'SET_TEACHERS', payload: teachers })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la récupération des professeurs')
     } finally {
@@ -247,9 +257,7 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
   }, [handleError, initialTeachersData, state.isLoading])
 
   const handleCreateTeacher = useCallback(
-    async (
-      teacherData: Omit<Teacher, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-    ): Promise<Teacher> => {
+    async (teacherData: CreateTeacherPayload): Promise<TeacherResponse> => {
       try {
         const response = await createTeacherAction(teacherData)
 
@@ -258,7 +266,7 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
         }
 
         // Extraire le professeur de la réponse
-        const newTeacher = response.data as unknown as Teacher
+        const newTeacher = response.data as TeacherResponse
 
         dispatch({ type: 'ADD_TEACHER', payload: newTeacher })
 
@@ -279,7 +287,7 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
   )
 
   const handleUpdateTeacher = useCallback(
-    async (id: string, teacherData: Partial<Teacher>): Promise<void> => {
+    async (id: string, teacherData: Partial<TeacherResponse>): Promise<void> => {
       try {
         const response = await updateTeacherAction(id, teacherData)
 
@@ -288,7 +296,7 @@ export const TeacherProvider = ({ children, initialTeachersData = null }: Teache
         }
 
         // Extraire le professeur de la réponse
-        const updatedTeacher = response.data as unknown as Teacher
+        const updatedTeacher = response.data as TeacherResponse
 
         dispatch({ type: 'UPDATE_TEACHER', payload: updatedTeacher })
 

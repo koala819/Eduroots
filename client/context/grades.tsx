@@ -20,7 +20,7 @@ import {
   getTeacherGrades,
   refreshGradeData,
   updateGradeRecord,
-} from '@/server/actions/context/grades'
+} from '@/server/actions/api/grades'
 
 interface GradeState {
   grades: PopulatedGrade[]

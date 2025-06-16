@@ -2,7 +2,7 @@
 
 import { Student } from '@/zUnused/types/user'
 
-import { getAllStudents } from '@/server/actions/context/students'
+import { getAllStudents } from '@/server/actions/api/students'
 import { StudentProvider } from '@/client/context/students'
 
 interface StudentsServerComponentProps {

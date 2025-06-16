@@ -18,7 +18,7 @@ import {
   restoreAttendance,
   softDeleteAttendance,
   updateAttendanceRecord,
-} from '@/server/actions/context/attendances'
+} from '@/server/actions/api/attendances'
 
 // Types principaux déjà existants
 import { Attendance, AttendanceRecord } from '@/types/db'

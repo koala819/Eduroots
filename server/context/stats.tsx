@@ -1,6 +1,6 @@
 'use server'
 
-import { refreshEntityStats, refreshGlobalStats } from '@/server/actions/context/stats'
+import { refreshEntityStats, refreshGlobalStats } from '@/server/actions/api/stats'
 import { StatsProvider } from '@/client/context/stats'
 import { SerializedValue } from '@/zUnused/serialization'
 

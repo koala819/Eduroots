@@ -21,7 +21,7 @@ import {
   getOneStudent,
   getTeachersForStudent,
   updateStudent as updateStudentAction,
-} from '@/server/actions/context/students'
+} from '@/server/actions/api/students'
 import { useCourses } from '@/client/context/courses'
 import { differenceInYears } from 'date-fns'
 

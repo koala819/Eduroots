@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getTeacherCourses } from '@/server/actions/context/courses'
+import { getTeacherCourses } from '@/server/actions/api/courses'
 import { Suspense } from 'react'
 import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
 import { CourseGrid } from '@/client/components/molecules/CourseGrid'

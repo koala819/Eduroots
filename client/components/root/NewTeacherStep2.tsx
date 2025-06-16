@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
 import {

@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { TeacherStatsClient } from '@/client/components/admin/atoms/TeacherStats'
 import Loading from '@/server/components/admin/atoms/Loading'
 
-import { getTeacherCourses } from '@/server/actions/context/courses'
+import { getTeacherCourses } from '@/server/actions/api/courses'
 
 export async function TeacherStats({
   teacherId,

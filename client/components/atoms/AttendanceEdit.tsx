@@ -15,7 +15,7 @@ import { Button } from '@/client/components/ui/button'
 import { useAttendance } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
 import { motion } from 'framer-motion'
-import { getCourseSessionById } from '@/server/actions/context/courses'
+import { getCourseSessionById } from '@/server/actions/api/courses'
 import { CourseSessionWithRelations } from '@/types/courses'
 
 interface AttendanceEditProps {

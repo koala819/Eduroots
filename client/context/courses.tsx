@@ -25,7 +25,7 @@ import {
   updateCourse as updateCourseAction,
   updateCourseSession as updateCourseSessionAction,
   updateCourses as updateCoursesAction,
-} from '@/server/actions/context/courses'
+} from '@/server/actions/api/courses'
 
 import { Database } from '@/types/db'
 import { TimeSlotEnum } from '@/types/courses'

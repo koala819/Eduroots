@@ -2,7 +2,7 @@
 
 import { Teacher } from '@/zUnused/types/user'
 
-import { getAllTeachers } from '@/server/actions/context/teachers'
+import { getAllTeachers } from '@/server/actions/api/teachers'
 import { TeacherProvider } from '@/client/context/teachers'
 
 interface TeachersServerComponentProps {

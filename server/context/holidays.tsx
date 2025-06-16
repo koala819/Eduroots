@@ -2,7 +2,7 @@
 
 import { Holiday } from '@/zUnused/types/holidays'
 
-import { getCurrentHolidays } from '@/server/actions/context/holidays'
+import { getCurrentHolidays } from '@/server/actions/api/holidays'
 import { HolidaysProvider } from '@/client/context/holidays'
 
 interface HolidaysServerComponentProps {

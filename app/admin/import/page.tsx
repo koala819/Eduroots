@@ -3,7 +3,7 @@
 import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
 import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/zUnused/import'
-import { fetchWithAuth } from '@/server/utils/fetchWithAuth'
+import { fetchWithAuth } from '@/zUnused/fetchWithAuth'
 import type { Student, Teacher } from '@/zUnused/types/user'
 import { SubjectNameEnum, LevelEnum } from '@/zUnused/types/course'
 import { TimeSlotEnum } from '@/types/courses'

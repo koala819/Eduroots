@@ -2,7 +2,7 @@
 
 import { PopulatedGrade } from '@/zUnused/types/grade'
 
-import { getTeacherGrades } from '@/server/actions/context/grades'
+import { getTeacherGrades } from '@/server/actions/api/grades'
 import { GradesProvider } from '@/client/context/grades'
 
 interface CoursesServerComponentProps {

@@ -18,7 +18,7 @@ import { useToast } from '@/client/hooks/use-toast'
 import { TimeSlotEnum } from '@/types/courses'
 import { DaySchedule, Period } from '@/types/schedule'
 
-import { getCurrentSchedule, saveSchedules } from '@/server/actions/context/schedules'
+import { getCurrentSchedule, saveSchedules } from '@/server/actions/api/schedules'
 
 interface ScheduleState {
   schedules: {

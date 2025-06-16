@@ -5,7 +5,7 @@ import { Student } from '@/zUnused/types/user'
 
 import StudentDashboard from '@/client/components/organisms/StudentDashboard'
 
-import { getAllStudents } from '@/server/actions/context/students'
+import { getAllStudents } from '@/server/actions/api/students'
 
 export const metadata = {
   title: 'Dashboard Étudiant | École',

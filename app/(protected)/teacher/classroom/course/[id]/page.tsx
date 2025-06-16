@@ -1,4 +1,4 @@
-import { getCourseSessionById } from '@/server/actions/context/courses'
+import { getCourseSessionById } from '@/server/actions/api/courses'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { generateSchoolDayDates } from '@/server/utils/server-helpers'
 import TeacherCourses from '@/client/components/pages/TeacherCourses'

@@ -2,7 +2,7 @@
 
 import { BehaviorDocument } from '@/zUnused/types/mongoose'
 
-import { fetchBehaviorsByCourse } from '@/server/actions/context/behaviors'
+import { fetchBehaviorsByCourse } from '@/server/actions/api/behaviors'
 import { BehaviorProvider } from '@/client/context/behaviors'
 
 interface BehaviorServerComponentProps {

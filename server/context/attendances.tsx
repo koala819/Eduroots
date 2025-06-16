@@ -2,7 +2,7 @@
 
 import { AttendanceDocument } from '@/zUnused/types/mongoose'
 
-import { getAttendanceById } from '@/server/actions/context/attendances'
+import { getAttendanceById } from '@/server/actions/api/attendances'
 import { AttendancesProvider } from '@/client/context/attendances'
 
 interface AttendanceServerComponentProps {

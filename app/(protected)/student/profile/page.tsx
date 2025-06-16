@@ -5,7 +5,7 @@ import { Student } from '@/zUnused/types/user'
 
 import StudentInfo from '@/components/organisms/server/StudentInfo'
 
-import { getAllStudents } from '@/server/actions/context/students'
+import { getAllStudents } from '@/server/actions/api/students'
 import { authOptions } from '@/lib/authOptions'
 
 export default async function FamilyPage() {

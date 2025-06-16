@@ -1,7 +1,7 @@
 'use server'
 
 import { Attendance, AttendanceRecord } from '@/types/db'
-import { getStudentAttendanceHistory } from '@/server/actions/context/attendances'
+import { getStudentAttendanceHistory } from '@/server/actions/api/attendances'
 import { SubjectNameEnum } from '@/types/courses'
 
 export interface CalculatedStats {

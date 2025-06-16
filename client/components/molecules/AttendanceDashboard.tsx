@@ -11,7 +11,7 @@ import { useCourses } from '@/client/context/courses'
 import { AnimatePresence } from 'framer-motion'
 import { EmptyContent, ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { User } from '@/types/db'
-import { getCourseSessionById } from '@/server/actions/context/courses'
+import { getCourseSessionById } from '@/server/actions/api/courses'
 
 export const AttendanceDashboard = ({
   courseSessionId,

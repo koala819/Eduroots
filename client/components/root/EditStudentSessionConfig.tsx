@@ -1,7 +1,9 @@
+'use client'
+
 import { Clock } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/types/courses'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 
 import { Card } from '@/client/components/ui/card'
 import {
@@ -18,11 +20,15 @@ import {
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface SessionSelection {
+  dayOfWeek: TimeSlotEnum
+  startTime: string
+  endTime: string
   subject: SubjectNameEnum
   teacherId: string
 }
 
 interface SessionFormData {
+  timeSlot: TimeSlotEnum
   selections: SessionSelection[]
 }
 

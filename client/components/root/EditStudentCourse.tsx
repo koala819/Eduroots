@@ -1,28 +1,27 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
 import { useRouter } from 'next/navigation'
-
 import { useToast } from '@/client/hooks/use-toast'
-
-import { PopulatedCourse, SubjectNameEnum, TIME_SLOT_SCHEDULE } from '@/zUnused/types/course'
-import { Teacher } from '@/zUnused/types/user'
-
+import {
+  CourseWithRelations,
+  SubjectNameEnum,
+  TIME_SLOT_SCHEDULE,
+  TimeSlotEnum,
+} from '@/types/courses'
+import { useCourses } from '@/client/context/courses'
+import { useTeachers } from '@/client/context/teachers'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { createClient } from '@/client/utils/supabase'
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { ChevronRight } from 'lucide-react'
 import { SessionConfig } from '@/server/components/root/EditStudentSessionConfig'
 import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'
 import { Button } from '@/client/components/ui/button'
 import { Form } from '@/client/components/ui/form'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
-
-import { useCourses } from '@/client/context/courses'
-import { useTeachers } from '@/client/context/teachers'
-import { fetchWithAuth } from '@/server/utils/fetchWithAuth'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { TimeSlotEnum } from '@/types/courses'
 
 const sessionSchema = z.object({
   timeSlot: z.nativeEnum(TimeSlotEnum, {
@@ -45,17 +44,16 @@ const sessionSchema = z.object({
 
 type FormData = z.infer<typeof sessionSchema>
 
-export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
+export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
   const router = useRouter()
-
   const { toast } = useToast()
-  const { getStudentCourses, addStudentToCourse, removeStudentFromCourse, courses } = useCourses()
+  const { getStudentCourses, addStudentToCourse, courses } = useCourses()
   const { teachers, getAllTeachers } = useTeachers()
+  const supabase = createClient()
 
-  const [existingCourses, setExistingCourses] = useState<PopulatedCourse[]>([])
+  const [existingCourses, setExistingCourses] = useState<CourseWithRelations[]>([])
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>('')
   const [pageIsLoading, setPageIsLoading] = useState<boolean>(true)
-
   const [isSaving, setIsSaving] = useState<boolean>(false)
 
   const form = useForm<FormData>({
@@ -71,12 +69,7 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
     () =>
       Object.entries(TIME_SLOT_SCHEDULE).map(([key, value]) => ({
         id: key as TimeSlotEnum,
-        label:
-          key === TimeSlotEnum.SATURDAY_MORNING
-            ? 'Samedi Matin'
-            : key === TimeSlotEnum.SATURDAY_AFTERNOON
-              ? 'Samedi Après-midi'
-              : 'Dimanche Matin',
+        label: formatDayOfWeek(key as TimeSlotEnum),
         sessions: [
           { startTime: value.START, endTime: value.PAUSE },
           { startTime: value.PAUSE, endTime: value.FINISH },
@@ -85,60 +78,82 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
     [],
   )
 
+  const createInitialSelections = (
+    courses: CourseWithRelations[],
+    initialTimeSlot: TimeSlotEnum,
+  ) => {
+    return courses
+      .flatMap((course) =>
+        course.courses_sessions
+          .filter(
+            (session) =>
+              session.courses_sessions_students.some((student) => student.users.id === studentId) &&
+              session.courses_sessions_timeslot[0].day_of_week === initialTimeSlot,
+          )
+          .map((session) => ({
+            dayOfWeek: initialTimeSlot,
+            startTime: session.courses_sessions_timeslot[0].start_time,
+            endTime: session.courses_sessions_timeslot[0].end_time,
+            subject: session.subject as SubjectNameEnum,
+            teacherId: course.courses_teacher[0].users.id,
+          })),
+      )
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+  }
+
+  const loadData = async () => {
+    setPageIsLoading(true)
+    try {
+      const [courses] = await Promise.all([getStudentCourses(studentId), getAllTeachers()])
+      setExistingCourses(courses)
+
+      if (courses.length > 0) {
+        const firstCourse = courses[0]
+        const firstSession = firstCourse.courses_sessions.find((session) =>
+          session.courses_sessions_students.some((student) => student.users.id === studentId),
+        )
+
+        if (firstSession) {
+          const initialTimeSlot = firstSession.courses_sessions_timeslot[0].day_of_week
+          setSelectedTimeSlot(initialTimeSlot)
+          form.setValue('timeSlot', initialTimeSlot)
+
+          const initialSelections = courses
+            .flatMap((course) =>
+              course.courses_sessions
+                .filter(
+                  (session) =>
+                    session.courses_sessions_students.some(
+                      (student) => student.users.id === studentId,
+                    ) &&
+                    session.courses_sessions_timeslot[0].day_of_week === initialTimeSlot,
+                )
+                .map((session) => ({
+                  dayOfWeek: initialTimeSlot,
+                  startTime: session.courses_sessions_timeslot[0].start_time,
+                  endTime: session.courses_sessions_timeslot[0].end_time,
+                  subject: session.subject as SubjectNameEnum,
+                  teacherId: course.courses_teacher[0].users.id,
+                })),
+            )
+            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+
+          form.setValue('selections', initialSelections)
+        }
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Impossible de charger les données de l\'étudiant',
+      })
+    } finally {
+      setPageIsLoading(false)
+    }
+  }
+
   // Chargement initial des données
   useEffect(() => {
-    const loadData = async () => {
-      setPageIsLoading(true)
-      try {
-        const [courses] = await Promise.all([getStudentCourses(studentId), getAllTeachers()])
-
-        setExistingCourses(courses)
-
-        if (courses.length > 0) {
-          const firstCourse = courses[0]
-          const firstSession = firstCourse.sessions.find((session) =>
-            session.students.some((student) => student._id === studentId),
-          )
-
-          if (firstSession) {
-            const initialTimeSlot = firstSession.timeSlot.dayOfWeek as TimeSlotEnum
-            setSelectedTimeSlot(initialTimeSlot)
-            form.setValue('timeSlot', initialTimeSlot)
-
-            const initialSelections = courses
-              .flatMap((course) =>
-                course.sessions
-                  .filter(
-                    (session) =>
-                      session.students.some((student) => student._id === studentId) &&
-                      session.timeSlot.dayOfWeek === initialTimeSlot,
-                  )
-                  .map((session) => ({
-                    dayOfWeek: initialTimeSlot,
-                    startTime: session.timeSlot.startTime,
-                    endTime: session.timeSlot.endTime,
-                    subject: session.subject as SubjectNameEnum,
-                    teacherId: Array.isArray(course.teacher)
-                      ? (course.teacher[0] as Teacher)._id
-                      : (course.teacher as Teacher)._id,
-                  })),
-              )
-              .sort((a, b) => a.startTime.localeCompare(b.startTime))
-
-            form.setValue('selections', initialSelections)
-          }
-        }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Impossible de charger les données de l\'étudiant',
-        })
-      } finally {
-        setPageIsLoading(false)
-      }
-    }
-
     loadData()
   }, [studentId, getStudentCourses, getAllTeachers, toast, form])
 
@@ -146,26 +161,24 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
   useEffect(() => {
     if (existingCourses && selectedTimeSlot) {
       const filteredCourses = existingCourses
-        .map((course: PopulatedCourse) => ({
+        .map((course) => ({
           ...course,
-          sessions: course.sessions.filter(
+          courses_sessions: course.courses_sessions.filter(
             (session) =>
-              session.students.some((student) => student._id === studentId) &&
-              session.timeSlot.dayOfWeek === selectedTimeSlot,
+              session.courses_sessions_students.some((student) => student.users.id === studentId) &&
+              session.courses_sessions_timeslot[0].day_of_week === selectedTimeSlot,
           ),
         }))
-        .filter((course) => course.sessions.length > 0)
+        .filter((course) => course.courses_sessions.length > 0)
 
       const formattedSelections = filteredCourses
         .flatMap((course) =>
-          course.sessions.map((session) => ({
-            dayOfWeek: selectedTimeSlot as TimeSlotEnum,
-            startTime: session.timeSlot.startTime,
-            endTime: session.timeSlot.endTime,
+          course.courses_sessions.map((session) => ({
+            dayOfWeek: selectedTimeSlot,
+            startTime: session.courses_sessions_timeslot[0].start_time,
+            endTime: session.courses_sessions_timeslot[0].end_time,
             subject: session.subject as SubjectNameEnum,
-            teacherId: Array.isArray(course.teacher)
-              ? (course.teacher[0] as Teacher)._id
-              : (course.teacher as Teacher)._id,
+            teacherId: course.courses_teacher[0].users.id,
           })),
         )
         .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -174,8 +187,6 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
       form.setValue('timeSlot', selectedTimeSlot)
     }
   }, [existingCourses, selectedTimeSlot, studentId])
-
-  // Obtenir les professeurs disponibles pour un créneau et une matière donnés
 
   const getAvailableTeachers = useCallback(
     (subject: SubjectNameEnum, startTime: string, endTime: string) => {
@@ -186,17 +197,14 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
       const availableTeachers = new Set<string>()
 
       courses.forEach((course) => {
-        course.sessions.forEach((session) => {
+        course.courses_sessions.forEach((session) => {
           if (
-            session.timeSlot.dayOfWeek === selectedTimeSlot &&
+            session.courses_sessions_timeslot[0].day_of_week === selectedTimeSlot &&
             session.subject === subject &&
-            session.timeSlot.startTime === startTime &&
-            session.timeSlot.endTime === endTime
+            session.courses_sessions_timeslot[0].start_time === startTime &&
+            session.courses_sessions_timeslot[0].end_time === endTime
           ) {
-            const teacherId = Array.isArray(course.teacher)
-              ? normalizeTeacherId(course.teacher[0])
-              : normalizeTeacherId(course.teacher)
-
+            const teacherId = course.courses_teacher[0].users.id
             if (teacherId) {
               availableTeachers.add(teacherId)
             }
@@ -205,24 +213,11 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
       })
 
       return teachers
-        .filter((teacher) => availableTeachers.has(normalizeTeacherId(teacher.id)))
+        .filter((teacher) => availableTeachers.has(teacher.id))
         .sort((a, b) => a.firstname.localeCompare(b.firstname))
     },
     [selectedTimeSlot, courses, teachers],
   )
-
-  function normalizeTeacherId(id: string | any) {
-    if (typeof id === 'string') return id
-    if (id?._id) return id._id.toString()
-    if (id?.toString) return id.toString()
-    return id
-  }
-
-  // function handleTimeSlotChange(value: TimeSlotEnum) {
-  //   setSelectedTimeSlot(value)
-  //   form.setValue('timeSlot', value)
-  //   form.setValue('selections', [])
-  // }
 
   function handleTimeSlotChange(value: TimeSlotEnum) {
     setSelectedTimeSlot(value)
@@ -268,7 +263,6 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
     const subject = form.getValues(`selections.${index}.subject`)
     const timeSlot = form.getValues('timeSlot')
 
-    // Mettre à jour uniquement la sélection à l'index spécifié
     form.setValue(`selections.${index}`, {
       ...selections[index],
       subject,
@@ -279,19 +273,17 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
     })
   }
 
+
+
   async function onSubmit(data: FormData) {
     try {
       setIsSaving(true)
 
-      // console.log('Données soumises:', data.selections)
-      // console.log('Cours existants:', existingCourses)
-
       // 1. Supprimer les inscriptions qui ne sont plus sélectionnées
       if (existingCourses.length > 0) {
-        const oldTeacherId =
-          Array.isArray(existingCourses[0].teacher) && existingCourses[0].teacher[0]._id
+        const oldTeacherId = existingCourses[0].courses_teacher[0].users.id
 
-        const response = await fetchWithAuth(
+        const response = await fetch(
           `api/courses/clean?oldTeacherId=${oldTeacherId}&studentId=${studentId}`,
           {
             method: 'DELETE',
@@ -303,36 +295,20 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
       }
 
       // 2. Ajouter les nouvelles sélections
-      // console.log('\nNouvelles sélections à ajouter:')
       await Promise.all(
         data.selections.map((selection) => {
-          // console.log({
-          //   teacherId: selection.teacherId,
-          //   studentId: studentId,
-          //   sessionDetails: {
-          //     dayOfWeek: selection.dayOfWeek,
-          //     startTime: selection.startTime,
-          //     endTime: selection.endTime,
-          //     subject: selection.subject,
-          //   },
-          // })
-          // Trouver le cours du professeur
-          const teacherCourse = courses.find((course) => {
-            return Array.isArray(course.teacher)
-              ? course.teacher.some((t) => t._id.toString() === selection.teacherId)
-              : course.teacher._id.toString() === selection.teacherId
-          })
-
-          // console.log('Found teacher course:', teacherCourse)
+          const teacherCourse = courses.find((course) =>
+            course.courses_teacher[0].users.id === selection.teacherId,
+          )
 
           if (!teacherCourse) {
             throw new Error(`Cours non trouvé pour le professeur ${selection.teacherId}`)
           }
 
-          return addStudentToCourse(teacherCourse._id.toString(), studentId, {
-            dayOfWeek: selection.dayOfWeek,
-            startTime: selection.startTime,
-            endTime: selection.endTime,
+          return addStudentToCourse(teacherCourse.id, studentId, {
+            day_of_week: selection.dayOfWeek as TimeSlotEnum,
+            start_time: selection.startTime,
+            end_time: selection.endTime,
             subject: selection.subject,
           })
         }),
@@ -359,7 +335,6 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
         router.push('/admin')
         window.location.reload()
       }, 100)
-      // router.push(`/admin/root/student/edit/${studentId}`)
     }
   }
 
@@ -376,7 +351,6 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-8">
         <div className="space-y-4 md:space-y-6">
           <h2 className="text-base md:text-lg font-medium">Sélectionnez un créneau</h2>
-          {/* Changer la grille pour être en colonne sur mobile */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {timeSlotConfigs.map((config) => (
               <TimeSlotCard
@@ -415,7 +389,6 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
           </div>
         )}
 
-        {/* Adapter les boutons pour mobile */}
         <div className="flex flex-col sm:flex-row justify-start gap-3 sm:gap-4 pt-4">
           <Button
             type="button"
@@ -423,7 +396,7 @@ export const EditCourseStudent = ({ studentId }: {studentId: string}) => {
             onClick={() => router.push(`/admin/root/student/edit/${studentId}`)}
             className="w-full sm:w-auto"
           >
-            Annuler
+          Annuler
           </Button>
           <Button
             type="submit"

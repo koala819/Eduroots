@@ -29,7 +29,7 @@ import {
   refreshTeacherStudentsStats,
   updateStudentStats,
   updateTeacherStats,
-} from '@/server/actions/context/stats'
+} from '@/server/actions/api/stats'
 import { SerializedValue } from '@/zUnused/serialization'
 
 interface StatsState {

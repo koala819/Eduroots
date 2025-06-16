@@ -2,7 +2,7 @@
 
 import { DaySchedule } from '@/zUnused/types/schedule'
 
-import { getCurrentSchedule } from '@/server/actions/context/schedules'
+import { getCurrentSchedule } from '@/server/actions/api/schedules'
 import { SchedulesProvider } from '@/client/context/schedules'
 
 interface SchedulesServerComponentProps {

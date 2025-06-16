@@ -29,7 +29,7 @@ import {
   getBehaviorByIdAndDate,
   getStudentBehaviorHistory,
   updateBehaviorRecord,
-} from '@/server/actions/context/behaviors'
+} from '@/server/actions/api/behaviors'
 
 interface BehaviorState {
   behaviorRecords: Behavior[]

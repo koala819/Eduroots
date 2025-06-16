@@ -3,7 +3,7 @@ import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTabl
 import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'
 import { Alert, AlertDescription } from '@/client/components/ui/alert'
 
-import { getStudentCourses } from '@/server/actions/context/courses'
+import { getStudentCourses } from '@/server/actions/api/courses'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 

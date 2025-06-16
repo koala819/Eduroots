@@ -6,8 +6,8 @@ import { Course } from '@/zUnused/types/course'
 
 import StudentAvatar from '@/server/components/atoms/StudentAvatar'
 
-import { getStudentCourses } from '@/server/actions/context/courses'
-import { getTeachersForStudent } from '@/server/actions/context/students'
+import { getStudentCourses } from '@/server/actions/api/courses'
+import { getTeachersForStudent } from '@/server/actions/api/students'
 import { GenderEnum } from '@/types/user'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'

@@ -3,7 +3,7 @@ import { TeacherCourseResponse } from '@/types/db'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { RealtimeChannel } from '@supabase/supabase-js'
-import { getTeacherCourses } from '@/server/actions/context/courses'
+import { getTeacherCourses } from '@/server/actions/api/courses'
 
 interface CourseState {
   courses: TeacherCourseResponse[]

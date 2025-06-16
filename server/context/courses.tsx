@@ -2,7 +2,7 @@
 
 import { Database } from '@/types/db'
 
-import { getCourseSessionById } from '@/server/actions/context/courses'
+import { getCourseSessionById } from '@/server/actions/api/courses'
 import { CoursesProvider } from '@/client/context/courses'
 
 type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
