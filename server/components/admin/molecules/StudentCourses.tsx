@@ -54,8 +54,8 @@ export async function StudentCourses({
       }
 
       const dayDiff =
-        timeSlotOrder[a.session.timeSlot.dayOfWeek as TimeSlotEnum] -
-        timeSlotOrder[b.session.timeSlot.dayOfWeek as TimeSlotEnum]
+        timeSlotOrder[a.session.timeSlot.day_of_week as TimeSlotEnum] -
+        timeSlotOrder[b.session.timeSlot.day_of_week as TimeSlotEnum]
 
       if (dayDiff !== 0) return dayDiff
 
