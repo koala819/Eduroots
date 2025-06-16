@@ -14,6 +14,8 @@ import {
 import { useStats } from '@/client/context/stats'
 import { useStudents } from '@/client/context/students'
 import { compareDesc } from 'date-fns'
+import { StudentResponse } from '@/types/student-payload'
+import { StudentStats } from '@/types/stats'
 
 // Types de tri disponibles
 type SortType = 'alphabetical' | 'absences-desc' | 'recent-activity' | 'last-absence'
@@ -74,46 +76,61 @@ export const HighRiskAbsenceStudents = () => {
   // Filtrer et trier les étudiants selon les statistiques et le type de tri
   const filteredAndSortedStudents = useMemo(() => {
     // Filtrer d'abord pour ne garder que les étudiants à risque
-    const filteredStudents = students.filter((student) => statsMap.has(student._id))
+    const filteredStudents = students.filter((student) => statsMap.has(student.id))
 
     // Trier ensuite selon le critère sélectionné
+    const sortByAlphabetical = (a: StudentResponse, b: StudentResponse): number => {
+      const lastNameComparison = a.lastname.localeCompare(b.lastname)
+      return lastNameComparison === 0 ? a.firstname.localeCompare(b.firstname) : lastNameComparison
+    }
+
+    const sortByAbsencesCount = (
+      statsA: StudentStats | undefined,
+      statsB: StudentStats | undefined,
+    ): number => {
+      if (!statsA || !statsB) return 0
+      return statsB.absencesCount - statsA.absencesCount
+    }
+
+    const sortByLastActivity = (
+      statsA: StudentStats | undefined,
+      statsB: StudentStats | undefined,
+    ): number => {
+      if (!statsA?.lastActivity && !statsB?.lastActivity) return 0
+      if (!statsA?.lastActivity) return 1
+      if (!statsB?.lastActivity) return -1
+      return compareDesc(new Date(statsA.lastActivity), new Date(statsB.lastActivity))
+    }
+
+    const sortByLastAbsence = (
+      statsA: StudentStats | undefined,
+      statsB: StudentStats | undefined,
+    ): number => {
+      if (!statsA?.absences.length && !statsB?.absences.length) return 0
+      if (!statsA?.absences.length) return 1
+      if (!statsB?.absences.length) return -1
+
+      const lastAbsenceA = statsA.absences[statsA.absences.length - 1].date
+      const lastAbsenceB = statsB.absences[statsB.absences.length - 1].date
+
+      return compareDesc(new Date(lastAbsenceA), new Date(lastAbsenceB))
+    }
+
     return [...filteredStudents].sort((a, b) => {
-      const statsA = statsMap.get(a._id)
-      const statsB = statsMap.get(b._id)
+      const statsA = statsMap.get(a.id)
+      const statsB = statsMap.get(b.id)
 
       if (!statsA || !statsB) return 0
 
       switch (sortType) {
       case 'alphabetical':
-        // Tri alphabétique par nom puis prénom
-        const lastNameComparison = a.lastname.localeCompare(b.lastname)
-        if (lastNameComparison === 0) {
-          return a.firstname.localeCompare(b.firstname)
-        }
-        return lastNameComparison
-
+        return sortByAlphabetical(a, b)
       case 'absences-desc':
-        // Tri par nombre d'absences (décroissant)
-        return statsB.absencesCount - statsA.absencesCount
-
+        return sortByAbsencesCount(statsA, statsB)
       case 'recent-activity':
-        // Tri par dernière activité (la plus récente en premier)
-        if (!statsA.lastActivity && !statsB.lastActivity) return 0
-        if (!statsA.lastActivity) return 1
-        if (!statsB.lastActivity) return -1
-        return compareDesc(new Date(statsA.lastActivity), new Date(statsB.lastActivity))
-
+        return sortByLastActivity(statsA, statsB)
       case 'last-absence':
-        // Tri par date de dernière absence (la plus récente en premier)
-        if (!statsA.absences.length && !statsB.absences.length) return 0
-        if (!statsA.absences.length) return 1
-        if (!statsB.absences.length) return -1
-
-        const lastAbsenceA = statsA.absences[statsA.absences.length - 1].date
-        const lastAbsenceB = statsB.absences[statsB.absences.length - 1].date
-
-        return compareDesc(new Date(lastAbsenceA), new Date(lastAbsenceB))
-
+        return sortByLastAbsence(statsA, statsB)
       default:
         return 0
       }
@@ -181,7 +198,8 @@ export const HighRiskAbsenceStudents = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Badge className="bg-red-600 px-3 py-1 text-base w-full sm:w-auto mt-2 sm:mt-0 text-center sm:text-left">
+          <Badge className="bg-red-600 px-3 py-1 text-base w-full sm:w-auto mt-2 sm:mt-0
+          text-center sm:text-left">
             {filteredAndSortedStudents.length} étudiant
             {filteredAndSortedStudents.length !== 1 ? 's' : ''}
           </Badge>
@@ -198,9 +216,9 @@ export const HighRiskAbsenceStudents = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSortedStudents.map((student) => (
             <StudentAbsenceCard
-              key={student._id}
+              key={student.id}
               student={student}
-              stats={statsMap.get(student._id)}
+              stats={statsMap.get(student.id)}
             />
           ))}
         </div>

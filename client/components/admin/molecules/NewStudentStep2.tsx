@@ -3,25 +3,36 @@
 import { useCallback, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum } from '@/zUnused/types/course'
+import { SubjectNameEnum,TimeSlotEnum } from '@/types/courses'
 import { TeacherStats } from '@/types/stats'
-import { GenderEnum, Teacher } from '@/zUnused/types/user'
+import { GenderEnum } from '@/types/user'
 
 import { TeacherOption } from '@/client/components/admin/atoms/NewStudentTeacherOption'
 import { FormData } from '@/client/components/organisms/NewStudentForm'
 import { Card } from '@/client/components/ui/card'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger, SelectValue,
+} from '@/client/components/ui/select'
 
 import { useCourses } from '@/client/context/courses'
 import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { TimeSlotEnum } from '@/types/courses'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface StepTwoProps {
   form: UseFormReturn<FormData>
-  teachers: Teacher[]
+  teachers: TeacherResponse[]
 }
 
 export interface TimeSlotSelection {
@@ -59,6 +70,81 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
   // Récupérer les sessions uniques pour le jour sélectionné
   const availableSessions = selectedTimeSlot ? schedules[selectedTimeSlot]?.periods || [] : []
 
+  const createDefaultTeacherStats = (): TeacherStats => ({
+    totalStudents: 0,
+    genderDistribution: {
+      counts: {
+        [GenderEnum.Masculin]: 0,
+        [GenderEnum.Feminin]: 0,
+        undefined: 0,
+      },
+      percentages: {
+        [GenderEnum.Masculin]: '0',
+        [GenderEnum.Feminin]: '0',
+        undefined: '0',
+      },
+    },
+    minAge: 0,
+    maxAge: 0,
+    averageAge: 0,
+  })
+
+  const formatGenderDistribution = (stats: any): TeacherStats['genderDistribution'] => {
+    const defaultDist = createDefaultTeacherStats().genderDistribution
+
+    if (!stats?.genderDistribution || typeof stats.genderDistribution !== 'object') {
+      return defaultDist
+    }
+
+    const genderDist = stats.genderDistribution
+    const counts = genderDist.counts && typeof genderDist.counts === 'object'
+      ? genderDist.counts
+      : {}
+    const percentages = genderDist.percentages && typeof genderDist.percentages === 'object'
+      ? genderDist.percentages
+      : {
+        [GenderEnum.Masculin]: '0',
+        [GenderEnum.Feminin]: '0',
+        undefined: '0',
+      }
+
+    const formatCount = (key: GenderEnum | 'undefined') =>
+      Number((counts)[key]) || 0
+
+    const formatPercentage = (key: GenderEnum | 'undefined') =>
+      String((percentages)[key]) || '0'
+
+    return {
+      counts: {
+        [GenderEnum.Masculin]: formatCount(GenderEnum.Masculin),
+        [GenderEnum.Feminin]: formatCount(GenderEnum.Feminin),
+        undefined: formatCount('undefined'),
+      },
+      percentages: {
+        [GenderEnum.Masculin]: formatPercentage(GenderEnum.Masculin),
+        [GenderEnum.Feminin]: formatPercentage(GenderEnum.Feminin),
+        undefined: formatPercentage('undefined'),
+      },
+    }
+  }
+
+  const formatTeacherStats = (statsFromContext: any): TeacherStats => {
+    const formattedStats = createDefaultTeacherStats()
+
+    if (!statsFromContext || typeof statsFromContext !== 'object') {
+      return formattedStats
+    }
+
+    return {
+      ...formattedStats,
+      totalStudents: Number(statsFromContext.totalStudents) || 0,
+      genderDistribution: formatGenderDistribution(statsFromContext),
+      minAge: Number(statsFromContext.minAge) || 0,
+      maxAge: Number(statsFromContext.maxAge) || 0,
+      averageAge: Number(statsFromContext.averageAge) || 0,
+    }
+  }
+
   // Obtenir les professeurs disponibles pour un créneau et une matière donnés
   // Calculer les statistiques pour chaque professeur
   const getAvailableTeachersWithStats = useCallback(
@@ -89,106 +175,19 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
 
       // 3. Filtrer les enseignants disponibles
       return teachers
-        .filter((teacher) => teacherIds.has(teacher.id) || teacherIds.has(teacher._id))
+        .filter((teacher) => teacherIds.has(teacher.id))
         .map((teacher) => {
           // 4. Chercher les statistiques correspondantes dans le contexte Stats
-          const teacherId = teacher.id || teacher._id
+          const teacherId = teacher.id
           const statsFromContext = teacherStats.find(
             (stat) =>
               stat && typeof stat === 'object' && 'userId' in stat && stat.userId === teacherId,
           )
 
-          // 5. Créer un objet de statistiques correctement typé
-          const defaultStats: TeacherStats = {
-            totalStudents: 0,
-            genderDistribution: {
-              counts: {
-                [GenderEnum.Masculin]: 0,
-                [GenderEnum.Feminin]: 0,
-                undefined: 0,
-              },
-              percentages: {
-                [GenderEnum.Masculin]: '0',
-                [GenderEnum.Feminin]: '0',
-                undefined: '0',
-              },
-            },
-            minAge: 0,
-            maxAge: 0,
-            averageAge: 0,
-          }
-
-          // 6. Fusionner avec les stats disponibles, en assurant le bon typage
-          const formattedStats: TeacherStats = { ...defaultStats }
-
-          if (statsFromContext && typeof statsFromContext === 'object') {
-            // Extraire les données pertinentes et les convertir au bon format
-            if ('totalStudents' in statsFromContext) {
-              formattedStats.totalStudents = Number(statsFromContext.totalStudents) || 0
-            }
-
-            if (
-              'genderDistribution' in statsFromContext &&
-              statsFromContext.genderDistribution &&
-              typeof statsFromContext.genderDistribution === 'object'
-            ) {
-              const genderDist = statsFromContext.genderDistribution
-
-              if (
-                'counts' in genderDist &&
-                genderDist.counts &&
-                typeof genderDist.counts === 'object'
-              ) {
-                formattedStats.genderDistribution.counts = {
-                  [GenderEnum.Masculin]:
-                    Number(
-                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Masculin],
-                    ) || 0,
-                  [GenderEnum.Feminin]:
-                    Number(
-                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Feminin],
-                    ) || 0,
-                  undefined: Number((genderDist.counts as {[key: string]: number})?.undefined) || 0,
-                }
-              }
-
-              if (
-                'percentages' in genderDist &&
-                genderDist.percentages &&
-                typeof genderDist.percentages === 'object'
-              ) {
-                formattedStats.genderDistribution.percentages = {
-                  [GenderEnum.Masculin]:
-                    String(
-                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Masculin],
-                    ) || '0',
-                  [GenderEnum.Feminin]:
-                    String(
-                      (genderDist.counts as {[key in GenderEnum]: number})[GenderEnum.Feminin],
-                    ) || '0',
-                  undefined:
-                    String((genderDist.percentages as {[key: string]: string})?.undefined) || '0',
-                }
-              }
-            }
-
-            if ('minAge' in statsFromContext) {
-              formattedStats.minAge = Number(statsFromContext.minAge) || 0
-            }
-
-            if ('maxAge' in statsFromContext) {
-              formattedStats.maxAge = Number(statsFromContext.maxAge) || 0
-            }
-
-            if ('averageAge' in statsFromContext) {
-              formattedStats.averageAge = Number(statsFromContext.averageAge) || 0
-            }
-          }
-
-          // 7. Retourner l'enseignant avec des stats correctement typées
+          // 5. Retourner l'enseignant avec des stats correctement typées
           return {
             ...teacher,
-            stats: formattedStats,
+            stats: formatTeacherStats(statsFromContext),
           }
         })
         .sort((a, b) => a.firstname.localeCompare(b.firstname))
@@ -234,7 +233,7 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
   }
 
   function getTeacherName(teacherId: string) {
-    const teacher = teachers.find((t) => t.id === teacherId || t._id === teacherId)
+    const teacher = teachers.find((t) => t.id === teacherId)
     return teacher ? `${teacher.firstname} ${teacher.lastname}` : ''
   }
 
@@ -244,13 +243,6 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
       ...prev,
       [timeSlotKey]: subject,
     }))
-  }
-
-  function getTeacherId(teacher: Teacher | Teacher[]) {
-    if (Array.isArray(teacher) && teacher[0]) {
-      return teacher[0]._id || teacher[0].id // Gérer les deux possibilités
-    }
-    return (teacher as any)?._id ?? (teacher as any)?.id
   }
 
   return (
@@ -293,7 +285,8 @@ const StepTwo = ({ form, teachers }: StepTwoProps) => {
       {selectedTimeSlot && isLoading ? (
         <Card className="p-4 md:p-6 flex justify-center items-center min-h-[200px]">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent
+             rounded-full animate-spin" />
             <div className="text-sm text-muted-foreground">
               Chargement des créneaux disponibles...
             </div>

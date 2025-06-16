@@ -1,6 +1,6 @@
 'use client'
 
-import { CourseSession } from '@/zUnused/types/course'
+import { CourseSessionWithRelations } from '@/types/courses'
 
 import { TeacherCard } from '@/client/components/admin/atoms/PlanningTeacherCard'
 
@@ -16,12 +16,12 @@ export const TimeSlotColumn = ({
   onSessionClick,
 }: {
   timeSlot: FixedTimeSlot
-  sessions: CourseSession[]
-  onSessionClick: (session: CourseSession) => void
+  sessions: CourseSessionWithRelations[]
+  onSessionClick: (session: CourseSessionWithRelations) => void
 }) => {
   const sortedSessions = [...sessions].sort((a, b) => {
-    const firstnameA = a.user?.firstname || ''
-    const firstnameB = b.user?.firstname || ''
+    const firstnameA = a.courses_sessions_students[0]?.users?.firstname ?? ''
+    const firstnameB = b.courses_sessions_students[0]?.users?.firstname ?? ''
     return firstnameA.localeCompare(firstnameB)
   })
 

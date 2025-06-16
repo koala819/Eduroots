@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 
 import { StudentStats } from '@/types/stats'
-import { Student } from '@/zUnused/types/user'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/client/components/ui/card'
@@ -31,13 +30,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui
 import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { motion } from 'framer-motion'
+import { StudentResponse } from '@/types/student-payload'
 
 interface StudentAbsenceCardProps {
-  student: Student
+  student: StudentResponse
   stats: StudentStats
 }
 
-export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) => {
+export const StudentAbsenceCard = ({ student, stats }: Readonly<StudentAbsenceCardProps>) => {
   // Fonction pour formater la distance par rapport à maintenant
   function formatTimeToNow(date: Date | null): string {
     if (!date) return 'Jamais'
