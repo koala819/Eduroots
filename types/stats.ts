@@ -76,14 +76,14 @@ export interface TeacherStats {
 // Type d'union pour les deux types de statistiques
 export type EntityStats = StudentStats | TeacherStats
 
-// // Type guards pour déterminer le type de statistiques
-// export function isStudentStats(stats: EntityStats): stats is StudentStats {
-//   return 'absencesRate' in stats
-// }
+// Type guards pour déterminer le type de statistiques
+export function isStudentStats(stats: EntityStats): stats is StudentStats {
+  return 'absencesRate' in stats
+}
 
-// export function isTeacherStats(stats: EntityStats): stats is TeacherStats {
-//   return 'totalStudents' in stats
-// }
+export function isTeacherStats(stats: EntityStats): stats is TeacherStats {
+  return 'totalStudents' in stats
+}
 
 // Type pour les statistiques globales
 export interface GlobalStats {

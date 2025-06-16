@@ -168,7 +168,21 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Stud
     const { data: user, error } = await supabase
       .schema('education')
       .from('users')
-      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        type,
+        subjects,
+        created_at,
+        updated_at,
+        gender,
+        date_of_birth,
+        secondary_email,
+        phone,
+        school_year
+      `)
       .eq('is_active', true)
       .eq('role', 'student')
       .eq('id', studentId)
@@ -269,7 +283,21 @@ export async function getTeachersForStudent(
     const { data: student, error: studentError } = await supabase
       .schema('education')
       .from('users')
-      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        type,
+        subjects,
+        created_at,
+        updated_at,
+        gender,
+        date_of_birth,
+        secondary_email,
+        phone,
+        school_year
+      `)
       .eq('id', studentId)
       .single()
 
@@ -321,7 +349,21 @@ export async function updateStudent(
       .eq('id', studentId)
       .eq('role', 'student')
       .eq('is_active', true)
-      .select('id, email, firstname, lastname, type, subjects, created_at, updated_at')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        type,
+        subjects,
+        created_at,
+        updated_at,
+        gender,
+        date_of_birth,
+        secondary_email,
+        phone,
+        school_year
+      `)
       .single()
 
     if (error || !updatedUser) {

@@ -1,6 +1,9 @@
-import { Database } from './db'
 
-export type CreateGradePayload = Database['education']['Tables']['grades']['Insert'] & {
+export type CreateGradePayload = {
+  course_session_id: string
+  date: string
+  type: string
+  is_draft: boolean
   records: Array<{
     student_id: string
     value: number | null

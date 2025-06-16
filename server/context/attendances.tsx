@@ -1,6 +1,6 @@
 'use server'
 
-import { AttendanceDocument } from '@/zUnused/types/mongoose'
+import { Attendance } from '@/types/db'
 
 import { getAttendanceById } from '@/server/actions/api/attendances'
 import { AttendancesProvider } from '@/client/context/attendances'
@@ -15,7 +15,7 @@ export default async function AttendanceServerComponent({
   courseId,
 }: Readonly<AttendanceServerComponentProps>) {
   // Si un courseId est fourni, on pré-charge les données pour ce cours
-  let initialAttendanceData: AttendanceDocument[] | null = null
+  let initialAttendanceData: Attendance[] | null = null
 
   if (courseId) {
     // Récupération des données avec typage explicite
@@ -24,8 +24,8 @@ export default async function AttendanceServerComponent({
     if (response.success && response.data) {
       // Traitement uniforme des données
       initialAttendanceData = Array.isArray(response.data)
-        ? (response.data as AttendanceDocument[])
-        : ([response.data] as AttendanceDocument[])
+        ? (response.data as Attendance[])
+        : ([response.data] as Attendance[])
     }
   }
 

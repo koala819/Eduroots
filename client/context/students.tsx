@@ -12,7 +12,8 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { Student, Teacher } from '@/zUnused/types/user'
+import { Teacher } from '@/zUnused/types/user'
+import { CreateStudentPayload, StudentResponse } from '@/types/student-payload'
 
 import {
   createStudent as createStudentAction,
@@ -26,22 +27,22 @@ import { useCourses } from '@/client/context/courses'
 import { differenceInYears } from 'date-fns'
 
 interface StudentState {
-  students: Student[]
+  students: StudentResponse[]
   isLoading: boolean
   error: string | null
 }
 
 interface StudentsProviderProps {
   children: ReactNode
-  initialStudentsData?: Student[] | null
+  initialStudentsData?: StudentResponse[] | null
 }
 
 type StudentAction =
-  | {type: 'SET_STUDENTS'; payload: Student[]}
+  | {type: 'SET_STUDENTS'; payload: StudentResponse[]}
   | {type: 'SET_LOADING'; payload: boolean}
   | {type: 'SET_ERROR'; payload: string | null}
-  | {type: 'ADD_STUDENT'; payload: Student}
-  | {type: 'UPDATE_STUDENT'; payload: Student}
+  | {type: 'ADD_STUDENT'; payload: StudentResponse}
+  | {type: 'UPDATE_STUDENT'; payload: StudentResponse}
   | {type: 'DELETE_STUDENT'; payload: string}
 
 function studentReducer(state: StudentState, action: StudentAction): StudentState {
@@ -75,15 +76,13 @@ function studentReducer(state: StudentState, action: StudentAction): StudentStat
 }
 
 interface StudentContextType extends StudentState {
-  getOneStudent: (id: string) => Promise<Student>
+  getOneStudent: (id: string) => Promise<StudentResponse>
   getAllStudents: () => Promise<void>
-  createStudent: (
-    studentData: Omit<Student, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-  ) => Promise<Student>
-  updateStudent: (id: string, studentData: Partial<Student>) => Promise<Student>
+  createStudent: (studentData: CreateStudentPayload) => Promise<StudentResponse>
+  updateStudent: (id: string, studentData: Partial<StudentResponse>) => Promise<StudentResponse>
   deleteStudent: (id: string) => Promise<void>
   getStudentAge: (dateOfBirth: string) => number
-  getStudentsWithoutCourses: () => Promise<Student[]>
+  getStudentsWithoutCourses: () => Promise<StudentResponse[]>
   getTeachersForStudent: (studentId: string) => Promise<Teacher[]>
 }
 
@@ -108,7 +107,7 @@ export const StudentProvider = ({
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Student Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -130,7 +129,7 @@ export const StudentProvider = ({
   }, [])
 
   const handleGetOneStudent = useCallback(
-    async (studentId: string): Promise<Student> => {
+    async (studentId: string): Promise<StudentResponse> => {
       try {
         const response = await getOneStudent(studentId)
 
@@ -139,7 +138,7 @@ export const StudentProvider = ({
         }
 
         // Extraire l'étudiant de la réponse
-        const student = response.data as unknown as Student
+        const student = response.data as StudentResponse
 
         dispatch({ type: 'UPDATE_STUDENT', payload: student })
         return student
@@ -186,9 +185,9 @@ export const StudentProvider = ({
 
       // Extraire les étudiants de la réponse
       const data = response.data as any
-      const students = data || []
+      const students = data ?? []
 
-      dispatch({ type: 'SET_STUDENTS', payload: students as Student[] })
+      dispatch({ type: 'SET_STUDENTS', payload: students as StudentResponse[] })
     } catch (error) {
       handleError(error as Error, 'Erreur lors de la récupération des étudiants')
     } finally {
@@ -198,8 +197,8 @@ export const StudentProvider = ({
 
   const handleCreateStudent = useCallback(
     async (
-      studentData: Omit<Student, 'id' | '_id' | 'createdAt' | 'updatedAt'>,
-    ): Promise<Student> => {
+      studentData: CreateStudentPayload,
+    ): Promise<StudentResponse> => {
       try {
         const response = await createStudentAction(studentData)
 
@@ -208,7 +207,7 @@ export const StudentProvider = ({
         }
 
         // Extraire l'étudiant de la réponse
-        const newStudent = response.data as unknown as Student
+        const newStudent = response.data as StudentResponse
 
         dispatch({ type: 'ADD_STUDENT', payload: newStudent })
 
@@ -229,7 +228,7 @@ export const StudentProvider = ({
   )
 
   const handleUpdateStudent = useCallback(
-    async (id: string, studentData: Partial<Student>): Promise<Student> => {
+    async (id: string, studentData: Partial<StudentResponse>): Promise<StudentResponse> => {
       try {
         const response = await updateStudentAction(id, studentData)
 
@@ -238,7 +237,7 @@ export const StudentProvider = ({
         }
 
         // Extraire l'étudiant de la réponse
-        const updatedStudent = response.data as unknown as Student
+        const updatedStudent = response.data as StudentResponse
 
         dispatch({ type: 'UPDATE_STUDENT', payload: updatedStudent })
 
@@ -281,7 +280,8 @@ export const StudentProvider = ({
     },
     [handleError, toast],
   )
-  const getStudentsWithoutCourses = useCallback(async (): Promise<Student[]> => {
+
+  const getStudentsWithoutCourses = useCallback(async (): Promise<StudentResponse[]> => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const allStudents = state.students
@@ -290,12 +290,10 @@ export const StudentProvider = ({
         let isStudentInAnyCourse = false
 
         for (const course of courses) {
-          for (const session of course.sessions) {
+          for (const session of course.courses_sessions) {
             if (
-              session.students.find((s) => {
-                // s.id === student.id &&
-                // console.log('Comparing student:', student.id, 'with session student:', s.id)
-                return s.id === student.id
+              session.courses_sessions_students.find((s) => {
+                return s.users.id === student.id
               })
             ) {
               isStudentInAnyCourse = true

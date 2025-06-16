@@ -5,12 +5,12 @@ import { useForm } from 'react-hook-form'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { CourseDocument } from '@/zUnused/types/mongoose'
 import { UserRoleEnum } from '@/types/user'
 
 import StepOne from '@/client/components/root/NewTeacherStep1'
-import StepTwo from '@/server/components/root/NewTeacherStep2'
+import StepTwo from '@/client/components/root/NewTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'

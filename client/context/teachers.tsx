@@ -12,7 +12,7 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { GroupedStudents } from '@/zUnused/types/course'
+import { GroupedStudents } from '@/types/courses'
 import { TeacherResponse, CreateTeacherPayload } from '@/types/teacher-payload'
 import { StudentResponse } from '@/types/student-payload'
 

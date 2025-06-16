@@ -2,29 +2,32 @@
 
 import { refreshEntityStats, refreshGlobalStats } from '@/server/actions/api/stats'
 import { StatsProvider } from '@/client/context/stats'
-import { SerializedValue } from '@/zUnused/serialization'
+import { GlobalStats } from '@/types/stats'
+import { EntityStats } from '@/types/stats-payload'
 
-// Fallback stats when DB is unavailable
-const fallbackGlobalStats = {
-  presenceRate: 0,
-  totalStudents: 0,
-  totalTeachers: 0,
-  lastUpdate: new Date(),
-}
+
 
 // Cache en mémoire
 let cache = {
-  entityStats: null as SerializedValue[] | null,
-  globalStats: null as SerializedValue | null,
+  entityStats: null as EntityStats[] | null,
+  globalStats: null as GlobalStats | null,
   lastUpdate: 0,
 }
 
 // Cache duration in seconds
 const CACHE_DURATION = 60
 
-export default async function StatsServerComponent({ children }: {children: React.ReactNode}) {
-  let initialEntityStats: SerializedValue[] = []
-  let initialGlobalStats = fallbackGlobalStats as unknown as SerializedValue
+export default async function StatsServerComponent({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  // Fallback stats when DB is unavailable
+  let initialGlobalStats = {
+    presenceRate: 0,
+    totalStudents: 0,
+    totalTeachers: 0,
+    lastUpdate: new Date(),
+  }
+  let initialEntityStats: EntityStats[] = []
 
   try {
     const now = Date.now()
@@ -46,13 +49,13 @@ export default async function StatsServerComponent({ children }: {children: Reac
       ])
 
       if (globalResponse.success && globalResponse.data) {
-        initialGlobalStats = globalResponse.data as SerializedValue
-        cache.globalStats = initialGlobalStats
+        initialGlobalStats = globalResponse.data
+        cache.globalStats = globalResponse.data as GlobalStats
       }
 
       if (entityResponse.success && entityResponse.data) {
-        initialEntityStats = entityResponse.data as SerializedValue[]
-        cache.entityStats = initialEntityStats
+        initialEntityStats = entityResponse.data
+        cache.entityStats = entityResponse.data as EntityStats[]
       }
 
       // Mettre à jour le timestamp

@@ -1,9 +1,8 @@
 'use server'
 
-import { Teacher } from '@/zUnused/types/user'
-
 import { getAllTeachers } from '@/server/actions/api/teachers'
 import { TeacherProvider } from '@/client/context/teachers'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface TeachersServerComponentProps {
   children: React.ReactNode
@@ -12,7 +11,7 @@ interface TeachersServerComponentProps {
 export default async function TeachersServerComponent({
   children,
 }: Readonly<TeachersServerComponentProps>) {
-  let initialTeachers: Teacher[] | null = null
+  let initialTeachers: TeacherResponse[] | null = null
 
   const response = await getAllTeachers()
 
@@ -20,9 +19,13 @@ export default async function TeachersServerComponent({
     // Convertir SerializedValue en Teacher[]
     const data = response.data as any
     if (Array.isArray(data)) {
-      initialTeachers = data as Teacher[]
+      initialTeachers = data as TeacherResponse[]
     }
   }
 
-  return <TeacherProvider initialTeachersData={initialTeachers}>{children}</TeacherProvider>
+  return (
+    <TeacherProvider initialTeachersData={initialTeachers}>
+      {children}
+    </TeacherProvider>
+  )
 }

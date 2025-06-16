@@ -1,9 +1,8 @@
 'use server'
 
-import { DaySchedule } from '@/zUnused/types/schedule'
-
 import { getCurrentSchedule } from '@/server/actions/api/schedules'
 import { SchedulesProvider } from '@/client/context/schedules'
+import { DaySchedule } from '@/types/schedule'
 
 interface SchedulesServerComponentProps {
   children: React.ReactNode
@@ -27,11 +26,15 @@ export default async function SchedulesServerComponent({
       if (data.daySchedules && typeof data.daySchedules === 'object') {
         initialSchedules = Object.entries(data.daySchedules).map(([dayType, scheduleData]) => ({
           dayType,
-          periods: (scheduleData as any).periods || [],
+          periods: (scheduleData as any).periods ?? [],
         })) as DaySchedule[]
       }
     }
   }
 
-  return <SchedulesProvider initialSchedulesData={initialSchedules}>{children}</SchedulesProvider>
+  return (
+    <SchedulesProvider initialSchedulesData={initialSchedules}>
+      {children}
+    </SchedulesProvider>
+  )
 }

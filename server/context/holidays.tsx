@@ -1,7 +1,6 @@
 'use server'
 
-import { Holiday } from '@/zUnused/types/holidays'
-
+import { Holiday } from '@/types/holidays'
 import { getCurrentHolidays } from '@/server/actions/api/holidays'
 import { HolidaysProvider } from '@/client/context/holidays'
 
@@ -13,7 +12,7 @@ interface HolidaysServerComponentProps {
 export default async function HolidaysServerComponent({
   children,
   userId,
-}: HolidaysServerComponentProps) {
+}: Readonly<HolidaysServerComponentProps>) {
   let initialHolidays: Holiday[] | null = null
 
   if (userId) {
@@ -29,5 +28,9 @@ export default async function HolidaysServerComponent({
     }
   }
 
-  return <HolidaysProvider initialHolidaysData={initialHolidays}>{children}</HolidaysProvider>
+  return (
+    <HolidaysProvider initialHolidaysData={initialHolidays}>
+      {children}
+    </HolidaysProvider>
+  )
 }

@@ -13,7 +13,8 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { CreateGradeDTO, PopulatedGrade, UpdateGradeDTO } from '@/zUnused/types/grade'
+import { Grade, GradeRecord } from '@/types/db'
+import { CreateGradePayload } from '@/types/grade-payload'
 
 import {
   createGradeRecord,
@@ -21,6 +22,10 @@ import {
   refreshGradeData,
   updateGradeRecord,
 } from '@/server/actions/api/grades'
+
+export interface PopulatedGrade extends Grade {
+  records: GradeRecord[]
+}
 
 interface GradeState {
   grades: PopulatedGrade[]
@@ -90,8 +95,8 @@ function gradeReducer(state: GradeState, action: GradeAction): GradeState {
 }
 
 interface GradeContextType extends Omit<GradeState, 'isLoading' | 'error'> {
-  createGradeRecord: (data: CreateGradeDTO) => Promise<boolean | number>
-  updateGradeRecord: (id: string, data: UpdateGradeDTO) => Promise<boolean | number>
+  createGradeRecord: (data: CreateGradePayload) => Promise<boolean | number>
+  updateGradeRecord: (id: string, data: CreateGradePayload) => Promise<boolean | number>
   error: string | null
   isLoading: boolean
   getTeacherGrades: (teacherId: string) => Promise<PopulatedGrade[]>
@@ -110,16 +115,13 @@ export const GradesProvider = ({ children, initialGradeData = null }: GradeProvi
     isLoading: !initialGradeData,
   }
 
-
   const [state, dispatch] = useReducer(gradeReducer, initialState)
   const isInitialMount = useRef(true)
-
 
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Grade Error:', error)
-      const errorMessage = customMessage || error.message
-      console.error('Grade Error:', error)
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -132,13 +134,13 @@ export const GradesProvider = ({ children, initialGradeData = null }: GradeProvi
   )
 
   const handleCreateGradeRecord = useCallback(
-    async (data: CreateGradeDTO) => {
+    async (data: CreateGradePayload) => {
       dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await createGradeRecord(data)
 
         if (!response.success) {
-          throw new Error(response.error || 'Erreur lors de la création de la présence')
+          throw new Error(response.error ?? 'Erreur lors de la création de la présence')
         }
         await refreshGradeData()
 
@@ -155,7 +157,6 @@ export const GradesProvider = ({ children, initialGradeData = null }: GradeProvi
 
   const handleGetTeacherGrades = useCallback(
     async (teacherId: string) => {
-
       // Ne pas charger si on a déjà les données et que c'est le même enseignant
       if (initialGradeData && state.teacherGrades) {
         return state.teacherGrades
@@ -209,13 +210,13 @@ export const GradesProvider = ({ children, initialGradeData = null }: GradeProvi
   }, [handleError])
 
   const handleUpdateGradeRecord = useCallback(
-    async (id: string, data: UpdateGradeDTO) => {
+    async (id: string, data: CreateGradePayload) => {
       dispatch({ type: 'SET_LOADING', payload: true })
       try {
         const response = await updateGradeRecord(id, data)
 
         if (!response.success) {
-          throw new Error(response.error || 'Erreur lors de la création de la présence')
+          throw new Error(response.error ?? 'Erreur lors de la création de la présence')
         }
 
         await refreshGradeData()

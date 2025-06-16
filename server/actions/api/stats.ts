@@ -4,7 +4,6 @@ import { getSessionServer } from '@/server/utils/server-helpers'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
-import { EntityStats } from '@/types/stats'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
@@ -60,7 +59,17 @@ export async function refreshEntityStats(
     const { data: teacherStats, error: teacherError } = await supabase
       .schema('stats')
       .from('teacher_stats')
-      .select('*')
+      .select(`
+        *,
+        teacher_gender_distribution (
+          count_masculin,
+          count_feminin,
+          count_undefined,
+          percentage_masculin,
+          percentage_feminin,
+          percentage_undefined
+        )
+      `)
       .order('last_update', { ascending: false })
 
     if (studentError) {
@@ -73,16 +82,8 @@ export async function refreshEntityStats(
       throw new Error(`${errorMsg}: ${teacherError.message}`)
     }
 
-    const serializedStudentStats = (studentStats || []).map((stat: any) => ({
-      ...stat,
-    })) as EntityStats[]
-
-    const serializedTeacherStats = (teacherStats || []).map((stat: any) => ({
-      ...stat,
-    })) as EntityStats[]
-
     // Combiner les deux tableaux
-    const allStats = [...serializedStudentStats, ...serializedTeacherStats]
+    const allStats = [...studentStats, ...teacherStats]
     return {
       success: true,
       data: allStats,

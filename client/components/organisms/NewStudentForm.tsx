@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum } from '@/zUnused/types/course'
+
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
 import StepOne from '@/client/components/admin/atoms/NewStudentStep1'
@@ -23,8 +24,7 @@ import { useTeachers } from '@/client/context/teachers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import useCourseStore from '@/client/stores/useCourseStore'
-import { TimeSlotEnum } from '@/types/courses'
-import { Student } from '@/zUnused/types/user'
+import { CreateStudentPayload } from '@/types/student-payload'
 
 const studentSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -161,23 +161,22 @@ const NewStudentForm = () => {
 
     try {
       setIsLoading(true)
-      const studentData: Omit<
-        Student,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      > = {
+      const studentData: CreateStudentPayload = {
+        email: values.parentEmail1,
         firstname: values.firstname,
         lastname: values.lastname,
-        email: values.parentEmail1,
-        hasInvalidEmail: values.parentEmail1 === 'user@mail.fr',
-        secondaryEmail: values.parentEmail2,
-        password: '',
+        password: '', // Vous devrez gérer le mot de passe
         role: UserRoleEnum.Student,
-        gender: values.gender,
-        dateOfBirth: values.dateOfBirth,
         type: UserType.Both,
+        gender: values.gender,
+        secondary_email: values.parentEmail2,
+        phone: values.phone,
+        school_year: '2024-2025',
         subjects: values.selections.map((s) => s.subject),
-        schoolYear: '2024-2025',
-        isActive: true,
+        has_invalid_email: values.parentEmail1 === 'user@mail.fr',
+        date_of_birth: values.dateOfBirth,
+        school_year: '2024-2025',
+        is_active: true,
       }
 
       const student = await createStudent(studentData)

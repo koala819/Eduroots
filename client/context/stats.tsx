@@ -14,8 +14,7 @@ import { useToast } from '@/client/hooks/use-toast'
 
 import {
   EntityStats,
-  StudentStats,
-  TeacherStats,
+  GlobalStats,
   isStudentStats,
   isTeacherStats,
 } from '@/types/stats'
@@ -30,19 +29,19 @@ import {
   updateStudentStats,
   updateTeacherStats,
 } from '@/server/actions/api/stats'
-import { SerializedValue } from '@/zUnused/serialization'
+import { StudentStatsPayload, TeacherStatsPayload } from '@/types/stats-payload'
 
 interface StatsState {
-  globalStats: SerializedValue | null
-  entityStats: SerializedValue[]
+  globalStats: GlobalStats | null
+  entityStats: EntityStats[]
   isLoading: boolean
   error: string | null
 }
 
 type StatsAction =
-  | { type: 'SET_GLOBAL_STATS'; payload: SerializedValue }
-  | { type: 'SET_ENTITY_STATS'; payload: SerializedValue[] }
-  | { type: 'UPDATE_ENTITY_STATS'; payload: SerializedValue }
+  | { type: 'SET_GLOBAL_STATS'; payload: GlobalStats }
+  | { type: 'SET_ENTITY_STATS'; payload: EntityStats[] }
+  | { type: 'UPDATE_ENTITY_STATS'; payload: EntityStats }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
 
@@ -60,10 +59,10 @@ export function statsReducer(
       ...state,
       entityStats: state.entityStats.map((stat) => {
         if (stat && typeof stat === 'object' && 'userId' in stat) {
-          const statWithUserId = stat as { userId: SerializedValue }
+          const statWithUserId = stat as { userId: string }
           if (
             statWithUserId.userId ===
-              (action.payload as { userId: SerializedValue }).userId
+              (action.payload as { userId: string }).userId
           ) {
             return action.payload
           }
@@ -83,18 +82,18 @@ export function statsReducer(
 interface StatsContextType {
   refreshEntityStats: (forceUpdate?: boolean) => Promise<void>
   refreshTeacherStudentsStats: (forceUpdate?: boolean) => Promise<void>
-  updateStudentStats: (id: string, stats: StudentStats) => Promise<void>
-  updateTeacherStats: (id: string, stats: TeacherStats) => Promise<void>
+  updateStudentStats: (id: string, stats: StudentStatsPayload) => Promise<void>
+  updateTeacherStats: (id: string, stats: TeacherStatsPayload) => Promise<void>
   refreshGlobalStats: () => Promise<void>
   getStudentAttendance: (studentId: string) => Promise<any>
   getStudentBehavior: (studentId: string) => Promise<any>
   getStudentGrade: (studentId: string) => Promise<any>
 
   // État
-  globalStats: SerializedValue | null
-  entityStats: SerializedValue[]
-  studentStats: SerializedValue[]
-  teacherStats: SerializedValue[]
+  globalStats: GlobalStats | null
+  entityStats: EntityStats[]
+  studentStats: EntityStats[]
+  teacherStats: EntityStats[]
   isLoading: boolean
   isPending: boolean
   error: string | null
@@ -104,8 +103,8 @@ export const StatsContext = createContext<StatsContextType | null>(null)
 
 interface StatsProviderProps {
   children: ReactNode
-  initialEntityStats: SerializedValue[]
-  initialGlobalStats: SerializedValue
+  initialEntityStats: EntityStats[]
+  initialGlobalStats: GlobalStats
 }
 
 export const StatsProvider = ({
@@ -148,7 +147,7 @@ export const StatsProvider = ({
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Stats Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -174,7 +173,7 @@ export const StatsProvider = ({
 
         dispatch({
           type: 'SET_ENTITY_STATS',
-          payload: response.data as SerializedValue[],
+          payload: response.data as EntityStats[],
         })
       })
     } catch (error) {
@@ -204,7 +203,7 @@ export const StatsProvider = ({
 
           dispatch({
             type: 'SET_ENTITY_STATS',
-            payload: response.data as SerializedValue[],
+            payload: response.data as EntityStats[],
           })
         })
       } catch (error) {
@@ -218,7 +217,7 @@ export const StatsProvider = ({
     }, [handleError])
 
   const handleUpdateStudentStats = useCallback(
-    async (id: string, statsData: StudentStats): Promise<void> => {
+    async (id: string, statsData: StudentStatsPayload): Promise<void> => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true })
 
@@ -234,7 +233,7 @@ export const StatsProvider = ({
 
           dispatch({
             type: 'UPDATE_ENTITY_STATS',
-            payload: response.data as SerializedValue,
+            payload: response.data as EntityStats,
           })
           toast({ title: 'Succès', description: 'Statistiques mises à jour' })
         })
@@ -251,7 +250,7 @@ export const StatsProvider = ({
   )
 
   const handleUpdateTeacherStats = useCallback(
-    async (id: string, statsData: TeacherStats): Promise<void> => {
+    async (id: string, statsData: TeacherStatsPayload): Promise<void> => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true })
 
@@ -267,7 +266,7 @@ export const StatsProvider = ({
 
           dispatch({
             type: 'UPDATE_ENTITY_STATS',
-            payload: response.data as SerializedValue,
+            payload: response.data as EntityStats,
           })
           toast({ title: 'Succès', description: 'Statistiques mises à jour' })
         })
@@ -297,7 +296,7 @@ export const StatsProvider = ({
 
         dispatch({
           type: 'SET_GLOBAL_STATS',
-          payload: response.data as SerializedValue,
+          payload: response.data as GlobalStats,
         })
       })
     } catch (error) {

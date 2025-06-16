@@ -1,9 +1,7 @@
 'use server'
 
-import { PopulatedGrade } from '@/zUnused/types/grade'
-
+import { GradesProvider, PopulatedGrade } from '@/client/context/grades'
 import { getTeacherGrades } from '@/server/actions/api/grades'
-import { GradesProvider } from '@/client/context/grades'
 
 interface CoursesServerComponentProps {
   children: React.ReactNode
@@ -22,13 +20,16 @@ export default async function CourseServerComponent({
     const response = await getTeacherGrades(teacherId)
 
     if (response.success && response.data) {
-      // Vérifier si data est un tableau et le convertir explicitement en CourseDocument[]
-      if (Array.isArray(response.data)) {
-        initialGrades = response.data as unknown as PopulatedGrade[]
-      } else {
-        // Si ce n'est pas un tableau mais que la donnée existe, en faire un tableau d'un élément
-        initialGrades = [response.data] as unknown as PopulatedGrade[]
-      }
+      // Transformation des données pour inclure les records
+      initialGrades = Array.isArray(response.data)
+        ? response.data.map((grade: any) => ({
+          ...grade,
+          records: grade.grades_records ?? [],
+        }))
+        : [{
+          ...response.data,
+          records: response.data.grades_records ?? [],
+        }]
     }
   }
 

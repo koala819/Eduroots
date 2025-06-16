@@ -1,4 +1,4 @@
-import { Database } from './db'
+import { CourseSession, Database } from './db'
 
 export enum SubjectNameEnum {
   Arabe = 'Arabe',
@@ -33,6 +33,12 @@ export enum TimeSlotEnum {
   SATURDAY_MORNING = 'saturday_morning',
   SATURDAY_AFTERNOON = 'saturday_afternoon',
   SUNDAY_MORNING = 'sunday_morning',
+}
+
+export interface GroupedStudents {
+  courseId: string
+  academicYear: string
+  sessions: CourseSession[]
 }
 
 export interface TimeSlot {

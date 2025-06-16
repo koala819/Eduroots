@@ -13,15 +13,11 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 
+import { Behavior as BaseBehavior } from '@/types/db'
 import {
-  Behavior,
-  BehaviorRecord,
   CreateBehaviorPayload,
-  DuplicateBehavior,
   UpdateBehaviorPayload,
-} from '@/zUnused/types/behavior'
-import { BehaviorDocument } from '@/zUnused/types/mongoose'
-
+} from '@/types/behavior-payload'
 import {
   createBehaviorRecord,
   deleteBehaviorRecord,
@@ -31,6 +27,33 @@ import {
   updateBehaviorRecord,
 } from '@/server/actions/api/behaviors'
 
+// Étendre le type Behavior pour inclure les records
+export interface BehaviorRecord {
+  id: string
+  behavior_id: string
+  student_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+  student?: {
+    id: string
+    firstname: string
+    lastname: string
+    email: string
+  }
+}
+
+export interface Behavior extends BaseBehavior {
+  records: BehaviorRecord[]
+}
+
+interface DuplicateBehavior {
+  date: string
+  courseId: string
+  records: Behavior[]
+}
+
 interface BehaviorState {
   behaviorRecords: Behavior[]
   duplicateBehaviors: DuplicateBehavior[]
@@ -38,14 +61,14 @@ interface BehaviorState {
   isLoading: boolean
   isLoadingBehavior: boolean
   error: string | null
-  allBehaviors: BehaviorDocument[] | null
-  checkOneBehavior: BehaviorDocument | null
-  todayBehavior: BehaviorDocument | null
+  allBehaviors: Behavior[] | null
+  checkOneBehavior: Behavior | null
+  todayBehavior: Behavior | null
 }
 
 interface BehaviorProviderProps {
   children: ReactNode
-  initialBehaviorData?: BehaviorDocument[] | null
+  initialBehaviorData: Behavior[] | null
 }
 
 type BehaviorAction =
@@ -64,9 +87,9 @@ type BehaviorAction =
   | {type: 'SET_LOADING_BEHAVIOR'; payload: boolean}
   | {type: 'SET_STUDENT_AVERAGES'; payload: Record<string, number>}
   | {type: 'UPDATE_SINGLE_RECORD'; payload: Behavior}
-  | {type: 'SET_ALL_BEHAVIORS'; payload: BehaviorDocument[]}
-  | {type: 'SET_ONE_BEHAVIOR'; payload: BehaviorDocument}
-  | {type: 'SET_TODAY_BHEAVIOR'; payload: BehaviorDocument}
+  | {type: 'SET_ALL_BEHAVIORS'; payload: Behavior[]}
+  | {type: 'SET_ONE_BEHAVIOR'; payload: Behavior}
+  | {type: 'SET_TODAY_BHEAVIOR'; payload: Behavior}
 
 function behaviorReducer(state: BehaviorState, action: BehaviorAction): BehaviorState {
   switch (action.type) {
@@ -82,11 +105,10 @@ function behaviorReducer(state: BehaviorState, action: BehaviorAction): Behavior
     }
 
   case 'SET_ALL_BEHAVIORS':
-    const newState = {
+    return {
       ...state,
       allBehaviors: action.payload,
     }
-    return newState
 
   case 'SET_BEHAVIOR_RECORDS':
     return {
@@ -164,14 +186,17 @@ interface BehaviorContextType extends Omit<BehaviorState, 'isLoading' | 'error'>
   getStudentBehavior: (studentId: string) => BehaviorRecord[]
   isLoading: boolean
   isPending: boolean
-  getBehaviorById: (courseId: string, date: string) => Promise<any> // Utiliser any pour correspondre au type sérialisé
-  getStudentBehaviorHistory: (studentId: string) => Promise<any> // Utiliser any pour correspondre au type sérialisé
+  getBehaviorById: (courseId: string, date: string) => Promise<any>
+  getStudentBehaviorHistory: (studentId: string) => Promise<any>
   updateBehaviorRecord: (data: UpdateBehaviorPayload) => Promise<void>
 }
 
 const BehaviorsContext = createContext<BehaviorContextType | null>(null)
 
-export const BehaviorProvider = ({ children, initialBehaviorData = null }: BehaviorProviderProps) => {
+export const BehaviorProvider = ({
+  children,
+  initialBehaviorData = null,
+}: BehaviorProviderProps) => {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
 
@@ -198,7 +223,7 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
   const handleError = useCallback(
     (error: Error, customMessage?: string) => {
       console.error('Behavior Error:', error)
-      const errorMessage = customMessage || error.message
+      const errorMessage = customMessage ?? error.message
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({
         variant: 'destructive',
@@ -236,8 +261,8 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
       try {
         const data = await getBehaviorByIdAndDate(courseId, date)
         if (data?.success && data.data) {
-          const behaviorDoc = data.data as BehaviorDocument
-          dispatch({ type: 'SET_ONE_BEHAVIOR', payload: behaviorDoc })
+          const behavior = data.data as Behavior
+          dispatch({ type: 'SET_ONE_BEHAVIOR', payload: behavior })
         }
         return data
       } catch (error) {
@@ -268,7 +293,7 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
       dispatch({ type: 'SET_LOADING', payload: true })
       try {
         startTransition(async () => {
-          const result = await createBehaviorRecord(data)
+          await createBehaviorRecord(data)
 
           toast({
             title: 'Succès',
@@ -355,7 +380,7 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
             if (sessionBehavior) {
               dispatch({
                 type: 'SET_ONE_BEHAVIOR',
-                payload: sessionBehavior as BehaviorDocument,
+                payload: sessionBehavior as Behavior,
               })
             }
           } else if (checkToday) {
@@ -365,21 +390,21 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
                 ? response.data.find(
                   (b) =>
                     b &&
-                      (b as BehaviorDocument).date &&
-                      new Date((b as BehaviorDocument).date).toISOString().split('T')[0] === today,
+                      (b as Behavior).date &&
+                      new Date((b as Behavior).date).toISOString().split('T')[0] === today,
                 )
                 : response.data
 
             if (todayBehavior) {
               dispatch({
                 type: 'SET_TODAY_BHEAVIOR',
-                payload: todayBehavior as BehaviorDocument,
+                payload: todayBehavior as Behavior,
               })
             }
           } else {
             dispatch({
               type: 'SET_ALL_BEHAVIORS',
-              payload: response.data as BehaviorDocument[],
+              payload: response.data as Behavior[],
             })
           }
         })
@@ -395,17 +420,14 @@ export const BehaviorProvider = ({ children, initialBehaviorData = null }: Behav
 
   const getStudentBehavior = useCallback(
     (studentId: string): BehaviorRecord[] => {
-      const behaviors = state.behaviorRecords.filter((behavior) =>
-        behavior.records.some(
-          (record) =>
-            (typeof record.student === 'string' ? record.student : record.student.id) === studentId,
-        ),
-      )
-      return behaviors.flatMap((behavior) =>
-        behavior.records.filter(
-          (record) =>
-            (typeof record.student === 'string' ? record.student : record.student.id) === studentId,
-        ),
+      return state.behaviorRecords.flatMap((behavior) =>
+        behavior.records.filter((record) => {
+          if (!record.student) return false
+          if (typeof record.student === 'string') {
+            return record.student === studentId
+          }
+          return record.student.id === studentId
+        }),
       )
     },
     [state.behaviorRecords],

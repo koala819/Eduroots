@@ -1,5 +1,6 @@
 import { Database } from './db'
 import { SubjectNameEnum } from './courses'
+import { GenderEnum } from './user'
 
 // Types de base pour les statistiques
 export type StudentStatsPayload = {
@@ -84,10 +85,14 @@ export type TeacherStats = {
   totalStudents: number
   genderDistribution: {
     counts: {
-      [key: string]: number
+      [GenderEnum.Masculin]: number
+      [GenderEnum.Feminin]: number
+      undefined: number
     }
     percentages: {
-      [key: string]: string
+      [GenderEnum.Masculin]: string
+      [GenderEnum.Feminin]: string
+      undefined: string
     }
   }
   minAge: number
