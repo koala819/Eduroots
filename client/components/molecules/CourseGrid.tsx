@@ -75,13 +75,15 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
                 onClick={() => router.push(`/teacher/classroom/course/${session.id}`)}
               >
                 <CardContent className="p-4">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between
+                   gap-4">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-[#375073]">
                           {session.subject}
                         </h3>
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-[#375073]/10 text-[#375073]">
+                        <Badge variant="secondary" className="flex items-center gap-1
+                        bg-[#375073]/10 text-[#375073]">
                           <GraduationCap className="h-4 w-4" />
                           {session.level}
                         </Badge>
@@ -93,7 +95,9 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          <span>{formatTime(timeslot?.start_time)} - {formatTime(timeslot?.end_time)}</span>
+                          <span>
+                            {formatTime(timeslot?.start_time)} - {formatTime(timeslot?.end_time)}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Building2 className="h-4 w-4" />

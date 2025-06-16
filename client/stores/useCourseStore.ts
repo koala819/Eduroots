@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { getTeacherCourses } from '@/server/actions/api/courses'
+import { CourseWithRelations } from '@/types/courses'
 
 interface CourseState {
   courses: TeacherCourseResponse[]
@@ -36,6 +37,24 @@ const removeCourseFromList = (
   return courses.filter((c) => c.course_id !== courseId)
 }
 
+const transformToTeacherCourseResponse = (course: CourseWithRelations): TeacherCourseResponse => {
+  return {
+    course_id: course.id,
+    teacher_id: course.courses_teacher[0]?.teacher_id,
+    created_at: course.created_at?.toISOString(),
+    courses: [{
+      id: course.id,
+      is_active: course.is_active,
+      courses_sessions: course.courses_sessions.map((session) => ({
+        id: session.id,
+        subject: session.subject,
+        level: session.level,
+        courses_sessions_timeslot: session.courses_sessions_timeslot,
+      })),
+    }],
+  }
+}
+
 const useCourseStore = create<CourseState>()(
   persist(
     (set) => ({
@@ -52,8 +71,9 @@ const useCourseStore = create<CourseState>()(
 
           const response = await getTeacherCourses(teacherId)
           if (response.success && response.data) {
+            const transformedCourses = response.data.map(transformToTeacherCourseResponse)
             set({
-              courses: response.data,
+              courses: transformedCourses,
               lastFetch: now,
             })
           } else {
