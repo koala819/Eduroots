@@ -1,17 +1,18 @@
-import { Course } from '@/types/mongo/course'
 
 import { TeacherStatsClient } from '@/client//components/admin/atoms/TeacherStats'
 
-import { getTeacherCourses } from '@/app/server/actions/context/courses'
+import { getTeacherCourses } from '@/server/actions/context/courses'
 
-export async function TeacherStatsServer({ teacherId }: {teacherId: string}) {
+export async function TeacherStatsServer({
+  teacherId,
+}: Readonly<{ teacherId: string }>) {
   const response = await getTeacherCourses(teacherId)
 
   if (!response.success || !response.data) {
     return null
   }
 
-  const courses = response.data as unknown as Course[]
+  const courses = response.data
 
   let sessionCount = 0
   const uniqueStudents = new Set()
@@ -21,22 +22,20 @@ export async function TeacherStatsServer({ teacherId }: {teacherId: string}) {
   let successCount = 0
 
   courses.forEach((course) => {
-    course.sessions.forEach((session) => {
+    course.courses_sessions.forEach((session) => {
       sessionCount++
 
-      session.students.forEach((student) => {
-        uniqueStudents.add(student.id)
+      session.courses_sessions_students.forEach((student) => {
+        uniqueStudents.add(student.users.id)
       })
 
-      if (session.stats) {
-        if (session.stats.averageAttendance !== undefined) {
-          totalAttendance += session.stats.averageAttendance
-          attendanceCount++
-        }
-        if (session.stats.averageGrade !== undefined) {
-          totalSuccess += session.stats.averageGrade
-          successCount++
-        }
+      if (session.stats_average_attendance !== null) {
+        totalAttendance += session.stats_average_attendance
+        attendanceCount++
+      }
+      if (session.stats_average_grade !== null) {
+        totalSuccess += session.stats_average_grade
+        successCount++
       }
     })
   })

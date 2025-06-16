@@ -28,7 +28,6 @@ import {
 import { Progress } from '@/client/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 
-import { convertToDate } from '@/server/utils/helpers'
 import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { motion } from 'framer-motion'
@@ -40,12 +39,11 @@ interface StudentAbsenceCardProps {
 
 export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) => {
   // Fonction pour formater la distance par rapport à maintenant
-  function formatTimeToNow(date: Date | string | null): string {
+  function formatTimeToNow(date: Date | null): string {
     if (!date) return 'Jamais'
 
     const now = new Date()
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    const diff = now.getTime() - dateObj.getTime()
+    const diff = now.getTime() - date.getTime()
 
     // Convertir la différence en jours
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -61,11 +59,13 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
   // Récupérer la dernière absence
   function getLastAbsence() {
     if (stats.absences.length === 0) return null
-    return convertToDate(stats.absences[stats.absences.length - 1].date)
+    return stats.absences[stats.absences.length - 1].date
   }
 
   return (
-    <Card className="w-full max-w-md overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-white dark:bg-gray-800 rounded-xl">
+    <Card className="w-full max-w-md overflow-hidden shadow-lg
+    hover:shadow-xl transition-shadow duration-300 border-none
+    bg-white dark:bg-gray-800 rounded-xl">
       <CardHeader className="pt-6 px-6 relative">
         <div className="flex justify-between items-start mb-4">
           <motion.div
@@ -119,7 +119,8 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
 
         {/* Dernière activité et absence */}
         <div className="space-y-4 mb-6">
-          <div className="flex justify-between py-2 border-b border-dashed border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between py-2 border-b
+          border-dashed border-gray-200 dark:border-gray-700">
             <div className="flex items-center text-sm">
               <CalendarDays className="h-4 w-4 mr-2 text-primary" />
               <span>Dernière absence</span>
@@ -130,17 +131,19 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              {getLastAbsence() ? format(getLastAbsence()!, 'dd MMM yyyy', { locale: fr }) : 'Aucune'}
+              {getLastAbsence() ?
+                format(getLastAbsence()!, 'dd MMM yyyy', { locale: fr }) : 'Aucune'}
             </motion.span>
           </div>
 
-          <div className="flex justify-between py-2 border-b border-dashed border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between py-2 border-b
+          border-dashed border-gray-200 dark:border-gray-700">
             <div className="flex items-center text-sm">
               <Clock className="h-4 w-4 mr-2 text-primary" />
               <span>Dernière activité</span>
             </div>
             <span className="font-medium">
-              {stats.lastActivity ? formatTimeToNow(convertToDate(stats.lastActivity)) : 'Jamais'}
+              {stats.lastActivity ? formatTimeToNow(stats.lastActivity) : 'Jamais'}
             </span>
           </div>
         </div>
@@ -165,14 +168,15 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
                     Analyse complète des absences et comportement
                   </DialogDescription>
                 </div>
-                <DialogClose className="rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700">
+                <DialogClose className="rounded-full w-8 h-8 flex
+                items-center justify-center hover:bg-gray-200">
                   <X className="h-4 w-4" />
                 </DialogClose>
               </div>
             </DialogHeader>
 
             <Tabs defaultValue="absences" className="px-6 py-4">
-              <TabsList className="mb-4 grid grid-cols-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <TabsList className="mb-4 grid grid-cols-2 bg-gray-100 rounded-lg p-1">
                 <TabsTrigger value="absences">Absences</TabsTrigger>
                 <TabsTrigger value="statistics">Statistiques</TabsTrigger>
               </TabsList>
@@ -181,16 +185,17 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
                 <div className="max-h-80 overflow-y-auto pr-2 space-y-px">
                   {stats.absences.length > 0 ? (
                     [...stats.absences]
-                      .sort((a, b) => compareDesc(convertToDate(a.date), convertToDate(b.date)))
-                      .map((absence, index) => (
+                      .sort((a, b) => compareDesc(a.date, b.date))
+                      .map((absence) => (
                         <div
-                          key={index}
-                          className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800 mb-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          key={`${absence.date.toISOString()}-${absence.course}`}
+                          className="flex justify-between items-center
+                          p-3 rounded-lg bg-gray-50 mb-2 hover:bg-gray-100 transition-colors"
                         >
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-3 text-primary" />
                             <span>
-                              {format(convertToDate(absence.date), 'EEEE dd MMMM yyyy', {
+                              {format(absence.date, 'EEEE dd MMMM yyyy', {
                                 locale: fr,
                               })}
                             </span>
@@ -259,23 +264,23 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
 
                         // Compter les absences par mois
                         stats.absences.forEach((absence) => {
-                          const absenceDate = convertToDate(absence.date)
-
                           // Ignorer les absences antérieures à 6 mois
-                          if (absenceDate < sixMonthsAgo) return
+                          if (absence.date < sixMonthsAgo) return
 
                           // Calculer l'index du mois (0 = il y a 5 mois, 5 = mois actuel)
-                          const monthDiff = (today.getMonth() - absenceDate.getMonth() + 12) % 12
+                          const monthDiff = (today.getMonth() - absence.date.getMonth() + 12) % 12
 
                           // Vérifier si cette absence est dans les 6 derniers mois
                           if (monthDiff < 6) {
-                            const index = 5 - monthDiff // Inverser l'ordre pour afficher chronologiquement
+                            // Inverser l'ordre pour afficher chronologiquement
+                            const index = 5 - monthDiff
                             absencesByMonth[index]++
                           }
                         })
 
                         // Trouver la valeur maximale pour normaliser la hauteur des barres
-                        const maxAbsences = Math.max(...absencesByMonth, 1) // Au moins 1 pour éviter division par zéro
+                        // Au moins 1 pour éviter division par zéro
+                        const maxAbsences = Math.max(...absencesByMonth, 1)
 
                         // Générer les étiquettes des mois
                         return absencesByMonth.map((count, index) => {
@@ -296,23 +301,35 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
                             'Déc',
                           ]
                           const month = monthNames[date.getMonth()]
+                          const monthKey = date.toISOString().slice(0, 7) // Format: "YYYY-MM"
 
-                          // Calculer la hauteur proportionnelle (entre 0px minimum et hauteur maximale)
-                          const height =
-                            count > 0 ? Math.max(4, Math.min(70, (count / maxAbsences) * 70)) : 0
+                          // Calculer la hauteur proportionnelle
+                          const maxHeight = 70
+                          const minHeight = 4
+                          const height = count > 0
+                            ? Math.max(minHeight, Math.min(maxHeight,
+                              (count / maxAbsences) * maxHeight))
+                            : 0
 
                           return (
-                            <div key={index} className="flex flex-col items-center space-y-1 group">
+                            <div key={monthKey}
+                              className="flex flex-col items-center space-y-1 group">
                               <div className="relative">
                                 <div
-                                  className="bg-primary/80 group-hover:bg-primary transition-colors rounded-t"
+                                  className="bg-primary/80 group-hover:bg-primary
+                                  transition-colors rounded-t"
                                   style={{
                                     height: `${height}px`,
                                     width: '20px',
                                   }}
                                 />
                                 {count > 0 && (
-                                  <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-medium bg-primary text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <span
+                                    className="absolute -top-6 left-1/2
+                                    transform -translate-x-1/2 text-xs py-0.5
+                                    font-medium bg-primary text-white px-1.5
+                                    rounded opacity-0 group-hover:opacity-100 transition-opacity
+                                  ">
                                     {count}
                                   </span>
                                 )}
@@ -328,7 +345,7 @@ export const StudentAbsenceCard = ({ student, stats }: StudentAbsenceCardProps) 
               </TabsContent>
             </Tabs>
 
-            <DialogFooter className="px-6 py-4 bg-gray-50 dark:bg-gray-800">
+            <DialogFooter className="px-6 py-4 bg-gray-50">
               <div className="w-full flex justify-between items-center">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Info className="h-4 w-4 mr-2" />
