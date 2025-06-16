@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { PopulatedCourse } from '@/zUnused/types/course'
-import { CourseStats, StudentStats } from '@/zUnused/types/stats'
+import { CourseStats, StudentStats } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
 import StudentSelector from '@/client//components/atoms/StudentSelector'

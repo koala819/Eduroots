@@ -18,7 +18,7 @@ import {
   TeacherStats,
   isStudentStats,
   isTeacherStats,
-} from '@/zUnused/types/stats'
+} from '@/types/stats'
 
 import {
   getStudentAttendance,

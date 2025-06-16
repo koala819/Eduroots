@@ -3,7 +3,7 @@
 import { Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { StudentStats } from '@/zUnused/types/stats'
+import { StudentStats } from '@/types/stats'
 import { Student } from '@/zUnused/types/user'
 
 import { ClassOverview } from '@/client//components/atoms/ClassOverview'

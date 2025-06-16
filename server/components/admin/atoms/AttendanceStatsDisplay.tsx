@@ -1,4 +1,4 @@
-import { GlobalStats } from '@/zUnused/types/stats'
+import { GlobalStats } from '@/types/stats'
 
 import { AttendanceStatsClient } from '@/client/components/admin/atoms/AttendanceStats'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'

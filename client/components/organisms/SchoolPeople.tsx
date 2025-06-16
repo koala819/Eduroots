@@ -3,7 +3,7 @@
 import { GraduationCap, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { EntityType } from '@/zUnused/types/stats'
+import { EntityType } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
 import { StatsCards } from '@/components/admin/molecules/client/StatsCards'

@@ -1,6 +1,6 @@
 'use client'
 
-import { GlobalStats } from '@/zUnused/types/stats'
+import { GlobalStats } from '@/types/stats'
 
 import { Progress } from '@/client/components/ui/progress'
 

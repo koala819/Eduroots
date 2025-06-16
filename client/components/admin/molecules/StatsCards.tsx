@@ -1,7 +1,7 @@
 import { ChevronRight, GraduationCap, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import { EntityType } from '@/zUnused/types/stats'
+import { EntityType } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
 import { UserListDialog } from '@/client//components/admin/atoms/UserListDialog'

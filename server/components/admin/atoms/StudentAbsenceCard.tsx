@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react'
 
-import { StudentStats } from '@/zUnused/types/stats'
+import { StudentStats } from '@/types/stats'
 import { Student } from '@/zUnused/types/user'
 
 import { Button } from '@/client/components/ui/button'

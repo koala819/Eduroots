@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
 import { SubjectNameEnum } from '@/zUnused/types/course'
-import { TeacherStats } from '@/zUnused/types/stats'
+import { TeacherStats } from '@/types/stats'
 import { GenderEnum, Teacher } from '@/zUnused/types/user'
 
 import { TeacherOption } from '@/client//components/admin/atoms/NewStudentTeacherOption'

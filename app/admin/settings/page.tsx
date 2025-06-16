@@ -23,7 +23,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/client/utils/supabase'
 
-import { EntityType } from '@/zUnused/types/stats'
+import { EntityType } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
 import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'

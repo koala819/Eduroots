@@ -1,45 +1,30 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
+import { getSessionServer } from '@/server/utils/server-helpers'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { revalidatePath } from 'next/cache'
-
 import { ApiResponse } from '@/types/api'
-import { EntityStats, StudentStats, TeacherStats } from '@/zUnused/types/stats'
-import { SerializedValue, serializeData } from '@/zUnused/serialization'
+import { EntityStats } from '@/types/stats'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
-} from '@/zUnused/stats/student'
-
-async function getSessionServer() {
-  try {
-    const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (error) {
-      console.error('[AUTH_ERROR]', error)
-      throw new Error('Erreur d\'authentification')
-    }
-
-    if (!user) {
-      throw new Error('Non authentifié')
-    }
-
-    return { user }
-  } catch (error) {
-    console.error('[GET_SESSION_ERROR]', error)
-    throw new Error('Erreur lors de la vérification de l\'authentification')
-  }
-}
+} from '@/server/utils/stats/student'
+import {
+  StudentStatsPayload,
+  TeacherStatsPayload,
+  GlobalStatsResponse,
+  StudentAttendanceResponse,
+  StudentBehaviorResponse,
+} from '@/types/stats-payload'
 
 export async function refreshEntityStats(
   forceUpdate: boolean = false,
-): Promise<ApiResponse<SerializedValue>> {
-  try {
-    await getSessionServer()
-    const supabase = await createClient()
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
+  try {
     // Si forceUpdate est true, recalculer les statistiques
     if (forceUpdate) {
       // Récupérer tous les étudiants
@@ -89,18 +74,18 @@ export async function refreshEntityStats(
     }
 
     const serializedStudentStats = (studentStats || []).map((stat: any) => ({
-      ...(serializeData(stat) as object),
+      ...stat,
     })) as EntityStats[]
 
     const serializedTeacherStats = (teacherStats || []).map((stat: any) => ({
-      ...(serializeData(stat) as object),
+      ...stat,
     })) as EntityStats[]
 
     // Combiner les deux tableaux
     const allStats = [...serializedStudentStats, ...serializedTeacherStats]
     return {
       success: true,
-      data: serializeData(allStats),
+      data: allStats,
       message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
@@ -114,39 +99,22 @@ export async function refreshEntityStats(
   }
 }
 
-/**
- * Met à jour les statistiques d'un étudiant
- */
 export async function updateStudentStats(
   id: string,
-  statsData: StudentStats,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  statsData: StudentStatsPayload,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
-    // Validation des statsData pour un étudiant
-    const requiredFields = [
-      'attendanceRate',
-      'totalAbsences',
-      'behaviorAverage',
-    ]
-    if (!requiredFields.every((field) => field in statsData)) {
-      return {
-        success: false,
-        message: 'Champs requis manquants pour les statistiques étudiantes',
-        data: null,
-      }
-    }
-
     const { data: stats, error } = await supabase
       .schema('education')
       .from('student_stats')
       .upsert({
         user_id: id,
-        absences_rate: (statsData as any).absences_rate,
-        absences_count: (statsData as any).absences_count,
-        behavior_average: (statsData as any).behavior_average,
+        absences_rate: statsData.attendanceRate,
+        absences_count: statsData.totalAbsences,
+        behavior_average: statsData.behaviorAverage,
         last_update: new Date().toISOString(),
       })
       .select()
@@ -165,7 +133,7 @@ export async function updateStudentStats(
 
     return {
       success: true,
-      data: serializeData(stats),
+      data: stats,
       message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
@@ -174,15 +142,12 @@ export async function updateStudentStats(
   }
 }
 
-/**
- * Met à jour les statistiques d'un enseignant
- */
 export async function updateTeacherStats(
   id: string,
-  statsData: TeacherStats,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  statsData: TeacherStatsPayload,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     // Validation des statsData pour un professeur
@@ -201,8 +166,8 @@ export async function updateTeacherStats(
       .from('teacher_stats')
       .upsert({
         user_id: id,
-        attendance_rate: (statsData as any).attendanceRate,
-        total_sessions: (statsData as any).totalSessions,
+        attendance_rate: statsData.attendanceRate,
+        total_sessions: statsData.totalSessions,
         last_update: new Date().toISOString(),
       })
       .select()
@@ -216,13 +181,12 @@ export async function updateTeacherStats(
       }
     }
 
-    // Revalidate relevant paths
     revalidatePath('/dashboard')
     revalidatePath(`/teachers/${id}`)
 
     return {
       success: true,
-      data: serializeData(stats),
+      data: stats,
       message: 'Statistiques mises à jour avec succès',
     }
   } catch (error) {
@@ -231,16 +195,11 @@ export async function updateTeacherStats(
   }
 }
 
-/**
- * Récupère les statistiques globales
- */
-export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+export async function refreshGlobalStats(): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
-
-    // Récupérer les statistiques globales les plus récentes
     const { data: globalStats, error } = await supabase
       .schema('stats')
       .from('global_stats')
@@ -257,30 +216,27 @@ export async function refreshGlobalStats(): Promise<ApiResponse<SerializedValue>
       throw new Error('Aucune statistique globale trouvée')
     }
 
-    const response = {
-      success: true,
-      data: serializeData({
-        presenceRate: globalStats.average_attendance_rate || 0,
-        totalStudents: globalStats.total_students || 0,
-        totalTeachers: globalStats.total_teachers || 0,
-        lastUpdate: globalStats.last_update,
-      }),
-      message: 'Statistiques globales récupérées avec succès',
+    const response: GlobalStatsResponse = {
+      presenceRate: globalStats.average_attendance_rate ?? 0,
+      totalStudents: globalStats.total_students ?? 0,
+      totalTeachers: globalStats.total_teachers ?? 0,
+      lastUpdate: globalStats.last_update,
     }
 
-    return response
+    return {
+      success: true,
+      data: response,
+      message: 'Statistiques globales récupérées avec succès',
+    }
   } catch (error) {
     throw new Error('Erreur lors de la récupération des statistiques globales' + error)
   }
 }
 
-/**
- * Récupère les données de présence d'un étudiant
- */
 export async function getStudentAttendance(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
 
   if (!studentId) {
     return {
@@ -292,10 +248,15 @@ export async function getStudentAttendance(
 
   try {
     const data = await calculateStudentAttendanceRate(studentId)
+    const response: StudentAttendanceResponse = {
+      attendanceRate: data.absencesRate,
+      totalAbsences: data.absencesCount,
+      lastUpdate: new Date().toISOString(),
+    }
 
     return {
       success: true,
-      data: data ? serializeData(data) : null,
+      data: response,
       message: 'Absences de l\'étudiant récupérées avec succès',
     }
   } catch (error) {
@@ -307,13 +268,10 @@ export async function getStudentAttendance(
   }
 }
 
-/**
- * Récupère les données de comportement d'un étudiant
- */
 export async function getStudentBehavior(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
 
   if (!studentId) {
     return {
@@ -325,10 +283,15 @@ export async function getStudentBehavior(
 
   try {
     const data = await calculateStudentBehaviorRate(studentId)
+    const response: StudentBehaviorResponse = {
+      behaviorAverage: data.behaviorAverage,
+      totalIncidents: data.records.length,
+      lastUpdate: new Date().toISOString(),
+    }
 
     return {
       success: true,
-      data: data ? serializeData(data) : null,
+      data: response,
       message: 'Comportements de l\'étudiant récupérés avec succès',
     }
   } catch (error) {
@@ -340,13 +303,10 @@ export async function getStudentBehavior(
   }
 }
 
-/**
- * Récupère les données de notes d'un étudiant
- */
 export async function getStudentGrade(
   studentId: string,
-): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
 
   if (!studentId) {
     return {
@@ -362,7 +322,7 @@ export async function getStudentGrade(
 
     return {
       success: true,
-      data: data ? serializeData(data) : null,
+      data: data,
       message: 'Notes de l\'étudiant récupérés avec succès',
     }
   } catch (error) {
@@ -374,82 +334,88 @@ export async function getStudentGrade(
   }
 }
 
-/**
- * Met à jour uniquement les statistiques des élèves d'un professeur spécifique
- */
+async function getTeacherCourses(supabase: any, teacherId: string) {
+  const { data: teacherCourses, error: coursesError } = await supabase
+    .schema('education')
+    .from('courses_teacher')
+    .select(`
+      courses (
+        courses_sessions (
+          courses_sessions_students (
+            student_id
+          )
+        )
+      )
+    `)
+    .eq('teacher_id', teacherId)
+
+  if (coursesError) {
+    throw new Error(`Erreur lors de la récupération des cours: ${coursesError.message}`)
+  }
+
+  return teacherCourses
+}
+
+function extractStudentIds(teacherCourses: any[]): string[] {
+  const studentIds = new Set<string>()
+
+  for (const teacherCourse of teacherCourses) {
+    const course = teacherCourse.courses
+    if (!course?.courses_sessions) continue
+
+    for (const session of course.courses_sessions) {
+      if (!session.courses_sessions_students) continue
+
+      session.courses_sessions_students.forEach((enrollment: any) => {
+        studentIds.add(enrollment.student_id)
+      })
+    }
+  }
+
+  return Array.from(studentIds)
+}
+
+async function recalculateStudentStats(studentIds: string[]) {
+  console.log('📊 Nombre d\'élèves du professeur trouvés:', studentIds.length)
+
+  for (const studentId of studentIds) {
+    console.log('📊 Recalcul des statistiques pour l\'élève:', studentId)
+    await calculateStudentAttendanceRate(studentId)
+  }
+}
+
+async function getUpdatedStudentStats(supabase: any) {
+  const { data: studentStats, error } = await supabase
+    .schema('education')
+    .from('student_stats')
+    .select('*')
+    .order('last_update', { ascending: false })
+
+  if (error) {
+    throw new Error(`Erreur lors de la récupération des statistiques: ${error.message}`)
+  }
+
+  return studentStats
+}
+
 export async function refreshTeacherStudentsStats(
   forceUpdate: boolean = false,
-): Promise<ApiResponse<SerializedValue>> {
-  const session = await getSessionServer()
-  const supabase = await createClient()
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase, user } = await getSessionServer()
 
   try {
-    // Si forceUpdate est true, recalculer les statistiques
     if (forceUpdate) {
-      // Récupérer les cours du professeur
-      const { data: teacherCourses, error: coursesError } = await supabase
-        .schema('education')
-        .from('courses_teacher')
-        .select(`
-          courses (
-            courses_sessions (
-              courses_sessions_students (
-                student_id
-              )
-            )
-          )
-        `)
-        .eq('teacher_id', session.user.id)
-
-      if (coursesError) {
-        throw new Error(`Erreur lors de la récupération des cours: ${coursesError.message}`)
-      }
-
-      // Récupérer tous les élèves uniques des cours du professeur
-      const studentIds = new Set<string>()
-      if (teacherCourses) {
-        for (const teacherCourse of teacherCourses) {
-          const course = (teacherCourse as any).courses
-          if (course?.courses_sessions) {
-            for (const session of course.courses_sessions) {
-              if (session.courses_sessions_students) {
-                session.courses_sessions_students.forEach((enrollment: any) => {
-                  studentIds.add(enrollment.student_id)
-                })
-              }
-            }
-          }
-        }
-      }
-
-      console.log('📊 Nombre d\'élèves du professeur trouvés:', studentIds.size)
-
-      // Recalculer les statistiques pour chaque élève du professeur
-      const uniqueStudentIds = Array.from(studentIds)
-      for (const studentId of uniqueStudentIds) {
-        console.log('📊 Recalcul des statistiques pour l\'élève:', studentId)
-        await calculateStudentAttendanceRate(studentId)
-      }
+      const teacherCourses = await getTeacherCourses(supabase, user.id)
+      const studentIds = extractStudentIds(teacherCourses)
+      await recalculateStudentStats(studentIds)
     }
 
-    // Récupérer les statistiques mises à jour des élèves du professeur
-    const { data: studentStats, error } = await supabase
-      .schema('education')
-      .from('student_stats')
-      .select('*')
-      .order('last_update', { ascending: false })
-
-    if (error) {
-      throw new Error(`Erreur lors de la récupération des statistiques: ${error.message}`)
-    }
-
-    const serializedStudentStats = (studentStats || []).map((stat: any) => ({
-      ...(serializeData(stat) as object),
-    })) as EntityStats[]
+    const studentStats = await getUpdatedStudentStats(supabase)
 
     return {
       success: true,
-      data: serializeData(serializedStudentStats),
+      data: studentStats,
       message: 'Statistiques des élèves mises à jour avec succès',
     }
   } catch (error) {

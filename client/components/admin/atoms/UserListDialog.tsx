@@ -4,7 +4,7 @@ import { createClient } from '@/client/utils/supabase'
 
 import { useRouter } from 'next/navigation'
 
-import { EntityType } from '@/zUnused/types/stats'
+import { EntityType } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
 import { UserDetails } from '@/server/components/admin/organisms/UserDetails'
