@@ -1,15 +1,15 @@
 import { AlertCircle } from 'lucide-react'
-
-import { TimeSlotEnum } from '@/zUnused/types/course'
-
 import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTable'
 import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'
 import { Alert, AlertDescription } from '@/client/components/ui/alert'
 
 import { getStudentCourses } from '@/server/actions/context/courses'
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { TimeSlotEnum } from '@/types/courses'
 
-export async function StudentCourses({ studentId }: {studentId: string}) {
+export async function StudentCourses({
+  studentId,
+}: Readonly<{ studentId: string }>) {
   try {
     const response = await getStudentCourses(studentId)
 
@@ -46,7 +46,7 @@ export async function StudentCourses({ studentId }: {studentId: string}) {
       })),
     )
 
-    const sortedStudentSessions = allSessions.sort((a: any, b: any) => {
+    const sortedStudentSessions = allSessions.toSorted((a: any, b: any) => {
       const timeSlotOrder = {
         [TimeSlotEnum.SATURDAY_MORNING]: 0,
         [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
