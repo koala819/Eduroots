@@ -1,30 +1,15 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
-
+import { createDefaultSchedule, getSessionServer } from '@/server/utils/server-helpers'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { revalidatePath } from 'next/cache'
 import { ApiResponse } from '@/types/api'
 import { SerializedValue, serializeData } from '@/zUnused/serialization'
-import { createDefaultSchedule } from '@/server/utils/server-helpers'
-
-interface SaveScheduleData {
-  updatedBy: string
-  [key: string]: any // pour les daySchedules
-}
-
-async function getSessionServer() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Non authentifié')
-  }
-
-  return { user }
-}
+import { SaveSchedulePayload } from '@/types/schedule-payload'
 
 export async function getCurrentSchedule(userId: string): Promise<ApiResponse<SerializedValue>> {
-  await getSessionServer()
-  const supabase = await createClient()
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   try {
     // Cherche la config active la plus récente
@@ -62,9 +47,9 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse<Se
   }
 }
 
-export async function saveSchedules(scheduleData: SaveScheduleData) {
-  await getSessionServer()
-  const supabase = await createClient()
+export async function saveSchedules(scheduleData: SaveSchedulePayload) {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
 
   const currentYear = new Date().getFullYear().toString()
   const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
@@ -108,6 +93,9 @@ export async function saveSchedules(scheduleData: SaveScheduleData) {
     if (error) {
       throw new Error(`Erreur lors de la sauvegarde: ${error.message}`)
     }
+
+    revalidatePath('/settings/schedules')
+    revalidatePath('/settings')
 
     return {
       success: true,

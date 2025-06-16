@@ -9,7 +9,6 @@ import {
   BehaviorRecordWithRelations,
 } from '@/types/behavior-payload'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
-import { BehaviorRecord } from '@/types/db'
 
 
 export async function createBehaviorRecord(
@@ -104,7 +103,7 @@ export async function createBehaviorRecord(
 
       // Calculer la nouvelle moyenne
       const allRatings = [...(studentBehaviors?.map(
-        (b: BehaviorRecord) => b.rating) ?? []), record.rating]
+        (b: { rating: number }) => b.rating) ?? []), record.rating]
       const behaviorAverage = allRatings
         .reduce((sum, rating) => sum + rating, 0) / allRatings.length
 
