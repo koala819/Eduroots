@@ -12,7 +12,7 @@ import { CourseDocument } from '@/zUnused/types/mongoose'
 import { Teacher } from '@/zUnused/types/user'
 
 import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
-import EditTeacherStep2 from '@/client//components/root/EditTeacherStep2'
+import EditTeacherStep2 from '@/client/components/root/EditTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import MessageContainer from '@/client//components/pages/MessageContainer'
+import MessageContainer from '@/client/components/pages/MessageContainer'
 
 export const metadata: Metadata = {
   title: 'Boîte de réception',

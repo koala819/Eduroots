@@ -6,9 +6,9 @@ import React, { useEffect, useState } from 'react'
 
 import { AttendanceRecord } from '@/zUnused/types/attendance'
 
-import { BehaviorCreate } from '@/client//components/atoms/BehaviorCreate'
-import { BehaviorEdit } from '@/client//components/atoms/BehaviorEdit'
-import { BehaviorTable } from '@/client//components/atoms/BehaviorTable'
+import { BehaviorCreate } from '@/client/components/atoms/BehaviorCreate'
+import { BehaviorEdit } from '@/client/components/atoms/BehaviorEdit'
+import { BehaviorTable } from '@/client/components/atoms/BehaviorTable'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
 

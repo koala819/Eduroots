@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { AttendanceCreate } from '@/client//components/atoms/AttendanceCreate'
-import { AttendanceEdit } from '@/client//components/atoms/AttendanceEdit'
-import { AttendanceTable } from '@/client//components/atoms/AttendanceTable'
+import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
+import { AttendanceEdit } from '@/client/components/atoms/AttendanceEdit'
+import { AttendanceTable } from '@/client/components/atoms/AttendanceTable'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
 import { useAttendance } from '@/client/context/attendances'

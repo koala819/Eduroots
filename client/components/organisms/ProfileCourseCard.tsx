@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { StudentStats } from '@/types/stats'
 import { Student } from '@/zUnused/types/user'
 
-import { ClassOverview } from '@/client//components/atoms/ClassOverview'
+import { ClassOverview } from '@/client/components/atoms/ClassOverview'
 import { Card, CardContent } from '@/client/components/ui/card'
 
 import { useStats } from '@/client/context/stats'

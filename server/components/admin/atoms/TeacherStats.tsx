@@ -1,9 +1,11 @@
+import { Suspense } from 'react'
 
-import { TeacherStatsClient } from '@/client//components/admin/atoms/TeacherStats'
+import { TeacherStatsClient } from '@/client/components/admin/atoms/TeacherStats'
+import Loading from '@/server/components/admin/atoms/Loading'
 
 import { getTeacherCourses } from '@/server/actions/context/courses'
 
-export async function TeacherStatsServer({
+export async function TeacherStats({
   teacherId,
 }: Readonly<{ teacherId: string }>) {
   const response = await getTeacherCourses(teacherId)
@@ -51,5 +53,9 @@ export async function TeacherStatsServer({
     averageStudentSuccess,
   }
 
-  return <TeacherStatsClient stats={stats} />
+  return (
+    <Suspense fallback={<Loading name="statistiques de l'enseignant" />}>
+      <TeacherStatsClient stats={stats} />
+    </Suspense>
+  )
 }

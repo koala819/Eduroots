@@ -6,9 +6,9 @@ import { PopulatedCourse } from '@/zUnused/types/course'
 import { CourseStats, StudentStats } from '@/types/stats'
 import { Student, Teacher } from '@/zUnused/types/user'
 
-import StudentSelector from '@/client//components/atoms/StudentSelector'
+import StudentSelector from '@/client/components/atoms/StudentSelector'
 import StudentDetailsSkeleton from '@/server/components/atoms/StudentDetailsSkeleton'
-import ChildStats from '@/client//components/molecules/StudentStats'
+import ChildStats from '@/client/components/molecules/StudentStats'
 
 import { useCourses } from '@/client/context/courses'
 import { useStats } from '@/client/context/stats'

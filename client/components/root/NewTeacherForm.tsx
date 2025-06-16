@@ -9,7 +9,7 @@ import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course
 import { CourseDocument } from '@/zUnused/types/mongoose'
 import { UserRoleEnum } from '@/types/user'
 
-import StepOne from '@/client//components/root/NewTeacherStep1'
+import StepOne from '@/client/components/root/NewTeacherStep1'
 import StepTwo from '@/server/components/root/NewTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'

@@ -1,10 +1,11 @@
 import { ChevronRight, GraduationCap, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { UserRoleEnum } from '@/types/user'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
-import { UserListDialog } from '@/client//components/admin/atoms/UserListDialog'
+import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'
 import { Card, CardContent } from '@/client/components/ui/card'
 
 import { motion } from 'framer-motion'
@@ -15,19 +16,20 @@ type StatItem = {
   icon: typeof Users | typeof GraduationCap
   color: string
   bgColor: string
-  type: EntityType
-  data: Student[] | Teacher[]
+  type: UserRoleEnum
+  data: StudentResponse[] | TeacherResponse[]
 }
 
 type StatsCardProps = {
   people: StatItem[]
-  selectedType: EntityType | null
-  onSelectType: (type: EntityType | null) => void
+  selectedType: UserRoleEnum | null
+  onSelectType: (type: UserRoleEnum | null) => void
 }
 
 export const StatsCards = ({ people, selectedType, onSelectType }: StatsCardProps) => {
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [selectedEntity, setSelectedEntity] = useState<Student | Teacher | null>(null)
+  const [selectedEntity, setSelectedEntity] =
+    useState<StudentResponse | TeacherResponse | null>(null)
 
   const filteredData = selectedType
     ? (people.find((s) => s.type === selectedType)?.data || []).filter((item) =>

@@ -1,6 +1,6 @@
 import { UseFormReturn } from 'react-hook-form'
 
-import { FormData } from '@/client//components/root/NewTeacherForm'
+import { FormData } from '@/client/components/root/NewTeacherForm'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 

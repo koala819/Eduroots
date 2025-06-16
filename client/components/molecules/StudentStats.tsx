@@ -5,9 +5,9 @@ import 'react'
 
 import { TimeSlotEnum } from '@/zUnused/types/course'
 
-import { GradeCard } from '@/client//components/atoms/StudentGradeCard'
-import { InfoCard } from '@/client//components/atoms/StudentInfoCard'
-import { StatCard } from '@/client//components/atoms/StudentStatCard'
+import { GradeCard } from '@/client/components/atoms/StudentGradeCard'
+import { InfoCard } from '@/client/components/atoms/StudentInfoCard'
+import { StatCard } from '@/client/components/atoms/StudentStatCard'
 
 import { formatDayOfWeek } from '@/server/utils/helpers'
 

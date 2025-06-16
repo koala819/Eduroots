@@ -18,7 +18,9 @@ export type StudentResponse = Pick<User,
   'type' |
   'subjects' |
   'created_at' |
-  'updated_at'
+  'updated_at' |
+  'gender' |
+  'date_of_birth'
 >
 
 export type StudentWithTeachersResponse = StudentResponse & {

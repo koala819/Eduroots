@@ -3,18 +3,22 @@
 import { GraduationCap, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { UserRoleEnum } from '@/types/user'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
-import { StatsCards } from '@/components/admin/molecules/client/StatsCards'
+import { StatsCards } from '@/client/components/admin/molecules/StatsCards'
 
 interface SchoolPeopleClientProps {
-  students: Student[]
-  teachers: Teacher[]
+  students: StudentResponse[]
+  teachers: TeacherResponse[]
 }
 
-export function SchoolPeopleClient({ students, teachers }: SchoolPeopleClientProps) {
-  const [selectedType, setSelectedType] = useState<EntityType | null>(null)
+export function SchoolPeopleClient({
+  students,
+  teachers,
+}: Readonly<SchoolPeopleClientProps>) {
+  const [selectedType, setSelectedType] = useState<UserRoleEnum | null>(null)
 
   const people = useMemo(() => {
     return [
@@ -24,8 +28,8 @@ export function SchoolPeopleClient({ students, teachers }: SchoolPeopleClientPro
         icon: Users,
         color: 'text-purple-600',
         bgColor: 'bg-purple-600',
-        type: 'students' as EntityType,
-        data: selectedType === 'students' ? students : [],
+        type: UserRoleEnum.Student,
+        data: selectedType === UserRoleEnum.Student ? students : [],
       },
       {
         title: 'Total Professeurs',
@@ -33,8 +37,8 @@ export function SchoolPeopleClient({ students, teachers }: SchoolPeopleClientPro
         icon: GraduationCap,
         color: 'text-green-600',
         bgColor: 'bg-green-600',
-        type: 'teachers' as EntityType,
-        data: selectedType === 'teachers' ? teachers : [],
+        type: UserRoleEnum.Teacher,
+        data: selectedType === UserRoleEnum.Teacher ? teachers : [],
       },
     ]
   }, [students, teachers, selectedType])

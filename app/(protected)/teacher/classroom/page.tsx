@@ -7,7 +7,7 @@ import {
   LoadingContent,
   EmptyContent,
   ErrorContent,
-} from '@/client//components/atoms/StatusContent'
+} from '@/client/components/atoms/StatusContent'
 import { getSessionServer } from '@/utils/server-helpers'
 
 export const metadata: Metadata = {

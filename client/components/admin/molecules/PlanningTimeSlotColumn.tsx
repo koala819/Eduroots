@@ -2,7 +2,7 @@
 
 import { CourseSession } from '@/zUnused/types/course'
 
-import { TeacherCard } from '@/client//components/admin/atoms/PlanningTeacherCard'
+import { TeacherCard } from '@/client/components/admin/atoms/PlanningTeacherCard'
 
 type FixedTimeSlot = {
   startTime: string

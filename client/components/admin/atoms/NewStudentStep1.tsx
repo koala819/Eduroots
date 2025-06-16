@@ -4,7 +4,7 @@ import { UseFormReturn } from 'react-hook-form'
 
 import { GenderEnum } from '@/zUnused/types/user'
 
-import { FormData } from '@/client//components/organisms/NewStudentForm'
+import { FormData } from '@/client/components/organisms/NewStudentForm'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'

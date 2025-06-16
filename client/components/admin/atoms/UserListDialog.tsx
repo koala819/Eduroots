@@ -4,8 +4,9 @@ import { createClient } from '@/client/utils/supabase'
 
 import { useRouter } from 'next/navigation'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { UserRoleEnum } from '@/types/user'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 import { UserDetails } from '@/server/components/admin/organisms/UserDetails'
 import { Button } from '@/client/components/ui/button'
@@ -18,14 +19,15 @@ import {
 } from '@/client/components/ui/dialog'
 import { Input } from '@/client/components/ui/input'
 import { ScrollArea } from '@/client/components/ui/scroll-area'
+import { Card, CardContent } from '@/client/components/ui/card'
 
 import { motion } from 'framer-motion'
 
 type UserListDialogProps = {
-  type: EntityType
-  people: (Student | Teacher)[]
-  selectedEntity: Student | Teacher | null
-  onSelectEntity: (entity: Student | Teacher | null) => void
+  type: UserRoleEnum
+  people: (StudentResponse | TeacherResponse)[]
+  selectedEntity: StudentResponse | TeacherResponse | null
+  onSelectEntity: (entity: StudentResponse | TeacherResponse | null) => void
   searchQuery: string
   onSearch: (query: string) => void
   onClose: () => void
@@ -47,7 +49,7 @@ export const UserListDialog = ({
     const getUserRole = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      setUserRole(user?.user_metadata?.role || null)
+      setUserRole(user?.user_metadata?.role ?? null)
     }
     getUserRole()
   }, [])
@@ -63,80 +65,91 @@ export const UserListDialog = ({
       <DialogContent className="sm:max-w-[800px] h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {type === 'students' ? 'Liste des élèves' : 'Liste des professeurs'}
+            {type === UserRoleEnum.Student ? 'Liste des élèves' : 'Liste des professeurs'}
           </DialogTitle>
           <DialogDescription />
         </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto">
-          {selectedEntity ? (
-            <>
-              <div className="flex justify-between">
-                <Button variant="destructive" className="mb-4" onClick={() => onSelectEntity(null)}>
-                  <CircleArrowLeft className="mr-2 h-4 w-4" /> Retour à la liste
-                </Button>
-                {userRole === 'admin' && (
-                  <Button
-                    className="mb-4"
-                    onClick={() =>
-                      router.push(
-                        `${process.env.NEXT_PUBLIC_CLIENT_URL}/
-                        admin/${selectedEntity.role}/edit/${selectedEntity.id}`,
-                      )
-                    }
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => onSearch(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            {selectedEntity && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onSelectEntity(null)}
+                className="shrink-0"
+              >
+                <CircleArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <ScrollArea className="flex-1">
+            {selectedEntity ? (
+              <UserDetails
+                entity={selectedEntity}
+                onBack={() => onSelectEntity(null)}
+                onEdit={() => {
+                  router.push(
+                    `/${type === UserRoleEnum.Student ? 'students' : 'teachers'}/${
+                      selectedEntity.id
+                    }/edit`,
+                  )
+                }}
+              />
+            ) : (
+              <div className="space-y-2">
+                {people.map((person) => (
+                  <motion.div
+                    key={person.id}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
-                    <Pencil className="mr-2 h-4 w-4" /> Modifier
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-4 px-1">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      {selectedEntity.firstname} {selectedEntity.lastname}
-                    </h3>
-                    <p className="text-gray-500">{selectedEntity.email}</p>
-                  </div>
-                </div>
-                <UserDetails entity={selectedEntity} />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par nom..."
-                  value={searchQuery}
-                  onChange={(e) => onSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-4">
-                  {people.map((user) => (
-                    <motion.div
-                      key={user.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center space-x-4 p-3 rounded-lg
-                        hover:bg-gray-100 transition-colors cursor-pointer"
-                      onClick={() => onSelectEntity(user)}
+                    <Card
+                      className="cursor-pointer group"
+                      onClick={() => onSelectEntity(person)}
                     >
-                      <div className="flex-grow">
-                        <p className="font-medium">
-                          {user.firstname} {user.lastname}
-                        </p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
-                    </motion.div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </>
-          )}
+                      <CardContent className="flex items-center p-4">
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {person.firstname} {person.lastname}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{person.email}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {userRole === UserRoleEnum.Admin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(
+                                  `/${type === UserRoleEnum.Student ? 'students' : 'teachers'}/${
+                                    person.id
+                                  }/edit`,
+                                )
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <ChevronRight className="h-5 w-5
+                          text-muted-foreground transition-transform group-hover:translate-x-1" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>
