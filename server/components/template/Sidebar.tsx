@@ -112,7 +112,7 @@ export default function SidebarMenu({
                 'flex flex-col items-center px-2 py-1 rounded-md text-white',
                 isActive({ href, pathPattern })
                   ? 'bg-white cursor-default text-primary'
-                  : 'transition-colors hover:bg-white/10 hover:text-white' +
+                  : 'transition-colors hover:bg-white/10 hover:text-white ' +
                   'group-hover:shadow-sm cursor-pointer',
               )}
             >

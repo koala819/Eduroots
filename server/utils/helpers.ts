@@ -54,13 +54,13 @@ export function getColorClass(absences: number): string {
   } // 0 absences
   switch (absences % 3) {
   case 1:
-    return 'bg-effet-metal-argent from-argent-clair via-argentto-argent-fonce' +
+    return 'bg-effet-metal-argent from-argent-clair via-argentto-argent-fonce ' +
         'text-slate-900' // 1, 4, 7... absences
   case 2:
-    return 'bg-effet-metal-bronze from-bronze-clair via-bronze to-bronze-fonce' +
+    return 'bg-effet-metal-bronze from-bronze-clair via-bronze to-bronze-fonce ' +
         'text-orange-50' // 2, 5, 8... absences
   case 0:
-    return 'bg-effet-inferno from-inferno-light via-inferno to-inferno-dark' +
+    return 'bg-effet-inferno from-inferno-light via-inferno to-inferno-dark ' +
         'text-black' // 3, 6, 9... absences
   default:
     return 'bg-gray-500 text-white' // Should never happen, but for safety

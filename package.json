@@ -17,8 +17,7 @@
     "prepush": "rm -rf .next",
     "find-unused": "ts-prune --project tsconfig.json --skip 'node_modules|.next|app/api|tests|__tests__|mocks'",
     "audit": "pnpm audit",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "vitest"
   },
   "dependencies": {
     "@heroicons/react": "2.1.5",

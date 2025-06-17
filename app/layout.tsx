@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import 'react-toastify/dist/ReactToastify.css'
-import '@/app/styles/globals.css'
+import '@/styles/globals.css'
 
 import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
@@ -123,9 +123,9 @@ export const viewport: Viewport = {
 
 export default async function DashboardLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="fr" dir="ltr" suppressHydrationWarning>
       <head>
