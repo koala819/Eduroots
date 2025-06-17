@@ -1,14 +1,26 @@
 import { useEffect, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/zUnused/types/course'
+import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/client/components/ui/select'
 
 import { TeacherFormData } from './EditTeacherForm'
 
@@ -86,7 +98,8 @@ const EditTeacherStep2 = ({ form }: EditTeacherStep2Props) => {
           {Object.values(TimeSlotEnum).map((day) => (
             <div
               key={day}
-              className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg
+              hover:bg-slate-100 transition-colors"
             >
               <Checkbox
                 checked={selectedDays.includes(day)}

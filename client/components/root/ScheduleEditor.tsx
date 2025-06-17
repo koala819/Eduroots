@@ -3,31 +3,34 @@
 import { Save } from 'lucide-react'
 import { createClient } from '@/client/utils/supabase'
 import { useForm } from 'react-hook-form'
-import React from 'react'
-
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 import { TimeSlotEnum } from '@/types/courses'
-
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/client/components/ui/select'
 import { useSchedules } from '@/client/context/schedules'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useEffect, useState } from 'react'
 
 const periodSchema = z.object({
   startTime: z
     .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide')
+    .regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/, 'Format d\'heure invalide')
     .refine((time) => {
       const [hours, minutes] = time.split(':').map(Number)
       return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59
     }, 'L\'heure doit être valide'),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide'),
+  endTime: z.string().regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/, 'Format d\'heure invalide'),
   type: z.enum([PeriodTypeEnum.CLASS, PeriodTypeEnum.BREAK]),
   order: z.number(),
 })
@@ -68,9 +71,9 @@ type ScheduleFormValues = z.infer<typeof scheduleFormSchema>
 export const ScheduleEditor = () => {
   const { schedules, saveSchedules, isLoading, error } = useSchedules()
   const supabase = createClient()
-  const [userId, setUserId] = React.useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUserId(user?.id ?? null)
@@ -105,7 +108,8 @@ export const ScheduleEditor = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4
+          sm:gap-0">
             <h1 className="text-xl sm:text-2xl font-semibold">Configuration des horaires</h1>
           </div>
 

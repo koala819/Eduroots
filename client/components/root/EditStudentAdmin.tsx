@@ -7,11 +7,18 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { GenderEnum } from '@/zUnused/types/user'
+import { GenderEnum } from '@/types/user'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
@@ -49,13 +56,17 @@ export const EditAdminStudent = ({ id }: {id: string}) => {
       try {
         const student = await getOneStudent(id)
         if (student) {
+          const formattedDate = student.date_of_birth
+            ? new Date(student.date_of_birth).toISOString().split('T')[0]
+            : ''
+
           form.reset({
             firstname: student.firstname,
             lastname: student.lastname,
             parentEmail1: student.email,
-            parentEmail2: student.secondaryEmail || '',
-            gender: student.gender,
-            dateOfBirth: student.dateOfBirth || '',
+            parentEmail2: student.secondary_email ?? '',
+            gender: student.gender as GenderEnum || GenderEnum.Masculin,
+            dateOfBirth: formattedDate,
           })
         }
       } catch (error) {
@@ -92,7 +103,7 @@ export const EditAdminStudent = ({ id }: {id: string}) => {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la mise à jour',
+        description: `Erreur lors de la mise à jour: ${error}`,
         variant: 'destructive',
       })
     }

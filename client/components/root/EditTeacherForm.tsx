@@ -7,11 +7,9 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course'
-import { CourseDocument } from '@/zUnused/types/mongoose'
-import { Teacher } from '@/zUnused/types/user'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum, CourseWithRelations } from '@/types/courses'
 
-import EditTeacherStep1 from '@/components/root/EditTeacherStep1'
+import EditTeacherStep1 from '@/client/components/root/EditTeacherStep1'
 import EditTeacherStep2 from '@/client/components/root/EditTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -22,6 +20,7 @@ import { useTeachers } from '@/client/context/teachers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import useCourseStore from '@/client/stores/useCourseStore'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 const teacherSchema = z.object({
   firstname: z.string().min(2),
@@ -119,24 +118,43 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
     const loadData = async () => {
       try {
         setIsDataLoading(true)
-        await fetchTeacherCourses(id) // Appel pour mettre à jour l'état des cours
+        await fetchTeacherCourses(id)
 
         if (!isMounted) return
 
         const teacher = await getOneTeacher(id)
-        const courses = useCourseStore.getState().courses // Récupération des cours depuis l'état
+        const courses = useCourseStore.getState().courses
 
-        const course = courses.find((course) => course.teacher.includes(id)) // Trouver le cours correspondant
+        const course = courses.find((course) => {
+          return course.courses.some((c) => c.courses_sessions.length > 0)
+        })
 
-        if (teacher && course && course.sessions) {
-          const formattedSessions = formatSessions(course.sessions)
+        if (teacher && course) {
+          const sessions = course.courses.flatMap((c) =>
+            c.courses_sessions.map((session) => {
+              const timeslot = session.courses_sessions_timeslot[0]
+              return {
+                id: session.id,
+                timeSlot: {
+                  dayOfWeek: (timeslot?.day_of_week || 'saturday_morning') as TimeSlotEnum,
+                  startTime: timeslot?.start_time || '',
+                  endTime: timeslot?.end_time || '',
+                  classroomNumber: null,
+                },
+                subject: session.subject as SubjectNameEnum,
+                level: session.level as LevelEnum,
+              }
+            }),
+          )
+
+          const formattedSessions = formatSessions(sessions)
 
           form.reset({
             firstname: teacher.firstname,
             lastname: teacher.lastname,
             email: teacher.email,
-            subjects: teacher.subjects,
-            isActive: teacher.isActive,
+            subjects: teacher.subjects || [],
+            isActive: true,
             sessions: formattedSessions,
           })
         }
@@ -256,14 +274,13 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
   const onSubmit = async (values: TeacherFormData) => {
     try {
       setIsDataLoading(true)
-      // let hasChanges = false
 
       // 1. Vérifier les changements dans les données du professeur
-      const teacherData: Partial<Teacher> = {
+      const teacherData: Partial<TeacherResponse> = {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.email,
-        subjects: [SubjectNameEnum.Arabe, SubjectNameEnum.EducationCulturelle],
+        subjects: values.subjects,
       }
 
       // Comparer avec les données originales du professeur
@@ -290,7 +307,6 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
       // 1. Mise à jour du professeur
       if (teacherChanged) {
         await updateTeacher(id, teacherData)
-        // hasChanges = true
       }
 
       // 2. Vérifier les changements dans les sessions
@@ -321,37 +337,52 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
       // }
 
       // 2. Mise à jour du cours
-      // if (sessionsChanged) {
-      const courseData: Omit<CourseDocument, 'students' | 'stats'> = {
-        teacher: id,
-        sessions: values.sessions.map((session) => ({
-          id: session.id,
-          timeSlot: {
-            dayOfWeek: session.dayOfWeek,
-            startTime: session.timeSlot.startTime,
-            endTime: session.timeSlot.endTime,
-            classroomNumber: session.timeSlot.classroomNumber,
-          },
-          subject: session.subject!, // Assert que subject n'est pas null
-          level: session.level!, // Assert que level n'est pas null
+      const courseData: CourseWithRelations = {
+        id,
+        is_active: true,
+        deleted_at: null,
+        created_at: new Date(),
+        updated_at: new Date(),
+        academic_year: new Date().getFullYear().toString(),
+        courses_teacher: [],
+        courses_sessions: values.sessions.map((session) => ({
+          id: session.id || '',
+          course_id: id,
+          subject: session.subject!,
+          level: session.level!,
+          stats_average_attendance: null,
+          stats_average_grade: null,
+          stats_average_behavior: null,
+          stats_last_updated: new Date(),
+          created_at: new Date(),
+          updated_at: new Date(),
+          courses_sessions_students: [],
+          courses_sessions_timeslot: [{
+            id: '',
+            course_sessions_id: session.id || '',
+            day_of_week: session.dayOfWeek,
+            start_time: session.timeSlot.startTime,
+            end_time: session.timeSlot.endTime,
+            classroom_number: session.timeSlot.classroomNumber?.toString() || null,
+            created_at: new Date(),
+            updated_at: new Date(),
+          }],
         })),
       }
-      //todo fix courseData
-      await updateCourse(id, courseData as any, false)
-      // hasChanges = true
-      // }
 
-      // if (!hasChanges) {
+      await updateCourse(courseData)
+
       toast({
         title: 'Succès',
         variant: 'success',
         description: 'Les modifications ont été enregistrées',
         duration: 5000,
       })
-      // }
-      // form.reset()
 
-      // setCurrentStep(1)
+      setTimeout(() => {
+        window.location.reload()
+        router.push('/admin/schedule')
+      }, 100)
     } catch (error) {
       console.error('Erreur lors de la mise à jour du professeur:', error)
       toast({
@@ -362,10 +393,6 @@ export const EditTeacherForm = ({ id }: EditTeacherFormProps) => {
       })
     } finally {
       setIsDataLoading(false)
-      setTimeout(() => {
-        window.location.reload()
-        router.push('/admin/schedule')
-      }, 100)
     }
   }
 

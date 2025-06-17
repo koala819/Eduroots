@@ -2,24 +2,20 @@
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-
 import { useToast } from '@/client/hooks/use-toast'
-
 import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import { CourseDocument } from '@/zUnused/types/mongoose'
 import { UserRoleEnum } from '@/types/user'
-
+import { CreateTeacherPayload } from '@/types/teacher-payload'
+import { CreateCoursePayload } from '@/types/course-payload'
 import StepOne from '@/client/components/root/NewTeacherStep1'
 import StepTwo from '@/client/components/root/NewTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'
-
 import { useCourses } from '@/client/context/courses'
 import { useTeachers } from '@/client/context/teachers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Teacher } from '@/zUnused/types/user'
 
 const teacherSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -41,9 +37,8 @@ const teacherSchema = z.object({
     .min(2, 'Au moins 2 sessions sont requises')
     .max(6, 'Maximum 6 sessions autorisées'),
 })
-// const teacherSchema = z.object({})
 
-export type FormData = z.infer<typeof teacherSchema>;
+export type FormData = z.infer<typeof teacherSchema>
 
 const NewTeacherForm = () => {
   const { createCourse } = useCourses()
@@ -120,67 +115,57 @@ const NewTeacherForm = () => {
     try {
       setIsLoading(true)
 
-      const teacherData: Omit<
-        Teacher,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      > = {
+      const teacherData: CreateTeacherPayload = {
         firstname: values.firstname,
         lastname: values.lastname,
         email: values.email,
         password: '',
         role: UserRoleEnum.Teacher,
+        type: null,
         subjects: [SubjectNameEnum.Arabe, SubjectNameEnum.EducationCulturelle],
-        schoolYear: '2024-2025',
-        isActive: true,
+        school_year: '2024-2025',
+        is_active: true,
+        deleted_at: null,
+        date_of_birth: null,
+        gender: null,
+        stats_model: null,
+        student_stats_id: null,
+        teacher_stats_id: null,
+        secondary_email: null,
+        parent2_auth_id: null,
+        phone: null,
+        has_invalid_email: false,
       }
-      //   console.log('Teacher data:', teacherData)
 
       const teacher = await createTeacher(teacherData)
-      console.log('🚀 ~ teacher ID :', teacher.id)
 
       if (!teacher.id) {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de la création du professeur',
+          description: 'Une erreur est survenue lors de la création du professeur',
         })
         throw new Error('Erreur lors de la création du professeur')
       }
 
-      const courseData: Omit<
-        CourseDocument,
-        'id' | '_id' | 'createdAt' | 'updatedAt'
-      > = {
-        teacher: [teacher.id],
+      const courseData: CreateCoursePayload = {
+        is_active: true,
+        academic_year: '2024-2025',
+        deleted_at: null,
+        teacherIds: [teacher.id],
         sessions: values.sessions.map((session) => ({
-          timeSlot: {
-            dayOfWeek: session.dayOfWeek as TimeSlotEnum,
-            startTime: session.timeSlot.startTime,
-            endTime: session.timeSlot.endTime,
-            classroomNumber: session.timeSlot.classroomNumber,
-          },
-          subject: session.subject as SubjectNameEnum,
-          level: session.level as LevelEnum,
-          students: [],
-          stats: {
-            averageGrade: 0,
-            averageAttendance: 0,
-            averageBehavior: 0,
-            lastUpdated: new Date(),
-          },
+          subject: session.subject as string,
+          level: session.level as string,
+          timeSlots: [{
+            day_of_week: session.dayOfWeek,
+            start_time: session.timeSlot.startTime,
+            end_time: session.timeSlot.endTime,
+            classroom_number: session.timeSlot.classroomNumber?.toString() || null,
+          }],
         })),
-        academicYear: '2024-2025',
-        stats: {
-          averageAttendance: 0,
-          averageGrade: 0,
-          studentCount: 0,
-          sessionCount: values.sessions.length,
-          lastUpdated: new Date(),
-        },
       }
-      //todo fix any
-      await createCourse(courseData as any)
+
+      await createCourse(courseData)
       form.reset()
       setCurrentStep(1)
     } catch (error: any) {
@@ -188,18 +173,17 @@ const NewTeacherForm = () => {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description:
-          error instanceof Error ? error.message : 'Une erreur est survenue',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl">
-          Nouveau Professeur
-        </CardTitle>
+        <CardTitle className="text-xl md:text-2xl">Nouveau Professeur</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-8 relative">

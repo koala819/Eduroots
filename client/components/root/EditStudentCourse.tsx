@@ -14,7 +14,6 @@ import { useCourses } from '@/client/context/courses'
 import { useTeachers } from '@/client/context/teachers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { createClient } from '@/client/utils/supabase'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { ChevronRight } from 'lucide-react'
 import { SessionConfig } from '@/client/components/root/EditStudentSessionConfig'
@@ -49,7 +48,6 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
   const { toast } = useToast()
   const { getStudentCourses, addStudentToCourse, courses } = useCourses()
   const { teachers, getAllTeachers } = useTeachers()
-  const supabase = createClient()
 
   const [existingCourses, setExistingCourses] = useState<CourseWithRelations[]>([])
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>('')
@@ -77,29 +75,6 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
       })),
     [],
   )
-
-  const createInitialSelections = (
-    courses: CourseWithRelations[],
-    initialTimeSlot: TimeSlotEnum,
-  ) => {
-    return courses
-      .flatMap((course) =>
-        course.courses_sessions
-          .filter(
-            (session) =>
-              session.courses_sessions_students.some((student) => student.users.id === studentId) &&
-              session.courses_sessions_timeslot[0].day_of_week === initialTimeSlot,
-          )
-          .map((session) => ({
-            dayOfWeek: initialTimeSlot,
-            startTime: session.courses_sessions_timeslot[0].start_time,
-            endTime: session.courses_sessions_timeslot[0].end_time,
-            subject: session.subject as SubjectNameEnum,
-            teacherId: course.courses_teacher[0].users.id,
-          })),
-      )
-      .sort((a, b) => a.startTime.localeCompare(b.startTime))
-  }
 
   const loadData = async () => {
     setPageIsLoading(true)
@@ -145,7 +120,7 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: 'Impossible de charger les données de l\'étudiant',
+        description: `Impossible de charger les données de l'étudiant: ${error}`,
       })
     } finally {
       setPageIsLoading(false)

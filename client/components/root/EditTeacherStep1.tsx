@@ -1,9 +1,15 @@
 import { UseFormReturn } from 'react-hook-form'
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 
-import { TeacherFormData } from '../../app/client/components/root/EditTeacherForm'
+import { TeacherFormData } from '@/client/components/root/EditTeacherForm'
 
 interface EditTeacherStep1Props {
   form: UseFormReturn<TeacherFormData>
