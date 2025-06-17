@@ -5,8 +5,17 @@ import { GenderEnum } from '@/types/user'
 
 import { StatsCard } from '@/server/components/admin/atoms/PlanningStatCard'
 
+type ExtendedCourseSession = CourseSessionWithRelations & {
+  user?: {
+    id: string
+    firstname: string
+    lastname: string
+    role: string
+  }
+}
+
 interface SessionDetailsCardProps {
-  session: CourseSessionWithRelations
+  session: ExtendedCourseSession
 }
 
 type GenderDistribution = {

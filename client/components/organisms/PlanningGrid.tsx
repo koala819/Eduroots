@@ -3,9 +3,8 @@
 import { ChevronLeft, ChevronRight, Clock, TreePalm } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/client/utils/supabase'
 
-import { CourseSession } from '@/zUnused/types/course'
+import { CourseSessionWithRelations, TimeSlotEnum, CourseWithRelations } from '@/types/courses'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 import PlanningDetailsCard from '@/client/components/admin/atoms/PlanningDetailsCard'
@@ -19,32 +18,28 @@ import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
 import { useSchedules } from '@/client/context/schedules'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { TimeSlotEnum } from '@/types/courses'
+import { useAuthContext } from '@/client/context/auth'
+
+type ExtendedCourseSession = CourseSessionWithRelations & {
+  user?: {
+    id: string
+    firstname: string
+    lastname: string
+    role: string
+  }
+}
+
+type TeacherData = CourseWithRelations['courses_teacher'][0]
 
 export default function PlanningGridClient() {
   const { courses, isLoading, updateCourses } = useCourses()
   const { holidays, isLoading: isLoadingHolidays } = useHolidays()
   const router = useRouter()
   const { schedules, isLoading: loadingSchedules } = useSchedules()
-  const [session, setSession] = useState<any>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setSession(user)
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, user) => {
-      setSession(user)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  const { isAdmin } = useAuthContext()
 
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0)
-  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null)
+  const [selectedSession, setSelectedSession] = useState<ExtendedCourseSession | null>(null)
 
   useEffect(() => {
     updateCourses()
@@ -52,7 +47,17 @@ export default function PlanningGridClient() {
 
   const timeSlots = Object.values(TimeSlotEnum)
 
-  const getSessionsForSlot = (timeSlot: TimeSlotEnum, period: Period) => {
+  const createUserFromTeacherData = (teacherData: TeacherData | null) => {
+    if (!teacherData) return undefined
+    return {
+      id: teacherData.users.id,
+      firstname: teacherData.users.firstname,
+      lastname: teacherData.users.lastname,
+      role: teacherData.users.role,
+    }
+  }
+
+  const getSessionsForSlot = (timeSlot: TimeSlotEnum, period: Period): ExtendedCourseSession[] => {
     return courses
       .flatMap((course) =>
         course.courses_sessions.map((session) => {
@@ -62,14 +67,7 @@ export default function PlanningGridClient() {
           return {
             ...session,
             courseId: course.id,
-            user: teacherData
-              ? {
-                id: teacherData.users.id,
-                firstname: teacherData.users.firstname,
-                lastname: teacherData.users.lastname,
-                role: teacherData.users.role,
-              }
-              : undefined,
+            user: createUserFromTeacherData(teacherData),
           }
         }),
       )
@@ -92,6 +90,10 @@ export default function PlanningGridClient() {
 
   const handleNextDay = () => {
     setCurrentDayIndex((prev) => (prev === timeSlots.length - 1 ? 0 : prev + 1))
+  }
+
+  const handleSessionClick = (session: ExtendedCourseSession) => {
+    setSelectedSession(session)
   }
 
   if (isLoading || loadingSchedules || isLoadingHolidays) {
@@ -138,7 +140,7 @@ export default function PlanningGridClient() {
                       display: `${period.startTime} - ${period.endTime}`,
                     }}
                     sessions={getSessionsForSlot(timeSlots[currentDayIndex], period)}
-                    onSessionClick={setSelectedSession}
+                    onSessionClick={handleSessionClick}
                   />
                 ),
               )}
@@ -168,7 +170,7 @@ export default function PlanningGridClient() {
                         display: `${period.startTime} - ${period.endTime}`,
                       }}
                       sessions={getSessionsForSlot(timeSlot, period)}
-                      onSessionClick={setSelectedSession}
+                      onSessionClick={handleSessionClick}
                     />
                   ),
                 )}
@@ -196,7 +198,7 @@ export default function PlanningGridClient() {
       <HolidaysCard holidays={holidays} isLoading={isLoadingHolidays} />
 
       {/* Buttons Controls */}
-      {session?.user?.user_metadata?.role === 'admin' && (
+      {isAdmin && (
         <div className="sticky bottom-0 bg-gray-50 pb-4 space-y-4">
           <div className="flex gap-2 w-full">
             <Button

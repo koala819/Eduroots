@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/client/utils/supabase'
 
 import React, { useEffect, useState } from 'react'
 
@@ -17,6 +16,7 @@ import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { AnimatePresence } from 'framer-motion'
 import useCourseStore from '@/client/stores/useCourseStore'
+import { useAuthContext } from '@/client/context/auth'
 
 interface AttendanceRecordWithUser extends AttendanceRecord {
   users: {
@@ -34,8 +34,7 @@ export const BehaviorDashboard = ({
   courseId: string
   courseDates: Date[]
 }) => {
-  const [user, setUser] = useState<any>(null)
-
+  const { session } = useAuthContext()
   const { error: errorCourses } = useCourses()
   const { allAttendance, fetchAttendances, getAttendanceById } = useAttendances()
   const { fetchTeacherCourses, courses } = useCourseStore()
@@ -49,25 +48,13 @@ export const BehaviorDashboard = ({
   const [isLoadingBehavior, setIsLoadingBehavior] = useState<boolean>(true)
 
   useEffect(() => {
-    const getUser = async () => {
-      const supabase = createClient()
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (user && !error) {
-        setUser(user)
-      }
-    }
-    getUser()
-  }, [])
-
-
-  useEffect(() => {
     const loadData = async () => {
-      if (!user?.id || !courseId) return
+      if (!session?.user?.id || !courseId) return
 
       try {
         setIsLoadingBehavior(true)
         await Promise.all([
-          fetchTeacherCourses(user.id),
+          fetchTeacherCourses(session.user.id),
           fetchAttendances({ courseId }),
           fetchBehaviors({ courseId }),
         ])
@@ -79,7 +66,7 @@ export const BehaviorDashboard = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -152,7 +139,7 @@ export const BehaviorDashboard = ({
     setSelectedDate(null)
 
     // Puis rafraîchir les données
-    if (courseId && user?.id) {
+    if (courseId && session?.user?.id) {
       try {
         setIsLoadingBehavior(true)
         // Recharger les données de comportement uniquement

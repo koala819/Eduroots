@@ -10,6 +10,7 @@ import { useToast } from '@/client/hooks/use-toast'
 
 import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+import { TeacherCourseResponse } from '@/types/db'
 
 import StepOne from '@/client/components/admin/atoms/NewStudentStep1'
 import StepThree from '@/client/components/admin/atoms/NewStudentStep3'
@@ -55,6 +56,7 @@ const studentSchema = z.object({
       teacherId: z.string(),
     }),
   ),
+  phone: z.string().optional(),
 })
 
 // const studentSchema = z.object({})
@@ -170,13 +172,17 @@ const NewStudentForm = () => {
         type: UserType.Both,
         gender: values.gender,
         secondary_email: values.parentEmail2,
-        phone: values.phone,
+        phone: values.phone ?? null,
         school_year: '2024-2025',
         subjects: values.selections.map((s) => s.subject),
         has_invalid_email: values.parentEmail1 === 'user@mail.fr',
-        date_of_birth: values.dateOfBirth,
-        school_year: '2024-2025',
+        date_of_birth: values.dateOfBirth ? new Date(values.dateOfBirth) : null,
         is_active: true,
+        parent2_auth_id: null,
+        deleted_at: null,
+        stats_model: null,
+        student_stats_id: null,
+        teacher_stats_id: null,
       }
 
       const student = await createStudent(studentData)
@@ -194,10 +200,9 @@ const NewStudentForm = () => {
         try {
           // 1. D'abord récupérer les cours du professeur
           const teacherCourse = courses.find(
-            (course) =>
-              Array.isArray(course.teacher) &&
-              course.teacher.some(
-                (teacherId) => teacherId === selection.teacherId,
+            (course: TeacherCourseResponse) =>
+              course.courses?.some(
+                (c) => c.id === selection.teacherId,
               ),
           )
 
@@ -211,16 +216,20 @@ const NewStudentForm = () => {
           }
 
           // 2. Trouver la bonne session qui correspond à la sélection
-          const targetSession = teacherCourse.sessions.find(
-            (session: CourseSession) => {
-              if (!session?.timeSlot) return false
-
-              return (
-                session.timeSlot.dayOfWeek === selection.dayOfWeek &&
-                session.subject === selection.subject &&
-                session.timeSlot.startTime === selection.startTime &&
-                session.timeSlot.endTime === selection.endTime
+          const targetSession = teacherCourse.courses?.find(
+            (course) => {
+              const session = course.courses_sessions?.find(
+                (s) => {
+                  const timeSlot = s.courses_sessions_timeslot?.find(
+                    (ts) =>
+                      ts.day_of_week === selection.dayOfWeek &&
+                      ts.start_time === selection.startTime &&
+                      ts.end_time === selection.endTime,
+                  )
+                  return timeSlot && s.subject === selection.subject
+                },
               )
+              return session
             },
           )
 
@@ -234,10 +243,10 @@ const NewStudentForm = () => {
           }
 
           // 3. Ajouter l'étudiant au cours
-          await addStudentToCourse(teacherCourse.id, student.id, {
-            dayOfWeek: selection.dayOfWeek,
-            startTime: selection.startTime,
-            endTime: selection.endTime,
+          await addStudentToCourse(teacherCourse.course_id, student.id, {
+            day_of_week: selection.dayOfWeek,
+            start_time: selection.startTime,
+            end_time: selection.endTime,
             subject: selection.subject,
           })
 
@@ -267,7 +276,7 @@ const NewStudentForm = () => {
         variant: 'destructive',
         title: 'Erreur',
         description:
-          error.message ||
+          error.message ??
           'Une erreur est survenue lors de la création de l\'étudiant',
       })
     } finally {

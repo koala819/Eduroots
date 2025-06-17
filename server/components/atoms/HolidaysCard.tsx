@@ -1,15 +1,9 @@
 import React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { Holiday } from '@/types/holidays'
 
 import { cn } from '@/server/utils/helpers'
-
-interface Holiday {
-  name: string
-  start: string | Date
-  end: string | Date
-  type: 'REGULAR' | 'SPECIAL'
-}
 
 interface HolidaysCardProps {
   holidays: Holiday[]
@@ -41,8 +35,8 @@ export const HolidaysCard = ({ holidays, isLoading }: HolidaysCardProps) => {
               >
                 <div className="font-medium">{holiday.name}</div>
                 <div className="text-gray-600 text-xs">
-                  Du {new Date(holiday.start).toLocaleDateString('fr-FR')} au{' '}
-                  {new Date(holiday.end).toLocaleDateString('fr-FR')}
+                  Du {new Date(holiday.start_date).toLocaleDateString('fr-FR')} au{' '}
+                  {new Date(holiday.end_date).toLocaleDateString('fr-FR')}
                 </div>
               </div>
             ))

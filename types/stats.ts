@@ -11,7 +11,7 @@ import { GenderEnum } from '@/types/user'
 //   [color: string]: AbsenceLevelGroup[]
 // }
 
-interface CourseStats {
+export interface CourseStats {
   [SubjectNameEnum.Arabe]?: {
     average: number
   }

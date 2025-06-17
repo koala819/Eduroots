@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { PopulatedCourse } from '@/zUnused/types/course'
+import { CourseWithRelations } from '@/types/courses'
 import { CourseStats, StudentStats } from '@/types/stats'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { UserRoleEnum } from '@/types/user'
+import { User } from '@/types/db'
 
 import StudentSelector from '@/client/components/atoms/StudentSelector'
 import StudentDetailsSkeleton from '@/server/components/atoms/StudentDetailsSkeleton'
@@ -15,20 +16,19 @@ import { useStats } from '@/client/context/stats'
 import { useTeachers } from '@/client/context/teachers'
 
 interface StudentDashboardProps {
-  familyStudents: Student[]
+  familyStudents: Array<User & { role: UserRoleEnum.Student }>
 }
 
-export default function StudentDashboard({ familyStudents }: StudentDashboardProps) {
+export default function StudentDashboard({ familyStudents }: Readonly<StudentDashboardProps>) {
   const { getCourseByIdForStudent } = useCourses()
-  const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()
+  const { getStudentAttendance, getStudentGrade } = useStats()
   const { getOneTeacher } = useTeachers()
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>()
   const [detailedAttendance, setDetailedAttendance] = useState<StudentStats>()
-  const [detailedBehavior, setDetailedBehavior] = useState<StudentStats>()
   const [detailedGrades, setDetailedGrades] = useState<CourseStats>()
-  const [detailedCourse, setDetailedCourse] = useState<PopulatedCourse>()
-  const [detailedTeacher, setDetailedTeacher] = useState<Teacher>()
+  const [detailedCourse, setDetailedCourse] = useState<CourseWithRelations>()
+  const [detailedTeacher, setDetailedTeacher] = useState<User & { role: UserRoleEnum.Teacher }>()
   const [isLoadingDetails, setIsLoadingDetails] = useState<boolean>(false)
 
   useEffect(() => {
@@ -56,14 +56,48 @@ export default function StudentDashboard({ familyStudents }: StudentDashboardPro
     })
   }, [detailedGrades])
 
+  async function loadTeacherAndCourseData(courseId: string) {
+    const courseData = await getCourseByIdForStudent(courseId)
+    if (!courseData?.courses_teacher) return
+
+    const teacherId = Array.isArray(courseData.courses_teacher)
+      ? courseData.courses_teacher[0]
+      : courseData.courses_teacher
+    const teacherData = await getOneTeacher(teacherId.users.id)
+
+    if (teacherData) {
+      setDetailedTeacher({
+        ...teacherData,
+        role: UserRoleEnum.Teacher,
+        auth_id: teacherData.id,
+        parent2_auth_id: null,
+        secondary_email: null,
+        is_active: true,
+        deleted_at: null,
+        date_of_birth: null,
+        gender: null,
+        type: null,
+        subjects: null,
+        school_year: null,
+        stats_model: null,
+        student_stats_id: null,
+        teacher_stats_id: null,
+        phone: null,
+        created_at: null,
+        updated_at: null,
+        has_invalid_email: false,
+      })
+    }
+    setDetailedCourse(courseData as CourseWithRelations)
+  }
+
   async function loadDetailedStats(studentId: string) {
     if (!studentId) return
 
     setIsLoadingDetails(true)
     try {
-      const [attendance, behavior, grades] = await Promise.all([
+      const [attendance, grades] = await Promise.all([
         getStudentAttendance(studentId),
-        getStudentBehavior(studentId),
         getStudentGrade(studentId),
       ])
 
@@ -71,26 +105,13 @@ export default function StudentDashboard({ familyStudents }: StudentDashboardPro
         setDetailedAttendance(attendance.data)
       }
 
-      if (behavior?.success && behavior.data) {
-        setDetailedBehavior(behavior.data)
-      }
-
       if (grades?.success && grades.data) {
         setDetailedGrades(grades.data)
       }
 
-      // Récupérer les informations du cours si nous avons des données d'assiduité
-      if (attendance?.success && attendance.data && attendance.data.absences?.length > 0) {
+      if (attendance?.success && attendance.data?.absences?.length > 0) {
         const courseId = attendance.data.absences[0].course
-        const courseData = await getCourseByIdForStudent(courseId)
-        if (courseData?.courses_teacher) {
-          const teacherId = Array.isArray(courseData.courses_teacher)
-            ? courseData.courses_teacher[0]
-            : courseData.courses_teacher
-          const teacherData = await getOneTeacher(teacherId.users.id)
-          setDetailedTeacher(teacherData)
-        }
-        setDetailedCourse(courseData as unknown as PopulatedCourse)
+        await loadTeacherAndCourseData(courseId)
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données détaillées:', error)
@@ -115,10 +136,21 @@ export default function StudentDashboard({ familyStudents }: StudentDashboardPro
           <StudentDetailsSkeleton />
         ) : (
           <ChildStats
-            detailedGrades={detailedGrades}
-            detailedAttendance={detailedAttendance}
-            detailedCourse={detailedCourse}
-            detailedTeacher={detailedTeacher}
+            detailedGrades={detailedGrades ?? { overallAverage: 0 }}
+            detailedAttendance={{
+              absencesCount: detailedAttendance?.absencesCount ?? 0,
+              attendanceRate: detailedAttendance?.absencesRate ?? 0,
+            }}
+            detailedCourse={{
+              sessions: detailedCourse?.courses_sessions.map((session) => ({
+                ...session,
+                timeSlot: session.courses_sessions_timeslot[0],
+              })) ?? [],
+            }}
+            detailedTeacher={{
+              firstname: detailedTeacher?.firstname ?? '',
+              lastname: detailedTeacher?.lastname ?? '',
+            }}
             subjectGradesData={subjectGradesData}
           />
         ))}
