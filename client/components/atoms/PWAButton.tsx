@@ -109,7 +109,7 @@ export const PWAButtonClient: React.FC = () => {
   const getInstallInstructions = () => {
     if (platform === 'mobile') {
       if (browser === 'firefox') {
-        return 'Appuyez sur les trois points (⋮) en haut à droite, puis sur' +
+        return 'Appuyez sur les trois points (⋮) en haut à droite, puis sur ' +
           '\'Ajouter à l\'écran d\'accueil\''
       }
       return 'Utilisez le menu du navigateur pour \'Ajouter à l\'écran d\'accueil\''
