@@ -11,6 +11,7 @@ import {
 import { AttendanceDashboard } from '@/client/components/molecules/AttendanceDashboard'
 import { CourseMenuDesktop } from '@/client/components/atoms/CourseMenu_Desktop'
 import { CourseMenuMobile } from '@/client/components/atoms/CourseMenu_Mobile'
+import { BehaviorDashboard } from '@/client/components/molecules/BehaviorDashboard'
 
 interface StudentWithUser extends CourseSessionStudent {
   users: User
@@ -80,10 +81,10 @@ export default function TeacherCourses({
               courseDates={sessionScheduleDates}
             />
           ) : (
-            <>
-                dashboard behavior
-              {/* <DashboardBehaviorT courseId={courseSessionId} courseDates={sessionScheduleDates} /> */}
-            </>
+            <BehaviorDashboard
+              courseId={courseSessionId}
+              courseDates={sessionScheduleDates}
+            />
           )}
         </div>
       </div>

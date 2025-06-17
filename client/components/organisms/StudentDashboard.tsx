@@ -117,7 +117,6 @@ export default function StudentDashboard({ familyStudents }: StudentDashboardPro
           <ChildStats
             detailedGrades={detailedGrades}
             detailedAttendance={detailedAttendance}
-            detailedBehavior={detailedBehavior}
             detailedCourse={detailedCourse}
             detailedTeacher={detailedTeacher}
             subjectGradesData={subjectGradesData}

@@ -1,33 +1,45 @@
 'use client'
 
 import { Book, GraduationCap } from 'lucide-react'
-import 'react'
-
-import { TimeSlotEnum } from '@/zUnused/types/course'
-
+import { LevelEnum } from '@/types/courses'
 import { GradeCard } from '@/client/components/atoms/StudentGradeCard'
 import { InfoCard } from '@/client/components/atoms/StudentInfoCard'
 import { StatCard } from '@/client/components/atoms/StudentStatCard'
-
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { StudentStats as StudentStatsType } from '@/types/stats'
+import { CourseSession, CourseSessionTimeslot } from '@/types/db'
+
+interface SubjectGrade {
+  subject: string
+  average: number | string
+  grades: number[]
+}
 
 type StudentStatsProps = {
-  detailedGrades: any
-  detailedAttendance: any
-  detailedBehavior: any
-  detailedCourse: any
-  detailedTeacher: any
-  subjectGradesData: any
+  detailedGrades: StudentStatsType['grades']
+  detailedAttendance: {
+    absencesCount: number
+    attendanceRate: number
+  }
+  detailedCourse: {
+    sessions: (CourseSession & {
+      timeSlot: CourseSessionTimeslot
+    })[]
+  }
+  detailedTeacher: {
+    firstname: string
+    lastname: string
+  }
+  subjectGradesData: SubjectGrade[]
 }
 
 export default function ChildStats({
   detailedGrades,
   detailedAttendance,
-  detailedBehavior,
   detailedCourse,
   detailedTeacher,
   subjectGradesData,
-}: StudentStatsProps) {
+}: Readonly<StudentStatsProps>) {
   return (
     <>
       {/* Dashboard stats */}
@@ -36,7 +48,7 @@ export default function ChildStats({
           icon="chart"
           color="blue"
           title="Moyenne générale"
-          value={detailedGrades?.overallAverage || 'N/A'}
+          value={detailedGrades?.overallAverage ?? 'N/A'}
           description="/ 20"
         />
 
@@ -44,7 +56,7 @@ export default function ChildStats({
           icon="clock"
           color="purple"
           title="Absences"
-          value={detailedAttendance?.absencesCount || 'N/A'}
+          value={detailedAttendance?.absencesCount ?? 'N/A'}
           description={
             detailedAttendance?.absencesCount && detailedAttendance?.absencesCount > 2
               ? 'Journées cette année'
@@ -74,9 +86,8 @@ export default function ChildStats({
           items={[
             {
               label: 'Niveau',
-              value: (detailedCourse?.sessions[0].level as string) || 'N/A',
+              value: (detailedCourse?.sessions[0].level as LevelEnum) || 'N/A',
             },
-
             {
               label: 'Enseignant',
               value: detailedTeacher?.lastname.toUpperCase() + ' ' + detailedTeacher?.firstname,
@@ -84,7 +95,7 @@ export default function ChildStats({
             {
               label: 'Jour de cours',
               value: formatDayOfWeek(
-                (detailedCourse?.sessions[0].timeSlot.dayOfWeek as TimeSlotEnum) || 'N/A',
+                (detailedCourse?.sessions[0].timeSlot.day_of_week) || 'N/A',
               ),
             },
           ]}

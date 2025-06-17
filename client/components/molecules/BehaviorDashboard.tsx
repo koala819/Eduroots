@@ -27,7 +27,7 @@ interface AttendanceRecordWithUser extends AttendanceRecord {
   }
 }
 
-export const DashboardBehaviorT = ({
+export const BehaviorDashboard = ({
   courseId,
   courseDates,
 }: {
@@ -186,7 +186,7 @@ export const DashboardBehaviorT = ({
   }
 
   if (error || errorCourses) {
-    return <div>Erreur : {error || errorCourses}</div>
+    return <div>Erreur : {error ?? errorCourses}</div>
   }
 
   if (!allBehaviors) {
