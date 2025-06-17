@@ -1,4 +1,4 @@
-import { ConnectionLog } from '@/components/root/ConnectionLog'
+import { ConnectionLog } from '@/client/components/root/ConnectionLog'
 
 export default function LogsPage() {
   return <ConnectionLog />

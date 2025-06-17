@@ -23,17 +23,26 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/client/utils/supabase'
 
-import { EntityType } from '@/types/stats'
-import { Student, Teacher } from '@/zUnused/types/user'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
+import { UserRoleEnum } from '@/types/user'
 
 import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/client/components/ui/card'
 
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
+
+type EntityType = UserRoleEnum.Student | UserRoleEnum.Teacher
 
 // Définition des types pour les actions
 type ActionVariant =
@@ -86,7 +95,7 @@ export default function SettingsPage() {
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedEntity, setSelectedEntity] = useState<
-    Student | Teacher | null
+    StudentResponse | TeacherResponse | null
   >(null)
 
   useEffect(() => {
@@ -117,14 +126,14 @@ export default function SettingsPage() {
           icon: GraduationCap,
           label: 'Liste des élèves',
           description: 'Voir les profils étudiants',
-          onClick: () => setSelectedType('students'),
+          onClick: () => setSelectedType(UserRoleEnum.Student),
           variant: 'ghost',
         },
         {
           icon: Users,
           label: 'Liste des professeurs',
           description: 'Voir les profils enseignants',
-          onClick: () => setSelectedType('teachers'),
+          onClick: () => setSelectedType(UserRoleEnum.Teacher),
           variant: 'ghost',
         },
       ],
@@ -165,7 +174,6 @@ export default function SettingsPage() {
     // Actions réservées à admin
     ...(isAdmin
       ? ([
-
         {
           title: 'ADMIN',
           description: 'Section réservée aux admins',
@@ -213,8 +221,7 @@ export default function SettingsPage() {
             {
               icon: History,
               label: 'Voir les logs de connexion',
-              description:
-                'Affichage de toutes les connexions depuis le début de l\'application',
+              description: 'Affichage de toutes les connexions depuis le début',
               href: '/admin/root/logs',
               variant: 'secondary',
               isAdmin: true,
@@ -238,8 +245,7 @@ export default function SettingsPage() {
             {
               icon: Import,
               label: 'XLS -> DB',
-              description:
-                'Script pour importer les données d\'un fichier XLS vers la base de données',
+              description: 'Script pour importer les données d\'un fichier XLS',
               href: '/admin/import',
               variant: 'secondary',
               isAdmin: true,
@@ -247,8 +253,7 @@ export default function SettingsPage() {
             {
               icon: UserRoundPlus,
               label: 'Nouvel Utilisateur',
-              description:
-                'Ajouter d\'un nouveau membre à l\'application',
+              description: 'Ajouter d\'un nouveau membre à l\'application',
               href: '/admin/root/register',
               variant: 'secondary',
               isAdmin: true,
@@ -268,8 +273,7 @@ export default function SettingsPage() {
   ]
 
   const filteredData = selectedType
-    ? (selectedType === 'students' ? students : teachers).filter((item) =>
-
+    ? (selectedType === UserRoleEnum.Student ? students : teachers).filter((item) =>
       `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
     )
     : []
@@ -320,9 +324,9 @@ export default function SettingsPage() {
                     key={action.label}
                     variant={action.variant}
                     className={`relative h-auto w-full p-4 flex flex-col items-start gap-2
-                      whitespace-normal group  group transition-all duration-200
+                      whitespace-normal group group transition-all duration-200
                       ${isAdminAction
-                    ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40'+
+                    ? 'bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/40' +
                       'dark:to-orange-950/30 hover:from-rose-100 hover:to-orange-100' +
                       'dark:hover:from-rose-950/50 dark:hover:to-orange-950/40 border-rose-200' +
                       'dark:border-rose-800'

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { EditCourseStudent } from '@/components/root/EditStudentCourse'
+import { EditCourseStudent } from '@/client/components/root/EditStudentCourse'
 
 export const metadata: Metadata = {
   title: 'Modifier info Cours pour l\'Elève',

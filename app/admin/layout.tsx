@@ -1,13 +1,33 @@
 import type { Metadata, Viewport } from 'next'
 import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
-import { createClient } from '@/utils/supabase'
+import { createClient } from '@/server/utils/supabase'
 import { CustomLayout } from '@/server/components/template/CustomLayout'
 
 const navItems = [
-  { href: '/admin', label: 'Tableau de bord', Icon: 'Home' },
-  { href: '/admin/schedule', label: 'Emplois du temps', Icon: 'Calendar' },
-  { href: '/admin/messages/inbox', label: 'Messages', Icon: 'MessageSquare' },
-  { href: '/admin/settings', label: 'Paramètres', Icon: 'Settings' },
+  {
+    href: '/admin',
+    label: 'Tableau de bord',
+    Icon: 'Home',
+    pathPattern: '^/admin$',
+  },
+  {
+    href: '/admin/schedule',
+    label: 'Emplois du temps',
+    Icon: 'Calendar',
+    pathPattern: '^/admin/schedule$',
+  },
+  {
+    href: '/admin/messages/inbox',
+    label: 'Messages',
+    Icon: 'MessageSquare',
+    pathPattern: '^/admin/messages/inbox$',
+  },
+  {
+    href: '/admin/settings',
+    label: 'Paramètres',
+    Icon: 'Settings',
+    pathPattern: '^/admin/settings$',
+  },
 ]
 
 const currentYear = new Date().getFullYear()
@@ -23,7 +43,7 @@ export const viewport: Viewport = {
   themeColor: 'white',
 }
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const isAdmin = user?.user_metadata?.role === 'admin'

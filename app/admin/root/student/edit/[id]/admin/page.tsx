@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { EditAdminStudent } from '@/components/root/EditStudentAdmin'
+import { EditAdminStudent } from '@/client/components/root/EditStudentAdmin'
 
 export const metadata: Metadata = {
   title: 'Modifier info Administratives Elève',

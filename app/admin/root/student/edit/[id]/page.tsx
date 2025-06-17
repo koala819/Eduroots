@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import { StudentManagementView } from '@/components/root/StudentManagementView'
+import { StudentManagementView } from '@/client/components/root/StudentManagementView'
 
 export const metadata: Metadata = {
   title: 'Modifier un Elève',
