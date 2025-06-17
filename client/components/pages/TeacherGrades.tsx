@@ -4,9 +4,14 @@ import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum, TimeSlotEnum } from '@/zUnused/types/course'
-import { GradeRecord, GradeTypeEnum, UpdateGradeDTO } from '@/zUnused/types/grade'
-import { Student } from '@/zUnused/types/user'
+import { useAuth } from '@/client/hooks/use-auth'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import {
+  GradeTypeEnum,
+  Student,
+  GradeWithRelations,
+  GradeRecordWithUser,
+} from '@/types/grades'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -18,9 +23,18 @@ import { useGrades } from '@/client/context/grades'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { createClient } from '@/client/utils/supabase'
+import type { CreateGradePayload } from '@/types/grade-payload'
+import { AuthenticatedContent } from '@/client/components/atoms/AuthenticatedContent'
 
 export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
+  return (
+    <AuthenticatedContent>
+      <GradeEditContent gradeId={gradeId} />
+    </AuthenticatedContent>
+  )
+}
+
+const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
   const {
     teacherGrades,
     updateGradeRecord,
@@ -29,7 +43,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
   } = useGrades()
   const router = useRouter()
   const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
+  const { session } = useAuth()
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -40,69 +54,48 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     courseLevel: string
     dayOfWeek: string
     subject?: SubjectNameEnum
-    isDraft: boolean
+    is_draft: boolean
   } | null>(null)
 
   const [gradeEntries, setGradeEntries] = useState<{
     students: Student[]
-    records: GradeRecord[]
+    records: GradeRecordWithUser[]
   }>({
     students: [],
     records: [],
   })
 
-  useEffect(() => {
-    const supabase = createClient()
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      }
-    }
-    getUser()
-  }, [])
-
   // Charger les données du grade
   useEffect(() => {
     const fetchGradeData = async () => {
       try {
-        if (user?.id && !teacherGrades) {
-          await getTeacherGrades(user.id)
+        if (session?.user?.id && !teacherGrades) {
+          await getTeacherGrades(session.user.id)
         }
 
         if (teacherGrades) {
           const grade = teacherGrades.find((g) => g.id === gradeId)
-          if (grade) {
-            const matchingSession = grade.course.sessions.find(
-              (session) => session._id === grade.sessionId,
-            )
+          if (grade && 'courses_sessions' in grade && 'grades_records' in grade) {
+            const populatedGrade = grade as GradeWithRelations
+            const courseSession = populatedGrade.courses_sessions
 
             setGradeInfo({
-              id: grade.id,
-              date: new Date(grade.date),
-              type: grade.type,
-              courseLevel: matchingSession?.level || '',
-              dayOfWeek: matchingSession?.timeSlot.dayOfWeek || '',
-              subject: matchingSession?.subject,
-              isDraft: true,
+              id: populatedGrade.id,
+              date: new Date(populatedGrade.date),
+              type: populatedGrade.type as GradeTypeEnum,
+              courseLevel: courseSession.level,
+              dayOfWeek: courseSession.courses_sessions_timeslot[0]?.day_of_week ?? '',
+              subject: courseSession.subject as SubjectNameEnum,
+              is_draft: populatedGrade.is_draft,
             })
 
             // Préparer les données des élèves et leurs notes
-            const convertedRecords: GradeRecord[] = grade.records.map(
-              (record) => ({
-                student: record.student.id,
-                value: record.value,
-                isAbsent: record.isAbsent,
-                comment: record.comment || '',
-              }),
-            )
-
-            const convertedStudents = grade.records.map((record) => ({
-              ...record.student,
-              id: record.student.id,
+            const convertedRecords = populatedGrade.grades_records.map((record) => ({
+              ...record,
+              student: record.users,
             }))
+
+            const convertedStudents = populatedGrade.grades_records.map((record) => record.users)
 
             setGradeEntries({
               students: convertedStudents,
@@ -122,7 +115,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     }
 
     fetchGradeData()
-  }, [user?.id, gradeId, teacherGrades, getTeacherGrades])
+  }, [session?.user?.id, gradeId, teacherGrades, getTeacherGrades])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -130,12 +123,12 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
       return { completed: 0, total: 0, percent: 0, average: 0 }
 
     const total = gradeEntries.records.length
-    const absentCount = gradeEntries.records.filter((r) => r.isAbsent).length
+    const absentCount = gradeEntries.records.filter((r) => r.is_absent).length
     const gradedCount = gradeEntries.records.filter(
-      (r) => !r.isAbsent && r.value > 0,
+      (r) => !r.is_absent && r.value !== null && r.value > 0,
     ).length
     const sum = gradeEntries.records.reduce(
-      (acc, r) => acc + (r.isAbsent ? 0 : r.value),
+      (acc, r) => acc + (r.is_absent || r.value === null ? 0 : r.value),
       0,
     )
     const average = gradedCount > 0 ? sum / gradedCount : 0
@@ -154,12 +147,12 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
   const handleGradeUpdate = useCallback(
     (
       studentId: string,
-      field: keyof Omit<GradeRecord, 'student'>,
+      field: keyof Omit<GradeRecordWithUser, 'users'>,
       value: number | string | boolean,
     ) => {
       setGradeEntries((prev) => {
         const recordIndex = prev.records.findIndex(
-          (r) => r.student === studentId,
+          (r) => r.users.id === studentId,
         )
 
         if (recordIndex === -1) return prev
@@ -169,7 +162,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
           ...newRecords[recordIndex],
           [field]: value,
           // Si marqué absent, réinitialiser la note
-          ...(field === 'isAbsent' && value === true ? { value: 0 } : {}),
+          ...(field === 'is_absent' && value === true ? { value: 0 } : {}),
         }
 
         return {
@@ -183,7 +176,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
 
   const getStudentRecord = useCallback(
     (studentId: string) => {
-      return gradeEntries.records.find((record) => record.student === studentId)
+      return gradeEntries.records.find((record) => record.users.id === studentId)
     },
     [gradeEntries.records],
   )
@@ -192,22 +185,23 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
     if (!gradeInfo) return
 
     setLoading(true)
-    const updateData: UpdateGradeDTO = {
-      date: gradeInfo.date,
+    const updateData: CreateGradePayload = {
+      date: gradeInfo.date.toISOString(),
       type: gradeInfo.type,
-      isDraft: isDraft,
+      is_draft: isDraft,
+      course_session_id: gradeInfo.id,
       records: gradeEntries.records.map((record) => ({
-        student: record.student,
-        value: record.value,
-        isAbsent: record.isAbsent,
-        comment: record.comment || undefined,
+        student_id: record.users.id,
+        value: record.value ?? 0,
+        is_absent: record.is_absent,
+        comment: record.comment ?? '',
       })),
     }
 
     try {
-      const status = await updateGradeRecord(gradeId, updateData)
+      const success = await updateGradeRecord(gradeId, updateData)
 
-      if (status === 200) {
+      if (success) {
         toast({
           variant: 'success',
           title: isDraft ? 'Brouillon mis à jour' : 'Notes validées',
@@ -219,8 +213,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de la mise à jour des notes',
+          description: 'Une erreur est survenue lors de la mise à jour des notes',
           duration: 3000,
         })
       }
@@ -238,9 +231,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
   }
 
   // Obtenir la couleur en fonction du type d'évaluation
-  const getTypeColor = (type: GradeTypeEnum | undefined) => {
-    if (!type) return 'bg-gray-100 text-gray-600'
-
+  const getTypeColor = (type: GradeTypeEnum) => {
     switch (type) {
     case GradeTypeEnum.Controle:
       return 'bg-purple-100 text-purple-600'
@@ -264,6 +255,19 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
       return 'bg-blue-100 text-blue-600'
     default:
       return 'bg-gray-100 text-gray-600'
+    }
+  }
+
+  const getGradeTypeLabel = (type: GradeTypeEnum) => {
+    switch (type) {
+    case GradeTypeEnum.Examen:
+      return 'Examen'
+    case GradeTypeEnum.Devoir:
+      return 'Devoir'
+    case GradeTypeEnum.Controle:
+      return 'Contrôle'
+    default:
+      return type
     }
   }
 
@@ -327,7 +331,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
           <CardContent className="pt-2">
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className={getTypeColor(gradeInfo.type)}>
-                {gradeInfo.type}
+                {getGradeTypeLabel(gradeInfo.type)}
               </Badge>
 
               {gradeInfo.subject && (
@@ -343,7 +347,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                 {format(gradeInfo.date, 'dd MMMM yyyy', { locale: fr })}
               </Badge>
 
-              {gradeInfo.isDraft && (
+              {gradeInfo.is_draft && (
                 <Badge
                   variant="outline"
                   className="bg-amber-100 text-amber-700"
@@ -357,7 +361,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
               <div>
                 <p className="text-sm text-gray-500 mb-1">Niveau</p>
                 <p className="font-medium">
-                  {`${gradeInfo.courseLevel ? `  ${gradeInfo.courseLevel}` : ''}`}
+                  {`${gradeInfo.courseLevel ?? ''}`}
                 </p>
               </div>
 
@@ -382,7 +386,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
 
             {gradeEntries.students.map((student) => {
               const record = getStudentRecord(student.id)
-              const isGraded = !record?.isAbsent && (record?.value || 0) > 0
+              const isGraded = !record?.is_absent && (record?.value || 0) > 0
 
               return (
                 <Card
@@ -390,7 +394,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                   className={`
                     shadow-sm border-l-4 overflow-hidden rounded-lg
                     animate-fadeIn transition-all
-                    ${record?.isAbsent
+                    ${record?.is_absent
                   ? 'border-l-red-400 bg-red-50/30'
                   : isGraded
                     ? 'border-l-green-500'
@@ -411,11 +415,11 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                           <div className="flex items-center">
                             <Checkbox
                               id={`absent-${student.id}`}
-                              checked={record?.isAbsent || false}
+                              checked={record?.is_absent || false}
                               onCheckedChange={(checked) => {
                                 handleGradeUpdate(
                                   student.id,
-                                  'isAbsent',
+                                  'is_absent',
                                   checked as boolean,
                                 )
                               }}
@@ -428,7 +432,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                               Absent
                             </Label>
                           </div>
-                          {record?.isAbsent && (
+                          {record?.is_absent && (
                             <Badge
                               variant="outline"
                               className="bg-red-100 text-red-600 text-xs"
@@ -454,7 +458,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                             min="0"
                             max="20"
                             step="0.5"
-                            disabled={record?.isAbsent || false}
+                            disabled={record?.is_absent || false}
                             value={
                               record?.value && record.value > 0
                                 ? record.value
@@ -490,7 +494,7 @@ export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
                       <Input
                         id={`comment-${student.id}`}
                         placeholder="Ajouter un commentaire (optionnel)"
-                        value={record?.comment || ''}
+                        value={record?.comment ?? ''}
                         onChange={(e) =>
                           handleGradeUpdate(
                             student.id,
