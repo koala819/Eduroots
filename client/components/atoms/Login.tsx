@@ -1,23 +1,22 @@
 'use client'
 
-import { createClient } from '@/client/utils/supabase'
 import {
-  BuildingOfficeIcon,
   AcademicCapIcon,
+  BuildingOfficeIcon,
   HomeIcon,
 } from '@heroicons/react/24/outline'
 import {
-  UserGroupIcon,
   EyeIcon,
   EyeSlashIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/solid'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { z } from 'zod'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/client/hooks/use-toast'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 import { PWAButtonClient } from '@/client/components/atoms/PWAButton'
 import { Button } from '@/client/components/ui/button'
@@ -30,7 +29,8 @@ import {
   FormMessage,
 } from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
-import Link from 'next/link'
+import { useToast } from '@/client/hooks/use-toast'
+import { createClient } from '@/client/utils/supabase'
 import { loginAction } from '@/server/actions/auth'
 
 const formSchema = z.object({

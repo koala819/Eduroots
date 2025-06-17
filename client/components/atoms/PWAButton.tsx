@@ -1,8 +1,10 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle, Download, InfoIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { IOSInstallInstructionsClient } from '@/client/components/atoms/IOSInstallInstructions'
 import { Alert, AlertDescription, AlertTitle } from '@/client/components/ui/alert'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
@@ -12,9 +14,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/client/components/ui/tooltip'
-
-import { AnimatePresence, motion } from 'framer-motion'
-import { IOSInstallInstructionsClient } from '@/client/components/atoms/IOSInstallInstructions'
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<{ outcome: 'accepted' | 'dismissed' }>

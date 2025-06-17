@@ -1,10 +1,11 @@
 'use client'
 
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/client/hooks/use-toast'
+import { useEffect, useState } from 'react'
+
 import { useStats } from '@/client/context/stats'
+import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
 
 const ProfilePage = () => {

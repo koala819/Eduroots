@@ -1,12 +1,10 @@
 import { GraduationCap } from 'lucide-react'
 
-import { CourseSessionWithRelations } from '@/types/courses'
-import { Teacher } from '@/zUnused/types/user'
-
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent } from '@/client/components/ui/card'
-
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { CourseSessionWithRelations } from '@/types/courses'
+import { Teacher } from '@/zUnused/types/user'
 
 interface StudentCourseMobileProps {
   sessions: Array<{

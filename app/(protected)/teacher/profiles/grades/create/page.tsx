@@ -1,11 +1,11 @@
 'use client'
 
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { CalendarIcon, CircleArrowLeft, ClipboardEdit } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum } from '@/types/courses'
-import { GradeTypeEnum, Student } from '@/types/grades'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -22,13 +22,14 @@ import {
 } from '@/client/components/ui/select'
 import { useCourses } from '@/client/context/courses'
 import { useGrades } from '@/client/context/grades'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { useToast } from '@/client/hooks/use-toast'
 import useCourseStore from '@/client/stores/useCourseStore'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
 import { createClient } from '@/client/utils/supabase'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import type { CourseWithRelations } from '@/types/courses'
+import { SubjectNameEnum } from '@/types/courses'
 import type { CreateGradePayload } from '@/types/grade-payload'
+import { GradeTypeEnum, Student } from '@/types/grades'
 
 type GradeEntry = {
   student: string

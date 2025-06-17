@@ -2,7 +2,6 @@ import { StudentStatsError } from '@/client/components/admin/atoms/StudentAttend
 import {
   StudentAttendanceStatsClient,
 } from '@/client/components/admin/molecules/StudentAttendanceStats'
-
 import { fetchStudentAttendanceStats } from '@/server/actions/admin/student-stats-attendances'
 
 interface StudentStatsProps {

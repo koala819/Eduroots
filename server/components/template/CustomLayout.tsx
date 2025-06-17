@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import SidebarMenu from '@/server/components/template/Sidebar'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+import SidebarMenu from '@/server/components/template/Sidebar'
 
 interface ClientLayoutProps {
   children: React.ReactNode

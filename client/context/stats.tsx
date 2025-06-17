@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useMemo,
@@ -11,14 +11,6 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
-import {
-  EntityStats,
-  GlobalStats,
-  isStudentStats,
-  isTeacherStats,
-} from '@/types/stats'
-
 import {
   getStudentAttendance,
   getStudentBehavior,
@@ -29,6 +21,12 @@ import {
   updateStudentStats,
   updateTeacherStats,
 } from '@/server/actions/api/stats'
+import {
+  EntityStats,
+  GlobalStats,
+  isStudentStats,
+  isTeacherStats,
+} from '@/types/stats'
 import { StudentStatsPayload, TeacherStatsPayload } from '@/types/stats-payload'
 
 interface StatsState {

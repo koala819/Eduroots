@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
 import {
@@ -21,10 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 import { TeacherFormData } from './EditTeacherForm'
-
-import { formatDayOfWeek } from '@/server/utils/helpers'
 
 interface EditTeacherStep2Props {
   form: UseFormReturn<TeacherFormData>

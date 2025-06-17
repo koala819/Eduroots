@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { createClient } from '@/server/utils/supabase'
-import { Database } from '@/types/db'
-import { UserRoleEnum, GenderEnum } from '@/types/user'
 import { TimeEnum } from '@/types/courses'
+import { Database } from '@/types/db'
+import { GenderEnum,UserRoleEnum } from '@/types/user'
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {

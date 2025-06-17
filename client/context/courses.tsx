@@ -1,9 +1,8 @@
 'use client'
 
-import { createClient } from '@/client/utils/supabase'
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -14,6 +13,7 @@ import {
 
 import { useToast } from '@/client/hooks/use-toast'
 import useCourseStore from '@/client/stores/useCourseStore'
+import { createClient } from '@/client/utils/supabase'
 import {
   addStudentToCourse as addStudentToCourseAction,
   checkTimeSlotOverlap as checkTimeSlotOverlapAction,
@@ -23,13 +23,12 @@ import {
   getStudentCourses as getStudentCoursesAction,
   removeStudentFromCourse as removeStudentFromCourseAction,
   updateCourse as updateCourseAction,
-  updateCourseSession as updateCourseSessionAction,
   updateCourses as updateCoursesAction,
+  updateCourseSession as updateCourseSessionAction,
 } from '@/server/actions/api/courses'
-
-import { Database } from '@/types/db'
-import { TimeSlotEnum } from '@/types/courses'
 import { getAuthenticatedEducationUser } from '@/server/utils/auth-helpers'
+import { TimeSlotEnum } from '@/types/courses'
+import { Database } from '@/types/db'
 
 type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
   courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {

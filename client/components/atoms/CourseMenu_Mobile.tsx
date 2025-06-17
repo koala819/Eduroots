@@ -1,9 +1,10 @@
 'use client'
-import { CheckCircle2, Star, ArrowLeft, Clock } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { CourseSessionWithRelations } from '@/types/courses'
 import { motion } from 'framer-motion'
+import { ArrowLeft, CheckCircle2, Clock,Star } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { CourseSessionWithRelations } from '@/types/courses'
 
 const views = [
   {

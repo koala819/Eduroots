@@ -1,12 +1,13 @@
 'use client'
 
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
+import { linkAccount } from '@/app/link-account/actions'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { useToast } from '@/client/hooks/use-toast'
-import { motion } from 'framer-motion'
-import { linkAccount } from '@/app/link-account/actions'
-import { useRouter } from 'next/navigation'
 import { getRoleName } from '@/server/utils/redirects'
 
 interface LinkAccountFormProps {

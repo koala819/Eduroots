@@ -15,19 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import '@/app/styles/globals.css'
 
 import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
-
+import { ToastContainer } from 'react-toastify'
 
 import { ClearServiceWorkerCache } from '@/client/components/atoms/ClearServiceWorkerCache'
 import { Toaster } from '@/client/components/ui/toaster'
-
 import { cn } from '@/server/utils/helpers'
-
-import '@/app/styles/globals.css'
 
 export const dynamic = 'force-dynamic'
 const fontSans = FontSans({

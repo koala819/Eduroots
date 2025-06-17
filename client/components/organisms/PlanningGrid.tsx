@@ -1,24 +1,22 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, Clock, TreePalm } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-import { CourseSessionWithRelations, TimeSlotEnum, CourseWithRelations } from '@/types/courses'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import { useEffect, useState } from 'react'
 
 import PlanningDetailsCard from '@/client/components/admin/atoms/PlanningDetailsCard'
 import { TimeSlotColumn } from '@/client/components/admin/molecules/PlanningTimeSlotColumn'
-import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
-
+import { useAuthContext } from '@/client/context/auth'
 import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
 import { useSchedules } from '@/client/context/schedules'
+import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { useAuthContext } from '@/client/context/auth'
+import { CourseSessionWithRelations, CourseWithRelations,TimeSlotEnum } from '@/types/courses'
+import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 type ExtendedCourseSession = CourseSessionWithRelations & {
   user?: {

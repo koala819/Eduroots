@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -11,19 +11,17 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
-import { GroupedStudents } from '@/types/courses'
-import { TeacherResponse, CreateTeacherPayload } from '@/types/teacher-payload'
-import { StudentResponse } from '@/types/student-payload'
-
 import {
   createTeacher as createTeacherAction,
   deleteTeacher as deleteTeacherAction,
   getAllTeachers,
   getOneTeacher,
-  updateTeacher as updateTeacherAction,
   getStudentsByTeacher as getStudentsByTeacherAction,
+  updateTeacher as updateTeacherAction,
 } from '@/server/actions/api/teachers'
+import { GroupedStudents } from '@/types/courses'
+import { StudentResponse } from '@/types/student-payload'
+import { CreateTeacherPayload,TeacherResponse } from '@/types/teacher-payload'
 
 interface TeacherState {
   teachers: TeacherResponse[]

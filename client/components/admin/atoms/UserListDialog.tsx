@@ -1,15 +1,10 @@
+import { motion } from 'framer-motion'
 import { ChevronRight, CircleArrowLeft, Pencil, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/client/utils/supabase'
-
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
-import { UserRoleEnum } from '@/types/user'
-import { StudentResponse } from '@/types/student-payload'
-import { TeacherResponse } from '@/types/teacher-payload'
-
-import { UserDetails } from '@/server/components/admin/organisms/UserDetails'
 import { Button } from '@/client/components/ui/button'
+import { Card, CardContent } from '@/client/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -19,9 +14,11 @@ import {
 } from '@/client/components/ui/dialog'
 import { Input } from '@/client/components/ui/input'
 import { ScrollArea } from '@/client/components/ui/scroll-area'
-import { Card, CardContent } from '@/client/components/ui/card'
-
-import { motion } from 'framer-motion'
+import { createClient } from '@/client/utils/supabase'
+import { UserDetails } from '@/server/components/admin/organisms/UserDetails'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
+import { UserRoleEnum } from '@/types/user'
 
 type UserListDialogProps = {
   type: UserRoleEnum

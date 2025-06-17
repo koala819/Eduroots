@@ -1,9 +1,9 @@
 import { AlertCircle } from 'lucide-react'
-import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTable'
-import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'
-import { Alert, AlertDescription } from '@/client/components/ui/alert'
 
+import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTable'
+import { Alert, AlertDescription } from '@/client/components/ui/alert'
 import { getStudentCourses } from '@/server/actions/api/courses'
+import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 

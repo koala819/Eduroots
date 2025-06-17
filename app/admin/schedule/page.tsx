@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import PlanningGrid from '@/components/admin/organisms/server/PlanningGrid'
+import PlanningGrid from '@/server/components/admin/organisms/PlanningGrid'
 
 // import PlanningGrid from '@/components/admin/organisms/PlanningGrid'
 

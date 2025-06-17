@@ -1,8 +1,9 @@
-import { TimeSlotEnum } from '@/types/courses'
 // import { ButtonVariant, ThemeConfig } from '@/zUnused/mongo/models'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+
 import { createClient } from '@/client/utils/supabase'
+import { TimeSlotEnum } from '@/types/courses'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

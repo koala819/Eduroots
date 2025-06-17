@@ -1,10 +1,11 @@
 'use server'
 
+import { createClient as supabaseClient } from '@supabase/supabase-js'
+
+import { FormSchema } from '@/server/utils/login-schema'
 import { createClient } from '@/server/utils/supabase'
 import { Database } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
-import { FormSchema } from '@/server/utils/login-schema'
-import { createClient as supabaseClient } from '@supabase/supabase-js'
 
 type ConnectionLogInsert =
   Database['logs']['Tables']['connection_logs']['Insert'];

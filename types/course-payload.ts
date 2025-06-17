@@ -1,5 +1,5 @@
-import { Database } from './db'
 import { TimeSlotEnum } from './courses'
+import { Database } from './db'
 
 export type CreateCoursePayload = Database['education']['Tables']['courses']['Insert'] & {
   teacherIds: string[]

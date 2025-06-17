@@ -1,7 +1,6 @@
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum, TimeEnum } from '@/types/courses'
-
-import { UserRoleEnum, UserType } from '@/types/user'
+import { LevelEnum, SubjectNameEnum, TimeEnum,TimeSlotEnum } from '@/types/courses'
 import { User } from '@/types/db'
+import { UserRoleEnum, UserType } from '@/types/user'
 
 // Interface spécifique pour l'import
 export interface ImportStudent extends User {

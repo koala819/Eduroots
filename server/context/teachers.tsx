@@ -1,7 +1,7 @@
 'use server'
 
-import { getAllTeachers } from '@/server/actions/api/teachers'
 import { TeacherProvider } from '@/client/context/teachers'
+import { getAllTeachers } from '@/server/actions/api/teachers'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface TeachersServerComponentProps {

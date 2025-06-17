@@ -1,8 +1,9 @@
 'use client'
 
+import { differenceInYears } from 'date-fns'
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -10,10 +11,8 @@ import {
   useReducer,
 } from 'react'
 
+import { useCourses } from '@/client/context/courses'
 import { useToast } from '@/client/hooks/use-toast'
-
-import { CreateStudentPayload, StudentResponse } from '@/types/student-payload'
-
 import {
   createStudent as createStudentAction,
   deleteStudent as deleteStudentAction,
@@ -22,8 +21,7 @@ import {
   getTeachersForStudent,
   updateStudent as updateStudentAction,
 } from '@/server/actions/api/students'
-import { useCourses } from '@/client/context/courses'
-import { differenceInYears } from 'date-fns'
+import { CreateStudentPayload, StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface StudentState {

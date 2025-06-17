@@ -1,19 +1,20 @@
 'use client'
 
-import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
+import React, { ChangeEvent, useState } from 'react'
+
+import { createClient } from '@/client/utils/supabase'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { User } from '@/types/db'
 import {
-  ProcessedData as ProcessedDataType,
   CourseSessionDataType,
   ExcelRow as ExcelRowType,
   formatCoursesFromExcel,
-  processExcelData,
   formatStudentsFromExcelWithWarnings,
   formatTeachersFromExcelWithWarnings,
+  ProcessedData as ProcessedDataType,
+  processExcelData,
 } from '@/types/import'
-import { SubjectNameEnum, LevelEnum, TimeSlotEnum } from '@/types/courses'
-import { createClient } from '@/client/utils/supabase'
-import { User } from '@/types/db'
 
 const ACADEMIC_YEAR = '2024'
 

@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 
-import { useToast } from '@/client/hooks/use-toast'
-
 import { Button } from '@/client/components/ui/button'
-
-import { calculateStats } from '@/server/utils/stats/calculate'
 import { useStats } from '@/client/context/stats'
+import { useToast } from '@/client/hooks/use-toast'
+import { calculateStats } from '@/server/utils/stats/calculate'
 
 export default function StatsPage() {
   const [isCalculating, setIsCalculating] = useState(false)

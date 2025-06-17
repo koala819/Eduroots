@@ -1,7 +1,7 @@
+import { compareDesc } from 'date-fns'
 import { AlertTriangle, ArrowUpDown } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { StudentAbsenceCard } from '@/server/components/admin/atoms/StudentAbsenceCard'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
@@ -10,12 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/client/components/ui/dropdown-menu'
-
 import { useStats } from '@/client/context/stats'
 import { useStudents } from '@/client/context/students'
-import { compareDesc } from 'date-fns'
-import { StudentResponse } from '@/types/student-payload'
+import { StudentAbsenceCard } from '@/server/components/admin/atoms/StudentAbsenceCard'
 import { StudentStats } from '@/types/stats'
+import { StudentResponse } from '@/types/student-payload'
 
 // Types de tri disponibles
 type SortType = 'alphabetical' | 'absences-desc' | 'recent-activity' | 'last-absence'

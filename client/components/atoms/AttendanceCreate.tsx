@@ -1,17 +1,16 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { BarChart2, CheckCircle, Clock, NotebookText, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum } from '@/types/user'
-import {  User } from '@/types/db'
 import { Button } from '@/client/components/ui/button'
-
 import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
-import { motion } from 'framer-motion'
 import { CourseSessionWithRelations } from '@/types/courses'
+import {  User } from '@/types/db'
+import { GenderEnum } from '@/types/user'
 
 interface AttendanceCreateProps {
   students: User[]

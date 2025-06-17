@@ -1,22 +1,20 @@
 'use client'
 
 
+import { AnimatePresence } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-
-import { AttendanceRecord } from '@/types/db'
 
 import { BehaviorCreate } from '@/client/components/atoms/BehaviorCreate'
 import { BehaviorEdit } from '@/client/components/atoms/BehaviorEdit'
 import { BehaviorTable } from '@/client/components/atoms/BehaviorTable'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
-
 import { useAttendances } from '@/client/context/attendances'
+import { useAuthContext } from '@/client/context/auth'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
-import { AnimatePresence } from 'framer-motion'
 import useCourseStore from '@/client/stores/useCourseStore'
-import { useAuthContext } from '@/client/context/auth'
+import { AttendanceRecord } from '@/types/db'
 
 interface AttendanceRecordWithUser extends AttendanceRecord {
   users: {

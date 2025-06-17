@@ -1,18 +1,30 @@
-'use client'
+import { CustomLayout } from '@/server/components/template/CustomLayout'
 
-import { Header } from '@/zUnused/StudentHeader'
-import StudentNavbar from '@/zUnused/StudentNavbar'
+export default function FamilyLayout({ children }: { children: React.ReactNode }) {
+  const navItems = [
+    {
+      href: '/family',
+      label: 'Scolarité',
+      Icon: 'Home',
+      pathPattern: '^/family$',
+    },
+    {
+      href: '/family/messages',
+      label: 'Messagerie',
+      Icon: 'Mail',
+      pathPattern: '^/family/messages$',
+    },
+    {
+      href: '/family/profile',
+      label: 'Profil',
+      Icon: 'User',
+      pathPattern: '^/family/profile$',
+    },
+  ]
 
-export default function FamilyLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
   return (
-    <div className="flex flex-col relative bg-gray-50 min-h-screen">
-      <Header />
-      <main className="flex-1 pb-16">{children}</main>
-      <StudentNavbar />
-    </div>
+    <CustomLayout navItems={navItems} >
+      {children}
+    </CustomLayout>
   )
 }

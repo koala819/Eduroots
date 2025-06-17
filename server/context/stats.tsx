@@ -1,7 +1,7 @@
 'use server'
 
-import { refreshEntityStats, refreshGlobalStats } from '@/server/actions/api/stats'
 import { StatsProvider } from '@/client/context/stats'
+import { refreshEntityStats, refreshGlobalStats } from '@/server/actions/api/stats'
 import { GlobalStats } from '@/types/stats'
 import { EntityStats } from '@/types/stats-payload'
 

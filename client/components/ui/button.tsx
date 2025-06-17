@@ -1,12 +1,11 @@
 import { Slot } from '@radix-ui/react-slot'
+import { cva } from 'class-variance-authority'
+import { type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
-
-import { ButtonVariant } from '@/zUnused/types/models'
 
 // import { useConfig } from '@/context/ConfigContext'
 import { cn } from '@/server/utils/helpers'
-import { cva } from 'class-variance-authority'
-import { type VariantProps } from 'class-variance-authority'
+import { ButtonVariant } from '@/zUnused/types/models'
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,

@@ -1,9 +1,8 @@
 'use client'
 
+import { isWithinInterval } from 'date-fns'
 import { CheckCircle, Clock, Plus, XCircle } from 'lucide-react'
 import React from 'react'
-
-import { Attendance } from '@/types/db'
 
 import { Button } from '@/client/components/ui/button'
 import {
@@ -14,9 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
-
 import { useHolidays } from '@/client/context/holidays'
-import { isWithinInterval } from 'date-fns'
+import { Attendance } from '@/types/db'
 
 interface AttendanceTableProps {
   courseDates: Date[]

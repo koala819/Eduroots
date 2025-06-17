@@ -1,9 +1,8 @@
 'use client'
 
+import { differenceInYears, parseISO } from 'date-fns'
 import { ClipboardList, Star } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
-
-import { GenderEnum } from '@/types/user'
 
 import { StudentWithDetails as StudentType } from '@/client/components/organisms/ProfileCourseCard'
 import { Badge } from '@/client/components/ui/badge'
@@ -28,9 +27,8 @@ import {
 } from '@/client/components/ui/dialog'
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
-
 import { cn, getColorClass } from '@/server/utils/helpers'
-import { differenceInYears, parseISO } from 'date-fns'
+import { GenderEnum } from '@/types/user'
 
 interface DesktopClassViewProps {
   students: StudentType[]

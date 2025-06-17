@@ -1,7 +1,8 @@
-import { createClient } from '@/server/utils/supabase'
-import { PeriodTypeEnum } from '@/types/schedule'
-import { TimeSlotEnum } from '@/types/courses'
 import { addWeeks, isAfter } from 'date-fns'
+
+import { createClient } from '@/server/utils/supabase'
+import { TimeSlotEnum } from '@/types/courses'
+import { PeriodTypeEnum } from '@/types/schedule'
 
 export function createDefaultHolidays(academicYear: string, updatedBy: string) {
   const defaultHolidays = {

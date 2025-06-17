@@ -1,10 +1,11 @@
-import { createClient } from '@/client/utils/supabase'
-import { TeacherCourseResponse } from '@/types/db'
+import { RealtimeChannel } from '@supabase/supabase-js'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { RealtimeChannel } from '@supabase/supabase-js'
+
+import { createClient } from '@/client/utils/supabase'
 import { getTeacherCourses } from '@/server/actions/api/courses'
 import { CourseWithRelations } from '@/types/courses'
+import { TeacherCourseResponse } from '@/types/db'
 
 interface CourseState {
   courses: TeacherCourseResponse[]

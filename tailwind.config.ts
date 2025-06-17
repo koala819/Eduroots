@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
-import animatePlugin from 'tailwindcss-animate'
 import { fontFamily } from 'tailwindcss/defaultTheme'
+import animatePlugin from 'tailwindcss-animate'
 
 const config = {
   darkMode: ['class'],

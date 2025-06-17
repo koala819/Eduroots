@@ -2,7 +2,6 @@
 
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { StudentResponse } from '@/types/student-payload'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import {
@@ -13,8 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
-
 import { useStudents } from '@/client/context/students'
+import { StudentResponse } from '@/types/student-payload'
 
 export const StudentsWithoutCourses = () => {
   const { getStudentsWithoutCourses, isLoading } = useStudents()

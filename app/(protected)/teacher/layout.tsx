@@ -1,5 +1,5 @@
 import { CustomLayout } from '@/server/components/template/CustomLayout'
-import { createClient } from '@/utils/supabase'
+import { createClient } from '@/server/utils/supabase'
 
 export default async function TeacherLayout({
   children,

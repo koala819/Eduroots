@@ -3,13 +3,11 @@
 import { Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { StudentStats } from '@/types/stats'
-import { StudentResponse } from '@/types/student-payload'
-
 import { ClassOverview } from '@/client/components/atoms/ClassOverview'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-
 import { useStats } from '@/client/context/stats'
+import { StudentStats } from '@/types/stats'
+import { StudentResponse } from '@/types/student-payload'
 
 export interface StudentWithDetails extends StudentResponse {
   stats: StudentStats

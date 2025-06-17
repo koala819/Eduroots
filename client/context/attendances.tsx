@@ -19,18 +19,17 @@ import {
   softDeleteAttendance,
   updateAttendanceRecord,
 } from '@/server/actions/api/attendances'
-
-import { Attendance, AttendanceRecord } from '@/types/db'
-import {
-  CreateAttendancePayload,
-  UpdateAttendancePayload,
-} from '@/types/attendance-payload'
 import {
   AttendanceState,
   AttendanceStats,
   DuplicateRecords,
   GroupedAbsences,
 } from '@/types/attendance'
+import {
+  CreateAttendancePayload,
+  UpdateAttendancePayload,
+} from '@/types/attendance-payload'
+import { Attendance, AttendanceRecord } from '@/types/db'
 
 interface AttendanceProviderProps {
   children: React.ReactNode

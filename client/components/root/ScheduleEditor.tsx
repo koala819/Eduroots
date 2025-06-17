@@ -1,10 +1,11 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Save } from 'lucide-react'
-import { createClient } from '@/client/utils/supabase'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
-import { TimeSlotEnum } from '@/types/courses'
+import { z } from 'zod'
+
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/client/components/ui/form'
@@ -17,10 +18,10 @@ import {
   SelectValue,
 } from '@/client/components/ui/select'
 import { useSchedules } from '@/client/context/schedules'
+import { createClient } from '@/client/utils/supabase'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useEffect, useState } from 'react'
+import { TimeSlotEnum } from '@/types/courses'
+import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 const periodSchema = z.object({
   startTime: z

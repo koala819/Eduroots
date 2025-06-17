@@ -1,12 +1,13 @@
 'use client'
 
+import { motion } from 'framer-motion'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+
+import { forgotPassword } from '@/app/forgot-password/actions'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { useToast } from '@/client/hooks/use-toast'
-import { motion } from 'framer-motion'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { forgotPassword } from '@/app/forgot-password/actions'
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState<string>('')

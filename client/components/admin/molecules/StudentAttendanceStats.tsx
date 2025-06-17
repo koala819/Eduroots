@@ -2,10 +2,7 @@
 
 import { CalendarDays, Check, TrendingUp, Users, X } from 'lucide-react'
 
-
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-
 import { CalculatedStats } from '@/server/actions/admin/student-stats-attendances'
 import { SubjectNameEnum } from '@/types/courses'
 

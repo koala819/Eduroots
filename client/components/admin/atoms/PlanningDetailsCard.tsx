@@ -1,9 +1,8 @@
 'use client'
 
+import { StatsCard } from '@/server/components/admin/atoms/PlanningStatCard'
 import { CourseSessionWithRelations } from '@/types/courses'
 import { GenderEnum } from '@/types/user'
-
-import { StatsCard } from '@/server/components/admin/atoms/PlanningStatCard'
 
 type ExtendedCourseSession = CourseSessionWithRelations & {
   user?: {

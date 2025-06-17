@@ -1,7 +1,7 @@
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
 
 const SU_ROLE = 'admin'
 const ADMIN_ROLES = ['admin', 'bureau']

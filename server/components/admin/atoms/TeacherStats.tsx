@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 
 import { TeacherStatsClient } from '@/client/components/admin/atoms/TeacherStats'
-import Loading from '@/server/components/admin/atoms/Loading'
-
 import { getTeacherCourses } from '@/server/actions/api/courses'
+import Loading from '@/server/components/admin/atoms/Loading'
 
 export async function TeacherStats({
   teacherId,

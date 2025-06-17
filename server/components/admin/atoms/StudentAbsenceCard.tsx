@@ -1,3 +1,6 @@
+import { compareDesc, format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { motion } from 'framer-motion'
 import {
   Activity,
   AlertTriangle,
@@ -9,8 +12,6 @@ import {
   Mail,
   X,
 } from 'lucide-react'
-
-import { StudentStats } from '@/types/stats'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/client/components/ui/card'
@@ -26,10 +27,7 @@ import {
 } from '@/client/components/ui/dialog'
 import { Progress } from '@/client/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
-
-import { compareDesc, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { motion } from 'framer-motion'
+import { StudentStats } from '@/types/stats'
 import { StudentResponse } from '@/types/student-payload'
 
 interface StudentAbsenceCardProps {

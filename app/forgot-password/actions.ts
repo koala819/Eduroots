@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+
+import { createClient } from '@/server/utils/supabase'
 
 
 export async function forgotPassword(formData: FormData, role: string) {

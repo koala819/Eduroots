@@ -4,6 +4,7 @@ import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import unusedImports from "eslint-plugin-unused-imports";
 import globals from "globals";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 export default [
   {
@@ -39,6 +40,7 @@ export default [
       "@typescript-eslint": typescript,
       "unused-imports": unusedImports,
       "@next/next": nextPlugin,
+      "simple-import-sort": simpleImportSort,
     },
     rules: {
       // Règles TypeScript
@@ -51,6 +53,8 @@ export default [
       ...nextPlugin.configs["core-web-vitals"].rules,
 
       // Règles d'imports
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
       "unused-imports/no-unused-imports": "warn",
       "unused-imports/no-unused-vars": [
         "warn",

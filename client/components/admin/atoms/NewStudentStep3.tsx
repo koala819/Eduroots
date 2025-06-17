@@ -1,18 +1,17 @@
 'use client'
 
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { motion } from 'framer-motion'
 import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { TeacherResponse } from '@/types/teacher-payload'
 import { GenderEnum } from '@/types/user'
 
 import { FormData } from '../../organisms/NewStudentForm'
-
-import { formatDayOfWeek } from '@/server/utils/helpers'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { motion } from 'framer-motion'
-import { TeacherResponse } from '@/types/teacher-payload'
 
 interface StepThreeProps {
   form: UseFormReturn<FormData>

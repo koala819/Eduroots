@@ -1,8 +1,8 @@
 'use server'
 
-import { Attendance, AttendanceRecord } from '@/types/db'
 import { getStudentAttendanceHistory } from '@/server/actions/api/attendances'
 import { SubjectNameEnum } from '@/types/courses'
+import { Attendance, AttendanceRecord } from '@/types/db'
 
 export interface CalculatedStats {
   totalSessions: number

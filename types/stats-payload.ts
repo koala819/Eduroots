@@ -1,5 +1,5 @@
-import { Database } from './db'
 import { SubjectNameEnum } from './courses'
+import { Database } from './db'
 import { GenderEnum } from './user'
 
 // Types de base pour les statistiques

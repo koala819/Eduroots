@@ -1,5 +1,5 @@
-import { ProfileItem, MenuItem as TypeItem } from '@/server/components/atoms/ProfilItem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { MenuItem as TypeItem,ProfileItem } from '@/server/components/atoms/ProfilItem'
 
 
 type ProfileSectionProps = {

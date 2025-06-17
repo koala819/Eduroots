@@ -2,18 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { CourseWithRelations } from '@/types/courses'
-import { CourseStats, StudentStats } from '@/types/stats'
-import { UserRoleEnum } from '@/types/user'
-import { User } from '@/types/db'
-
 import StudentSelector from '@/client/components/atoms/StudentSelector'
-import StudentDetailsSkeleton from '@/server/components/atoms/StudentDetailsSkeleton'
 import ChildStats from '@/client/components/molecules/StudentStats'
-
 import { useCourses } from '@/client/context/courses'
 import { useStats } from '@/client/context/stats'
 import { useTeachers } from '@/client/context/teachers'
+import StudentDetailsSkeleton from '@/server/components/atoms/StudentDetailsSkeleton'
+import { CourseWithRelations } from '@/types/courses'
+import { User } from '@/types/db'
+import { CourseStats, StudentStats } from '@/types/stats'
+import { UserRoleEnum } from '@/types/user'
 
 interface StudentDashboardProps {
   familyStudents: Array<User & { role: UserRoleEnum.Student }>

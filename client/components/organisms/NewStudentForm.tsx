@@ -1,16 +1,10 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
-import { useRouter } from 'next/navigation'
-
-import { useToast } from '@/client/hooks/use-toast'
-
-
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
-import { TeacherCourseResponse } from '@/types/db'
+import * as z from 'zod'
 
 import StepOne from '@/client/components/admin/atoms/NewStudentStep1'
 import StepThree from '@/client/components/admin/atoms/NewStudentStep3'
@@ -18,14 +12,15 @@ import StepTwo from '@/client/components/admin/molecules/NewStudentStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'
-
 import { useCourses } from '@/client/context/courses'
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { useToast } from '@/client/hooks/use-toast'
 import useCourseStore from '@/client/stores/useCourseStore'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { TeacherCourseResponse } from '@/types/db'
 import { CreateStudentPayload } from '@/types/student-payload'
+import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
 
 const studentSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),

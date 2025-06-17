@@ -44,6 +44,7 @@
 , "utils/script/migrate.tsx"  ],
   "exclude": [
     "node_modules",
-    "public/sw.js"
+    "public/sw.js",
+    "zUnused"
   ]
 }

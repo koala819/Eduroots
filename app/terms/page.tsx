@@ -1,8 +1,8 @@
 'use client'
 // import { Metadata } from 'next'
-import { Users, Target, UserCheck, Lock, Clock, AlertTriangle,
-  MessageSquare, Calendar, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { AlertTriangle,
+  Calendar, CheckCircle,Clock, Lock,   MessageSquare, Target, UserCheck, Users } from 'lucide-react'
 import Image from 'next/image'
 // export const metadata: Metadata = {
 //   title: 'Conditions d\'utilisation - École Al Ihsane',

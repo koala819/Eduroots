@@ -1,8 +1,8 @@
 'use server'
 
-import { Holiday } from '@/types/holidays'
-import { getCurrentHolidays } from '@/server/actions/api/holidays'
 import { HolidaysProvider } from '@/client/context/holidays'
+import { getCurrentHolidays } from '@/server/actions/api/holidays'
+import { Holiday } from '@/types/holidays'
 
 interface HolidaysServerComponentProps {
   children: React.ReactNode

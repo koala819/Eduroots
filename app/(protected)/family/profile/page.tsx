@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
-import { StudentResponse } from '@/types/student-payload'
-import StudentInfo from '@/server/components/organisms/StudentInfo'
+
 import { getAllStudents } from '@/server/actions/api/students'
+import StudentInfo from '@/server/components/organisms/StudentInfo'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { StudentResponse } from '@/types/student-payload'
 
 export default async function StudentProfilePage() {
   const user = await getAuthenticatedUser()

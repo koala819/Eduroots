@@ -3,11 +3,10 @@
 import { GraduationCap, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { UserRoleEnum } from '@/types/user'
+import { StatsCards } from '@/client/components/admin/molecules/StatsCards'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
-
-import { StatsCards } from '@/client/components/admin/molecules/StatsCards'
+import { UserRoleEnum } from '@/types/user'
 
 interface SchoolPeopleClientProps {
   students: StudentResponse[]

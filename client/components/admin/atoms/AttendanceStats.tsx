@@ -1,8 +1,7 @@
 'use client'
 
-import { GlobalStats } from '@/types/stats'
-
 import { Progress } from '@/client/components/ui/progress'
+import { GlobalStats } from '@/types/stats'
 
 interface AttendanceStatsClientProps {
   globalStats: GlobalStats

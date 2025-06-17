@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { Loader } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -12,7 +13,6 @@ import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
-import { motion } from 'framer-motion'
 
 export default function GlobalLoadingIndicator() {
   const [isAnyLoading, setIsAnyLoading] = useState(true)

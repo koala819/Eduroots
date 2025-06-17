@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum } from '@/types/courses'
-import { GradeTypeEnum, GradeWithRelations } from '@/types/grades'
-import { useGrades } from '@/client/context/grades'
 import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { createClient } from '@/client/utils/supabase'
+import { Plus, Trophy } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+
+import { GradesHeader } from '@/client/components/atoms/GradesHeader'
 import { GradeCard } from '@/client/components/molecules/GradeCard'
 import { SubjectFilter } from '@/client/components/molecules/GradesSubjectFilter'
-import { GradesHeader } from '@/client/components/atoms/GradesHeader'
-import { Plus, Trophy } from 'lucide-react'
 import { Button } from '@/client/components/ui/button'
+import { useGrades } from '@/client/context/grades'
+import { useToast } from '@/client/hooks/use-toast'
+import { createClient } from '@/client/utils/supabase'
+import { SubjectNameEnum } from '@/types/courses'
 import { User } from '@/types/db'
+import { GradeTypeEnum, GradeWithRelations } from '@/types/grades'
 
 type ProcessedGrade = {
   id: string

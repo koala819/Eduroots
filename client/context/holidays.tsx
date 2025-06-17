@@ -1,9 +1,8 @@
 'use client'
 
-import { createClient } from '@/client/utils/supabase'
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -14,10 +13,9 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
-import { Holiday } from '@/types/holidays'
-
+import { createClient } from '@/client/utils/supabase'
 import { getCurrentHolidays, saveHolidays } from '@/server/actions/api/holidays'
+import { Holiday } from '@/types/holidays'
 
 interface HolidayState {
   holidays: Holiday[]

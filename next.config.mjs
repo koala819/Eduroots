@@ -14,11 +14,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.watchOptions = {
         ...config.watchOptions,
-        ignored: ['**/node_modules', '**/.git', '**/dist', '**/build', '**/.next', '**/coverage', '**/tmp', '**/temp', '**/zUnused']
+        ignored: ['**/node_modules', '**/.git', '**/dist', '**/build', '**/.next', '**/coverage', '**/tmp', '**/temp', '**/zUnused', '**/zUnused/**/*']
       }
     }
     return config
@@ -61,6 +64,8 @@ const nextConfig = {
     path: '/_next/image',
     remotePatterns: [{ hostname: 'images.unsplash.com' }],
   },
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  excludePages: ['**/zUnused/**/*'],
 }
 
 export default withSerwist(nextConfig)

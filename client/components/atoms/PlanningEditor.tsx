@@ -1,19 +1,10 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Pencil } from 'lucide-react'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-
-import { toast } from '@/client/hooks/use-toast'
-
-import {
-  LevelEnum,
-  SubjectNameEnum,
-  TimeSlotEnum,
-  CourseSessionWithRelations,
-  CourseWithRelations,
-} from '@/types/courses'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
+import * as z from 'zod'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -36,11 +27,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
-
 import { useCourses } from '@/client/context/courses'
+import { toast } from '@/client/hooks/use-toast'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import {
+  CourseSessionWithRelations,
+  CourseWithRelations,
+  LevelEnum,
+  SubjectNameEnum,
+  TimeSlotEnum,
+} from '@/types/courses'
+import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 const sessionSchema = z.object({
   id: z.string(),

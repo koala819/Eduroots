@@ -1,6 +1,7 @@
 'use client'
 import { ArrowRight, BookOpen, UserCog, Users } from 'lucide-react'
 import Link from 'next/link'
+
 import { Card, CardContent } from '@/client/components/ui/card'
 
 type DashboardCardProps = {

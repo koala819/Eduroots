@@ -1,15 +1,16 @@
 'use server'
 
-import { getSessionServer } from '@/server/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
+
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
 import {
   CreateTeacherPayload,
-  UpdateTeacherPayload,
   TeacherResponse,
   TeacherWithStudentsResponse,
+  UpdateTeacherPayload,
 } from '@/types/teacher-payload'
-import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export async function createTeacher(
   teacherData: CreateTeacherPayload,

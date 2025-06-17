@@ -1,23 +1,17 @@
 'use client'
 
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   useTransition,
-  useEffect,
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
-import { Behavior as BaseBehavior } from '@/types/db'
-import {
-  CreateBehaviorPayload,
-  UpdateBehaviorPayload,
-} from '@/types/behavior-payload'
 import {
   createBehaviorRecord,
   deleteBehaviorRecord,
@@ -26,6 +20,11 @@ import {
   getStudentBehaviorHistory,
   updateBehaviorRecord,
 } from '@/server/actions/api/behaviors'
+import {
+  CreateBehaviorPayload,
+  UpdateBehaviorPayload,
+} from '@/types/behavior-payload'
+import { Behavior as BaseBehavior } from '@/types/db'
 
 export interface BehaviorRecord {
   id: string

@@ -1,11 +1,12 @@
 'use client'
 
-import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
-import { Card, CardContent } from '@/client/components/ui/card'
-import { Badge } from '@/client/components/ui/badge'
-import { Calendar, Clock, GraduationCap, Users, Building2 } from 'lucide-react'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { Building2,Calendar, Clock, GraduationCap, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+
+import { Badge } from '@/client/components/ui/badge'
+import { Card, CardContent } from '@/client/components/ui/card'
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 interface CourseGridProps {
   courses: CourseWithRelations[]

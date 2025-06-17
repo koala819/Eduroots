@@ -2,8 +2,8 @@
 
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum } from '@/types/user'
 import { TeacherResponse } from '@/types/teacher-payload'
+import { GenderEnum } from '@/types/user'
 
 interface TeacherStats {
   totalStudents: number

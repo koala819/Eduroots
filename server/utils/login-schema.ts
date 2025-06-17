@@ -1,6 +1,6 @@
-import { UserRoleEnum } from '@/types/user'
-
 import { z } from 'zod'
+
+import { UserRoleEnum } from '@/types/user'
 
 export const FormSchema = z.object({
   mail: z.string().email('Le format de l\'email est invalide'),

@@ -1,26 +1,27 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useRouter } from 'next/navigation'
+import * as z from 'zod'
+
+import { SessionConfig } from '@/client/components/root/EditStudentSessionConfig'
+import { Button } from '@/client/components/ui/button'
+import { Form } from '@/client/components/ui/form'
+import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
+import { useCourses } from '@/client/context/courses'
+import { useTeachers } from '@/client/context/teachers'
 import { useToast } from '@/client/hooks/use-toast'
+import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import {
   CourseWithRelations,
   SubjectNameEnum,
   TIME_SLOT_SCHEDULE,
   TimeSlotEnum,
 } from '@/types/courses'
-import { useCourses } from '@/client/context/courses'
-import { useTeachers } from '@/client/context/teachers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { formatDayOfWeek } from '@/server/utils/helpers'
-import { ChevronRight } from 'lucide-react'
-import { SessionConfig } from '@/client/components/root/EditStudentSessionConfig'
-import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'
-import { Button } from '@/client/components/ui/button'
-import { Form } from '@/client/components/ui/form'
-import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 
 const sessionSchema = z.object({
   timeSlot: z.nativeEnum(TimeSlotEnum, {

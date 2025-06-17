@@ -1,7 +1,9 @@
 'use client'
 
 import { Suspense } from 'react'
+
 import { useAuth } from '@/client/hooks/use-auth'
+
 import LoadingFallback from './LoadingFallback'
 
 interface AuthenticatedContentProps {

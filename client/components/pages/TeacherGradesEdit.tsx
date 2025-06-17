@@ -1,17 +1,12 @@
 'use client'
 
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/client/hooks/use-toast'
-import { useAuth } from '@/client/hooks/use-auth'
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import {
-  GradeTypeEnum,
-  Student,
-  GradeWithRelations,
-  GradeRecordWithUser,
-} from '@/types/grades'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { AuthenticatedContent } from '@/client/components/atoms/AuthenticatedContent'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -20,11 +15,17 @@ import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { Progress } from '@/client/components/ui/progress'
 import { useGrades } from '@/client/context/grades'
+import { useAuth } from '@/client/hooks/use-auth'
+import { useToast } from '@/client/hooks/use-toast'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import type { CreateGradePayload } from '@/types/grade-payload'
-import { AuthenticatedContent } from '@/client/components/atoms/AuthenticatedContent'
+import {
+  GradeRecordWithUser,
+  GradeTypeEnum,
+  GradeWithRelations,
+  Student,
+} from '@/types/grades'
 
 export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
   return (

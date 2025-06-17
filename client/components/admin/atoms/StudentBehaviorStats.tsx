@@ -1,11 +1,10 @@
 'use client'
 
-import { SubjectNameEnum } from '@/types/courses'
+import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-
 import { BehaviorStats } from '@/server/actions/admin/student-stats-behavior'
-import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { SubjectNameEnum } from '@/types/courses'
 
 interface StudentBehaviorStatsClientProps {
   stats: BehaviorStats

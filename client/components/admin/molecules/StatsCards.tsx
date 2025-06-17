@@ -1,14 +1,12 @@
+import { motion } from 'framer-motion'
 import { ChevronRight, GraduationCap, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import { UserRoleEnum } from '@/types/user'
-import { StudentResponse } from '@/types/student-payload'
-import { TeacherResponse } from '@/types/teacher-payload'
-
 import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'
 import { Card, CardContent } from '@/client/components/ui/card'
-
-import { motion } from 'framer-motion'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
+import { UserRoleEnum } from '@/types/user'
 
 type StatItem = {
   title: string

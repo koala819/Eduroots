@@ -1,13 +1,14 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { createClient } from '@/server/utils/supabase'
 import { ApiResponse } from '@/types/api'
 import {
   CreateAttendancePayload,
   UpdateAttendancePayload,
 } from '@/types/attendance-payload'
-import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 
 export async function createAttendanceRecord(

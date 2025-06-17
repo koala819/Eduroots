@@ -1,13 +1,10 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
-import { useRouter } from 'next/navigation'
-
-import { useToast } from '@/client/hooks/use-toast'
-
-import { GenderEnum } from '@/types/user'
+import * as z from 'zod'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -23,10 +20,9 @@ import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 import { RadioGroup, RadioGroupItem } from '@/client/components/ui/radio-group'
-
 import { useStudents } from '@/client/context/students'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { useToast } from '@/client/hooks/use-toast'
+import { GenderEnum } from '@/types/user'
 
 const adminSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),

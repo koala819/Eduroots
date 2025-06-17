@@ -1,6 +1,7 @@
 import { Clock } from 'lucide-react'
-import { TimeSlotEnum } from '@/types/courses'
+
 import { cn } from '@/server/utils/helpers'
+import { TimeSlotEnum } from '@/types/courses'
 
 interface TimeSlotConfig {
   id: TimeSlotEnum

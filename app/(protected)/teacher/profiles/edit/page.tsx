@@ -1,27 +1,21 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, CircleArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import React,{ useEffect, useState } from 'react'
 
-
-import { useRouter } from 'next/navigation'
-
-import { useToast } from '@/client/hooks/use-toast'
-
-import { CourseSessionWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import { Period, PeriodTypeEnum } from '@/types/schedule'
-
-
 import { PlanningEditor } from '@/client/components/atoms/PlanningEditor'
-import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
-
 import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
 import { useSchedules } from '@/client/context/schedules'
+import { useToast } from '@/client/hooks/use-toast'
+import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { CourseSessionWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 const PlanningViewer = () => {
   const { toast } = useToast()

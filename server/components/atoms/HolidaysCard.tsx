@@ -1,9 +1,8 @@
 import React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { Holiday } from '@/types/holidays'
-
 import { cn } from '@/server/utils/helpers'
+import { Holiday } from '@/types/holidays'
 
 interface HolidaysCardProps {
   holidays: Holiday[]

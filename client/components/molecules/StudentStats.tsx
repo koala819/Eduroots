@@ -1,13 +1,14 @@
 'use client'
 
 import { Book, GraduationCap } from 'lucide-react'
-import { LevelEnum } from '@/types/courses'
+
 import { GradeCard } from '@/client/components/atoms/StudentGradeCard'
 import { InfoCard } from '@/client/components/atoms/StudentInfoCard'
 import { StatCard } from '@/client/components/atoms/StudentStatCard'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { StudentStats as StudentStatsType } from '@/types/stats'
+import { LevelEnum } from '@/types/courses'
 import { CourseSession, CourseSessionTimeslot } from '@/types/db'
+import { StudentStats as StudentStatsType } from '@/types/stats'
 
 interface SubjectGrade {
   subject: string

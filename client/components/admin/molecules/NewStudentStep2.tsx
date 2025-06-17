@@ -3,10 +3,6 @@
 import { useCallback, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum,TimeSlotEnum } from '@/types/courses'
-import { TeacherStats } from '@/types/stats'
-import { GenderEnum } from '@/types/user'
-
 import { TeacherOption } from '@/client/components/admin/atoms/NewStudentTeacherOption'
 import { FormData } from '@/client/components/organisms/NewStudentForm'
 import { Card } from '@/client/components/ui/card'
@@ -23,12 +19,14 @@ import {
   SelectItem,
   SelectTrigger, SelectValue,
 } from '@/client/components/ui/select'
-
 import { useCourses } from '@/client/context/courses'
 import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
 import { formatDayOfWeek } from '@/server/utils/helpers'
+import { SubjectNameEnum,TimeSlotEnum } from '@/types/courses'
+import { TeacherStats } from '@/types/stats'
 import { TeacherResponse } from '@/types/teacher-payload'
+import { GenderEnum } from '@/types/user'
 
 interface StepTwoProps {
   form: UseFormReturn<FormData>

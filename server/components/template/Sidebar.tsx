@@ -1,10 +1,11 @@
 'use client'
 
 import { LogOut } from 'lucide-react'
-import { cn, logoutHandler } from '@/server/utils/helpers'
-import EdurootsLogo from '@/public/Logo-blanc.webp'
-import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
+import Image from 'next/image'
+
+import EdurootsLogo from '@/public/Logo-blanc.webp'
+import { cn, logoutHandler } from '@/server/utils/helpers'
 
 type SidebarMenuProps = {
   handleNavClick: (href: string) => void

@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -12,16 +12,14 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
-import { Grade, GradeRecord } from '@/types/db'
-import { CreateGradePayload } from '@/types/grade-payload'
-
 import {
   createGradeRecord,
   getTeacherGrades,
   refreshGradeData,
   updateGradeRecord,
 } from '@/server/actions/api/grades'
+import { Grade, GradeRecord } from '@/types/db'
+import { CreateGradePayload } from '@/types/grade-payload'
 
 export interface PopulatedGrade extends Grade {
   records: GradeRecord[]

@@ -1,9 +1,8 @@
 'use server'
 
-import { Database } from '@/types/db'
-
-import { getCourseSessionById } from '@/server/actions/api/courses'
 import { CoursesProvider } from '@/client/context/courses'
+import { getCourseSessionById } from '@/server/actions/api/courses'
+import { Database } from '@/types/db'
 
 type CourseWithRelations = Database['education']['Tables']['courses']['Row'] & {
   courses_teacher: (Database['education']['Tables']['courses_teacher']['Row'] & {

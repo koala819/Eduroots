@@ -1,11 +1,10 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
-
 import Link from 'next/link'
 
 import { cn } from '@/server/utils/helpers'
-import { motion } from 'framer-motion'
 
 interface HighRiskStudentsButtonClientProps {
   className?: string

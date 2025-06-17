@@ -1,5 +1,7 @@
 'use client'
 
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { GraduationCap, Laptop, Rocket, ShieldCheck, Smartphone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -9,9 +11,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/client/components/ui/accordion'
-
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
 
 interface IUser {
   Id: string

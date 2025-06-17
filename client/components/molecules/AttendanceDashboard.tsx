@@ -1,17 +1,18 @@
 'use client'
 
+import { AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
+
 import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
 import { AttendanceEdit } from '@/client/components/atoms/AttendanceEdit'
 import { AttendanceTable } from '@/client/components/atoms/AttendanceTable'
+import { EmptyContent, ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
 import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
-import { AnimatePresence } from 'framer-motion'
-import { EmptyContent, ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
-import { User } from '@/types/db'
 import { getCourseSessionById } from '@/server/actions/api/courses'
+import { User } from '@/types/db'
 
 export const AttendanceDashboard = ({
   courseSessionId,

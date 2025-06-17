@@ -1,5 +1,8 @@
 'use client'
 
+import { useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
+
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
 import {
@@ -24,8 +27,6 @@ import {
   TIME_SLOT_SCHEDULE,
   TimeSlotEnum,
 } from '@/types/courses'
-import { useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
 
 interface TeacherFormData {
   firstname: string

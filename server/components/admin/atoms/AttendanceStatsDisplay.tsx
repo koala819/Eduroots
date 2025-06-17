@@ -1,9 +1,7 @@
-import { GlobalStats } from '@/types/stats'
-
 import { AttendanceStatsClient } from '@/client/components/admin/atoms/AttendanceStats'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-
 import { refreshGlobalStats } from '@/server/actions/api/stats'
+import { GlobalStats } from '@/types/stats'
 
 async function getGlobalStats(): Promise<GlobalStats> {
   const response = await refreshGlobalStats()

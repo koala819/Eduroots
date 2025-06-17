@@ -1,7 +1,7 @@
 'use server'
 
-import { getCurrentSchedule } from '@/server/actions/api/schedules'
 import { SchedulesProvider } from '@/client/context/schedules'
+import { getCurrentSchedule } from '@/server/actions/api/schedules'
 import { DaySchedule } from '@/types/schedule'
 
 interface SchedulesServerComponentProps {

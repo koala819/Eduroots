@@ -1,19 +1,20 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/client/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { Badge } from '@/client/components/ui/badge'
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/client/components/ui/accordion'
-import { GradeWithRelations, GradeRecordWithUser } from '@/types/grades'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { GradeRecordWithUser,GradeWithRelations } from '@/types/grades'
 
 interface GradeCardProps {
   grade: GradeWithRelations

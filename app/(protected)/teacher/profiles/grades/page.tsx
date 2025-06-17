@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+
 import { GradesClient } from '@/client/components/pages/TeacherGrades'
 
 export default function GradesPage() {

@@ -1,9 +1,10 @@
 'use server'
 
-import { SubjectNameEnum } from '@/types/courses'
-import { getStudentBehaviorHistory } from '@/server/actions/api/behaviors'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
+import { getStudentBehaviorHistory } from '@/server/actions/api/behaviors'
+import { SubjectNameEnum } from '@/types/courses'
 
 export interface BehaviorStats {
   averageRating: number

@@ -1,6 +1,6 @@
-import { LoginClient } from '@/client/components/atoms/Login'
-
 import type { Metadata, Viewport } from 'next'
+
+import { LoginClient } from '@/client/components/atoms/Login'
 
 export const metadata: Metadata = {
   title: 'Eduroots',

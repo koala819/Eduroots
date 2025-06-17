@@ -1,10 +1,10 @@
 'use server'
 
-import { getAllStudents } from '@/server/actions/api/students'
 import { StudentProvider } from '@/client/context/students'
-import { StudentResponse } from '@/types/student-payload'
-import { UserType, GenderEnum } from '@/types/user'
+import { getAllStudents } from '@/server/actions/api/students'
 import { SubjectNameEnum } from '@/types/courses'
+import { StudentResponse } from '@/types/student-payload'
+import { GenderEnum,UserType } from '@/types/user'
 
 interface StudentsServerComponentProps {
   children: React.ReactNode

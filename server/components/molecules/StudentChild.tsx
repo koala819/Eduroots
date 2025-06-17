@@ -1,16 +1,13 @@
 import { Calendar } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { Course } from '@/zUnused/types/course'
-
-
-import StudentAvatar from '@/server/components/atoms/StudentAvatar'
-
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getTeachersForStudent } from '@/server/actions/api/students'
-import { GenderEnum } from '@/types/user'
+import StudentAvatar from '@/server/components/atoms/StudentAvatar'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
+import { GenderEnum } from '@/types/user'
+import { Course } from '@/zUnused/types/course'
 
 async function StudentChild({ child }: Readonly<{ child: StudentResponse }>) {
   const studentId = child.id

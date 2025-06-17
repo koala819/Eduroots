@@ -1,13 +1,9 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
-
-import { AttendanceRecord } from '@/types/db'
-import { CourseWithRelations } from '@/types/courses'
-import { GenderEnum } from '@/types/user'
-import { StudentResponse } from '@/types/student-payload'
 
 import {
   AlertDialog,
@@ -21,12 +17,14 @@ import {
   AlertDialogTrigger,
 } from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
-
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { useStudents } from '@/client/context/students'
 import { cn } from '@/server/utils/helpers'
-import { motion } from 'framer-motion'
+import { CourseWithRelations } from '@/types/courses'
+import { AttendanceRecord } from '@/types/db'
+import { StudentResponse } from '@/types/student-payload'
+import { GenderEnum } from '@/types/user'
 
 interface BehaviorEditProps {
   students: (AttendanceRecord & {

@@ -1,9 +1,8 @@
 'use client'
 
-import { createClient } from '@/client/utils/supabase'
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -14,11 +13,10 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-
+import { createClient } from '@/client/utils/supabase'
+import { getCurrentSchedule, saveSchedules } from '@/server/actions/api/schedules'
 import { TimeSlotEnum } from '@/types/courses'
 import { DaySchedule, Period } from '@/types/schedule'
-
-import { getCurrentSchedule, saveSchedules } from '@/server/actions/api/schedules'
 
 interface ScheduleState {
   schedules: {

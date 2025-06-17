@@ -1,5 +1,6 @@
-import { createClient } from '@/server/utils/supabase'
 import { User } from '@supabase/supabase-js'
+
+import { createClient } from '@/server/utils/supabase'
 
 /**
  * Vérifie si l'utilisateur est authentifié et a un rôle valide

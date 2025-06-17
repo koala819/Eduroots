@@ -1,19 +1,20 @@
 'use server'
 
-import { getSessionServer } from '@/server/utils/server-helpers'
 import { revalidatePath } from 'next/cache'
+
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
-import { CourseWithRelations } from '@/types/courses'
 import {
   AddStudentToCoursePayload,
   CreateCoursePayload,
   UpdateCoursePayload,
   UpdateCourseSessionPayload,
 } from '@/types/course-payload'
+import { CourseWithRelations } from '@/types/courses'
 import {
   CourseSessionTimeslot,
 } from '@/types/db'
-import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export async function addStudentToCourse(
   courseId: string,

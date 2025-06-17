@@ -1,10 +1,8 @@
-import { StudentResponse } from '@/types/student-payload'
-import { TeacherResponse } from '@/types/teacher-payload'
-
 import { SchoolPeopleClient } from '@/client/components/organisms/SchoolPeople'
-
 import { getAllStudents } from '@/server/actions/api/students'
 import { getAllTeachers } from '@/server/actions/api/teachers'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 export async function SchoolPeople() {
   const [studentsResponse, teachersResponse] = await Promise.all([

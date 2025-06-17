@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next'
+
 import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
-import { createClient } from '@/server/utils/supabase'
 import { CustomLayout } from '@/server/components/template/CustomLayout'
+import { createClient } from '@/server/utils/supabase'
 
 const navItems = [
   {

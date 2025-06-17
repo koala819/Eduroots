@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { TeacherWelcome } from '@/client/components/pages/TeacherWelcome'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export default async function TeacherDashboardPage() {
   const user = await getAuthenticatedUser()

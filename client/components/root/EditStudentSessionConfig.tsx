@@ -3,8 +3,6 @@
 import { Clock } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-
 import { Card } from '@/client/components/ui/card'
 import {
   FormControl,
@@ -17,6 +15,7 @@ import {
   Select,
   SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/client/components/ui/select'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface SessionSelection {

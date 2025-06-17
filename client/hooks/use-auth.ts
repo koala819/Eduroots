@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Session } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
+
 import { createClient } from '@/client/utils/supabase'
 
 export function useAuth() {

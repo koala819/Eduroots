@@ -1,8 +1,7 @@
 'use client'
 
-import { Loader } from 'lucide-react'
-
 import { motion } from 'framer-motion'
+import { Loader } from 'lucide-react'
 
 export default function LoadingFallback() {
   return (

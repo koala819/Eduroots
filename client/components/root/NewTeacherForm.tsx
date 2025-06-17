@@ -1,12 +1,10 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useToast } from '@/client/hooks/use-toast'
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import { UserRoleEnum } from '@/types/user'
-import { CreateTeacherPayload } from '@/types/teacher-payload'
-import { CreateCoursePayload } from '@/types/course-payload'
+import * as z from 'zod'
+
 import StepOne from '@/client/components/root/NewTeacherStep1'
 import StepTwo from '@/client/components/root/NewTeacherStep2'
 import { Button } from '@/client/components/ui/button'
@@ -14,8 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui
 import { Form } from '@/client/components/ui/form'
 import { useCourses } from '@/client/context/courses'
 import { useTeachers } from '@/client/context/teachers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { useToast } from '@/client/hooks/use-toast'
+import { CreateCoursePayload } from '@/types/course-payload'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { CreateTeacherPayload } from '@/types/teacher-payload'
+import { UserRoleEnum } from '@/types/user'
 
 const teacherSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),

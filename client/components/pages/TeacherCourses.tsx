@@ -1,17 +1,18 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import {
-  CourseSession,
-  User,
-  CourseSessionTimeslot,
-  Course,
-  CourseSessionStudent,
-} from '@/types/db'
-import { AttendanceDashboard } from '@/client/components/molecules/AttendanceDashboard'
+
 import { CourseMenuDesktop } from '@/client/components/atoms/CourseMenu_Desktop'
 import { CourseMenuMobile } from '@/client/components/atoms/CourseMenu_Mobile'
+import { AttendanceDashboard } from '@/client/components/molecules/AttendanceDashboard'
 import { BehaviorDashboard } from '@/client/components/molecules/BehaviorDashboard'
+import {
+  Course,
+  CourseSession,
+  CourseSessionStudent,
+  CourseSessionTimeslot,
+  User,
+} from '@/types/db'
 
 interface StudentWithUser extends CourseSessionStudent {
   users: User

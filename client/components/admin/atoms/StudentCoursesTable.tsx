@@ -2,9 +2,6 @@
 
 import { CalendarDays, GraduationCap, Users } from 'lucide-react'
 
-import { CourseSessionWithRelations,TimeSlotEnum } from '@/types/courses'
-import { TeacherResponse } from '@/types/teacher-payload'
-
 import { Badge } from '@/client/components/ui/badge'
 import {
   Card,
@@ -21,6 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
+import { CourseSessionWithRelations,TimeSlotEnum } from '@/types/courses'
+import { TeacherResponse } from '@/types/teacher-payload'
 
 interface CoursesTableProps {
   sessions: Array<{

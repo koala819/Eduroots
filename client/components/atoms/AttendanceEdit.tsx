@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import {
   BarChart2,
   CheckCircle,
@@ -9,14 +10,14 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
-import { User } from '@/types/db'
-import { GenderEnum } from '@/types/user'
+
 import { Button } from '@/client/components/ui/button'
 import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
-import { motion } from 'framer-motion'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { CourseSessionWithRelations } from '@/types/courses'
+import { User } from '@/types/db'
+import { GenderEnum } from '@/types/user'
 
 interface AttendanceEditProps {
   students: User[];

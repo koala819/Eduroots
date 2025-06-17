@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { createClient } from '@/server/utils/supabase'
 import { Database } from '@/types/db'
 

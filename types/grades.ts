@@ -1,5 +1,5 @@
-import { Grade, GradeRecord, User } from './db'
 import type { CourseSessionWithRelations } from './courses'
+import { Grade, GradeRecord, User } from './db'
 
 export enum GradeTypeEnum {
   Controle = 'Controle',

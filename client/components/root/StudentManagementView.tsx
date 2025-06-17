@@ -1,17 +1,15 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
-
-import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
-import { AdminInfoDisplay } from '@/server/components/root/StudentAdministratiView'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
-
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
+import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
+import { AdminInfoDisplay } from '@/server/components/root/StudentAdministratiView'
 
 export const StudentManagementView = ({ id }: {id: string}) => {
   const [isLoading, setIsLoading] = useState(true)

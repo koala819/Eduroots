@@ -1,6 +1,6 @@
+import { Card, CardContent, CardFooter, CardHeader } from '@/client/components/ui/card'
 import StudentContact from '@/server/components/atoms/StudentContact'
 import StudentChild from '@/server/components/molecules/StudentChild'
-import { Card, CardContent, CardFooter, CardHeader } from '@/client/components/ui/card'
 import { StudentResponse } from '@/types/student-payload'
 
 interface FamilyInfoCardProps {

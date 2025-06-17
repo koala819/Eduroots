@@ -1,9 +1,8 @@
 'use server'
 
-import { Attendance } from '@/types/db'
-
-import { getAttendanceById } from '@/server/actions/api/attendances'
 import { AttendancesProvider } from '@/client/context/attendances'
+import { getAttendanceById } from '@/server/actions/api/attendances'
+import { Attendance } from '@/types/db'
 
 interface AttendanceServerComponentProps {
   children: React.ReactNode

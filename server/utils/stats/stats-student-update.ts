@@ -1,19 +1,20 @@
+import fs from 'fs/promises'
+import path from 'path'
+
 import { getSessionServer } from '@/server/utils/server-helpers'
-import { SubjectNameEnum } from '@/types/courses'
-import { StatsStudent } from '@/types/db'
 import {
   calculateStudentAttendanceRate,
   calculateStudentBehaviorRate,
   calculateStudentGrade,
 } from '@/server/utils/stats/student'
+import { SubjectNameEnum } from '@/types/courses'
+import { StatsStudent } from '@/types/db'
 import {
-  StudentStats,
-  UpdateStudentStatsPayload,
   InsertStudentStatsPayload,
+  StudentStats,
   UpdateStats,
+  UpdateStudentStatsPayload,
 } from '@/types/stats-payload'
-import fs from 'fs/promises'
-import path from 'path'
 
 /**
  * Récupère tous les étudiants actifs

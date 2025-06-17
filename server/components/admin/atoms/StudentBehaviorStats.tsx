@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
 
-import { fetchStudentBehaviorStats } from '@/server/actions/admin/student-stats-behavior'
-import { StudentBehaviorStatsClient } from '@/client/components/admin/atoms/StudentBehaviorStats'
-import Loading from '@/server/components/admin/atoms/Loading'
 import { StudentBehaviorError } from '@/client/components/admin/atoms/StudentBehaviorError'
+import { StudentBehaviorStatsClient } from '@/client/components/admin/atoms/StudentBehaviorStats'
+import { fetchStudentBehaviorStats } from '@/server/actions/admin/student-stats-behavior'
+import Loading from '@/server/components/admin/atoms/Loading'
 
 export async function StudentBehaviorStats({
   studentId,

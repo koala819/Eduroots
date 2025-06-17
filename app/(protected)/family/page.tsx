@@ -1,12 +1,10 @@
-import { createClient } from '@/server/utils/supabase'
 import { redirect } from 'next/navigation'
 
+import StudentDashboard from '@/client/components/organisms/StudentDashboard'
+import { getAllStudents } from '@/server/actions/api/students'
+import { createClient } from '@/server/utils/supabase'
 import { User } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
-
-import StudentDashboard from '@/client/components/organisms/StudentDashboard'
-
-import { getAllStudents } from '@/server/actions/api/students'
 
 export const metadata = {
   title: 'Dashboard Famille | École',

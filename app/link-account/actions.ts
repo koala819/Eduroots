@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
+
+import { createClient } from '@/server/utils/supabase'
 
 export async function linkAccount(formData: FormData) {
   const supabase = await createClient()

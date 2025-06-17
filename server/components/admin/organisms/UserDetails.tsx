@@ -1,18 +1,17 @@
+import { CircleArrowLeft, Pencil } from 'lucide-react'
 import { Suspense } from 'react'
 
-import { GenderEnum, UserType } from '@/types/user'
-
 import { UserDetailsClient } from '@/client/components/admin/atoms/UserDetails'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
 import Loading from '@/server/components/admin/atoms/Loading'
 import { StudentAttendanceStats } from '@/server/components/admin/atoms/StudentAttendanceStats'
 import { StudentBehaviorStats } from '@/server/components/admin/atoms/StudentBehaviorStats'
 import { TeacherStats } from '@/server/components/admin/atoms/TeacherStats'
 import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
-import { Badge } from '@/client/components/ui/badge'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
-import { Button } from '@/client/components/ui/button'
-import { CircleArrowLeft, Pencil } from 'lucide-react'
+import { GenderEnum, UserType } from '@/types/user'
 
 export const UserDetails = ({
   entity,

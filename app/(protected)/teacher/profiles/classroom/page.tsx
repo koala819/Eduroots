@@ -1,21 +1,22 @@
 'use client'
 
 import { CircleArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
+import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { useTeachers } from '@/client/context/teachers'
 import { useToast } from '@/client/hooks/use-toast'
+import { createClient } from '@/client/utils/supabase'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import {
   CourseSessionWithRelations,
   SubjectNameEnum,
   TimeEnum,
   TimeSlotEnum,
 } from '@/types/courses'
-import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
-import { Button } from '@/client/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { useTeachers } from '@/client/context/teachers'
-import { formatDayOfWeek } from '@/server/utils/helpers'
-import { createClient } from '@/client/utils/supabase'
 import { CourseSession, User } from '@/types/db'
 
 interface TimeSlot {

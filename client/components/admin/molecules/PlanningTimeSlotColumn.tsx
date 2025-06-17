@@ -1,8 +1,7 @@
 'use client'
 
-import { CourseSessionWithRelations } from '@/types/courses'
-
 import { TeacherCard } from '@/client/components/admin/atoms/PlanningTeacherCard'
+import { CourseSessionWithRelations } from '@/types/courses'
 
 type FixedTimeSlot = {
   startTime: string

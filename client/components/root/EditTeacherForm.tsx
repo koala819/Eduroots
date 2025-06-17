@@ -1,25 +1,21 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
-import { useRouter } from 'next/navigation'
-
-import { useToast } from '@/client/hooks/use-toast'
-
-import { LevelEnum, SubjectNameEnum, TimeSlotEnum, CourseWithRelations } from '@/types/courses'
+import * as z from 'zod'
 
 import EditTeacherStep1 from '@/client/components/root/EditTeacherStep1'
 import EditTeacherStep2 from '@/client/components/root/EditTeacherStep2'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'
-
 import { useCourses } from '@/client/context/courses'
 import { useTeachers } from '@/client/context/teachers'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { useToast } from '@/client/hooks/use-toast'
 import useCourseStore from '@/client/stores/useCourseStore'
+import { CourseWithRelations,LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 const teacherSchema = z.object({
