@@ -14,12 +14,19 @@ const currentYear = new Date().getFullYear()
 export const metadata: Metadata = {
   title: `Gestion des cours ${currentYear}`,
   description: 'Plateforme de gestion des cours pour l\'école coranique',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: 'white',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+  ],
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
@@ -29,7 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <GlobalServerProvider>
-      <div className={`${inter.variable} font-sans`}>{children}</div>
+      <div className={`${inter.variable} font-sans min-h-screen bg-background
+        text-foreground antialiased`}>
+        {children}
+      </div>
     </GlobalServerProvider>
   )
 }

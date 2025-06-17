@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation'
 
+import LinkAccountForm from '@/client/components/molecules/LinkAccountForm'
 import { getRedirectUrl } from '@/server/utils/redirects'
 import { createClient } from '@/server/utils/supabase'
-
-import LinkAccountForm from './LinkAccountForm'
 
 export default async function LinkAccountPage({
   searchParams,

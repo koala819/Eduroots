@@ -54,13 +54,14 @@ export default function WriteNewPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="max-w-md w-full space-y-8 p-8 bg-background/80 backdrop-blur-sm
+        rounded-lg shadow-lg border border-border/30">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
             Nouveau mot de passe
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             Veuillez entrer votre nouveau mot de passe
           </p>
         </div>
@@ -76,7 +77,8 @@ export default function WriteNewPassword() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full"
+              className="w-full bg-input border-border text-foreground
+                focus:border-primary focus:ring-primary/50"
               placeholder="Nouveau mot de passe"
             />
           </div>
@@ -85,7 +87,9 @@ export default function WriteNewPassword() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#375073] to-[#4a6b95]"
+              className="w-full bg-gradient-to-r from-primary to-primary-light
+                hover:from-primary-dark hover:to-primary text-primary-foreground
+                transition-all duration-200 shadow-md hover:shadow-lg"
             >
               {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
             </Button>

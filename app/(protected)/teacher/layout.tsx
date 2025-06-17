@@ -1,4 +1,4 @@
-import { CustomLayout } from '@/server/components/template/CustomLayout'
+import { CustomLayout } from '@/client/components/pages/CustomLayout'
 import { createClient } from '@/server/utils/supabase'
 
 export default async function TeacherLayout({
@@ -43,7 +43,9 @@ export default async function TeacherLayout({
 
   return (
     <CustomLayout navItems={navItems} teacher={teacher}>
-      <div className="flex flex-col relative bg-gray-50  h-full">{children}</div>
+      <div className="flex flex-col relative bg-background h-full">
+        {children}
+      </div>
     </CustomLayout>
   )
 }

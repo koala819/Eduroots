@@ -1,4 +1,4 @@
-import { CustomLayout } from '@/server/components/template/CustomLayout'
+import { CustomLayout } from '@/client/components/pages/CustomLayout'
 
 export default function FamilyLayout({ children }: { children: React.ReactNode }) {
   const navItems = [

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import 'react-toastify/dist/ReactToastify.css'
-import '@/styles/globals.css'
+import './app.css'
 
 import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
@@ -179,7 +179,7 @@ export default async function DashboardLayout({
       </head>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'min-h-screen font-sans antialiased layout',
           fontSans.variable,
         )}
       >

@@ -133,23 +133,22 @@ export const LoginClient = () => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100
-        dark:from-gray-950 dark:via-gray-900 dark:to-slate-900
-        flex items-center justify-center px-4 py-4 lg:py-8 relative overflow-hidden"
+      className="h-full w-full bg-background flex items-center justify-center
+        px-4 py-4 lg:py-8 relative"
     >
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-[#375073]/10
+          className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10
           rounded-full blur-3xl animate-pulse"
         />
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#375073]/10
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10
           rounded-full blur-3xl animate-pulse delay-1000"
         />
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-          w-96 h-96 bg-gradient-to-r from-[#375073]/5 to-transparent
+          w-96 h-96 bg-gradient-to-r from-primary/5 to-transparent
           rounded-full blur-3xl animate-pulse delay-500"
         />
       </div>
@@ -164,22 +163,22 @@ export const LoginClient = () => {
           <div className="space-y-6">
             <div className="inline-flex items-center justify-center lg:justify-start">
               <div
-                className="w-16 h-16 bg-gradient-to-br from-[#375073] to-[#4a6b95]
+                className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light
                 rounded-2xl flex items-center justify-center shadow-2xl
                 transform rotate-3 hover:rotate-0 transition-all duration-500"
               >
-                <UserGroupIcon className="w-8 h-8 text-white" />
+                <UserGroupIcon className="w-8 h-8 text-primary-foreground" />
               </div>
             </div>
 
             <div className="space-y-4">
               <h1
                 className="text-5xl lg:text-6xl font-bold bg-gradient-to-r
-                from-[#375073] to-[#4a6b95] bg-clip-text text-transparent"
+                from-primary to-primary-light bg-clip-text text-transparent"
               >
                 Eduroots
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p className="text-xl text-muted-foreground leading-relaxed">
                 La plateforme éducative moderne qui connecte enseignants,
                 familles et administration
               </p>
@@ -187,16 +186,16 @@ export const LoginClient = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 max-w-md mx-auto lg:mx-0">
-            <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-300">
-              <div className="w-2 h-2 bg-[#375073] rounded-full"></div>
+            <div className="flex items-center space-x-3 text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
               <span className="text-sm">Suivi en temps réel</span>
             </div>
-            <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-300">
-              <div className="w-2 h-2 bg-[#375073] rounded-full"></div>
+            <div className="flex items-center space-x-3 text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
               <span className="text-sm">Communication simplifiée</span>
             </div>
-            <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-300">
-              <div className="w-2 h-2 bg-[#375073] rounded-full"></div>
+            <div className="flex items-center space-x-3 text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
               <span className="text-sm">Interface moderne</span>
             </div>
           </div>
@@ -205,28 +204,26 @@ export const LoginClient = () => {
         {/* Right Side - Login Form */}
         <aside className="w-full max-w-md mx-auto lg:max-w-none">
           <div
-            className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
-            border border-white/30 dark:border-gray-700/30 rounded-3xl
-            shadow-2xl p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8
-            max-h-screen lg:max-h-none overflow-y-auto"
+            className="backdrop-blur-xl bg-background/80 border border-border/30
+            rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8"
           >
             {/* Mobile Header */}
             <div className="lg:hidden text-center space-y-3">
               <div
-                className="w-12 h-12 mx-auto bg-gradient-to-br from-[#375073] to-[#4a6b95]
+                className="w-12 h-12 mx-auto bg-gradient-to-br from-primary to-primary-light
                 rounded-xl flex items-center justify-center shadow-xl
                 transform rotate-3 hover:rotate-0 transition-all duration-500"
               >
-                <UserGroupIcon className="w-6 h-6 text-white" />
+                <UserGroupIcon className="w-6 h-6 text-primary-foreground" />
               </div>
               <div className="space-y-1">
                 <h1
-                  className="text-2xl font-bold bg-gradient-to-r from-[#375073]
-                  to-[#4a6b95] bg-clip-text text-transparent"
+                  className="text-2xl font-bold bg-gradient-to-r from-primary
+                  to-primary-light bg-clip-text text-transparent"
                 >
                   Eduroots
                 </h1>
-                <p className="text-gray-600 dark:text-gray-300 text-xs">
+                <p className="text-muted-foreground text-xs">
                   Connectez-vous pour accéder à votre espace
                 </p>
               </div>
@@ -244,7 +241,7 @@ export const LoginClient = () => {
                   render={({ field }) => (
                     <FormItem className="space-y-3">
                       <FormLabel
-                        className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white
+                        className="text-base lg:text-lg font-semibold text-foreground
                         text-center lg:text-left"
                       >
                         Choisissez votre profil
@@ -256,10 +253,10 @@ export const LoginClient = () => {
                             justify-center rounded-xl border transition-all
                             ${
                     field.value === 'bureau'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                      : 'bg-background text-primary border-border hover:bg-muted'
                     }
-                            focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
+                            focus:outline-none focus:ring-2 focus:ring-primary/40`}
                           onClick={() => field.onChange('bureau')}
                           aria-pressed={field.value === 'bureau'}
                         >
@@ -274,10 +271,10 @@ export const LoginClient = () => {
                             justify-center rounded-xl border transition-all
                             ${
                     field.value === 'teacher'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                      : 'bg-background text-primary border-border hover:bg-muted'
                     }
-                            focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
+                            focus:outline-none focus:ring-2 focus:ring-primary/40`}
                           onClick={() => field.onChange('teacher')}
                           aria-pressed={field.value === 'teacher'}
                         >
@@ -292,10 +289,10 @@ export const LoginClient = () => {
                             justify-center rounded-xl border transition-all
                             ${
                     field.value === 'student'
-                      ? 'bg-[#375073] text-white border-[#375073] shadow-lg'
-                      : 'bg-white text-[#375073] border-gray-200 hover:bg-[#f3f6fa]'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                      : 'bg-background text-primary border-border hover:bg-muted'
                     }
-                            focus:outline-none focus:ring-2 focus:ring-[#375073]/40`}
+                            focus:outline-none focus:ring-2 focus:ring-primary/40`}
                           onClick={() => field.onChange('student')}
                           aria-pressed={field.value === 'student'}
                         >
@@ -315,7 +312,7 @@ export const LoginClient = () => {
                   {/* Google Login - First */}
                   <div className="space-y-3">
                     <h3
-                      className="text-sm font-medium text-gray-700 dark:text-gray-200
+                      className="text-sm font-medium text-muted-foreground
                       text-center lg:text-left"
                     >
                       Connexion rapide
@@ -327,8 +324,8 @@ export const LoginClient = () => {
                       disabled={loading}
                       aria-label="Se connecter avec Google"
                       className="w-full flex items-center justify-center p-0 border border-[#4285F4]
-                      bg-white hover:bg-white rounded-lg shadow-sm transition-all duration-200
-                      hover:shadow-[0_0_0_5px_#e8f0fe] hover:border-[#4285F4]"
+                      bg-background hover:bg-background rounded-lg shadow-sm hover:border-[#4285F4]
+                      transition-all duration-200 hover:shadow-[0_0_0_5px_#e8f0fe]"
                     >
                       <span
                         className="icon inline-flex self-stretch items-center justify-center
@@ -367,7 +364,7 @@ export const LoginClient = () => {
                       </span>
                       <span
                         className="flex-1 text-[#4285F4] font-medium text-base text-center
-                        transition-all duration-200 group-hover:text-white"
+                        transition-all duration-200 group-hover:text-white hover:cursor-pointer"
                       >
                         {loading ? 'Connexion...' : 'Se connecter avec Google'}
                       </span>
@@ -377,11 +374,11 @@ export const LoginClient = () => {
                   {/* Divider */}
                   <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200 dark:border-gray-600" />
+                      <div className="w-full border-t border-border" />
                     </div>
                     <div className="relative flex justify-center text-sm">
                       <span
-                        className="px-3 bg-white/80 dark:bg-gray-900/80 text-gray-500
+                        className="px-3 bg-background/80 text-muted-foreground
                         font-bold text-base tracking-wide"
                       >
                         OU
@@ -396,7 +393,7 @@ export const LoginClient = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem className="relative">
-                          <FormLabel className="block text-sm font-medium text-[#375073]">
+                          <FormLabel className="block text-sm font-medium text-foreground">
                             Email
                           </FormLabel>
                           <FormControl>
@@ -405,15 +402,15 @@ export const LoginClient = () => {
                               type="email"
                               placeholder="Entrez votre email"
                               className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
-                                border border-gray-200 text-gray-900 lg:text-base
-                                focus:border-[#375073] focus:outline-none focus:ring-2
-                                 focus:ring-[#375073]/50 disabled:bg-gray-100
-                                 disabled:cursor-not-allowed"
+                                border border-border bg-input text-foreground lg:text-base
+                                focus:border-primary focus:outline-none focus:ring-2
+                                focus:ring-primary/50 disabled:bg-muted
+                                disabled:cursor-not-allowed"
                               disabled={loading || !form.watch('role')}
                             />
                           </FormControl>
                           {!form.watch('role') && (
-                            <p className="text-sm text-red-500 t-1">
+                            <p className="text-sm text-error mt-1">
                               Sélectionnez d'abord votre profil
                             </p>
                           )}
@@ -427,7 +424,7 @@ export const LoginClient = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem className="relative">
-                          <FormLabel className="block text-sm font-medium text-gray-700">
+                          <FormLabel className="block text-sm font-medium text-foreground">
                             Mot de passe
                           </FormLabel>
                           <FormControl>
@@ -437,17 +434,17 @@ export const LoginClient = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="Entrez votre mot de passe"
                                 className="w-full px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg
-                                border border-gray-200 text-gray-900 lg:text-base
-                                focus:border-[#375073] focus:outline-none focus:ring-2
-                                 focus:ring-[#375073]/50 disabled:bg-gray-100
-                                 disabled:cursor-not-allowed"
+                                border border-border bg-input text-foreground lg:text-base
+                                focus:border-primary focus:outline-none focus:ring-2
+                                focus:ring-primary/50 disabled:bg-muted
+                                disabled:cursor-not-allowed"
                                 disabled={loading || !form.watch('role')}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-2.5 lg:right-3 top-2.5 lg:top-3
-                                text-gray-400 hover:text-[#375073] transition-colors
+                                text-muted-foreground hover:text-primary transition-colors
                                 disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={loading || !form.watch('role')}
                               >
@@ -460,7 +457,7 @@ export const LoginClient = () => {
                             </div>
                           </FormControl>
                           {!form.watch('role') && (
-                            <p className="text-sm text-red-500 mt-1">
+                            <p className="text-sm text-error mt-1">
                               Sélectionnez d'abord votre profil
                             </p>
                           )}
@@ -473,13 +470,13 @@ export const LoginClient = () => {
                       {form.watch('role') ? (
                         <Link
                           href={`/forgot-password?role=${form.watch('role')}`}
-                          className="text-xs lg:text-sm text-[#375073] hover:text-[#4a6b95]
-        transition-colors font-medium"
+                          className="text-xs lg:text-sm text-primary hover:text-primary-dark
+                            transition-colors font-medium"
                         >
                           Mot de passe oublié ?
                         </Link>
                       ) : (
-                        <p className="text-xs lg:text-sm text-red-500">
+                        <p className="text-xs lg:text-sm text-error">
                           Sélectionnez d'abord votre profil
                         </p>
                       )}
@@ -489,11 +486,11 @@ export const LoginClient = () => {
                       type="submit"
                       disabled={loading}
                       className="w-full py-2.5 lg:py-3 px-4 lg:px-6 bg-gradient-to-r
-                        from-[#375073] to-[#4a6b95] text-white font-semibold rounded-lg
-                        shadow-lg hover:shadow-[#375073]/25 hover:shadow-xl
+                        from-primary to-primary-light text-primary-foreground font-semibold
+                        rounded-lg shadow-lg hover:shadow-primary/25 hover:shadow-xl
                         active:scale-95 transform transition-all duration-300
-                        focus:outline-none focus:ring-2 focus:ring-[#375073]/50
-                        focus:ring-offset-2 text-sm lg:text-base"
+                        focus:outline-none focus:ring-2 focus:ring-primary/50
+                        focus:ring-offset-2 text-sm lg:text-base hover:cursor-pointer"
                     >
                       {loading ? 'Connexion...' : 'Se connecter'}
                     </Button>
@@ -505,22 +502,22 @@ export const LoginClient = () => {
             {/* Alerts */}
             {error && (
               <div
-                className="p-2.5 lg:p-3 bg-red-50 dark:bg-red-900/20
-                border border-red-200 dark:border-red-800 rounded-xl lg:rounded-2xl"
+                className="p-2.5 lg:p-3 bg-error/10 border border-error/20
+                rounded-xl lg:rounded-2xl"
               >
-                <p className="text-center text-xs lg:text-sm text-red-700 dark:text-red-300">
+                <p className="text-center text-xs lg:text-sm text-error">
                   {error}
                 </p>
               </div>
             )}
 
             {/* Footer */}
-            <div className="pt-3 lg:pt-4 border-t border-gray-200 dark:border-gray-600">
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            <div className="pt-3 lg:pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground text-center">
                 En vous connectant, vous acceptez nos
                 <Link
                   href="/terms"
-                  className="text-[#375073] hover:underline ml-1"
+                  className="text-primary hover:underline ml-1"
                 >
                   conditions d'utilisation
                 </Link>

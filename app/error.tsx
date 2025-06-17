@@ -15,17 +15,23 @@ export default function ErrorPage({
   }, [error])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <h2 className="text-2xl font-bold mb-4">Une erreur est survenue</h2>
-      <p className="text-gray-600 mb-4">
-        {error.message || 'Une erreur inattendue s\'est produite'}
-      </p>
-      <button
-        onClick={() => reset()}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Réessayer
-      </button>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+      <div className="p-6 bg-background/80 backdrop-blur-sm rounded-lg shadow-lg
+        border border-border/30 text-center space-y-4">
+        <h2 className="text-2xl font-bold text-foreground">
+          Une erreur est survenue
+        </h2>
+        <p className="text-muted-foreground">
+          {error.message || 'Une erreur inattendue s\'est produite'}
+        </p>
+        <button
+          onClick={() => reset()}
+          className="px-4 py-2 bg-primary hover:bg-primary-dark text-primary-foreground
+            rounded-md transition-colors duration-200 shadow-md hover:shadow-lg"
+        >
+          Réessayer
+        </button>
+      </div>
     </div>
   )
 }

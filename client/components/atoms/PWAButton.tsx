@@ -208,14 +208,15 @@ export const PWAButtonClient: React.FC = () => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3"
+          className="bg-success/10 border border-success/20 rounded-lg p-4 flex
+           items-center space-x-3"
         >
-          <CheckCircle className="h-6 w-6 text-green-500" />
+          <CheckCircle className="h-6 w-6 text-success" />
           <div className="flex-1">
-            <h4 className="font-medium text-green-800">
+            <h4 className="font-medium text-success">
               Installation réussie !
             </h4>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-success/80">
               L&apos;application est maintenant disponible sur votre appareil
             </p>
           </div>
@@ -241,27 +242,31 @@ export const PWAButtonClient: React.FC = () => {
         <>
           {showInstructions && (
             <Alert
-              className={`mb-4 ${isFirefoxDesktop ? 'bg-yellow-50' : 'bg-blue-50'}`}
+              className={`mb-4 ${
+                isFirefoxDesktop
+                  ? 'bg-warning/10 border-warning/20'
+                  : 'bg-info/10 border-info/20'
+              }`}
               variant="default"
             >
               {isFirefoxDesktop && (
-                <AlertTitle className="text-amber-700">
+                <AlertTitle className="text-warning">
                   Compatibilité limitée
                 </AlertTitle>
               )}
               {!isFirefoxDesktop && (
-                <AlertTitle className="text-blue-700">
+                <AlertTitle className="text-info">
                   Comment installer
                 </AlertTitle>
               )}
-              <AlertDescription className="whitespace-pre-line pt-2">
+              <AlertDescription className="whitespace-pre-line pt-2 text-muted-foreground">
                 {getInstallInstructions()}
               </AlertDescription>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleDismissInstructions}
-                className="mt-2 text-xs"
+                className="mt-2 text-xs text-muted-foreground hover:text-foreground"
               >
                 Fermer
               </Button>
@@ -280,19 +285,21 @@ export const PWAButtonClient: React.FC = () => {
                     onClick={handleInstallClick}
                     disabled={installStatus === 'installing'}
                     className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-300
-                      flex items-center justify-center gap-2 ${
+                      flex items-center justify-center gap-2 cursor-pointer ${
         isFirefoxDesktop
-          ? 'bg-gray-500 hover:bg-gray-600'
+          ? 'bg-muted text-muted-foreground hover:bg-muted/80'
           : installStatus === 'installing'
-            ? 'bg-indigo-400'
-            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700' +
-            'hover:to-indigo-700 shadow-md hover:shadow-lg'
-        } text-white`}
+            ? 'bg-secondary/80'
+            : 'bg-gradient-to-r from-secondary to-secondary-light ' +
+                              'hover:from-secondary-dark hover:to-secondary ' +
+                              'shadow-md hover:shadow-lg'
+        }`}
                   >
                     {installStatus === 'installing' ? (
                       <>
                         <div
-                          className="h-5 w-5 border-2 border-white border-t-transparent rounded-full
+                          className="h-5 w-5 border-2 border-secondary-foreground
+                          border-t-transparent rounded-full
                            animate-spin"/>
                         <span>Installation...</span>
                       </>
@@ -309,8 +316,10 @@ export const PWAButtonClient: React.FC = () => {
                   </Button>
 
                   {installPrompt && !isFirefoxDesktop && (
-                    <Badge className="absolute -top-2 -right-2 bg-green-500 px-2 py-1 text-xs
-                    animate-pulse">
+                    <Badge
+                      className="absolute -top-2 -right-2 bg-accent px-2 py-1 text-xs
+                      animate-pulse text-accent-foreground"
+                    >
                       Prêt à installer
                     </Badge>
                   )}
@@ -318,7 +327,7 @@ export const PWAButtonClient: React.FC = () => {
               </TooltipTrigger>
               <TooltipContent
                 side="bottom"
-                className="bg-slate-800 text-white p-2"
+                className="bg-foreground text-primary-foreground p-2"
               >
                 <p>Accédez plus rapidement à l&apos;application</p>
               </TooltipContent>
@@ -335,7 +344,8 @@ export const PWAButtonClient: React.FC = () => {
               <Button
                 variant="link"
                 size="sm"
-                className="text-xs text-slate-500 flex items-center gap-1"
+                className="text-xs text-muted-foreground hover:text-foreground
+                  flex items-center gap-1 cursor-pointer"
                 onClick={() => setShowInstructions(true)}
               >
                 <InfoIcon className="h-3 w-3" />

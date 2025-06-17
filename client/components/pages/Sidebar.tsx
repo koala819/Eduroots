@@ -41,18 +41,18 @@ export default function SidebarMenu({
       {/* Sidebar desktop */}
       <aside
         className={`hidden md:flex flex-col
-        ${isAdmin ? 'bg-red-500' : 'bg-[#375073]'} text-white w-64 py-6 px-4 h-full`}>
+        ${isAdmin ? 'bg-destructive' : 'bg-primary'}
+        text-primary-foreground w-64 py-6 px-4 h-full`}>
         {/* Logo */}
         <div>
           <div className="flex items-center">
             <Image src={EdurootsLogo} alt="Eduroots" className="h-24 w-24 mr-2" />
             <span className="font-bold text-xl">Eduroots</span>
           </div>
-          <div className="flex flex-col mb-8 text-center text-white">
+          <div className="flex flex-col mb-8 text-center text-primary-foreground">
             <span className="font-bold text-lg">{teacher?.firstname} {teacher?.lastname}</span>
             <span className="font-bold text-xs">{teacher?.email}</span>
           </div>
-
         </div>
         {/* Menu */}
         <div className="flex flex-col gap-8">
@@ -68,12 +68,14 @@ export default function SidebarMenu({
                 aria-label={label}
                 tabIndex={isActive({ href, pathPattern }) ? -1 : 0}
                 className={cn(
-                  'flex flex-col items-center px-2 py-1 rounded-md text-white',
+                  'flex flex-col items-center px-2 py-1 rounded-md text-primary-foreground',
                   isActive({ href, pathPattern })
                     ? isAdmin
-                      ? 'bg-red-600 cursor-default text-white border-l-4 border-red-700'
-                      : 'bg-white cursor-default text-primary'
-                    : 'transition-colors hover:bg-white/10 cursor-pointer group-hover:shadow-sm',
+                      ? 'bg-destructive-dark cursor-default text-primary-foreground '+
+                      'border-l-4 border - destructive'
+                      : 'bg-background cursor-default text-primary'
+                    : 'transition-colors hover:bg-background/10 cursor-pointer ' +
+                    'group-hover:shadow-sm',
                 )}
               >
                 {IconComponent && <IconComponent size={42} />}
@@ -82,22 +84,23 @@ export default function SidebarMenu({
             )
           })}
 
-
           <button
             title="Déconnexion"
             className='flex flex-col items-center px-2 py-1 rounded-md
-            text-white transition-colors hover:bg-white/10 hover:text-white
-            group-hover:shadow-sm cursor-pointer bg-red-500'
+            text-error-foreground transition-colors hover:bg-error-dark
+            group-hover:shadow-sm cursor-pointer bg-error'
             onClick={logoutHandler}
           >
-            <LogOut className="w-6 h-6 mx-auto text-[#EDEDED]" />
-            <span className='text-[#EDEDED] font-medium text-xl tracking-widest'>Déconnexion</span>
+            <LogOut className="w-6 h-6 mx-auto text-error-foreground" />
+            <span className='text-error-foreground font-medium text-xl tracking-widest'>
+              Déconnexion
+            </span>
           </button>
         </div>
       </aside>
 
       {/* Barre de navigation mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#375073] text-white
+      <nav className="fixed bottom-0 left-0 right-0 bg-primary text-primary-foreground
       flex justify-around items-center py-2 md:hidden z-50">
         {navItems.map(({ href, label, Icon, pathPattern }) => {
           const IconComponent =
@@ -109,10 +112,10 @@ export default function SidebarMenu({
               disabled={isActive({ href, pathPattern })}
               aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
               className={cn(
-                'flex flex-col items-center px-2 py-1 rounded-md text-white',
+                'flex flex-col items-center px-2 py-1 rounded-md text-primary-foreground',
                 isActive({ href, pathPattern })
-                  ? 'bg-white cursor-default text-primary'
-                  : 'transition-colors hover:bg-white/10 hover:text-white ' +
+                  ? 'bg-background cursor-default text-primary'
+                  : 'transition-colors hover:bg-background/10 hover:text-primary-foreground ' +
                   'group-hover:shadow-sm cursor-pointer',
               )}
             >
@@ -124,12 +127,12 @@ export default function SidebarMenu({
 
         <button
           title="Déconnexion"
-          className='flex flex-col items-center px-2 py-1 rounded-md text-white
-          transition-colors bg-red-500 py-2'
+          className='flex flex-col items-center rounded-md text-error-foreground
+          transition-colors bg-error hover:bg-error-dark'
           onClick={logoutHandler}
         >
-          <LogOut className="w-4 h-4 text-[#EDEDED]" />
-          <span className='text-[#EDEDED] text-xs'>Sortir</span>
+          <LogOut className="w-4 h-4 text-error-foreground" />
+          <span className='text-error-foreground text-xs'>Sortir</span>
         </button>
       </nav>
     </>

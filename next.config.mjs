@@ -65,7 +65,6 @@ const nextConfig = {
     remotePatterns: [{ hostname: 'images.unsplash.com' }],
   },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  excludePages: ['zUnused/**/*'],
 }
 
 export default withSerwist(nextConfig)

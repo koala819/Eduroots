@@ -4,10 +4,10 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { linkAccount } from '@/app/link-account/actions'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { useToast } from '@/client/hooks/use-toast'
+import { linkAccount } from '@/server/actions/link-account'
 import { getRoleName } from '@/server/utils/redirects'
 
 interface LinkAccountFormProps {
@@ -28,7 +28,6 @@ export default function LinkAccountForm({
   const [codeSended, setCodeSended] = useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,27 +80,28 @@ export default function LinkAccountForm({
       {!codeSended ? (
         <form
           onSubmit={handleSubmit}
-          className="flex min-h-screen flex-col items-center justify-center bg-gray-50
-      py-12 sm:px-6 lg:px-8">
+          className="flex min-h-screen flex-col items-center justify-center bg-background
+            py-12 sm:px-6 lg:px-8"
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full space-y-8 p-6 sm:p-8 bg-white/80 backdrop-blur-sm
-        rounded-2xl shadow-xl"
+            className="max-w-md w-full space-y-8 p-6 sm:p-8 bg-background/80 backdrop-blur-sm
+              rounded-2xl shadow-xl border border-border/30"
           >
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900">
-            Liaison de compte {getRoleName(role)}
+              <h2 className="text-3xl font-bold text-foreground">
+                Liaison de compte {getRoleName(role)}
               </h2>
-              <p className="mt-2 text-sm text-gray-600">
-            Vous êtes connecté avec {googleEmail} via {provider}
+              <p className="mt-2 text-sm text-muted-foreground">
+                Vous êtes connecté avec {googleEmail} via {provider}
               </p>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Votre email Eduroots
+                <label htmlFor="email" className="block text-sm font-medium text-foreground">
+                  Votre email Eduroots
                 </label>
                 <Input
                   type="email"
@@ -110,17 +110,20 @@ export default function LinkAccountForm({
                   value={baseEmail}
                   onChange={(e) => setBaseEmail(e.target.value)}
                   placeholder="Entrez votre email habituel"
-                  className='w-full'
+                  className="w-full bg-input border-border text-foreground
+                    focus:border-primary focus:ring-primary/50"
                   required
                 />
-                <p className="text-xs text-gray-500">
-              Un email de vérification sera envoyé à cette adresse.
+                <p className="text-xs text-muted-foreground">
+                  Un email de vérification sera envoyé à cette adresse.
                 </p>
               </div>
               <Button
                 type="submit"
                 disabled={loading || !baseEmail}
-                className="w-full bg-gradient-to-r from-[#375073] to-[#4a6b95]"
+                className="w-full bg-gradient-to-r from-primary to-primary-light
+                  hover:from-primary-dark hover:to-primary text-primary-foreground
+                  transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 {loading ? 'Envoi en cours...' : 'Envoyer l\'email de vérification'}
               </Button>
@@ -128,14 +131,21 @@ export default function LinkAccountForm({
           </motion.div>
         </form>
       ) : (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50
-      py-12 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-          Email envoyé
-          </h2>
-          <p className="text-sm text-gray-600">
-            Un email de vérification a été envoyé à {baseEmail}
-          </p>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background
+          py-12 sm:px-6 lg:px-8"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-4"
+          >
+            <h2 className="text-3xl font-bold text-foreground">
+              Email envoyé
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Un email de vérification a été envoyé à {baseEmail}
+            </p>
+          </motion.div>
         </div>
       )}
     </>

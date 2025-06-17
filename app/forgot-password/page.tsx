@@ -4,10 +4,10 @@ import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { forgotPassword } from '@/app/forgot-password/actions'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { useToast } from '@/client/hooks/use-toast'
+import { forgotPassword } from '@/server/actions/forgot-pwd'
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState<string>('')
@@ -76,26 +76,24 @@ export default function ForgotPasswordForm() {
       {!emailSent ? (
         <form
           onSubmit={handleSubmit}
-          className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12
-        sm:px-6 lg:px-8">
+          className="flex min-h-screen w-full flex-col items-center justify-center p-4
+          sm:p-6 lg:p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full space-y-8 p-6 sm:p-8 bg-white/80 backdrop-blur-sm rounded-2xl
-            shadow-xl"
-          >
+            className="w-full max-w-md space-y-8 rounded-2xl bg-background p-6 shadow-lg sm:p-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl font-semibold text-foreground">
                 Mot de passe oublié
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Entrez votre email pour recevoir un lien de réinitialisation
               </p>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground">
                   Adresse email
                 </label>
                 <Input
@@ -105,10 +103,12 @@ export default function ForgotPasswordForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Entrez votre adresse email"
-                  className="w-full"
+                  className="w-full rounded-md border border-border bg-input px-3 py-2
+                    text-foreground transition-colors focus:border-primary
+                    focus:outline-none focus:ring-2 focus:ring-ring"
                   required
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Un email de réinitialisation sera envoyé à cette adresse.
                 </p>
               </div>
@@ -118,7 +118,9 @@ export default function ForgotPasswordForm() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading || !email}
-                  className="w-full bg-gradient-to-r from-[#375073] to-[#4a6b95]"
+                  className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground
+                    shadow-sm transition-all hover:bg-primary-dark
+                    hover:shadow-md disabled:opacity-50"
                 >
                   {loading ? 'Envoi en cours...' : 'Envoyer l\'email de réinitialisation'}
                 </Button>
@@ -127,27 +129,29 @@ export default function ForgotPasswordForm() {
                   type="button"
                   variant="outline"
                   onClick={handleBackToLogin}
-                  className="w-full"
+                  className="w-full rounded-md border border-border bg-secondary px-4 py-2
+                    text-secondary-foreground transition-all hover:bg-secondary-dark
+                    hover:border-primary"
                 >
-                  Retour à la connexion
+                  Revenir à l&apos;écran Principal
                 </Button>
               </div>
             </div>
           </motion.div>
         </form>
       ) : (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12
-        sm:px-6 lg:px-8">
+        <div className="flex min-h-screen w-full flex-col items-center justify-center py-12
+        px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full space-y-8 p-6 sm:p-8 bg-white/80 backdrop-blur-sm rounded-2xl
-            shadow-xl text-center"
+            className="w-full max-w-md space-y-8 rounded-2xl bg-surface-1 p-6 text-center
+            shadow-lg sm:p-8"
           >
             <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center
-              justify-center">
-                <svg className="w-8 h-8 text-green-600"
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full
+              bg-success/10">
+                <svg className="h-8 w-8 text-success"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -157,24 +161,26 @@ export default function ForgotPasswordForm() {
                 </svg>
               </div>
 
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-foreground">
                 Email envoyé
               </h2>
 
-              <p className="text-sm text-gray-600">
-                Un email de réinitialisation a été envoyé à <strong>{email}</strong>
+              <p className="text-sm text-muted-foreground">
+                Un email de réinitialisation a été envoyé à
+                <strong className="text-foreground">{email}</strong>.
               </p>
 
-              <p className="text-xs text-gray-500">
-                  Vérifiez votre boîte mail et cliquez sur le lien pour réinitialiser votre mot
-                  de passe.
+              <p className="text-xs text-muted-foreground">
+                Vérifiez votre boîte mail et cliquez sur le lien pour réinitialiser votre mot
+                de passe.
               </p>
             </div>
 
             <div className="space-y-3">
               <Button
                 onClick={handleBackToLogin}
-                className="w-full bg-gradient-to-r from-[#375073] to-[#4a6b95]"
+                className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground
+                 shadow-sm transition-all hover:bg-primary-600 hover:shadow-md"
               >
                 Retour à la connexion
               </Button>
