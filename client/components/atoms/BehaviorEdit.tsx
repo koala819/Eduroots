@@ -4,9 +4,10 @@ import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { AttendanceRecord } from '@/zUnused/types/attendance'
-import { PopulatedCourse } from '@/zUnused/types/course'
-import { GenderEnum, Student } from '@/zUnused/types/user'
+import { AttendanceRecord } from '@/types/db'
+import { CourseWithRelations } from '@/types/courses'
+import { GenderEnum } from '@/types/user'
+import { StudentResponse } from '@/types/student-payload'
 
 import {
   AlertDialog,
@@ -28,7 +29,14 @@ import { cn } from '@/server/utils/helpers'
 import { motion } from 'framer-motion'
 
 interface BehaviorEditProps {
-  students: AttendanceRecord[]
+  students: (AttendanceRecord & {
+    users: {
+      id: string
+      firstname: string
+      lastname: string
+      email: string
+    }
+  })[]
   onClose: () => void
   date: string
   courseId: string
@@ -46,16 +54,22 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   const { getCourseSessionById, isLoadingCourse } = useCourses()
   const { getOneStudent } = useStudents()
 
-  const [course, setCourse] = useState<PopulatedCourse | null>(null)
+  const [course, setCourse] = useState<CourseWithRelations | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true)
-  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>({})
+  const [studentDetails, setStudentDetails] = useState<Record<string, StudentResponse>>({})
   const [behavior, setBehavior] = useState<Record<string, number>>({})
 
   const presentStudents = useMemo(() => {
-    return students.filter((s) => s.isPresent)
+    return students.filter((s) => s.is_present)
   }, [students])
+
+  const findExistingRecord = (records: any[], studentId: string) => {
+    return records.find(
+      (record) => record.student_id === studentId,
+    )
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -76,15 +90,14 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
           setCourse(courseData)
         }
 
-        const studentsData: Record<string, Student> = {}
+        const studentsData: Record<string, StudentResponse> = {}
         const behaviorRatings: Record<string, number> = {}
 
         // Fetch details for present students only
         await Promise.all(
-          presentStudents.map(async (s: AttendanceRecord) => {
+          presentStudents.map(async (s) => {
             try {
-              const studentId = typeof s.student === 'string' ? s.student : s.student.id
-
+              const studentId = s.student_id
               const studentDetail = await getOneStudent(studentId)
 
               if (isMounted) {
@@ -92,19 +105,17 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
                 // Si on a des données de behavior, chercher le rating existant
                 if (behaviorResponse?.success && behaviorResponse.data?.records) {
-                  const existingRecord = behaviorResponse.data.records.find((record: any) => {
-                    const recordStudentId =
-                      typeof record.student === 'string' ? record.student : record.student.id
-                    return recordStudentId === studentId
-                  })
-
+                  const existingRecord = findExistingRecord(
+                    behaviorResponse.data.records,
+                    studentId,
+                  )
                   behaviorRatings[studentId] = existingRecord?.rating ?? 5
                 } else {
                   behaviorRatings[studentId] = 5 // Valeur par défaut si pas de données
                 }
               }
             } catch (error) {
-              console.error(`Error fetching student ${s.student}:`, error)
+              console.error(`Error fetching student ${s.student_id}:`, error)
             }
           }),
         )
@@ -131,7 +142,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
   async function handleSave() {
     setIsUpdating(true)
-    if (!course?.sessions?.[0]?.id) {
+    if (!course?.courses_sessions?.[0]?.id) {
       console.error('Session ID not found')
       return
     }
@@ -147,7 +158,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         behaviorId: behaviorId,
         records: records,
         date: date,
-        sessionId: course.sessions[0].id,
+        sessionId: course.courses_sessions[0].id,
       })
 
       // La mise à jour a réussi, on peut fermer le modal
@@ -209,14 +220,16 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <BarChart2 className="w-5 h-5 shrink-0 text-gray-400" />
                       <span className="text-sm text-gray-700">
-                        Niveau {course.sessions[0].level}
+                        Niveau {course.courses_sessions[0].level}
                       </span>
                     </div>
 
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">{course.sessions[0].subject}</span>
+                      <span className="text-sm text-gray-700">
+                        {course.courses_sessions[0].subject}
+                      </span>
                     </div>
 
                     {/* Date */}
@@ -236,16 +249,19 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
             <div className="max-w-4xl mx-auto">
               <ul className="space-y-3">
                 {presentStudents.map((student) => {
-                  const studentId =
-                    typeof student.student === 'string' ? student.student : student.student.id
-
+                  const studentId = student.student_id
                   const studentDetail = studentDetails[studentId]
                   if (!studentDetail) return null
 
                   return (
                     <motion.li
                       key={student.id}
-                      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
+                      className={cn(
+                        'flex items-center justify-between p-4',
+                        'bg-white border border-gray-200 rounded-lg',
+                        'shadow-sm hover:shadow-md transition-all duration-200',
+                        'ease-in-out cursor-pointer hover:border-blue-200',
+                      )}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -271,7 +287,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                           <button
                             key={rating}
                             onClick={() => setRating(studentId, rating)}
-                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition-transform active:scale-95"
+                            className={cn(
+                              'focus:outline-none focus-visible:ring-2',
+                              'focus-visible:ring-blue-500 rounded-full',
+                              'transition-transform active:scale-95',
+                            )}
                           >
                             <Star
                               key={rating}
@@ -323,7 +343,8 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                     <AlertDialogFooter>
                       <AlertDialogCancel
                         onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border-2 border-gray-400"
+                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500
+                         border-2 border-gray-400"
                       >
                         Non
                       </AlertDialogCancel>

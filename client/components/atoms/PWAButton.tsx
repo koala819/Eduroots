@@ -3,7 +3,6 @@
 import { CheckCircle, Download, InfoIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { IOSInstallInstructionsContent } from '@/client/components/atoms/IOSInstallInstructions'
 import { Alert, AlertDescription, AlertTitle } from '@/client/components/ui/alert'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
@@ -15,6 +14,7 @@ import {
 } from '@/client/components/ui/tooltip'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { IOSInstallInstructionsClient } from '@/client/components/atoms/IOSInstallInstructions'
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<{ outcome: 'accepted' | 'dismissed' }>
@@ -110,21 +110,25 @@ export const PWAButtonClient: React.FC = () => {
   const getInstallInstructions = () => {
     if (platform === 'mobile') {
       if (browser === 'firefox') {
-        return 'Appuyez sur les trois points (⋮) en haut à droite, puis sur \'Ajouter à l\'écran d\'accueil\''
+        return 'Appuyez sur les trois points (⋮) en haut à droite, puis sur' +
+          '\'Ajouter à l\'écran d\'accueil\''
       }
       return 'Utilisez le menu du navigateur pour \'Ajouter à l\'écran d\'accueil\''
     }
 
     if (platform === 'desktop') {
       if (browser === 'firefox') {
-        return 'Pour une meilleure expérience d\'installation PWA, nous vous recommandons d\'utiliser Google Chrome ou Microsoft Edge.'
+        return 'Pour une meilleure expérience d\'installation PWA, nous vous recommandons' +
+        'd\'utiliser Google Chrome ou Microsoft Edge.'
       }
       if (browser === 'chrome') {
-        return 'Cliquez sur l\'icône d\'installation dans la barre d\'URL (à droite) ou utilisez le bouton ci-dessous'
+        return 'Cliquez sur l\'icône d\'installation dans la barre d\'URL (à droite) ou utilisez' +
+        'le bouton ci - dessous'
       }
     }
 
-    return 'Utilisez l\'option \'Installer\' ou \'Ajouter à l\'écran d\'accueil\' dans le menu de votre navigateur'
+    return 'Utilisez l\'option \'Installer\' ou \'Ajouter à l\'écran d\'accueil\' dans le menu de' +
+    'votre navigateur'
   }
 
   const handleInstallClick = async () => {
@@ -230,7 +234,7 @@ export const PWAButtonClient: React.FC = () => {
     >
       {isIOS ? (
         // Pour iOS, on utilise le composant serveur
-        <IOSInstallInstructionsContent
+        <IOSInstallInstructionsClient
           isInstalled={installStatus === 'installed'}
         />
       ) : (
@@ -276,17 +280,21 @@ export const PWAButtonClient: React.FC = () => {
                   <Button
                     onClick={handleInstallClick}
                     disabled={installStatus === 'installing'}
-                    className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-                      isFirefoxDesktop
-                        ? 'bg-gray-500 hover:bg-gray-600'
-                        : installStatus === 'installing'
-                          ? 'bg-indigo-400'
-                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg'
-                    } text-white`}
+                    className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-300
+                      flex items-center justify-center gap-2 ${
+        isFirefoxDesktop
+          ? 'bg-gray-500 hover:bg-gray-600'
+          : installStatus === 'installing'
+            ? 'bg-indigo-400'
+            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700' +
+            'hover:to-indigo-700 shadow-md hover:shadow-lg'
+        } text-white`}
                   >
                     {installStatus === 'installing' ? (
                       <>
-                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div
+                          className="h-5 w-5 border-2 border-white border-t-transparent rounded-full
+                           animate-spin"/>
                         <span>Installation...</span>
                       </>
                     ) : (
@@ -302,7 +310,8 @@ export const PWAButtonClient: React.FC = () => {
                   </Button>
 
                   {installPrompt && !isFirefoxDesktop && (
-                    <Badge className="absolute -top-2 -right-2 bg-green-500 px-2 py-1 text-xs animate-pulse">
+                    <Badge className="absolute -top-2 -right-2 bg-green-500 px-2 py-1 text-xs
+                    animate-pulse">
                       Prêt à installer
                     </Badge>
                   )}

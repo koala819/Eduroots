@@ -6,30 +6,48 @@ import { useForm } from 'react-hook-form'
 
 import { toast } from '@/client/hooks/use-toast'
 
-import { CourseSession, LevelEnum, SubjectNameEnum } from '@/zUnused/types/course'
+import {
+  LevelEnum,
+  SubjectNameEnum,
+  TimeSlotEnum,
+  CourseSessionWithRelations,
+  CourseWithRelations,
+} from '@/types/courses'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
 import { ScrollArea } from '@/client/components/ui/scroll-area'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/client/components/ui/select'
 
 import { useCourses } from '@/client/context/courses'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { TimeSlotEnum } from '@/types/courses'
 
 const sessionSchema = z.object({
   id: z.string(),
   timeSlot: z.object({
     dayOfWeek: z.nativeEnum(TimeSlotEnum),
-    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+    startTime: z.string().regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/),
+    endTime: z.string().regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/),
     classroomNumber: z.number().min(1),
   }),
   subject: z.nativeEnum(SubjectNameEnum),
@@ -45,7 +63,7 @@ type FormData = z.infer<typeof formSchema>
 
 interface SessionsEditorProps {
   timeSlot: TimeSlotEnum
-  sessions: CourseSession[]
+  sessions: CourseSessionWithRelations[]
   periods: Period[] | undefined
 }
 
@@ -60,11 +78,17 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({ timeSlot, sessio
     defaultValues: {
       sessions: sessions.map((session) => ({
         id: session.id,
-        timeSlot: session.timeSlot,
-        subject: session.subject,
-        level: session.level,
+        timeSlot: {
+          dayOfWeek: session.courses_sessions_timeslot[0]?.day_of_week
+            || TimeSlotEnum.SATURDAY_MORNING,
+          startTime: session.courses_sessions_timeslot[0]?.start_time || '09:00',
+          endTime: session.courses_sessions_timeslot[0]?.end_time || '10:00',
+          classroomNumber: parseInt(session.courses_sessions_timeslot[0]?.classroom_number ?? '1'),
+        },
+        subject: session.subject as SubjectNameEnum,
+        level: session.level as LevelEnum,
       })),
-      sameStudents: sessions.some((session) => session.sameStudents),
+      sameStudents: false,
     },
   })
 
@@ -88,12 +112,46 @@ export const PlanningEditor: React.FC<SessionsEditorProps> = ({ timeSlot, sessio
         }
       }
 
-      await Promise.all(
-        data.sessions.map((session) => {
-          //todo fix any
-          return updateCourse(session.id, session as any, data.sameStudents ?? false)
+      const now = new Date()
+      const courseData: Omit<CourseWithRelations, 'students' | 'stats'> = {
+        id: sessions[0].course_id,
+        is_active: true,
+        deleted_at: null,
+        created_at: now,
+        updated_at: now,
+        academic_year: '2023-2024',
+        courses_teacher: [],
+        courses_sessions: data.sessions.map((session) => {
+          const sessionData = {
+            id: session.id,
+            course_id: sessions[0].course_id,
+            subject: session.subject,
+            level: session.level,
+            stats_average_attendance: null,
+            stats_average_grade: null,
+            stats_average_behavior: null,
+            stats_last_updated: now,
+            created_at: now,
+            updated_at: now,
+            courses_sessions_students: [],
+            courses_sessions_timeslot: [
+              {
+                id: session.id,
+                course_sessions_id: session.id,
+                day_of_week: session.timeSlot.dayOfWeek,
+                start_time: session.timeSlot.startTime,
+                end_time: session.timeSlot.endTime,
+                classroom_number: session.timeSlot.classroomNumber.toString(),
+                created_at: now,
+                updated_at: now,
+              },
+            ],
+          }
+          return sessionData
         }),
-      )
+      }
+
+      await updateCourse(courseData)
     } catch (error) {
       console.error('Erreur:', error)
     } finally {

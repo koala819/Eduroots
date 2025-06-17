@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 
-import { SubjectNameEnum } from '@/zUnused/types/course'
+import { SubjectNameEnum } from '@/types/courses'
 
 interface SubjectGrade {
   subject: string
@@ -36,11 +36,13 @@ const getSubjectColor = (subject: string) => {
 
 export const GradeCard = ({ title, icon, subjectGrades }: GradeCardProps) => {
   return (
-    <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white">
+    <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all
+    duration-300 overflow-hidden bg-white">
       <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-green-400"></div>
       <div className="flex flex-row items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center
+          bg-emerald-50 text-emerald-600">
             {icon}
           </div>
           <div className="text-base font-bold text-slate-700">{title}</div>
@@ -55,7 +57,9 @@ export const GradeCard = ({ title, icon, subjectGrades }: GradeCardProps) => {
             return (
               <li
                 key={index}
-                className={`pb-4 ${index !== subjectGrades.length - 1 ? 'border-b border-slate-200' : ''}`}
+                className={`pb-4 ${index !== subjectGrades.length - 1
+                  ? 'border-b border-slate-200'
+                  : ''}`}
               >
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-slate-700 font-medium">{subjectData.subject}</span>

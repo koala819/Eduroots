@@ -51,10 +51,13 @@ export const CourseMenuDesktop = ({
               whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/teacher/classroom')}
-              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition-all duration-200 border border-white/20 flex-shrink-0"
+              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10
+              hover:bg-white/15 transition-all duration-200 border border-white/20 flex-shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-white group-hover:text-white transition-colors" />
-              <span className="text-sm font-medium text-white/90 group-hover:text-white">Retour</span>
+              <span className="text-sm font-medium text-white/90 group-hover:text-white">
+                Retour
+              </span>
             </motion.button>
 
             {/* Informations du cours avec design moderne */}
@@ -92,7 +95,8 @@ export const CourseMenuDesktop = ({
             className="flex-[0.4] flex justify-end"
           >
             {/* Navigation des vues - Style expansif utilisant tout l'espace disponible */}
-            <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1 border border-white/20 w-full max-w-md h-14">
+            <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1 border
+            border-white/20 w-full max-w-md h-14">
               {views.map(({ id, label, Icon }) => {
                 const isActive = activeView === id
 
@@ -112,7 +116,8 @@ export const CourseMenuDesktop = ({
                       duration: 0.6,
                     }}
                     className={`
-                      relative flex items-center justify-center rounded-xl text-sm font-medium transition-all duration-300 h-full
+                      relative flex items-center justify-center rounded-xl text-sm font-medium
+                      transition-all duration-300 h-full
                       ${isActive
                     ? 'bg-white/20 backdrop-blur-md shadow-lg border border-white/30 text-white'
                     : 'text-white/60 hover:text-white/80 hover:bg-white/5'

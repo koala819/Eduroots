@@ -52,8 +52,8 @@ export function AttendanceTable({
               // Vérification si la date est dans une période de vacances
               const currentHoliday = holidays.find((holiday) =>
                 isWithinInterval(date, {
-                  start: new Date(holiday.start),
-                  end: new Date(holiday.end),
+                  start: new Date(holiday.start_date),
+                  end: new Date(holiday.end_date),
                 }),
               )
 

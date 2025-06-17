@@ -3,7 +3,7 @@
 import { ClipboardList, Star } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { GenderEnum } from '@/zUnused/types/user'
+import { GenderEnum } from '@/types/user'
 
 import { StudentWithDetails as StudentType } from '@/client/components/organisms/ProfileCourseCard'
 import { Badge } from '@/client/components/ui/badge'
@@ -29,7 +29,7 @@ import {
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
 
-import { cn, convertToDate, getColorClass } from '@/server/utils/helpers'
+import { cn, getColorClass } from '@/server/utils/helpers'
 import { differenceInYears, parseISO } from 'date-fns'
 
 interface DesktopClassViewProps {
@@ -201,7 +201,9 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                     <ClipboardList className="h-3.5 w-3.5 text-gray-500" />
                     <p className="text-gray-500">Moyenne générale</p>
                     <span
-                      className={`font-medium ${getGradeColorClass(student.stats?.grades?.overallAverage)}`}
+                      className={`font-medium ${getGradeColorClass(
+                        student.stats?.grades?.overallAverage,
+                      )}`}
                     >
                       {student.stats?.grades?.overallAverage.toFixed(1)}
                     </span>
@@ -292,7 +294,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                                   {student?.stats?.absences.map((absence, index) => (
                                     <Badge key={index} variant="outline">
                                       {absence.date
-                                        ? convertToDate(absence.date).toLocaleDateString()
+                                        ? new Date(absence.date).toLocaleDateString()
                                         : 'Date inconnue'}
                                     </Badge>
                                   ))}
@@ -325,7 +327,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                               </span>
                               <p className="font-medium">
                                 {student.stats?.lastActivity
-                                  ? convertToDate(student.stats?.lastActivity).toLocaleDateString()
+                                  ? student.stats.lastActivity.toLocaleDateString()
                                   : 'Aucune activité'}
                               </p>
                             </div>
@@ -362,7 +364,12 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                                       fill="currentColor"
                                       viewBox="0 0 20 20"
                                     >
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1
+                                      1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0
+                                      00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.
+                                      034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.
+                                      118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.
+                                      81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                     </svg>
                                   ))}
                                 </div>
@@ -410,7 +417,8 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                                   })}
 
                                 {student.stats?.grades.overallAverage !== undefined && (
-                                  <div className="flex items-center justify-between pt-2 border-t mt-2">
+                                  <div className="flex items-center justify-between pt-2
+                                  border-t mt-2">
                                     <span className="text-sm font-medium text-black">
                                       Moyenne générale
                                     </span>

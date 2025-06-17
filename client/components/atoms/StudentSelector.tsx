@@ -12,15 +12,15 @@ export default function StudentSelector({
   familyStudents,
   selectedChildId,
   onSelectStudent,
-}: StudentSelectorProps) {
+}: Readonly<StudentSelectorProps>) {
   return (
     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
       {familyStudents.map((child) => {
         return (
           <div
-            key={child.id || child._id}
+            key={child.id}
             className={'flex flex-col items-center cursor-pointer transition-all'}
-            onClick={() => onSelectStudent(child._id)}
+            onClick={() => onSelectStudent(child.id)}
           >
             <div
               className={`w-16 h-16 rounded-lg flex items-center justify-center text-xl font-bold

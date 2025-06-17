@@ -12,7 +12,7 @@ import { BiFemale, BiMale } from 'react-icons/bi'
 import { User } from '@/types/db'
 import { GenderEnum } from '@/types/user'
 import { Button } from '@/client/components/ui/button'
-import { useAttendance } from '@/client/context/attendances'
+import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
 import { motion } from 'framer-motion'
 import { getCourseSessionById } from '@/server/actions/api/courses'
@@ -34,7 +34,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   attendanceId,
 }) => {
   const { updateAttendanceRecord, isLoadingAttendance, getAttendanceById } =
-    useAttendance()
+    useAttendances()
   const { isLoadingCourse } = useCourses()
 
   const [course, setCourse] = useState<CourseSessionWithRelations | null>(null)
@@ -53,16 +53,20 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
           setError('Session non trouvée')
           return
         }
-        const courseId = response.data.courses.id
-        setCourse(response.data)
+        const courseSession: CourseSessionWithRelations = {
+          ...response.data.courses_sessions[0],
+          courses_sessions_students: response.data.courses_sessions[0].courses_sessions_students,
+          courses_sessions_timeslot: response.data.courses_sessions[0].courses_sessions_timeslot,
+        }
+        setCourse(courseSession)
 
-        const attendance = await getAttendanceById(attendanceId)
+        const attendance = await getAttendanceById(courseSessionId, date)
         console.log('📊 [AttendanceEdit] Données reçues:', attendance)
 
         if (attendance?.data?.records) {
           const recordsMap = attendance.data.records.reduce(
             (
-              acc: { [x: string]: any },
+              acc: { [x: string]: boolean },
               record: { student_id: string; is_present: boolean },
             ) => {
               acc[record.student_id] = record.is_present
@@ -80,7 +84,8 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
             }),
             {} as { [key: string]: boolean },
           )
-          console.log('⚠️ [AttendanceEdit] Aucune donnée trouvée, initialisation avec:', initialRecords)
+          console.log('⚠️ [AttendanceEdit] Aucune donnée trouvée, initialisation avec:',
+            initialRecords)
           setAttendanceRecords(initialRecords)
         }
       } catch (err) {
@@ -89,7 +94,7 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
       }
     }
     fetchData()
-  }, [courseSessionId, getAttendanceById, attendanceId, students])
+  }, [courseSessionId, getAttendanceById, attendanceId, students, date])
 
   function handleTogglePresence(studentId: string) {
     setAttendanceRecords((prev) => ({
@@ -103,14 +108,14 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
     try {
       console.log('🔄 [AttendanceEdit] Sauvegarde des données...')
       const records = students.map((student) => ({
-        student: student.id,
+        studentId: student.id,
         isPresent: attendanceRecords[student.id] ?? false,
+        comment: null,
       }))
       console.log('📝 [AttendanceEdit] Records à sauvegarder:', records)
 
       await updateAttendanceRecord({
         attendanceId: attendanceId,
-        date: date,
         records: records,
       })
 

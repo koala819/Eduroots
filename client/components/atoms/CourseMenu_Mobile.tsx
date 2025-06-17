@@ -49,7 +49,8 @@ export const CourseMenuMobile = ({
             whileTap={{ scale: 0.95 }}
             whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             onClick={() => router.push('/teacher/classroom')}
-            className="flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-200"
+            className="flex items-center justify-center w-10 h-10 rounded-full
+            transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </motion.button>
@@ -91,7 +92,8 @@ export const CourseMenuMobile = ({
           className="relative"
         >
           {/* Container avec design cohérent à la sidebar */}
-          <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-1.5 border border-white/20">
+          <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-1.5
+          border border-white/20">
             {/* Background BLANC pour l'onglet actif */}
 
             <motion.div
@@ -116,7 +118,7 @@ export const CourseMenuMobile = ({
 
             {/* Boutons des vues */}
             <div className="relative flex">
-              {views.map(({ id, label, Icon }, index) => {
+              {views.map(({ id, label, Icon }) => {
                 const isActive = activeView === id
 
                 return (
@@ -124,7 +126,8 @@ export const CourseMenuMobile = ({
                     key={id}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveView(id)}
-                    className="relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                    className="relative flex-1 flex items-center justify-center gap-2 px-4 py-3
+                    rounded-xl text-sm font-medium transition-all duration-200"
                   >
                     {/* Contenu du bouton */}
                     <motion.div
@@ -151,7 +154,8 @@ export const CourseMenuMobile = ({
       </div>
 
       {/* Séparateur avec dégradé */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent
+       via-white/20 to-transparent" />
     </motion.div>
   )
 }

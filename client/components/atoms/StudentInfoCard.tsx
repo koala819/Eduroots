@@ -46,12 +46,14 @@ export const InfoCard = ({ title, icon, items, color }: InfoCardProps) => {
   const scheme = colorSchemes[color ?? 'indigo']
 
   return (
-    <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white">
+    <div className="border-none rounded-lg shadow-lg hover:shadow-xl transition-all
+     duration-300 overflow-hidden bg-white">
       <div className={`h-1 w-full bg-gradient-to-r ${scheme.gradient}`}></div>
       <div className="flex flex-row items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <div
-            className={`w-9 h-9 rounded-full flex items-center justify-center ${scheme.bg} ${scheme.text}`}
+            className={`w-9 h-9 rounded-full flex items-center justify-center
+              ${scheme.bg} ${scheme.text}`}
           >
             {icon}
           </div>
@@ -65,7 +67,8 @@ export const InfoCard = ({ title, icon, items, color }: InfoCardProps) => {
               key={index}
               className={`flex justify-between items-center pb-3 ${
                 index !== items.length - 1 ? `border-b ${scheme.border}` : ''
-              } last:pb-0 group hover:bg-slate-50 -mx-2 px-2 py-1 rounded-md transition-colors duration-200`}
+              } last:pb-0 group hover:bg-slate-50 -mx-2 px-2 py-1 rounded-md
+               transition-colors duration-200`}
             >
               <span className="text-slate-500 text-sm">{item.label}</span>
               <span className={`font-semibold ${scheme.text}`}>{item.value}</span>

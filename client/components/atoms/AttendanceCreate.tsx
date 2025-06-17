@@ -8,7 +8,7 @@ import { GenderEnum } from '@/types/user'
 import {  User } from '@/types/db'
 import { Button } from '@/client/components/ui/button'
 
-import { useAttendance } from '@/client/context/attendances'
+import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
 import { motion } from 'framer-motion'
 import { CourseSessionWithRelations } from '@/types/courses'
@@ -26,7 +26,7 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   date,
   courseId,
 }) => {
-  const { createAttendanceRecord } = useAttendance()
+  const { createAttendanceRecord } = useAttendances()
   const { getCourseSessionById, isLoadingCourse } = useCourses()
   const [course, setCourse] = useState<CourseSessionWithRelations | null>(null)
   const [isRecording, setIsRecording] = useState<boolean>(false)
@@ -35,16 +35,25 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   }>(students.reduce((acc, student) => ({ ...acc, [student.id]: true }), {}))
 
   useEffect(() => {
-    async function fecthCourse() {
-      const course = await getCourseSessionById(courseId)
-
-      if (!course) {
-        return
+    async function fetchCourse() {
+      try {
+        const courseData = await getCourseSessionById(courseId)
+        if (!courseData) {
+          console.error('Cours non trouvé')
+          return
+        }
+        // On s'assure que le cours a toutes les propriétés requises
+        const courseSession: CourseSessionWithRelations = {
+          ...courseData.courses_sessions[0],
+          courses_sessions_students: courseData.courses_sessions[0].courses_sessions_students,
+          courses_sessions_timeslot: courseData.courses_sessions[0].courses_sessions_timeslot,
+        }
+        setCourse(courseSession)
+      } catch (error) {
+        console.error('Erreur lors de la récupération du cours:', error)
       }
-
-      setCourse(course)
     }
-    fecthCourse()
+    fetchCourse()
   }, [courseId, getCourseSessionById])
 
   function handleTogglePresence(studentId: string) {
@@ -55,17 +64,23 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   }
 
   async function handleSave() {
+    if (!course?.id) {
+      console.error('ID de session manquant')
+      return
+    }
+
     setIsRecording(true)
     try {
       const records = Object.entries(attendanceData).map(([studentId, isPresent]) => ({
-        student: studentId,
+        studentId,
         isPresent,
+        comment: null,
       }))
       await createAttendanceRecord({
         courseId: courseId,
         date: date,
         records: records,
-        sessionId: course?.id ?? '',
+        sessionId: course.id,
       })
       onClose()
     } catch (error) {
@@ -149,7 +164,9 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
                     return (
                       <motion.li
                         key={student.id}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
+                        className="flex items-center justify-between p-4 bg-white border
+                        border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all
+                        duration-200 ease-in-out cursor-pointer hover:border-blue-200"
                         onClick={() => handleTogglePresence(student.id)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}

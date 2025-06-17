@@ -4,7 +4,7 @@ import { createClient } from '@/client/utils/supabase'
 
 import React, { useEffect, useState } from 'react'
 
-import { AttendanceRecord } from '@/zUnused/types/attendance'
+import { AttendanceRecord } from '@/types/db'
 
 import { BehaviorCreate } from '@/client/components/atoms/BehaviorCreate'
 import { BehaviorEdit } from '@/client/components/atoms/BehaviorEdit'
@@ -12,11 +12,20 @@ import { BehaviorTable } from '@/client/components/atoms/BehaviorTable'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
 
-import { useAttendance } from '@/client/context/attendances'
+import { useAttendances } from '@/client/context/attendances'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { AnimatePresence } from 'framer-motion'
 import useCourseStore from '@/client/stores/useCourseStore'
+
+interface AttendanceRecordWithUser extends AttendanceRecord {
+  users: {
+    id: string
+    firstname: string
+    lastname: string
+    email: string
+  }
+}
 
 export const DashboardBehaviorT = ({
   courseId,
@@ -28,7 +37,7 @@ export const DashboardBehaviorT = ({
   const [user, setUser] = useState<any>(null)
 
   const { error: errorCourses } = useCourses()
-  const { allAttendance, fetchAttendances, getAttendanceById } = useAttendance()
+  const { allAttendance, fetchAttendances, getAttendanceById } = useAttendances()
   const { fetchTeacherCourses, courses } = useCourseStore()
   const { allBehaviors, fetchBehaviors, error, getBehaviorById } = useBehavior()
 
@@ -36,7 +45,7 @@ export const DashboardBehaviorT = ({
   const [isEditingBehavior, setIsEditingBehavior] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedBehaviorId, setSelectedBehaviorId] = useState<string>('')
-  const [attendanceStudents, setAttendanceStudents] = useState<AttendanceRecord[]>([])
+  const [attendanceStudents, setAttendanceStudents] = useState<AttendanceRecordWithUser[]>([])
   const [isLoadingBehavior, setIsLoadingBehavior] = useState<boolean>(true)
 
   useEffect(() => {
@@ -207,7 +216,8 @@ export const DashboardBehaviorT = ({
         {isCreatingBehavior && (
           <Sheet open={isCreatingBehavior} onOpenChange={setIsCreatingBehavior}>
             <SheetContent side="right" className="w-full sm:max-w-xl">
-              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0
+                text-center sm:text-left">
                 Nouvelle Feuille des Comportements
               </SheetTitle>
               {selectedDate && (
@@ -224,7 +234,8 @@ export const DashboardBehaviorT = ({
         {isEditingBehavior && (
           <Sheet open={isEditingBehavior} onOpenChange={setIsEditingBehavior}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
-              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center sm:text-left">
+              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0
+                text-center sm:text-left">
                 Modifier la Feuille des Comportements
               </SheetTitle>
               {selectedBehaviorId && selectedDate && (

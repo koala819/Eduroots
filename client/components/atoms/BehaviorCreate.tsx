@@ -4,9 +4,10 @@ import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { AttendanceRecord } from '@/zUnused/types/attendance'
-import { PopulatedCourse } from '@/zUnused/types/course'
-import { GenderEnum, Student } from '@/zUnused/types/user'
+import { CourseWithRelations } from '@/types/courses'
+import { GenderEnum } from '@/types/user'
+import { AttendanceRecord } from '@/types/db'
+import { StudentResponse } from '@/types/student-payload'
 
 import {
   AlertDialog,
@@ -44,20 +45,17 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   const { getCourseSessionById } = useCourses()
   const { getOneStudent } = useStudents()
 
-  const [course, setCourse] = useState<PopulatedCourse | null>(null)
+  const [course, setCourse] = useState<CourseWithRelations | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isRecording, setIsRecording] = useState<boolean>(false)
-  const [studentDetails, setStudentDetails] = useState<Record<string, Student>>({})
+  const [studentDetails, setStudentDetails] = useState<Record<string, StudentResponse>>({})
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true)
 
   const [behavior, setBehavior] = useState<Record<string, number>>(() =>
     Object.fromEntries(
       students
-        .filter((record) => record.isPresent)
-        .map((record) => [
-          typeof record.student === 'string' ? record.student : record.student.id,
-          5,
-        ]),
+        .filter((record) => record.is_present)
+        .map((record) => [record.student_id, 5]),
     ),
   )
 
@@ -71,9 +69,9 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
           getCourseSessionById(courseId),
           Promise.all(
             students
-              .filter((s) => s.isPresent)
+              .filter((s) => s.is_present)
               .map(async (s) => {
-                const studentId = typeof s.student === 'string' ? s.student : s.student.id
+                const studentId = s.student_id
                 const studentDetail = await getOneStudent(studentId)
                 return [studentId, studentDetail]
               }),
@@ -100,7 +98,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
   }, [courseId, students, getCourseSessionById, getOneStudent])
 
   const handleSave = async () => {
-    if (!course?.sessions?.[0]?.id) {
+    if (!course?.courses_sessions?.[0]?.id) {
       console.error('Session ID not found')
       return
     }
@@ -116,7 +114,7 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
         course: courseId,
         date: date,
         records: records,
-        sessionId: course.sessions[0].id,
+        sessionId: course.courses_sessions[0].id,
       })
 
       onClose()
@@ -177,14 +175,16 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <BarChart2 className="w-5 h-5 shrink-0 text-gray-400" />
                       <span className="text-sm text-gray-700">
-                        Niveau {course.sessions[0].level}
+                        Niveau {course.courses_sessions[0].level}
                       </span>
                     </div>
 
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">{course.sessions[0].subject}</span>
+                      <span className="text-sm text-gray-700">
+                        {course.courses_sessions[0].subject}
+                      </span>
                     </div>
 
                     {/* Date */}
@@ -204,11 +204,9 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
             <div className="max-w-4xl mx-auto">
               <ul className="space-y-3">
                 {students
-                  .filter((record) => record.isPresent)
+                  .filter((record) => record.is_present)
                   .map((student) => {
-                    // console.log('🚀 ~ student:', student)
-                    const studentId =
-                      typeof student.student === 'string' ? student.student : student.student.id
+                    const studentId = student.student_id
                     const studentDetail = studentDetails[studentId]
 
                     if (!studentDetail) return null
@@ -216,7 +214,9 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                     return (
                       <motion.li
                         key={studentId}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer hover:border-blue-200"
+                        className="flex items-center justify-between p-4 bg-white border
+                        border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all
+                         duration-200 ease-in-out cursor-pointer hover:border-blue-200"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -242,7 +242,8 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                             <button
                               key={rating}
                               onClick={() => setRating(studentId, rating)}
-                              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition-transform active:scale-95"
+                              className="focus:outline-none focus-visible:ring-2 active:scale-95
+                              focus-visible:ring-blue-500 rounded-full transition-transform"
                             >
                               <Star
                                 className={cn(
@@ -293,7 +294,8 @@ export const BehaviorCreate: React.FC<BehaviorCreateProps> = ({
                     <AlertDialogFooter>
                       <AlertDialogCancel
                         onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border-2 border-gray-400"
+                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500
+                         border-2 border-gray-400"
                       >
                         Non
                       </AlertDialogCancel>

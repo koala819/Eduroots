@@ -5,7 +5,7 @@ import { ReactNode } from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 
-type IconType = 'chart' | 'clock' | 'star' | string
+type IconType = 'chart' | 'clock' | 'star'
 
 // Map icon types to Lucide components
 const iconMap: Record<IconType, ReactNode> = {
@@ -55,24 +55,26 @@ export function StatCard({
   title,
   value,
   description,
-}: {
+}: Readonly<{
   icon: IconType
   color?: 'blue' | 'purple' | 'teal' | 'amber' | 'gold'
   title: string
   value: string | number
   description: string
-}) {
+}>) {
   const scheme = colorSchemes[color]
 
   // Get the appropriate icon
   const iconElement = typeof icon === 'string' && icon in iconMap ? iconMap[icon] : icon
 
   return (
-    <Card className="border-none shadow-lg hover:shadow-xl hover:translate-y-[-5px] transition-all duration-300 overflow-hidden">
+    <Card className="border-none shadow-lg hover:shadow-xl hover:translate-y-[-5px]
+     transition-all duration-300 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
         <CardTitle className="text-sm font-bold text-slate-700">{title}</CardTitle>
         <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center ${scheme.bg} ${scheme.text} shadow-sm`}
+          className={`w-10 h-10 rounded-full flex items-center justify-center
+            ${scheme.bg} ${scheme.text} shadow-sm`}
         >
           {iconElement}
         </div>
