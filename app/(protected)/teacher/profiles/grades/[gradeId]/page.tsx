@@ -1,4 +1,4 @@
-import { GradeEdit } from '@/client/components/pages/TeacherGrades'
+import { GradeEdit } from '@/client/components/pages/TeacherGradesEdit'
 
 type Params = Promise<{ id: string }>;
 

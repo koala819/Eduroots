@@ -1,238 +1,170 @@
 'use client'
 
-import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/client/hooks/use-toast'
-import { useAuth } from '@/client/hooks/use-auth'
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import {
-  GradeTypeEnum,
-  Student,
-  GradeWithRelations,
-  GradeRecordWithUser,
-} from '@/types/grades'
-import { Badge } from '@/client/components/ui/badge'
-import { Button } from '@/client/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { Checkbox } from '@/client/components/ui/checkbox'
-import { Input } from '@/client/components/ui/input'
-import { Label } from '@/client/components/ui/label'
-import { Progress } from '@/client/components/ui/progress'
+import { SubjectNameEnum } from '@/types/courses'
+import { GradeTypeEnum, GradeWithRelations } from '@/types/grades'
 import { useGrades } from '@/client/context/grades'
-import { formatDayOfWeek } from '@/server/utils/helpers'
-import { format } from 'date-fns'
+import { compareDesc, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import type { CreateGradePayload } from '@/types/grade-payload'
-import { AuthenticatedContent } from '@/client/components/atoms/AuthenticatedContent'
+import { createClient } from '@/client/utils/supabase'
+import { GradeCard } from '@/client/components/molecules/GradeCard'
+import { SubjectFilter } from '@/client/components/molecules/GradesSubjectFilter'
+import { GradesHeader } from '@/client/components/atoms/GradesHeader'
+import { Plus, Trophy } from 'lucide-react'
+import { Button } from '@/client/components/ui/button'
+import { User } from '@/types/db'
 
-export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
-  return (
-    <AuthenticatedContent>
-      <GradeEditContent gradeId={gradeId} />
-    </AuthenticatedContent>
-  )
+type ProcessedGrade = {
+  id: string
+  date: Date
+  type: GradeTypeEnum
+  formattedDate: string
+  month: string
+  subject: SubjectNameEnum | 'Inconnu'
+  stats: {
+    averageGrade: number
+    highestGrade: number
+    lowestGrade: number
+    absentCount: number
+    totalStudents: number
+  }
 }
 
-const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
-  const {
-    teacherGrades,
-    updateGradeRecord,
-    isLoading: isLoadingGrade,
-    getTeacherGrades,
-  } = useGrades()
-  const router = useRouter()
+type GroupedGrades = Record<string, ProcessedGrade[]>
+
+export function GradesClient() {
   const { toast } = useToast()
-  const { session } = useAuth()
-
+  const { getTeacherGrades, isLoading, teacherGrades } = useGrades()
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [gradeInfo, setGradeInfo] = useState<{
-    id: string
-    date: Date
-    type: GradeTypeEnum
-    courseLevel: string
-    dayOfWeek: string
-    subject?: SubjectNameEnum
-    is_draft: boolean
-  } | null>(null)
+  const [selectedSubject, setSelectedSubject] = useState<string>('all')
+  const [user, setUser] = useState<User | null>(null)
 
-  const [gradeEntries, setGradeEntries] = useState<{
-    students: Student[]
-    records: GradeRecordWithUser[]
-  }>({
-    students: [],
-    records: [],
-  })
-
-  // Charger les données du grade
   useEffect(() => {
-    const fetchGradeData = async () => {
+    const supabase = createClient()
+    const getUser = async () => {
       try {
-        if (session?.user?.id && !teacherGrades) {
-          await getTeacherGrades(session.user.id)
-        }
-
-        if (teacherGrades) {
-          const grade = teacherGrades.find((g) => g.id === gradeId)
-          if (grade && 'courses_sessions' in grade && 'grades_records' in grade) {
-            const populatedGrade = grade as GradeWithRelations
-            const courseSession = populatedGrade.courses_sessions
-
-            setGradeInfo({
-              id: populatedGrade.id,
-              date: new Date(populatedGrade.date),
-              type: populatedGrade.type as GradeTypeEnum,
-              courseLevel: courseSession.level,
-              dayOfWeek: courseSession.courses_sessions_timeslot[0]?.day_of_week ?? '',
-              subject: courseSession.subject as SubjectNameEnum,
-              is_draft: populatedGrade.is_draft,
-            })
-
-            // Préparer les données des élèves et leurs notes
-            const convertedRecords = populatedGrade.grades_records.map((record) => ({
-              ...record,
-              student: record.users,
-            }))
-
-            const convertedStudents = populatedGrade.grades_records.map((record) => record.users)
-
-            setGradeEntries({
-              students: convertedStudents,
-              records: convertedRecords,
-            })
-          } else {
-            setError(`Évaluation avec l'ID ${gradeId} non trouvée`)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const dbUser = await supabase
+            .from('users')
+            .select('*')
+            .eq('auth_id', user.id)
+            .single()
+          if (dbUser.data) {
+            setUser(dbUser.data as User)
           }
         }
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Une erreur est survenue lors du chargement des données',
-        )
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
       }
     }
+    getUser()
+  }, [])
 
-    fetchGradeData()
-  }, [session?.user?.id, gradeId, teacherGrades, getTeacherGrades])
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        if (user?.id) {
+          await getTeacherGrades(user.id)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      }
+    }
+    fetchGrades()
+  }, [user?.id, getTeacherGrades])
 
-  // Calcul des statistiques pour la progression
-  const stats = useMemo(() => {
-    if (!gradeEntries.records.length)
-      return { completed: 0, total: 0, percent: 0, average: 0 }
+  const filteredAndSortedGrades = useMemo(() => {
+    if (!teacherGrades || !Array.isArray(teacherGrades)) {
+      return []
+    }
 
-    const total = gradeEntries.records.length
-    const absentCount = gradeEntries.records.filter((r) => r.is_absent).length
-    const gradedCount = gradeEntries.records.filter(
-      (r) => !r.is_absent && r.value !== null && r.value > 0,
-    ).length
-    const sum = gradeEntries.records.reduce(
-      (acc, r) => acc + (r.is_absent || r.value === null ? 0 : r.value),
-      0,
+    const processedGrades: ProcessedGrade[] = (
+      teacherGrades as unknown as GradeWithRelations[]
+    ).map((grade) => ({
+      id: grade.id,
+      date: new Date(grade.date),
+      type: grade.type as GradeTypeEnum,
+      formattedDate: format(new Date(grade.date), 'dd MMM yyyy', { locale: fr }),
+      month: format(new Date(grade.date), 'MMMM yyyy', { locale: fr }),
+      subject: grade.courses_sessions.subject as SubjectNameEnum || 'Inconnu',
+      stats: {
+        averageGrade: grade.stats_average_grade,
+        highestGrade: grade.stats_highest_grade,
+        lowestGrade: grade.stats_lowest_grade,
+        absentCount: grade.stats_absent_count,
+        totalStudents: grade.stats_total_students,
+      },
+    }))
+
+    const filteredGrades =
+      selectedSubject === 'all'
+        ? processedGrades
+        : processedGrades.filter((grade) => grade.subject === selectedSubject)
+
+    return filteredGrades.sort((a, b) =>
+      compareDesc(new Date(a.date), new Date(b.date)),
     )
-    const average = gradedCount > 0 ? sum / gradedCount : 0
+  }, [teacherGrades, selectedSubject])
 
-    return {
-      completed: gradedCount,
-      total: total - absentCount,
-      percent:
-        total === absentCount
-          ? 100
-          : Math.round((gradedCount / (total - absentCount)) * 100),
-      average: average.toFixed(1),
-    }
-  }, [gradeEntries.records])
+  const groupedByMonth = useMemo(() => {
+    if (!filteredAndSortedGrades.length) return {} as GroupedGrades
 
-  const handleGradeUpdate = useCallback(
-    (
-      studentId: string,
-      field: keyof Omit<GradeRecordWithUser, 'users'>,
-      value: number | string | boolean,
-    ) => {
-      setGradeEntries((prev) => {
-        const recordIndex = prev.records.findIndex(
-          (r) => r.users.id === studentId,
-        )
-
-        if (recordIndex === -1) return prev
-
-        const newRecords = [...prev.records]
-        newRecords[recordIndex] = {
-          ...newRecords[recordIndex],
-          [field]: value,
-          // Si marqué absent, réinitialiser la note
-          ...(field === 'is_absent' && value === true ? { value: 0 } : {}),
+    return filteredAndSortedGrades.reduce(
+      (acc: GroupedGrades, grade) => {
+        const month = grade.month
+        if (!acc[month]) {
+          acc[month] = []
         }
+        acc[month].push(grade)
+        return acc
+      },
+      {},
+    )
+  }, [filteredAndSortedGrades])
 
-        return {
-          ...prev,
-          records: newRecords,
-        }
-      })
-    },
-    [],
-  )
+  const subjectCounts = useMemo(() => {
+    if (!teacherGrades || !Array.isArray(teacherGrades))
+      return { Inconnu: 0 } as Record<SubjectNameEnum | 'Inconnu', number>
 
-  const getStudentRecord = useCallback(
-    (studentId: string) => {
-      return gradeEntries.records.find((record) => record.users.id === studentId)
-    },
-    [gradeEntries.records],
-  )
+    return (teacherGrades as unknown as GradeWithRelations[]).reduce(
+      (acc: Record<SubjectNameEnum | 'Inconnu', number>, grade) => {
+        const subject = grade.courses_sessions.subject || 'Inconnu'
+        const subjectKey = subject as SubjectNameEnum | 'Inconnu'
+        acc[subjectKey] = (acc[subjectKey] || 0) + 1
+        return acc
+      },
+      { Inconnu: 0 } as Record<SubjectNameEnum | 'Inconnu', number>,
+    )
+  }, [teacherGrades])
 
-  const handleSubmit = async (isDraft: boolean) => {
-    if (!gradeInfo) return
-
-    setLoading(true)
-    const updateData: CreateGradePayload = {
-      date: gradeInfo.date.toISOString(),
-      type: gradeInfo.type,
-      is_draft: isDraft,
-      course_session_id: gradeInfo.id,
-      records: gradeEntries.records.map((record) => ({
-        student_id: record.users.id,
-        value: record.value ?? 0,
-        is_absent: record.is_absent,
-        comment: record.comment ?? '',
-      })),
-    }
-
-    try {
-      const success = await updateGradeRecord(gradeId, updateData)
-
-      if (success) {
-        toast({
-          variant: 'success',
-          title: isDraft ? 'Brouillon mis à jour' : 'Notes validées',
-          description: 'Les modifications ont été enregistrées avec succès',
-          duration: 3000,
-        })
-        router.push('/teacher/profiles/grades')
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Une erreur est survenue lors de la mise à jour des notes',
-          duration: 3000,
-        })
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description:
-          error instanceof Error ? error.message : 'Une erreur est survenue',
-        duration: 3000,
-      })
-    } finally {
-      setLoading(false)
+  const getSubjectColor = (subject: string) => {
+    switch (subject) {
+    case SubjectNameEnum.Arabe:
+      return 'border-l-blue-500'
+    case SubjectNameEnum.EducationCulturelle:
+      return 'border-l-green-500'
+    default:
+      return 'border-l-gray-500'
     }
   }
 
-  // Obtenir la couleur en fonction du type d'évaluation
-  const getTypeColor = (type: GradeTypeEnum) => {
-    switch (type) {
+  const getSubjectBackgroundColor = (subject: string) => {
+    switch (subject) {
+    case SubjectNameEnum.Arabe:
+      return 'bg-blue-100 text-blue-600'
+    case SubjectNameEnum.EducationCulturelle:
+      return 'bg-green-100 text-green-600'
+    default:
+      return 'bg-gray-100 text-gray-600'
+    }
+  }
+
+  const getTypeBackgroundColor = (type: string) => {
+    switch (type as GradeTypeEnum) {
     case GradeTypeEnum.Controle:
       return 'bg-purple-100 text-purple-600'
     case GradeTypeEnum.Devoir:
@@ -244,34 +176,7 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
     }
   }
 
-  // Obtenir la couleur en fonction de la matière
-  const getSubjectColor = (subject: SubjectNameEnum | undefined) => {
-    if (!subject) return 'bg-gray-100 text-gray-600'
-
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'bg-emerald-100 text-emerald-600'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'bg-blue-100 text-blue-600'
-    default:
-      return 'bg-gray-100 text-gray-600'
-    }
-  }
-
-  const getGradeTypeLabel = (type: GradeTypeEnum) => {
-    switch (type) {
-    case GradeTypeEnum.Examen:
-      return 'Examen'
-    case GradeTypeEnum.Devoir:
-      return 'Devoir'
-    case GradeTypeEnum.Controle:
-      return 'Contrôle'
-    default:
-      return type
-    }
-  }
-
-  if (isLoadingGrade || !gradeInfo) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
@@ -287,297 +192,69 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
     )
   }
 
+  if (error) {
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description: `Error: ${error}`,
+      duration: 3000,
+    })
+  }
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="flex flex-col space-y-4 max-w-4xl mx-auto">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="link"
-            className={`
-              p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors
-            `}
-            onClick={() => router.push('/teacher/profiles/grades')}
-          >
-            <CircleArrowLeft className="mr-2 h-4 w-4" />
-            <span className="text-sm font-medium">Retour</span>
-          </Button>
+        <GradesHeader totalGrades={teacherGrades?.length || 0} />
 
-          <div className="flex items-center gap-2">
-            <div className={`
-              h-8 w-8 flex items-center justify-center rounded-full
-              bg-blue-100 text-blue-600
-            `}>
-              <span className="text-xs font-medium">
-                {gradeEntries.students.length}
-              </span>
+        <SubjectFilter
+          selectedSubject={selectedSubject}
+          setSelectedSubject={setSelectedSubject}
+          subjectCounts={subjectCounts}
+          totalGrades={teacherGrades?.length || 0}
+          getSubjectBackgroundColor={getSubjectBackgroundColor}
+        />
+      </div>
+
+      <div className="space-y-8 mt-6 max-w-4xl mx-auto">
+        {Object.entries(groupedByMonth).map(([month, grades]) => (
+          <div key={month} className="space-y-3">
+            <h2 className="text-sm font-medium text-gray-500 px-2">{month}</h2>
+            <div className="space-y-3">
+              {grades.map((grade) => (
+                <GradeCard
+                  key={grade.id}
+                  grade={grade as unknown as GradeWithRelations}
+                  getSubjectColor={getSubjectColor}
+                  getTypeBackgroundColor={getTypeBackgroundColor}
+                />
+              ))}
             </div>
-            <span className="text-sm text-gray-500">Élèves</span>
           </div>
-        </div>
+        ))}
 
-        <div className="pb-3 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Modifier les notes
-          </h1>
-        </div>
-
-        {/* Informations de l'évaluation */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-700">
-              Informations de l&apos;évaluation
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Badge variant="outline" className={getTypeColor(gradeInfo.type)}>
-                {getGradeTypeLabel(gradeInfo.type)}
-              </Badge>
-
-              {gradeInfo.subject && (
-                <Badge
-                  variant="outline"
-                  className={getSubjectColor(gradeInfo.subject)}
-                >
-                  {gradeInfo.subject}
-                </Badge>
-              )}
-
-              <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                {format(gradeInfo.date, 'dd MMMM yyyy', { locale: fr })}
-              </Badge>
-
-              {gradeInfo.is_draft && (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-100 text-amber-700"
-                >
-                  Brouillon
-                </Badge>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Niveau</p>
-                <p className="font-medium">
-                  {`${gradeInfo.courseLevel ?? ''}`}
-                </p>
-              </div>
-
-              {gradeInfo.dayOfWeek && (
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Jour</p>
-                  <p className="font-medium">
-                    {formatDayOfWeek(gradeInfo.dayOfWeek as TimeSlotEnum)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Liste des élèves */}
-        {gradeEntries.students.length > 0 ? (
-          <div className="space-y-4 mt-2">
-            <h2 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
-              Notes des élèves
-            </h2>
-
-            {gradeEntries.students.map((student) => {
-              const record = getStudentRecord(student.id)
-              const isGraded = !record?.is_absent && (record?.value || 0) > 0
-
-              return (
-                <Card
-                  key={student.id}
-                  className={`
-                    shadow-sm border-l-4 overflow-hidden rounded-lg
-                    animate-fadeIn transition-all
-                    ${record?.is_absent
-                  ? 'border-l-red-400 bg-red-50/30'
-                  : isGraded
-                    ? 'border-l-green-500'
-                    : 'border-l-yellow-400'
-                }
-                  `}
-                >
-                  <CardContent className="p-4">
-                    <div className={`
-                      flex flex-col sm:flex-row sm:items-center
-                      sm:justify-between gap-4
-                    `}>
-                      <div>
-                        <h3 className="font-medium text-gray-900 mb-1">
-                          {student.firstname} {student.lastname}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center">
-                            <Checkbox
-                              id={`absent-${student.id}`}
-                              checked={record?.is_absent || false}
-                              onCheckedChange={(checked) => {
-                                handleGradeUpdate(
-                                  student.id,
-                                  'is_absent',
-                                  checked as boolean,
-                                )
-                              }}
-                              className="mr-2"
-                            />
-                            <Label
-                              htmlFor={`absent-${student.id}`}
-                              className="text-sm text-gray-700"
-                            >
-                              Absent
-                            </Label>
-                          </div>
-                          {record?.is_absent && (
-                            <Badge
-                              variant="outline"
-                              className="bg-red-100 text-red-600 text-xs"
-                            >
-                              Absent
-                            </Badge>
-                          )}
-                          {isGraded && (
-                            <Badge
-                              variant="outline"
-                              className="bg-green-100 text-green-600 text-xs"
-                            >
-                              Noté
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="w-full sm:w-32 flex-shrink-0">
-                        <div className="flex items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="20"
-                            step="0.5"
-                            disabled={record?.is_absent || false}
-                            value={
-                              record?.value && record.value > 0
-                                ? record.value
-                                : ''
-                            }
-                            onChange={(e) => {
-                              const value = parseFloat(e.target.value)
-                              handleGradeUpdate(
-                                student.id,
-                                'value',
-                                isNaN(value)
-                                  ? 0
-                                  : Math.min(20, Math.max(0, value)),
-                              )
-                            }}
-                            className="text-center"
-                            placeholder="Note /20"
-                          />
-                          <span className="ml-2 text-sm text-gray-500">
-                            /20
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <Label
-                        htmlFor={`comment-${student.id}`}
-                        className="text-sm mb-1 block"
-                      >
-                        Commentaire
-                      </Label>
-                      <Input
-                        id={`comment-${student.id}`}
-                        placeholder="Ajouter un commentaire (optionnel)"
-                        value={record?.comment ?? ''}
-                        onChange={(e) =>
-                          handleGradeUpdate(
-                            student.id,
-                            'comment',
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-10 bg-white rounded-lg shadow-sm mt-6">
+        {Object.keys(groupedByMonth).length === 0 && !isLoading && (
+          <div className="flex flex-col items-center justify-center p-8 bg-white
+           rounded-lg shadow-sm">
             <div className="text-gray-400 mb-3">
-              <ClipboardEdit className="w-12 h-12 mx-auto opacity-50" />
+              <Trophy className="w-12 h-12 mx-auto opacity-50" />
             </div>
             <h3 className="text-lg font-medium text-gray-700 mb-1">
-              Aucun élève à afficher
+              Aucune évaluation trouvée
             </h3>
-            <p className="text-gray-500 mb-4">
-              Aucune donnée d&apos;élève n&apos;est disponible pour cette
-              évaluation.
+            <p className="text-gray-500 text-center mb-4">
+              {selectedSubject === 'all'
+                ? 'Vous n\'avez pas encore créé d\'évaluations.'
+                : `Aucune évaluation pour la matière "${selectedSubject}" n'a été trouvée.`}
             </p>
+            <Button
+              onClick={() => router.push('/teacher/profiles/grades/create')}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Créer une évaluation
+            </Button>
           </div>
         )}
       </div>
-
-      {/* Statistiques récapitulatives avant les boutons d'action */}
-      {gradeEntries.students.length > 0 && (
-        <div className={`
-          mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm
-        `}>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>
-                Progression: {stats.completed}/{stats.total} élèves notés
-              </span>
-              <span>Moyenne: {stats.average}/20</span>
-            </div>
-            <Progress value={stats.percent} className="h-2" />
-          </div>
-        </div>
-      )}
-
-      {/* Boutons d'action */}
-      {gradeEntries.students.length > 0 && (
-        <div className={`
-          mt-6 sticky bottom-0 left-0 right-0 bg-white border-t p-4
-          shadow-md z-10
-        `}>
-          <div className="space-y-2 sm:space-y-0 md:flex gap-4">
-            <Button
-              variant="outline"
-              className="flex-1 h-12 w-full"
-              disabled={loading}
-              onClick={() => handleSubmit(true)}
-            >
-              {loading ? 'Enregistrement...' : 'Mettre à jour le brouillon'}
-            </Button>
-            <Button
-              className="flex-1 h-12 w-full"
-              disabled={loading}
-              onClick={() => handleSubmit(false)}
-            >
-              {loading ? 'Enregistrement...' : 'Valider les notes'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className={`
-          fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center
-          justify-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg
-          shadow-md z-50
-        `}>
-          <div className="h-2 w-2 rounded-full bg-red-500" />
-          <span className="text-sm font-medium">{error}</span>
-        </div>
-      )}
     </div>
   )
 }

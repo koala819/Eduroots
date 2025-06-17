@@ -1,16 +1,16 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, CircleArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import React from 'react'
+import React,{ useEffect, useState } from 'react'
+
 
 import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/client/hooks/use-toast'
 
-import { CourseSession, SubjectNameEnum } from '@/zUnused/types/course'
+import { CourseSessionWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
-import { TimeSlotEnum } from '@/types/courses'
+
 
 import { PlanningEditor } from '@/client/components/atoms/PlanningEditor'
 import { HolidaysCard } from '@/server/components/atoms/HolidaysCard'
@@ -31,7 +31,7 @@ const PlanningViewer = () => {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0)
-  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null)
+  const [selectedSession, setSelectedSession] = useState<CourseSessionWithRelations | null>(null)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | null>(null)
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const PlanningViewer = () => {
     return total + sessionCount
   }, 0)
 
-  const getSubjectBadgeColor = (subject: SubjectNameEnum): string => {
+  const getSubjectBadgeColor = (subject: string): string => {
     switch (subject) {
     case SubjectNameEnum.Arabe:
       return 'bg-emerald-100 text-emerald-600'
@@ -329,11 +329,15 @@ const PlanningViewer = () => {
                 </div>
                 <div className="space-y-1">
                   <div className="text-sm text-gray-500">Salle</div>
-                  <div className="font-medium">{selectedSession?.timeSlot.classroomNumber}</div>
+                  <div className="font-medium">
+                    {selectedSession?.courses_sessions_timeslot[0]?.classroom_number}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-sm text-gray-500">Élèves</div>
-                  <div className="font-medium">{selectedSession?.students?.length || 0}</div>
+                  <div className="font-medium">
+                    {selectedSession?.courses_sessions_students?.length || 0}
+                  </div>
                 </div>
               </div>
             </div>
@@ -341,9 +345,14 @@ const PlanningViewer = () => {
             <div className="space-y-2">
               <h3 className="font-medium">Horaire</h3>
               <div className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded">
-                <div>{formatDayOfWeek(selectedSession?.timeSlot.dayOfWeek as TimeSlotEnum)}</div>
                 <div>
-                  {selectedSession?.timeSlot.startTime} - {selectedSession?.timeSlot.endTime}
+                  {formatDayOfWeek(
+                    selectedSession?.courses_sessions_timeslot[0]?.day_of_week as TimeSlotEnum,
+                  )}
+                </div>
+                <div>
+                  {selectedSession?.courses_sessions_timeslot[0]?.start_time} -{' '}
+                  {selectedSession?.courses_sessions_timeslot[0]?.end_time}
                 </div>
               </div>
             </div>

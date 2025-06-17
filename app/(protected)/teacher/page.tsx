@@ -1,9 +1,8 @@
-import { createClient } from '@/utils/supabase'
-import { TeacherWelcome } from './TeacherWelcome'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { TeacherWelcome } from '@/client/components/pages/TeacherWelcome'
 
 export default async function TeacherDashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthenticatedUser()
 
   const teacher = {
     firstname: user?.user_metadata?.firstname || '',

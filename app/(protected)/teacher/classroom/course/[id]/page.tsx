@@ -15,7 +15,8 @@ export default async function CoursePage({ params }: { params: Params }) {
   }
 
   const session = courseResponse.data
-  const sessionScheduleDates = generateSchoolDayDates(session.courses_sessions_timeslot[0].day_of_week)
+  const sessionScheduleDates =
+    generateSchoolDayDates(session.courses_sessions_timeslot[0].day_of_week)
 
   return (
     <TeacherCourses

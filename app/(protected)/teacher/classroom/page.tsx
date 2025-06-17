@@ -1,14 +1,14 @@
 import { Metadata } from 'next'
 import { getTeacherCourses } from '@/server/actions/api/courses'
 import { Suspense } from 'react'
-import { getAuthenticatedEducationUser } from '@/utils/auth-helpers'
+import { getAuthenticatedEducationUser } from '@/server/utils/auth-helpers'
 import { CourseGrid } from '@/client/components/molecules/CourseGrid'
 import {
   LoadingContent,
   EmptyContent,
   ErrorContent,
 } from '@/client/components/atoms/StatusContent'
-import { getSessionServer } from '@/utils/server-helpers'
+import { getSessionServer } from '@/server/utils/server-helpers'
 
 export const metadata: Metadata = {
   title: 'Gestion des cours',

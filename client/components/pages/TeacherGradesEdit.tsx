@@ -1,11 +1,17 @@
 'use client'
 
-import { CalendarIcon, CircleArrowLeft, ClipboardEdit } from 'lucide-react'
+import { CircleArrowLeft, ClipboardEdit } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum } from '@/types/courses'
-import { GradeTypeEnum, Student } from '@/types/grades'
+import { useAuth } from '@/client/hooks/use-auth'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import {
+  GradeTypeEnum,
+  Student,
+  GradeWithRelations,
+  GradeRecordWithUser,
+} from '@/types/grades'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -13,83 +19,103 @@ import { Checkbox } from '@/client/components/ui/checkbox'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { Progress } from '@/client/components/ui/progress'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/client/components/ui/select'
-import { useCourses } from '@/client/context/courses'
 import { useGrades } from '@/client/context/grades'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import useCourseStore from '@/client/stores/useCourseStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { createClient } from '@/client/utils/supabase'
-import type { CourseWithRelations } from '@/types/courses'
 import type { CreateGradePayload } from '@/types/grade-payload'
+import { AuthenticatedContent } from '@/client/components/atoms/AuthenticatedContent'
 
-type GradeEntry = {
-  student: string
-  value: number
-  isAbsent: boolean
-  comment: string
+export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
+  return (
+    <AuthenticatedContent>
+      <GradeEditContent gradeId={gradeId} />
+    </AuthenticatedContent>
+  )
 }
 
-export default function CreateGradePage() {
-  const { teacherCourses, isLoading } = useCourses()
-  const { fetchTeacherCourses } = useCourseStore()
-  const { createGradeRecord, isLoading: isLoadingGrade } = useGrades()
+const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
+  const {
+    teacherGrades,
+    updateGradeRecord,
+    isLoading: isLoadingGrade,
+    getTeacherGrades,
+  } = useGrades()
   const router = useRouter()
   const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
+  const { session } = useAuth()
 
   const [error, setError] = useState<string | null>(null)
-  const [date, setDate] = useState<Date>()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [gradeInfo, setGradeInfo] = useState<{
+    id: string
+    date: Date
+    type: GradeTypeEnum
+    courseLevel: string
+    dayOfWeek: string
+    subject?: SubjectNameEnum
+    is_draft: boolean
+  } | null>(null)
+
   const [gradeEntries, setGradeEntries] = useState<{
     students: Student[]
-    records: GradeEntry[]
+    records: GradeRecordWithUser[]
   }>({
     students: [],
     records: [],
   })
 
-  const [selectedType, setSelectedType] = useState<GradeTypeEnum>()
-  const [selectedSession, setSelectedSession] = useState<{
-    id: string
-    courseId: string
-    sessionId: string
-    subject?: SubjectNameEnum
-  } | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-
+  // Charger les données du grade
   useEffect(() => {
-    const supabase = createClient()
-    const getUser = async () => {
+    const fetchGradeData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      }
-    }
-    getUser()
-  }, [])
+        if (session?.user?.id && !teacherGrades) {
+          await getTeacherGrades(session.user.id)
+        }
 
-  // Charger les cours dès que possible
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        if (user?.id) {
-          await fetchTeacherCourses(user.id)
+        if (teacherGrades) {
+          const grade = teacherGrades.find((g) => g.id === gradeId)
+          if (grade && 'courses_sessions' in grade && 'grades_records' in grade) {
+            const populatedGrade = grade as GradeWithRelations
+            const courseSession = populatedGrade.courses_sessions
+
+            setGradeInfo({
+              id: populatedGrade.id,
+              date: new Date(populatedGrade.date),
+              type: populatedGrade.type as GradeTypeEnum,
+              courseLevel: courseSession.level,
+              dayOfWeek: courseSession.courses_sessions_timeslot[0]?.day_of_week ?? '',
+              subject: courseSession.subject as SubjectNameEnum,
+              is_draft: populatedGrade.is_draft,
+            })
+
+            // Préparer les données des élèves et leurs notes
+            const convertedRecords = populatedGrade.grades_records.map((record) => ({
+              ...record,
+              student: record.users,
+            }))
+
+            const convertedStudents = populatedGrade.grades_records.map((record) => record.users)
+
+            setGradeEntries({
+              students: convertedStudents,
+              records: convertedRecords,
+            })
+          } else {
+            setError(`Évaluation avec l'ID ${gradeId} non trouvée`)
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Une erreur est survenue lors du chargement des données',
+        )
       }
     }
-    fetchCourses()
-  }, [user?.id, fetchTeacherCourses])
+
+    fetchGradeData()
+  }, [session?.user?.id, gradeId, teacherGrades, getTeacherGrades])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -97,12 +123,12 @@ export default function CreateGradePage() {
       return { completed: 0, total: 0, percent: 0, average: 0 }
 
     const total = gradeEntries.records.length
-    const absentCount = gradeEntries.records.filter((r) => r.isAbsent).length
+    const absentCount = gradeEntries.records.filter((r) => r.is_absent).length
     const gradedCount = gradeEntries.records.filter(
-      (r) => !r.isAbsent && r.value > 0,
+      (r) => !r.is_absent && r.value !== null && r.value > 0,
     ).length
     const sum = gradeEntries.records.reduce(
-      (acc, r) => acc + (r.isAbsent ? 0 : r.value),
+      (acc, r) => acc + (r.is_absent || r.value === null ? 0 : r.value),
       0,
     )
     const average = gradedCount > 0 ? sum / gradedCount : 0
@@ -118,43 +144,15 @@ export default function CreateGradePage() {
     }
   }, [gradeEntries.records])
 
-  const handleSelectSession = useCallback(
-    (sessionId: string) => {
-      const session = (teacherCourses as CourseWithRelations).courses_sessions.find(
-        (s) => s.id === sessionId,
-      )
-      if (session) {
-        const initialRecords: GradeEntry[] = session.courses_sessions_students.map(
-          (s) => ({
-            student: s.users.id,
-            value: 0,
-            isAbsent: false,
-            comment: '',
-          }),
-        )
-
-        setGradeEntries({
-          students: session.courses_sessions_students.map((s) => ({
-            id: s.users.id,
-            firstname: s.users.firstname,
-            lastname: s.users.lastname,
-          })),
-          records: initialRecords,
-        })
-      }
-    },
-    [teacherCourses],
-  )
-
   const handleGradeUpdate = useCallback(
     (
       studentId: string,
-      field: keyof Omit<GradeEntry, 'student'>,
+      field: keyof Omit<GradeRecordWithUser, 'users'>,
       value: number | string | boolean,
     ) => {
       setGradeEntries((prev) => {
         const recordIndex = prev.records.findIndex(
-          (r) => r.student === studentId,
+          (r) => r.users.id === studentId,
         )
 
         if (recordIndex === -1) return prev
@@ -164,7 +162,7 @@ export default function CreateGradePage() {
           ...newRecords[recordIndex],
           [field]: value,
           // Si marqué absent, réinitialiser la note
-          ...(field === 'isAbsent' && value === true ? { value: 0 } : {}),
+          ...(field === 'is_absent' && value === true ? { value: 0 } : {}),
         }
 
         return {
@@ -178,34 +176,36 @@ export default function CreateGradePage() {
 
   const getStudentRecord = useCallback(
     (studentId: string) => {
-      return gradeEntries.records.find((record) => record.student === studentId)
+      return gradeEntries.records.find((record) => record.users.id === studentId)
     },
     [gradeEntries.records],
   )
 
   const handleSubmit = async (isDraft: boolean) => {
+    if (!gradeInfo) return
+
     setLoading(true)
-    const gradeData: CreateGradePayload = {
-      course_session_id: selectedSession?.sessionId ?? '',
-      date: date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-      type: selectedType ?? GradeTypeEnum.Controle,
+    const updateData: CreateGradePayload = {
+      date: gradeInfo.date.toISOString(),
+      type: gradeInfo.type,
       is_draft: isDraft,
+      course_session_id: gradeInfo.id,
       records: gradeEntries.records.map((record) => ({
-        student_id: record.student,
-        value: record.value,
-        is_absent: record.isAbsent,
-        comment: record.comment || null,
+        student_id: record.users.id,
+        value: record.value ?? 0,
+        is_absent: record.is_absent,
+        comment: record.comment ?? '',
       })),
     }
 
     try {
-      const status = await createGradeRecord(gradeData)
+      const success = await updateGradeRecord(gradeId, updateData)
 
-      if (status === 200) {
+      if (success) {
         toast({
           variant: 'success',
-          title: isDraft ? 'Brouillon enregistré' : 'Notes validées',
-          description: 'Les notes ont été enregistrées avec succès',
+          title: isDraft ? 'Brouillon mis à jour' : 'Notes validées',
+          description: 'Les modifications ont été enregistrées avec succès',
           duration: 3000,
         })
         router.push('/teacher/profiles/grades')
@@ -213,8 +213,7 @@ export default function CreateGradePage() {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de l\'enregistrement des notes',
+          description: 'Une erreur est survenue lors de la mise à jour des notes',
           duration: 3000,
         })
       }
@@ -232,9 +231,7 @@ export default function CreateGradePage() {
   }
 
   // Obtenir la couleur en fonction du type d'évaluation
-  const getTypeColor = (type: GradeTypeEnum | undefined) => {
-    if (!type) return 'bg-gray-100 text-gray-600'
-
+  const getTypeColor = (type: GradeTypeEnum) => {
     switch (type) {
     case GradeTypeEnum.Controle:
       return 'bg-purple-100 text-purple-600'
@@ -261,7 +258,20 @@ export default function CreateGradePage() {
     }
   }
 
-  if (isLoading || !teacherCourses) {
+  const getGradeTypeLabel = (type: GradeTypeEnum) => {
+    switch (type) {
+    case GradeTypeEnum.Examen:
+      return 'Examen'
+    case GradeTypeEnum.Devoir:
+      return 'Devoir'
+    case GradeTypeEnum.Controle:
+      return 'Contrôle'
+    default:
+      return type
+    }
+  }
+
+  if (isLoadingGrade || !gradeInfo) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
@@ -284,8 +294,7 @@ export default function CreateGradePage() {
           <Button
             variant="link"
             className={`
-              p-0 text-gray-500 hover:text-blue-600 -ml-1.5
-              transition-colors
+              p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors
             `}
             onClick={() => router.push('/teacher/profiles/grades')}
           >
@@ -308,7 +317,7 @@ export default function CreateGradePage() {
 
         <div className="pb-3 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">
-            Nouvelle évaluation
+            Modifier les notes
           </h1>
         </div>
 
@@ -319,95 +328,51 @@ export default function CreateGradePage() {
               Informations de l&apos;évaluation
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-2 space-y-4">
-            {/* Ligne 1: Type et Date */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Type d&apos;évaluation</Label>
-                <Select
-                  value={selectedType}
-                  onValueChange={(value) =>
-                    setSelectedType(value as GradeTypeEnum)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner le type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(GradeTypeEnum).map(([key, value]) => (
-                      <SelectItem key={key} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <CardContent className="pt-2">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="outline" className={getTypeColor(gradeInfo.type)}>
+                {getGradeTypeLabel(gradeInfo.type)}
+              </Badge>
 
-              <div className="space-y-2">
-                <Label htmlFor="grade-date">Date</Label>
-                <Input
-                  id="grade-date"
-                  type="date"
-                  value={date ? format(date, 'yyyy-MM-dd') : ''}
-                  max={format(new Date(), 'yyyy-MM-dd')}
-                  onChange={(e) =>
-                    setDate(
-                      e.target.value ? new Date(e.target.value) : undefined,
-                    )
-                  }
-                  className="opacity-0 absolute pointer-events-none"
-                />
-                <div
-                  className={`
-                    w-full h-10 border rounded-md flex items-center px-3
-                    cursor-pointer hover:border-blue-500 transition-colors
-                  `}
-                  onClick={() =>
-                    (
-                      document.getElementById('grade-date') as HTMLInputElement
-                    ).showPicker()
-                  }
+              {gradeInfo.subject && (
+                <Badge
+                  variant="outline"
+                  className={getSubjectColor(gradeInfo.subject)}
                 >
-                  <CalendarIcon className="h-4 w-4 mr-2 text-gray-500" />
-                  {date
-                    ? format(date, 'dd MMMM yyyy', { locale: fr })
-                    : 'Sélectionner une date'}
-                </div>
-              </div>
+                  {gradeInfo.subject}
+                </Badge>
+              )}
+
+              <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                {format(gradeInfo.date, 'dd MMMM yyyy', { locale: fr })}
+              </Badge>
+
+              {gradeInfo.is_draft && (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-100 text-amber-700"
+                >
+                  Brouillon
+                </Badge>
+              )}
             </div>
 
-            {/* Ligne 2: Session */}
-            <div className="space-y-2">
-              <Label>Classe et Matière</Label>
-              <Select
-                value={selectedSession?.id}
-                onValueChange={(sessionId) => {
-                  const session = (teacherCourses as CourseWithRelations).courses_sessions.find(
-                    (s) => s.id === sessionId,
-                  )
-                  if (session) {
-                    setSelectedSession({
-                      id: sessionId,
-                      courseId: teacherCourses.id,
-                      sessionId: session.id,
-                      subject: session.subject as SubjectNameEnum,
-                    })
-                    handleSelectSession(sessionId)
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner une classe" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(teacherCourses as CourseWithRelations).courses_sessions.map((session) => (
-                    <SelectItem key={session.id} value={session.id}>
-                      {`${session.subject} - Niveau ${session.level} -
-                        ${formatDayOfWeek(session.courses_sessions_timeslot[0].day_of_week)}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Niveau</p>
+                <p className="font-medium">
+                  {`${gradeInfo.courseLevel ?? ''}`}
+                </p>
+              </div>
+
+              {gradeInfo.dayOfWeek && (
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Jour</p>
+                  <p className="font-medium">
+                    {formatDayOfWeek(gradeInfo.dayOfWeek as TimeSlotEnum)}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -421,7 +386,7 @@ export default function CreateGradePage() {
 
             {gradeEntries.students.map((student) => {
               const record = getStudentRecord(student.id)
-              const isGraded = !record?.isAbsent && (record?.value || 0) > 0
+              const isGraded = !record?.is_absent && (record?.value || 0) > 0
 
               return (
                 <Card
@@ -429,7 +394,7 @@ export default function CreateGradePage() {
                   className={`
                     shadow-sm border-l-4 overflow-hidden rounded-lg
                     animate-fadeIn transition-all
-                    ${record?.isAbsent
+                    ${record?.is_absent
                   ? 'border-l-red-400 bg-red-50/30'
                   : isGraded
                     ? 'border-l-green-500'
@@ -450,11 +415,11 @@ export default function CreateGradePage() {
                           <div className="flex items-center">
                             <Checkbox
                               id={`absent-${student.id}`}
-                              checked={record?.isAbsent || false}
+                              checked={record?.is_absent || false}
                               onCheckedChange={(checked) => {
                                 handleGradeUpdate(
                                   student.id,
-                                  'isAbsent',
+                                  'is_absent',
                                   checked as boolean,
                                 )
                               }}
@@ -467,12 +432,10 @@ export default function CreateGradePage() {
                               Absent
                             </Label>
                           </div>
-                          {record?.isAbsent && (
+                          {record?.is_absent && (
                             <Badge
                               variant="outline"
-                              className={`
-                                bg-red-100 text-red-600 text-xs
-                              `}
+                              className="bg-red-100 text-red-600 text-xs"
                             >
                               Absent
                             </Badge>
@@ -480,9 +443,7 @@ export default function CreateGradePage() {
                           {isGraded && (
                             <Badge
                               variant="outline"
-                              className={`
-                                bg-green-100 text-green-600 text-xs
-                              `}
+                              className="bg-green-100 text-green-600 text-xs"
                             >
                               Noté
                             </Badge>
@@ -497,7 +458,7 @@ export default function CreateGradePage() {
                             min="0"
                             max="20"
                             step="0.5"
-                            disabled={record?.isAbsent || false}
+                            disabled={record?.is_absent || false}
                             value={
                               record?.value && record.value > 0
                                 ? record.value
@@ -533,7 +494,7 @@ export default function CreateGradePage() {
                       <Input
                         id={`comment-${student.id}`}
                         placeholder="Ajouter un commentaire (optionnel)"
-                        value={record?.comment || ''}
+                        value={record?.comment ?? ''}
                         onChange={(e) =>
                           handleGradeUpdate(
                             student.id,
@@ -548,47 +509,31 @@ export default function CreateGradePage() {
               )
             })}
           </div>
-        ) : selectedSession ? (
+        ) : (
           <div className="text-center py-10 bg-white rounded-lg shadow-sm mt-6">
             <div className="text-gray-400 mb-3">
               <ClipboardEdit className="w-12 h-12 mx-auto opacity-50" />
             </div>
             <h3 className="text-lg font-medium text-gray-700 mb-1">
-              Aucun élève dans cette classe
+              Aucun élève à afficher
             </h3>
             <p className="text-gray-500 mb-4">
-              Cette session ne contient pas d&apos;élèves à noter.
+              Aucune donnée d&apos;élève n&apos;est disponible pour cette
+              évaluation.
             </p>
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Statistiques récapitulatives avant les boutons d'action */}
-      {gradeEntries.students.length > 0 &&
-        selectedSession &&
-        selectedType &&
-        date && (
-        <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-          <div className="flex flex-wrap gap-3 mb-3">
-            <Badge variant="outline" className={getTypeColor(selectedType)}>
-              {selectedType}
-            </Badge>
-            {selectedSession.subject && (
-              <Badge
-                variant="outline"
-                className={getSubjectColor(selectedSession.subject)}
-              >
-                {selectedSession.subject}
-              </Badge>
-            )}
-            <Badge variant="outline" className="bg-gray-100 text-gray-700">
-              {format(date, 'dd MMMM', { locale: fr })}
-            </Badge>
-          </div>
+      {gradeEntries.students.length > 0 && (
+        <div className={`
+          mt-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm
+        `}>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>
-                  Progression: {stats.completed}/{stats.total} élèves notés
+                Progression: {stats.completed}/{stats.total} élèves notés
               </span>
               <span>Moyenne: {stats.average}/20</span>
             </div>
@@ -599,24 +544,25 @@ export default function CreateGradePage() {
 
       {/* Boutons d'action */}
       {gradeEntries.students.length > 0 && (
-        <div className="mt-6 sticky bottom-0 left-0 right-0 bg-white border-t p-4 shadow-md z-10">
+        <div className={`
+          mt-6 sticky bottom-0 left-0 right-0 bg-white border-t p-4
+          shadow-md z-10
+        `}>
           <div className="space-y-2 sm:space-y-0 md:flex gap-4">
             <Button
               variant="outline"
               className="flex-1 h-12 w-full"
-              disabled={!date || !selectedType || !selectedSession || loading}
+              disabled={loading}
               onClick={() => handleSubmit(true)}
             >
-              {isLoadingGrade
-                ? 'Enregistrement...'
-                : 'Enregistrer comme brouillon'}
+              {loading ? 'Enregistrement...' : 'Mettre à jour le brouillon'}
             </Button>
             <Button
-              disabled={!date || !selectedType || !selectedSession || loading}
               className="flex-1 h-12 w-full"
+              disabled={loading}
               onClick={() => handleSubmit(false)}
             >
-              Valider les notes
+              {loading ? 'Enregistrement...' : 'Valider les notes'}
             </Button>
           </div>
         </div>
@@ -624,9 +570,9 @@ export default function CreateGradePage() {
 
       {error && (
         <div className={`
-          fixed top-4 left-1/2 transform -translate-x-1/2
-          flex items-center justify-center gap-2 text-red-600
-          bg-red-50 px-4 py-3 rounded-lg shadow-md z-50
+          fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center
+          justify-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg
+          shadow-md z-50
         `}>
           <div className="h-2 w-2 rounded-full bg-red-500" />
           <span className="text-sm font-medium">{error}</span>

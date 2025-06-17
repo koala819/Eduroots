@@ -4,22 +4,78 @@ import { CircleArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/client/hooks/use-toast'
-import { SubjectNameEnum, TimeEnum, TimeSlotEnum } from '@/zUnused/types/course'
+import {
+  CourseSessionWithRelations,
+  SubjectNameEnum,
+  TimeEnum,
+  TimeSlotEnum,
+} from '@/types/courses'
 import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { useTeachers } from '@/client/context/teachers'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { createClient } from '@/client/utils/supabase'
+import { CourseSession, User } from '@/types/db'
 
 interface TimeSlot {
   id: string
   subject: string
-  dayOfWeek: string | TimeSlotEnum
+  dayOfWeek: TimeSlotEnum
   startTime: string
   endTime: string
-  level: string | number
+  level: string
   courseId: string
+}
+
+interface CourseWithSessions {
+  courseId: string
+  sessions: CourseSession[]
+}
+
+const createTimeSlotFromSession = (
+  session: CourseSession,
+  timeslot: CourseSessionWithRelations['courses_sessions_timeslot'][0],
+  courseId: string,
+): TimeSlot => ({
+  id: session.id,
+  subject: session.subject,
+  dayOfWeek: timeslot.day_of_week,
+  startTime: timeslot.start_time,
+  endTime: timeslot.end_time,
+  level: session.level,
+  courseId,
+})
+
+const getAllTimeSlots = (groupedStudents: any[]): TimeSlot[] => {
+  const timeSlots: TimeSlot[] = []
+
+  groupedStudents.forEach((course) => {
+    course.sessions.forEach((session: CourseSession) => {
+      const sessionWithRelations = session as CourseSessionWithRelations
+      sessionWithRelations.courses_sessions_timeslot.forEach((timeslot) => {
+        timeSlots.push(createTimeSlotFromSession(session, timeslot, course.courseId))
+      })
+    })
+  })
+
+  return timeSlots
+}
+
+const getSubjectSessions = (
+  course: CourseWithSessions,
+  subject: SubjectNameEnum,
+  selectedSession: string | null,
+) => {
+  return course.sessions.filter(
+    (session: CourseSession) =>
+      session.subject === subject && session.id === selectedSession,
+  )
+}
+
+const getStudentsFromSession = (session: CourseSession): User[] => {
+  const sessionWithRelations = session as CourseSessionWithRelations
+  return sessionWithRelations.courses_sessions_students.map((s) => s.users)
 }
 
 const ClassRoomPage = () => {
@@ -56,25 +112,8 @@ const ClassRoomPage = () => {
     loadStudents()
   }, [user, getStudentsByTeacher])
 
-  // Organiser tous les créneaux horaires disponibles
-  const allTimeSlots: TimeSlot[] = []
-  if (groupedStudents) {
-    groupedStudents.forEach((course) => {
-      course.sessions.forEach((session) => {
-        allTimeSlots.push({
-          id: session.sessionId as string,
-          subject: session.subject,
-          dayOfWeek: session.timeSlot.dayOfWeek,
-          startTime: session.timeSlot.startTime,
-          endTime: session.timeSlot.endTime,
-          level: session.level,
-          courseId: course.courseId,
-        })
-      })
-    })
-  }
+  const allTimeSlots = groupedStudents ? getAllTimeSlots(groupedStudents) : []
 
-  // Définir la session sélectionnée au chargement initial
   useEffect(() => {
     if (allTimeSlots.length > 0 && !selectedSession) {
       setSelectedSession(allTimeSlots[0].id)
@@ -97,8 +136,8 @@ const ClassRoomPage = () => {
       [TimeEnum.AfternoonEnd]: 6,
     }
 
-    const dayA = dayOrder[a.dayOfWeek as TimeSlotEnum] || 999
-    const dayB = dayOrder[b.dayOfWeek as TimeSlotEnum] || 999
+    const dayA = dayOrder[a.dayOfWeek] || 999
+    const dayB = dayOrder[b.dayOfWeek] || 999
 
     if (dayA !== dayB) {
       return dayA - dayB
@@ -183,7 +222,7 @@ const ClassRoomPage = () => {
               `}
               onClick={() => setSelectedSession(timeSlot.id)}
             >
-              {formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)}{' '}
+              {formatDayOfWeek(timeSlot.dayOfWeek)}{' '}
               {timeSlot.startTime}-{timeSlot.endTime}
             </Button>
           ))}
@@ -193,11 +232,7 @@ const ClassRoomPage = () => {
       <div className="space-y-6 mt-4">
         {groupedStudents.map((course) =>
           Object.values(SubjectNameEnum).map((subject) => {
-            const subjectSessions = course.sessions.filter(
-              (session) =>
-                session.subject === subject &&
-                session.sessionId === selectedSession,
-            )
+            const subjectSessions = getSubjectSessions(course, subject, selectedSession)
 
             if (subjectSessions.length > 0) {
               return (
@@ -219,7 +254,7 @@ const ClassRoomPage = () => {
                   <CardContent className="space-y-4 pt-2">
                     {subjectSessions.map((session) => (
                       <div
-                        key={session.sessionId}
+                        key={session.id}
                         className={`
                           bg-gray-50 rounded-lg p-4 hover:bg-gray-100
                           transition-colors duration-200
@@ -242,7 +277,7 @@ const ClassRoomPage = () => {
                         </div>
                         <ProfileCourseCard
                           key={session.id}
-                          students={session.students}
+                          students={getStudentsFromSession(session)}
                         />
                       </div>
                     ))}
