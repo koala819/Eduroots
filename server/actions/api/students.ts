@@ -52,7 +52,7 @@ export async function createStudent(
       }
     }
 
-    revalidatePath('/students')
+    revalidatePath('/family')
     revalidatePath('/dashboard')
 
     return {
@@ -100,7 +100,7 @@ export async function deleteStudent(studentId: string): Promise<ApiResponse> {
       }
     }
 
-    revalidatePath('/students')
+    revalidatePath('/family')
     revalidatePath('/dashboard')
 
     return {
@@ -374,8 +374,8 @@ export async function updateStudent(
       }
     }
 
-    revalidatePath('/students')
-    revalidatePath(`/students/${studentId}`)
+    revalidatePath('/family')
+    revalidatePath(`/family/${studentId}`)
 
     return {
       success: true,

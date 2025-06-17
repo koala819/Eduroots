@@ -13,7 +13,7 @@ export function getRedirectUrl(role: string | UserRoleEnum): string {
   case UserRoleEnum.Teacher:
     return '/teacher'
   case UserRoleEnum.Student:
-    return '/student'
+    return '/family'
   default:
     return '/link-account'
   }

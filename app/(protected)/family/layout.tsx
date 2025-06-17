@@ -3,7 +3,7 @@
 import { Header } from '@/zUnused/StudentHeader'
 import StudentNavbar from '@/zUnused/StudentNavbar'
 
-export default function StudentLayout({
+export default function FamilyLayout({
   children,
 }: Readonly<{
   children: React.ReactNode

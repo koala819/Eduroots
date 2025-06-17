@@ -6,7 +6,7 @@ import { createServerClient } from '@supabase/ssr'
 const SU_ROLE = 'admin'
 const ADMIN_ROLES = ['admin', 'bureau']
 const TEACHER_ROLE = 'teacher'
-const STUDENT_ROLE = 'student'
+const STUDENT_ROLE = 'family'
 
 // Routes qui ne nécessitent pas d'authentification
 const PUBLIC_ROUTES = ['/', '/link-account', '/auth/callback']
@@ -14,7 +14,7 @@ const PUBLIC_ROUTES = ['/', '/link-account', '/auth/callback']
 const SU_ROUTES = ['/admin/root/logs']
 const ADMIN_ROUTES = ['/admin']
 const TEACHER_ROUTES = ['/teacher']
-const STUDENT_ROUTES = ['/student']
+const STUDENT_ROUTES = ['/family']
 
 export async function middleware(req: NextRequest) {
   const response = NextResponse.next()
@@ -93,7 +93,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Vérification des routes student
+  // Vérification des routes family
   else if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== STUDENT_ROLE) {
       return NextResponse.redirect(
