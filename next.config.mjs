@@ -21,7 +21,7 @@ const nextConfig = {
     if (!isServer) {
       config.watchOptions = {
         ...config.watchOptions,
-        ignored: ['**/node_modules', '**/.git', '**/dist', '**/build', '**/.next', '**/coverage', '**/tmp', '**/temp', '**/zUnused', '**/zUnused/**/*']
+        ignored: ['**/node_modules', '**/.git', '**/dist', '**/build', '**/.next', '**/coverage', '**/tmp', '**/temp']
       }
     }
     return config
@@ -65,7 +65,7 @@ const nextConfig = {
     remotePatterns: [{ hostname: 'images.unsplash.com' }],
   },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  excludePages: ['**/zUnused/**/*'],
+  excludePages: ['zUnused/**/*'],
 }
 
 export default withSerwist(nextConfig)

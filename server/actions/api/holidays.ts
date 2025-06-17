@@ -6,9 +6,9 @@ import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { createDefaultHolidays,getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
 import { SaveHolidayPayload } from '@/types/holiday-payload'
-import { serializeData,SerializedValue } from '@/zUnused/serialization'
 
-export async function getCurrentHolidays(userId: string): Promise<ApiResponse<SerializedValue>> {
+
+export async function getCurrentHolidays(userId: string): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
@@ -27,7 +27,7 @@ export async function getCurrentHolidays(userId: string): Promise<ApiResponse<Se
     if (currentConfig && !error) {
       return {
         success: true,
-        data: serializeData(currentConfig),
+        data: currentConfig,
         message: 'Vacances récupérées avec succès',
       }
     }
@@ -38,7 +38,7 @@ export async function getCurrentHolidays(userId: string): Promise<ApiResponse<Se
 
     return {
       success: true,
-      data: serializeData(defaultConfig),
+      data: defaultConfig,
       message: 'Création de la config de vacances avec succès',
     }
   } catch (error) {
@@ -49,7 +49,7 @@ export async function getCurrentHolidays(userId: string): Promise<ApiResponse<Se
 
 export async function saveHolidays(
   holidayData: SaveHolidayPayload,
-): Promise<ApiResponse<SerializedValue>> {
+): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
   const currentYear = new Date().getFullYear().toString()
@@ -96,7 +96,7 @@ export async function saveHolidays(
 
     return {
       success: true,
-      data: serializeData(holidaySchedule),
+      data: holidaySchedule,
       message: 'Configuration des vacances enregistrée avec succès',
     }
   } catch (error) {

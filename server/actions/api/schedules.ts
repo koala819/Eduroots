@@ -6,9 +6,8 @@ import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { createDefaultSchedule, getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
 import { SaveSchedulePayload } from '@/types/schedule-payload'
-import { serializeData,SerializedValue } from '@/zUnused/serialization'
 
-export async function getCurrentSchedule(userId: string): Promise<ApiResponse<SerializedValue>> {
+export async function getCurrentSchedule(userId: string): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
@@ -27,7 +26,7 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse<Se
     if (currentConfig && !error) {
       return {
         success: true,
-        data: serializeData(currentConfig),
+        data: currentConfig,
         message: 'Schedule récupéré avec succès',
       }
     }
@@ -39,7 +38,7 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse<Se
 
     return {
       success: true,
-      data: serializeData(defaultConfig),
+      data: defaultConfig,
       message: 'Schedule créé avec valeurs par défaut',
     }
   } catch (error) {
@@ -100,7 +99,7 @@ export async function saveSchedules(scheduleData: SaveSchedulePayload) {
 
     return {
       success: true,
-      data: serializeData(scheduleConfig),
+      data: scheduleConfig,
       message: 'Configuration des horaires enregistrée avec succès',
     }
   } catch (error) {
