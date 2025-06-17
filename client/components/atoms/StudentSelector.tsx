@@ -20,7 +20,7 @@ export default function StudentSelector({
         return (
           <button
             key={child.id}
-            className={'flex flex-col items-center cursor-pointer transition-all'+
+            className={'flex flex-col items-center cursor-pointer transition-all '+
               'border-none bg-transparent p-0'}
             onClick={() => onSelectStudent(child.id)}
             onKeyDown={(e) => {

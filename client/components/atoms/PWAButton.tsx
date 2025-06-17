@@ -117,17 +117,17 @@ export const PWAButtonClient: React.FC = () => {
 
     if (platform === 'desktop') {
       if (browser === 'firefox') {
-        return 'Pour une meilleure expérience d\'installation PWA, nous vous recommandons' +
+        return 'Pour une meilleure expérience d\'installation PWA, nous vous recommandons ' +
         'd\'utiliser Google Chrome ou Microsoft Edge.'
       }
       if (browser === 'chrome') {
-        return 'Cliquez sur l\'icône d\'installation dans la barre d\'URL (à droite) ou utilisez' +
+        return 'Cliquez sur l\'icône d\'installation dans la barre d\'URL (à droite) ou utilisez ' +
         'le bouton ci - dessous'
       }
     }
 
-    return 'Utilisez l\'option \'Installer\' ou \'Ajouter à l\'écran d\'accueil\' dans le menu de' +
-    'votre navigateur'
+    return 'Utilisez l\'option \'Installer\' ou \'Ajouter à l\'écran d\'accueil\' dans le menu ' +
+    'de votre navigateur'
   }
 
   const handleInstallClick = async () => {

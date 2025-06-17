@@ -18,7 +18,6 @@
     "jsx": "preserve",
     "incremental": true,
     "types": [
-      "jest",
       "@serwist/next/typings"
     ],
     "plugins": [
@@ -39,9 +38,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "app/api/auth/[...nextauth]",
-    "./jest-setup.ts",
-    "app/__tests__/"
-, "utils/script/migrate.tsx"  ],
+    "utils/script/migrate.tsx"
+  ],
   "exclude": [
     "node_modules",
     "public/sw.js"

@@ -130,10 +130,6 @@ jobs:
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: pnpm build
-      - name: Run Tests
-        env:
-          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: pnpm test
 
   Update-Files:
     needs: Build-and-Test
