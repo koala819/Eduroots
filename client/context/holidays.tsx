@@ -8,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from 'react'
 
@@ -87,6 +88,9 @@ export const HolidaysProvider = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
+  // Ref pour éviter les appels multiples
+  const hasLoadedRef = useRef(!!initialHolidaysData)
+
   // Effet pour gérer l'authentification Supabase
   useEffect(() => {
     const getUser = async () => {
@@ -144,8 +148,8 @@ export const HolidaysProvider = ({
   )
 
   const handleGetCurrentHolidays = useCallback(async () => {
-    // Si nous avons déjà des données initiales, ne chargeons pas à nouveau
-    if (initialHolidaysData && initialHolidaysData.length > 0 && !state.isLoading) {
+    // Si nous avons déjà des données initiales ou déjà chargé, ne chargeons pas à nouveau
+    if (initialHolidaysData || hasLoadedRef.current) {
       return
     }
 
@@ -177,12 +181,14 @@ export const HolidaysProvider = ({
         type: 'SET_HOLIDAYS',
         payload: holidays as Holiday[],
       })
+
+      hasLoadedRef.current = true
     } catch (error) {
       handleError(error as Error)
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [handleError, initialHolidaysData, user, isAuthenticated, state.isLoading])
+  }, [handleError, initialHolidaysData, user, isAuthenticated])
 
   const handleSaveHolidays = useCallback(
     async (holidayData: SaveHolidayData) => {
@@ -229,19 +235,53 @@ export const HolidaysProvider = ({
   useEffect(() => {
     // If we already have initial holiday data, no need to load again
     if (initialHolidaysData) {
-      console.log('Using initial holiday data, skipping fetch')
       return
     }
 
     // Only load when authentication is ready and user is authenticated
-    if (!authLoading && isAuthenticated && user) {
-      handleGetCurrentHolidays().catch((err) =>
-        console.error('Failed to load initial holidays data:', err),
-      )
-    } else if (authLoading) {
-      // console.log('Auth session is still loading')
+    if (!authLoading && isAuthenticated && user && !hasLoadedRef.current) {
+      // Appel direct sans passer par le callback pour éviter la boucle
+      const loadHolidays = async () => {
+        try {
+          dispatch({ type: 'SET_LOADING', payload: true })
+
+          if (!isAuthenticated || !user) {
+            throw new Error('Non authentifié')
+          }
+
+          // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+          const authResponse = await getAuthUser(user.id)
+
+          if (!authResponse.success || !authResponse.data) {
+            throw new Error(authResponse.message || 'Erreur d\'authentification')
+          }
+
+          const response = await getCurrentHolidays(user.id)
+
+          if (!response.success) {
+            throw new Error(response.message || 'Échec de la récupération des vacances')
+          }
+
+          // Extraire les vacances de la réponse
+          const data = response.data as any
+          const holidays = data.holidays ?? []
+
+          dispatch({
+            type: 'SET_HOLIDAYS',
+            payload: holidays as Holiday[],
+          })
+
+          hasLoadedRef.current = true
+        } catch (error) {
+          handleError(error as Error)
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false })
+        }
+      }
+
+      loadHolidays()
     }
-  }, [initialHolidaysData, user, isAuthenticated, authLoading, handleGetCurrentHolidays])
+  }, [initialHolidaysData, user, isAuthenticated, authLoading, handleError])
 
   const value = useMemo(
     () => ({

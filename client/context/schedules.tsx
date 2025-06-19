@@ -198,11 +198,8 @@ export const SchedulesProvider = ({
   )
 
   const handleGetCurrentSchedule = useCallback(async () => {
-    // Référence locale à hasLoadedRef pour éviter de dépendre du state
-    const hasLoaded = hasLoadedRef.current
-
     // Si nous avons déjà des données initiales ou déjà chargé, ne chargeons pas à nouveau
-    if (initialSchedulesData || hasLoaded) {
+    if (initialSchedulesData || hasLoadedRef.current) {
       return
     }
 
@@ -313,14 +310,59 @@ export const SchedulesProvider = ({
     }
 
     // Only load when authentication is ready and user is authenticated
-    if (!authLoading && isAuthenticated && user) {
-      handleGetCurrentSchedule().catch((err) =>
-        console.error('Failed to load initial schedules data:', err),
-      )
-    } else if (authLoading) {
-      // console.log('Auth session is still loading')
+    if (!authLoading && isAuthenticated && user && !hasLoadedRef.current) {
+      // Appel direct sans passer par le callback pour éviter la boucle
+      const loadSchedules = async () => {
+        try {
+          dispatch({ type: 'SET_LOADING', payload: true })
+
+          if (!isAuthenticated || !user) {
+            throw new Error('Non authentifié')
+          }
+
+          // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+          const authResponse = await getAuthUser(user.id)
+
+          if (!authResponse.success || !authResponse.data) {
+            throw new Error(authResponse.message || 'Erreur d\'authentification')
+          }
+
+          const response = await getCurrentSchedule(user.id)
+
+          if (!response.success) {
+            throw new Error(response.message || 'Échec de la récupération des horaires')
+          }
+
+          // Extraire les horaires de la réponse
+          const data = response.data as any
+          const schedules = data.schedules ?? []
+
+          // Convertir les données en format attendu
+          const convertedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
+          schedules.forEach((schedule: any) => {
+            if (schedule && schedule.dayType && schedule.periods) {
+              convertedSchedules[schedule.dayType as TimeSlotEnum] = {
+                periods: schedule.periods,
+              }
+            }
+          })
+
+          dispatch({
+            type: 'SET_SCHEDULES',
+            payload: convertedSchedules,
+          })
+
+          hasLoadedRef.current = true
+        } catch (error) {
+          handleError(error as Error)
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false })
+        }
+      }
+
+      loadSchedules()
     }
-  }, [initialSchedulesData, user, isAuthenticated, authLoading, handleGetCurrentSchedule])
+  }, [initialSchedulesData, user, isAuthenticated, authLoading, handleError])
 
   const value = useMemo(
     () => ({
