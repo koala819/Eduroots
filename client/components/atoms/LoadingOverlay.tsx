@@ -30,6 +30,7 @@ export default function LoadingOverlay({
             src="/Logo.jpg"
             alt="Logo"
             fill
+            sizes="(max-width: 768px) 288px, 288px"
             className="rounded-md object-cover"
             priority
           />

@@ -34,12 +34,8 @@ export default async function EditAttendancePage({ params, searchParams }: PageP
       return <ErrorComponent message="Session de cours non trouvée" />
     }
 
-    const courseData = courseSessionRes.data.courses_sessions?.[0] || courseSessionRes.data
-
-    if (!courseData) {
-      console.error('❌ [EditAttendancePage] Données de session invalides')
-      return <ErrorComponent message="Données de session invalides" />
-    }
+    // courseSessionRes.data contient directement la session
+    const courseData = courseSessionRes.data
 
     // Récupérer la feuille de présence
     const attendanceRes = await getAttendanceById(courseData.course_id, date)

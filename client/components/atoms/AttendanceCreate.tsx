@@ -39,7 +39,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
   useEffect(() => {
     async function fetchCourse() {
       try {
-        console.log('🔄 [AttendanceCreate] Chargement du cours:', courseId)
         const courseData = await getCourseSessionById(courseId)
 
         if (!courseData) {
@@ -48,9 +47,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
           setError(errorMsg)
           return
         }
-
-        console.log('✅ [AttendanceCreate] Cours chargé:', courseData)
-
         // Le courseId passé est en fait l'ID de la session, pas du cours
         // On doit trouver la session correspondante dans le cours
         const session = courseData.courses_sessions.find((s: any) => s.id === courseId)
@@ -97,13 +93,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
     setError(null)
 
     try {
-      console.log('🔄 [AttendanceCreate] Enregistrement des présences:', {
-        courseId,
-        date,
-        sessionId: course.id,
-        recordsCount: Object.keys(attendanceData).length,
-      })
-
       const records = Object.entries(attendanceData).map(([studentId, isPresent]) => ({
         studentId,
         isPresent,
@@ -116,8 +105,6 @@ export const AttendanceCreate: React.FC<AttendanceCreateProps> = ({
         records: records,
         sessionId: course.id,
       })
-
-      console.log('✅ [AttendanceCreate] Présences enregistrées avec succès')
 
       // Navigation vers la page précédente après succès
       router.back()

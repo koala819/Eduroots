@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
@@ -24,33 +25,20 @@ export default async function CreateAttendancePage({ params, searchParams }: Pag
   }
 
   try {
-    console.log('🔄 [CreateAttendancePage] Chargement de la session:', courseSessionId)
-
     // Récupérer la session de cours
     const courseSessionRes = await getCourseSessionById(courseSessionId)
+
     if (!courseSessionRes.success || !courseSessionRes.data) {
-      console.error('❌ [CreateAttendancePage] Session non trouvée:', courseSessionRes.message)
-      return <ErrorComponent message="Session de cours non trouvée" />
+      notFound()
     }
 
-    console.log('✅ [CreateAttendancePage] Session chargée:', courseSessionRes.data)
-
-    // Le courseSessionId est en fait l'ID de la session, pas du cours
-    // On doit trouver la session correspondante dans le cours
-    const session = courseSessionRes.data.courses_sessions.find(
-      (s: any) => s.id === courseSessionId)
-
-    if (!session) {
-      console.error('❌ [CreateAttendancePage] Session non trouvée dans le cours')
-      return <ErrorComponent message="Session non trouvée dans le cours" />
-    }
+    // courseSessionRes.data contient directement la session
+    const session = courseSessionRes.data
 
     // Récupérer la liste des étudiants
     const students = session.courses_sessions_students
       ?.map((s: any) => s.users)
       .filter((user: any) => user !== null && user !== undefined) || []
-
-    console.log('✅ [CreateAttendancePage] Étudiants récupérés:', students.length)
 
     // Préparer les données de session
     const courseSession: CourseSessionWithRelations = {
