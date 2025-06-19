@@ -61,7 +61,7 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
     <div className="space-y-4">
       {Object.entries(sessionsByTimeSlot).map(([timeSlot, sessions]) => (
         <div key={timeSlot} className="space-y-4">
-          <h2 className="text-xl font-semibold text-[#375073] px-4">
+          <h2 className="text-xl font-semibold text-primary px-4">
             {formatDayOfWeek(timeSlot as TimeSlotEnum)}
           </h2>
           {sessions.map((session) => {
@@ -72,7 +72,7 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
               <Card
                 key={session.id}
                 className="hover:shadow-lg transition-all duration-200 cursor-pointer
-              border-l-4 border-l-[#375073] hover:border-l-[#4a6b94]"
+              border-l-4 border-l-primary hover:border-l-primary-accent"
                 onClick={() => router.push(`/teacher/classroom/course/${session.id}`)}
               >
                 <CardContent className="p-4">
@@ -80,16 +80,16 @@ export function CourseGrid({ courses }: Readonly<CourseGridProps>) {
                    gap-4">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-[#375073]">
+                        <h3 className="text-lg font-semibold text-primary">
                           {session.subject}
                         </h3>
                         <Badge variant="secondary" className="flex items-center gap-1
-                        bg-[#375073]/10 text-[#375073]">
+                        bg-primary/10 text-primary">
                           <GraduationCap className="h-4 w-4" />
                           {session.level}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-[#375073]">
+                      <div className="flex flex-wrap gap-4 text-sm text-primary">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           <span>{formatDayOfWeek(timeslot?.day_of_week)}</span>
