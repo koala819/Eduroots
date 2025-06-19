@@ -1,10 +1,10 @@
 'use client'
 
 import { AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
-import { AttendanceEdit } from '@/client/components/atoms/AttendanceEdit'
 import { AttendanceTable } from '@/client/components/atoms/AttendanceTable'
 import { EmptyContent, ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -23,14 +23,13 @@ export const AttendanceDashboard = ({
   students: User[]
   courseDates: Date[]
 }) => {
+  const router = useRouter()
   const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
   const [courseId, setCourseId] = useState<string | null>(null)
   const { allAttendance, fetchAttendances, error: attendanceError } = useAttendances()
 
   const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
-  const [isEditingAttendance, setIsEditingAttendance] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [selectedAttendanceId, setSelectedAttendanceId] = useState<string>('')
   const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
 
   useEffect(() => {
@@ -62,9 +61,10 @@ export const AttendanceDashboard = ({
   }
 
   function handleEditAttendance(attendanceId: string, date: string) {
-    setSelectedAttendanceId(attendanceId)
-    setSelectedDate(date)
-    setIsEditingAttendance(true)
+    // Navigation vers la page d'édition avec useRouter
+    router.push(
+      `/teacher/classroom/course/${courseSessionId}/attendance/${attendanceId}/edit?date=${date}`,
+    )
   }
 
   async function handleCloseCreate() {
@@ -74,22 +74,6 @@ export const AttendanceDashboard = ({
     // Recharger les données sans recharger toute la page
     if (courseId) {
       await fetchAttendances({ courseId })
-    }
-  }
-
-  async function handleCloseEdit() {
-    setIsEditingAttendance(false)
-
-    // Attendre que le modal soit complètement fermé
-    await new Promise((resolve) => setTimeout(resolve, 300))
-
-    // Recharger les données
-    if (courseId) {
-      try {
-        await fetchAttendances({ courseId })
-      } catch (error) {
-        console.error('❌ [AttendanceDashboard] Erreur rechargement:', error)
-      }
     }
   }
 
@@ -137,32 +121,6 @@ export const AttendanceDashboard = ({
                   students={students}
                   onClose={handleCloseCreate}
                   date={selectedDate}
-                />
-              )}
-            </SheetContent>
-          </Sheet>
-        )}
-        {isEditingAttendance && (
-          <Sheet open={isEditingAttendance} onOpenChange={setIsEditingAttendance}>
-            <SheetContent
-              side="right"
-              className="w-full sm:max-w-xl [&>button]:hidden
-                bg-primary"
-            >
-              <SheetTitle
-                className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8
-                  text-center sm:text-left text-primary-foreground
-                  border-b border-primary-foreground/20 pb-4"
-              >
-                Modifier la Feuille des Présences
-              </SheetTitle>
-              {selectedAttendanceId && selectedDate && (
-                <AttendanceEdit
-                  courseSessionId={courseSessionId}
-                  onClose={handleCloseEdit}
-                  date={selectedDate}
-                  students={students}
-                  attendanceId={selectedAttendanceId}
                 />
               )}
             </SheetContent>

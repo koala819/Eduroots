@@ -5,7 +5,6 @@ import * as React from 'react'
 
 // import { useConfig } from '@/context/ConfigContext'
 import { cn } from '@/server/utils/helpers'
-import { ButtonVariant } from '@/zUnused/types/models'
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -13,19 +12,24 @@ export interface ButtonProps
   asChild?: boolean
 }
 
-function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record<string, string>) {
+function createButtonVariants(themeVariants: Map<string, string> | Record<string, string>) {
   const variantsRecord =
     themeVariants instanceof Map ? Object.fromEntries(themeVariants) : themeVariants
 
   return cva(
-    'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ' +
+    'ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none ' +
+    'disabled:opacity-50',
     {
       variants: {
         variant: {
           default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-          destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-          outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-          secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          destructive: 'bg-error text-primary-foreground hover:bg-error-light/90',
+          outline: 'border border-input bg-background hover:bg-accent ' +
+            'hover:text-accent-foreground',
+          secondary: 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] ' +
+            'hover:bg-[var(--color-secondary-dark)]',
           ghost: 'hover:bg-accent hover:text-accent-foreground',
           link: 'text-primary underline-offset-4 hover:underline',
           teacherCancel: '',
@@ -33,7 +37,8 @@ function createButtonVariants(themeVariants: Map<ButtonVariant, string> | Record
           teacherFooter: '',
           teacherSecondary: '',
           teacherTertiary: '',
-          teacherWarning: 'bg-red-500 text-destructive-foreground hover:bg-red-800/90',
+          teacherWarning: 'bg-red-500 text-destructive-foreground ' +
+            'hover:bg-red-800/90',
           ...variantsRecord,
         },
         size: {
@@ -59,7 +64,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     //   () => createButtonVariants(theme?.buttonVariants || {}),
     //   [theme?.buttonVariants],
     // )
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
   },
 )
 Button.displayName = 'Button'

@@ -2,7 +2,7 @@
 
 import { ReactNode, Suspense } from 'react'
 
-import LoadingFallback from '@/client/components/atoms/LoadingFallback'
+import LoadingOverlay from '@/client/components/atoms/LoadingOverlay'
 import GlobalLoadingIndicator from '@/client/components/molecules/ContextLoader'
 import AttendancesServerComponent from '@/server/context/attendances'
 import BehaviorsServerComponent from '@/server/context/behaviors'
@@ -16,7 +16,7 @@ import TeachersServerComponent from '@/server/context/teachers'
 
 export default async function GlobalServerProvider({ children }: Readonly<{children: ReactNode}>) {
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<LoadingOverlay />}>
       <StatsServerComponent>
         <TeachersServerComponent>
           <CoursesServerComponent>

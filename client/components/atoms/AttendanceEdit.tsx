@@ -1,101 +1,47 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import {
   BarChart2,
   CheckCircle,
-  Clock,
   NotebookText,
   XCircle,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
 import { Button } from '@/client/components/ui/button'
 import { useAttendances } from '@/client/context/attendances'
-import { useCourses } from '@/client/context/courses'
-import { getCourseSessionById } from '@/server/actions/api/courses'
 import { CourseSessionWithRelations } from '@/types/courses'
 import { User } from '@/types/db'
 import { GenderEnum } from '@/types/user'
 
+import { ErrorComponent } from './ErrorComponent'
+
 interface AttendanceEditProps {
-  students: User[];
-  onClose: () => void;
-  date: string;
-  courseSessionId: string;
-  attendanceId: string;
+  courseSessionId: string
+  date: string
+  attendanceId: string
+  students: User[]
+  initialData: {
+    courseSession: CourseSessionWithRelations
+    attendanceRecords: { [key: string]: boolean }
+    attendanceId: string
+  }
 }
 
-export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
-  students,
-  onClose,
-  date,
+export function AttendanceEdit({
   courseSessionId,
+  date,
   attendanceId,
-}) => {
-  const { updateAttendanceRecord, isLoadingAttendance, getAttendanceById } =
-    useAttendances()
-  const { isLoadingCourse } = useCourses()
-
-  const [course, setCourse] = useState<CourseSessionWithRelations | null>(null)
+  students,
+  initialData,
+}: AttendanceEditProps) {
+  const router = useRouter()
+  const { updateAttendanceRecord } = useAttendances()
+  const [attendanceRecords, setAttendanceRecords] = useState(initialData.attendanceRecords)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [attendanceRecords, setAttendanceRecords] = useState<{
-    [key: string]: boolean;
-  }>({})
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        console.log('🔄 [AttendanceEdit] Chargement des données...')
-        const response = await getCourseSessionById(courseSessionId)
-        if (!response.success || !response.data) {
-          setError('Session non trouvée')
-          return
-        }
-        const courseSession: CourseSessionWithRelations = {
-          ...response.data.courses_sessions[0],
-          courses_sessions_students: response.data.courses_sessions[0].courses_sessions_students,
-          courses_sessions_timeslot: response.data.courses_sessions[0].courses_sessions_timeslot,
-        }
-        setCourse(courseSession)
-
-        const attendance = await getAttendanceById(courseSessionId, date)
-        console.log('📊 [AttendanceEdit] Données reçues:', attendance)
-
-        if (attendance?.data?.records) {
-          const recordsMap = attendance.data.records.reduce(
-            (
-              acc: { [x: string]: boolean },
-              record: { student_id: string; is_present: boolean },
-            ) => {
-              acc[record.student_id] = record.is_present
-              return acc
-            },
-            {} as { [key: string]: boolean },
-          )
-          console.log('✅ [AttendanceEdit] Records mappés:', recordsMap)
-          setAttendanceRecords(recordsMap)
-        } else {
-          const initialRecords = students.reduce(
-            (acc, student) => ({
-              ...acc,
-              [student.id]: false,
-            }),
-            {} as { [key: string]: boolean },
-          )
-          console.log('⚠️ [AttendanceEdit] Aucune donnée trouvée, initialisation avec:',
-            initialRecords)
-          setAttendanceRecords(initialRecords)
-        }
-      } catch (err) {
-        console.error('❌ [AttendanceEdit] Erreur chargement:', err)
-        setError('Erreur lors du chargement des données')
-      }
-    }
-    fetchData()
-  }, [courseSessionId, getAttendanceById, attendanceId, students, date])
 
   function handleTogglePresence(studentId: string) {
     setAttendanceRecords((prev) => ({
@@ -107,20 +53,20 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
   async function handleSave() {
     setIsUpdating(true)
     try {
-      console.log('🔄 [AttendanceEdit] Sauvegarde des données...')
-      const records = students.map((student) => ({
-        studentId: student.id,
-        isPresent: attendanceRecords[student.id] ?? false,
-        comment: null,
-      }))
-      console.log('📝 [AttendanceEdit] Records à sauvegarder:', records)
+      const records = students
+        .filter((student) => student && student.id)
+        .map((student) => ({
+          studentId: student.id,
+          isPresent: attendanceRecords[student.id] ?? false,
+          comment: null,
+        }))
 
+      // Mise à jour d'une attendance existante
       await updateAttendanceRecord({
         attendanceId: attendanceId,
         records: records,
       })
 
-      console.log('✅ [AttendanceEdit] Données sauvegardées')
       onClose()
     } catch (error) {
       console.error('❌ [AttendanceEdit] Erreur sauvegarde:', error)
@@ -130,153 +76,161 @@ export const AttendanceEdit: React.FC<AttendanceEditProps> = ({
     }
   }
 
-  if (error) {
-    return (
-      <div className="h-[200px] flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
-      </div>
-    )
+  const onClose = () => {
+    // Navigation de retour vers le dashboard
+    router.push(`/teacher/classroom/course/${courseSessionId}`)
   }
 
-  if (isLoadingAttendance || isLoadingCourse) {
-    return (
-      <div className="h-[200px] flex items-center justify-center">
-        <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
-        ></div>
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
-        ></div>
-      </div>
-    )
+  if (error) {
+    return <ErrorComponent message={error} />
   }
 
   return (
-    <div className="h-screen overflow-y-auto">
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.3 }}
-        className="bg-white/10 p-4 rounded-lg shadow-md w-full pb-20"
-        aria-describedby="attendance-edit-description"
-      >
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Header avec informations du cours */}
+      <div className="bg-background border border-border rounded-lg shadow-sm p-4 sm:p-6 mb-6">
         <div id="attendance-edit-description" className="sr-only">
           Formulaire de modification des présences pour la session du{' '}
           {new Date(date).toLocaleDateString()}
         </div>
-        <div className="space-y-6">
-          <section className="container mx-auto px-4 py-6">
-            <div className="flex flex-col space-y-4">
-              {/* Course Details */}
-              {date && course && (
-                <div className="bg-white/10 rounded-lg p-4 shadow-sm">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center sm:text-left">
-                    {/* Level */}
-                    <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <BarChart2 className="w-5 h-5 shrink-0 text-white" />
-                      <span className="text-sm text-white">
-                        Niveau {course.level}
-                      </span>
+
+        {/* Grille responsive pour les détails du cours */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Niveau */}
+          <div className="flex items-center justify-center sm:justify-start space-x-3 p-3
+           bg-muted/50 rounded-lg">
+            <BarChart2 className="w-5 h-5 shrink-0 text-primary" />
+            <div className="text-center sm:text-left">
+              <p className="text-xs text-muted-foreground font-medium">Niveau</p>
+              <p className="text-sm font-semibold text-foreground">
+                {initialData.courseSession.level}
+              </p>
+            </div>
+          </div>
+
+          {/* Matière */}
+          <div
+            className="flex items-center justify-center sm:justify-start space-x-3 p-3
+             bg-muted/50 rounded-lg"
+          >
+            <NotebookText className="w-5 h-5 shrink-0 text-primary" />
+            <div className="text-center sm:text-left">
+              <p className="text-xs text-muted-foreground font-medium">Matière</p>
+              <p className="text-sm font-semibold text-foreground">
+                {initialData.courseSession.subject}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Liste des étudiants */}
+      <div className="space-y-3 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+            Liste des étudiants ({students.filter((s) => s && s.id && s.firstname).length})
+          </h2>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <CheckCircle className="w-4 h-4 text-success-light" />
+            <span>Présent</span>
+            <XCircle className="w-4 h-4 text-error-light ml-2" />
+            <span>Absent</span>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {students
+            .filter((student) => student && student.id && student.firstname)
+            .toSorted((a, b) => a.firstname.localeCompare(b.firstname))
+            .map((student) => (
+              <div
+                key={student.id}
+                className="group"
+              >
+                <div
+                  className="flex items-center justify-between p-4 bg-background border
+                  border-border rounded-lg shadow-sm hover:shadow-md transition-all
+                  duration-200 ease-in-out cursor-pointer hover:bg-muted/30 hover:border-primary/30"
+                  onClick={() => handleTogglePresence(student.id)}
+                >
+                  {/* Informations étudiant */}
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    {/* Icône genre */}
+                    <div className="flex-shrink-0">
+                      {student.gender === GenderEnum.Masculin ? (
+                        <BiMale className="h-6 w-6 text-primary" />
+                      ) : (
+                        <BiFemale className="h-6 w-6 text-[#E84393]" />
+                      )}
                     </div>
 
-                    {/* Subject */}
-                    <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <NotebookText className="w-5 h-5 shrink-0 text-white" />
-                      <span className="text-sm text-white">
-                        {course.subject}
-                      </span>
-                    </div>
-
-                    {/* Date */}
-                    <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <Clock className="w-5 h-5 shrink-0 text-white" />
-                      <span className="text-sm text-white">
-                        {new Date(date).toLocaleDateString()}
-                      </span>
+                    {/* Nom et prénom */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {student.firstname}
+                        <span className="font-bold text-foreground ml-1">
+                          {student.lastname}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Cliquez pour changer le statut
+                      </p>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </section>
 
-          <section>
-            <div className="max-w-4xl mx-auto">
-              <ul className="space-y-3">
-                {students
-                  .toSorted((a, b) => a.firstname.localeCompare(b.firstname))
-                  .map((student) => {
-                    return (
-                      <motion.li
-                        key={student.id}
-                        className="flex items-center justify-between p-4 bg-white/10 border
-                        border-white/20 rounded-lg shadow-sm hover:shadow-md transition-all
-                        duration-200 ease-in-out cursor-pointer hover:bg-white/20"
-                        onClick={() => handleTogglePresence(student.id)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {student.gender === GenderEnum.Masculin ? (
-                            <BiMale className="h-6 w-6 text-white" />
-                          ) : (
-                            <BiFemale className="h-6 w-6 text-[#E84393]" />
-                          )}
-                          <span className="font-medium text-white">
-                            {student.firstname}
-                            <span className="font-bold text-white ml-1">
-                              {student.lastname}
-                            </span>
-                          </span>
-                        </div>
-                        <motion.div
-                          className={`transition-all duration-300 ${
-                            attendanceRecords[student.id]
-                              ? 'text-green-400 bg-green-900/30'
-                              : 'text-red-400 bg-red-900/30'
-                          } p-2 rounded-full`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          {attendanceRecords[student.id] ? (
-                            <CheckCircle className="h-6 w-6" />
-                          ) : (
-                            <XCircle className="h-6 w-6" />
-                          )}
-                        </motion.div>
-                      </motion.li>
-                    )
-                  })}
-              </ul>
-            </div>
-          </section>
-          <section className="mt-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex justify-end space-x-4">
-                <Button
-                  variant="teacherWarning"
-                  className="bg-red-500 text-white hover:bg-red-600"
-                  onClick={() => onClose()}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  variant="teacherDefault"
-                  className="bg-white text-[#375073] hover:bg-white/90"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
-                </Button>
+                  {/* Statut de présence */}
+                  <div
+                    className={`flex-shrink-0 transition-all duration-300 ${
+                      attendanceRecords[student.id]
+                        ? 'text-success-light bg-success-light/20 border-success-light/30'
+                        : 'text-error-light bg-error-light/20 border-error-light/30'
+                    } p-3 rounded-full border-2`}
+                  >
+                    {attendanceRecords[student.id] ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <XCircle className="h-5 w-5" />
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
+            ))}
         </div>
-      </motion.div>
+      </div>
+
+      {/* Actions */}
+      <div
+        className="sticky p-4 -mx-4 sm:mx-0"
+      >
+        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+          <Button
+            variant="destructive"
+            onClick={onClose}
+            className="w-full sm:w-auto order-2 sm:order-1 hover:cursor-pointer"
+          >
+            Annuler
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isUpdating}
+            className="w-full sm:w-auto order-1 sm:order-2 bg-primary text-primary-foreground
+              hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed
+              hover:cursor-pointer"
+          >
+            {isUpdating ? (
+              <div className="flex items-center space-x-2">
+                <div
+                  className="w-4 h-4 border-2 border-primary-foreground/30
+                  border-t-primary-foreground rounded-full animate-spin"
+                />
+                <span>Mise à jour...</span>
+              </div>
+            ) : (
+              'Mettre à jour'
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

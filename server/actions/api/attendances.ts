@@ -293,26 +293,43 @@ export async function getAttendanceById(
         .lt('date', `${today}T23:59:59.999Z`)
     } else if (date) {
       const searchDate = date.split('T')[0]
-      query = query.gte('date', `${searchDate}T00:00:00.000Z`)
-        .lt('date', `${searchDate}T23:59:59.999Z`)
+      // Rechercher avec le format exact de la base de données (YYYY-MM-DD)
+      query = query.eq('date', searchDate)
     }
 
+    // Si une date est spécifiée ou checkToday est true, utiliser .single()
+    // Sinon, retourner toutes les attendances (tableau)
     const { data: attendances, error } = date || checkToday ?
       await query.single() :
       await query
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return {
+          success: true,
+          data: null,
+          message: 'Aucune attendance trouvée pour cette date',
+        }
+      }
+      return {
+        success: false,
+        data: null,
+        message: `Erreur lors de la récupération: ${error.message}`,
+      }
     }
 
     return {
       success: true,
       data: attendances,
-      message: 'Absence récupérée avec succès',
+      message: 'Attendance récupérée avec succès',
     }
-  } catch (error: any) {
-    console.error('[GET_ATTENDANCE_BY_ID]', error)
-    throw new Error('Erreur lors de la récupération du cours')
+  } catch (error) {
+    console.error('Erreur dans getAttendanceById:', error)
+    return {
+      success: false,
+      data: null,
+      message: 'Erreur interne du serveur',
+    }
   }
 }
 

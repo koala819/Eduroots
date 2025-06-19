@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 
 import { useAuth } from '@/client/hooks/use-auth'
 
-import LoadingFallback from './LoadingFallback'
+import LoadingOverlay from './LoadingOverlay'
 
 interface AuthenticatedContentProps {
   children: React.ReactNode
@@ -13,7 +13,7 @@ interface AuthenticatedContentProps {
 
 export function AuthenticatedContent({
   children,
-  fallback = <LoadingFallback />,
+  fallback = <LoadingOverlay />,
 }: Readonly<AuthenticatedContentProps>) {
   const { session, isLoading } = useAuth()
 
