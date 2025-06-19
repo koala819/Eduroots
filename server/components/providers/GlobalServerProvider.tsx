@@ -2,8 +2,8 @@
 
 import { ReactNode, Suspense } from 'react'
 
-import GlobalLoadingIndicator from '@/client/components/atoms/ContextLoader'
 import LoadingFallback from '@/client/components/atoms/LoadingFallback'
+import GlobalLoadingIndicator from '@/client/components/molecules/ContextLoader'
 import AttendancesServerComponent from '@/server/context/attendances'
 import BehaviorsServerComponent from '@/server/context/behaviors'
 import CoursesServerComponent from '@/server/context/courses'
