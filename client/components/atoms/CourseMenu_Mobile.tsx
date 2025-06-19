@@ -1,7 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Clock,Star } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { ArrowLeft, CheckCircle2, Clock, Star } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { CourseSessionWithRelations } from '@/types/courses'
@@ -20,144 +20,126 @@ const views = [
 ]
 
 export const CourseMenuMobile = ({
-  activeView,
-  setActiveView,
+  courseSessionId,
   selectedSession,
 }: {
-  activeView: string
-  setActiveView: (view: string) => void
+  courseSessionId: string
   selectedSession: CourseSessionWithRelations
 }) => {
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Détecter la vue active basée sur le pathname
+  const activeView = pathname.includes('/behavior') ? 'behavior' : 'attendance'
+
+  const handleViewChange = (viewId: string) => {
+    router.push(`/teacher/classroom/course/${courseSessionId}/${viewId}`)
+  }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="sticky top-0 z-30 bg-primary text-primary-foreground border-b border-primary/20"
+      className="w-full bg-gradient-to-br from-primary via-primary to-primary-dark
+       text-primary-foreground"
     >
-      {/* Header avec informations du cours */}
-      <div className="px-4 py-3">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex items-center gap-3"
-        >
-          {/* Bouton retour amélioré */}
+      <div className="px-4 py-4">
+        {/* Header */}
+        <section className="flex items-center justify-between mb-4">
+          {/* Bouton retour */}
           <motion.button
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             onClick={() => router.push('/teacher/classroom')}
-            className="flex items-center justify-center w-10 h-10 rounded-full
-            transition-colors duration-200"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-foreground/10
+            hover:bg-primary-foreground/15 transition-all duration-200 border
+            border-primary-foreground/20"
           >
-            <ArrowLeft className="w-5 h-5 text-primary-foreground" />
+            <ArrowLeft className="w-4 h-4 text-primary-foreground" />
+            <span className="text-sm font-medium text-primary-foreground/90">Retour</span>
           </motion.button>
 
           {/* Informations du cours */}
-          <div className="flex-1 min-w-0">
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-lg font-bold text-primary-foreground truncate"
-            >
+          <div className="flex items-center justify-between gap-3 min-w-0 flex-1 mx-4">
+
+            <h1 className="text-lg font-bold text-primary-foreground truncate">
               {selectedSession.subject}
-            </motion.h1>
-
-            <div className="flex items-center gap-4 mt-1">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-center gap-1 text-sm text-primary-foreground/80"
-              >
-                <Clock className="w-4 h-4" />
+            </h1>
+            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs mt-1">
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">
                 {formatDayOfWeek(selectedSession.courses_sessions_timeslot[0].day_of_week)}
-              </motion.div>
-
+              </span>
 
             </div>
           </div>
-        </motion.div>
-      </div>
+        </section>
 
-      {/* Menu de navigation des vues */}
-      <div className="px-4 pb-4">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className="relative"
-        >
-          {/* Container avec design cohérent à la sidebar */}
-          <div className="relative bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1.5
+        {/* Menu de navigation des vues */}
+        <section className="relative bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1.5
           border border-primary-foreground/20">
-            {/* Background BLANC pour l'onglet actif */}
+          {/* Background BLANC pour l'onglet actif */}
 
-            <motion.div
-              key={activeView}
-              layoutId="activeViewBackground"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{
-                type: 'spring',
-                stiffness: 400,
-                damping: 30,
-                opacity: { duration: 0.2 },
-              }}
-              className="absolute inset-1.5 bg-primary-foreground rounded-xl shadow-lg"
-              style={{
-                left: activeView === 'attendance' ? '6px' : '50%',
-                width: 'calc(50% - 6px)',
-              }}
-            />
+          <motion.div
+            key={activeView}
+            layoutId="activeViewBackground"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+              opacity: { duration: 0.2 },
+            }}
+            className="absolute inset-1.5 bg-primary-foreground rounded-xl shadow-lg"
+            style={{
+              left: activeView === 'attendance' ? '6px' : '50%',
+              width: 'calc(50% - 6px)',
+            }}
+          />
 
 
-            {/* Boutons des vues */}
-            <div className="relative flex">
-              {views.map(({ id, label, Icon }) => {
-                const isActive = activeView === id
+          {/* Boutons des vues */}
+          <div className="relative flex">
+            {views.map(({ id, label, Icon }) => {
+              const isActive = activeView === id
 
-                return (
-                  <motion.button
-                    key={id}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setActiveView(id)}
-                    className="relative flex-1 flex items-center justify-center gap-2 px-4 py-3
-                    rounded-xl text-sm font-medium transition-all duration-200"
+              return (
+                <motion.button
+                  key={id}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleViewChange(id)}
+                  className="relative flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2
+                   sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all
+                   duration-200"
+                >
+                  {/* Contenu du bouton */}
+                  <motion.div
+                    animate={{
+                      color: isActive ? 'var(--color-primary)'
+                        : 'var(--color-primary-foreground)',
+                      scale: isActive ? 1.05 : 1,
+                    }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2"
                   >
-                    {/* Contenu du bouton */}
-                    <motion.div
-                      animate={{
-                        color: isActive ? 'var(--color-primary)'
-                          : 'var(--color-primary-foreground)',
-                        scale: isActive ? 1.05 : 1,
-                      }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{label}</span>
-                    </motion.div>
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                  </motion.div>
 
 
-                  </motion.button>
-                )
-              })}
-            </div>
+                </motion.button>
+              )
+            })}
           </div>
+        </section>
 
 
-        </motion.div>
+
+
       </div>
-
-      {/* Séparateur avec dégradé */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent
-       via-primary-foreground/20 to-transparent" />
     </motion.div>
   )
 }

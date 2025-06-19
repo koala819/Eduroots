@@ -1,7 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Clock,Star } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { ArrowLeft, CheckCircle2, Clock, Star } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { CourseSessionWithRelations } from '@/types/courses'
@@ -20,15 +20,21 @@ const views = [
 ]
 
 export const CourseMenuDesktop = ({
-  activeView,
-  setActiveView,
+  courseSessionId,
   selectedSession,
 }: {
-  activeView: string
-  setActiveView: (view: string) => void
+  courseSessionId: string
   selectedSession: CourseSessionWithRelations
 }) => {
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Détecter la vue active basée sur le pathname
+  const activeView = pathname.includes('/behavior') ? 'behavior' : 'attendance'
+
+  const handleViewChange = (viewId: string) => {
+    router.push(`/teacher/classroom/course/${courseSessionId}/${viewId}`)
+  }
 
   return (
     <motion.div
@@ -110,7 +116,7 @@ export const CourseMenuDesktop = ({
                     key={id}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setActiveView(id)}
+                    onClick={() => handleViewChange(id)}
                     animate={{
                       width: isActive ? '90%' : '10%',
                     }}
@@ -125,7 +131,7 @@ export const CourseMenuDesktop = ({
                       transition-all duration-300 h-full
                       ${isActive
                     ? 'bg-primary-foreground/20 backdrop-blur-md shadow-lg border ' +
-                          'border-primary-foreground /30 text - primary - foreground'
+                          'border-primary-foreground/30 text-primary-foreground'
                     : 'text-primary-foreground/60 hover:text-primary-foreground/80 ' +
                           'hover:bg-primary-foreground/5'
                   }
