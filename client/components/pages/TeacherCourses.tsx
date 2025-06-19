@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { CourseMenuDesktop } from '@/client/components/atoms/CourseMenu_Desktop'
 import { CourseMenuMobile } from '@/client/components/atoms/CourseMenu_Mobile'
@@ -38,19 +38,6 @@ export default function TeacherCourses({
 }: Readonly<CourseDetailsPageProps>) {
   const [activeView, setActiveView] = useState<string>('attendance')
 
-  const sortedStudents = useMemo<User[]>(() => {
-    if (!selectedSession?.courses_sessions_students) return []
-
-    return selectedSession.courses_sessions_students
-      // On ne garde que les étudiants avec des données utilisateur
-      .filter((student) => student.users)
-      .map((student) => student.users)
-      .sort((a, b) => {
-        if (!a.lastname || !b.lastname) return 0
-        return a.lastname.localeCompare(b.lastname)
-      })
-  }, [selectedSession])
-
   return (
     <div className="flex flex-col h-full bg-muted">
       <header className="sticky top-0 z-30">
@@ -78,7 +65,6 @@ export default function TeacherCourses({
           {activeView === 'attendance' ? (
             <AttendanceDashboard
               courseSessionId={courseSessionId}
-              students={sortedStudents}
               courseDates={sessionScheduleDates}
             />
           ) : (

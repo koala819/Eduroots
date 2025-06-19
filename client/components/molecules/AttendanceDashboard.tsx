@@ -1,36 +1,25 @@
 'use client'
 
-import { AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
-import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
 import { AttendanceTable } from '@/client/components/atoms/AttendanceTable'
 import { EmptyContent, ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent } from '@/client/components/ui/card'
-import { Sheet, SheetContent, SheetTitle } from '@/client/components/ui/sheet'
 import { useAttendances } from '@/client/context/attendances'
 import { useCourses } from '@/client/context/courses'
 import { getCourseSessionById } from '@/server/actions/api/courses'
-import { User } from '@/types/db'
 
 export const AttendanceDashboard = ({
   courseSessionId,
-  students,
   courseDates,
 }: {
   courseSessionId: string
-  students: User[]
   courseDates: Date[]
 }) => {
   const router = useRouter()
   const { isLoading: isLoadingCourses, error: errorCourses } = useCourses()
-  const [courseId, setCourseId] = useState<string | null>(null)
   const { allAttendance, fetchAttendances, error: attendanceError } = useAttendances()
-
-  const [isCreatingAttendance, setIsCreatingAttendance] = useState<boolean>(false)
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [isLoadingAttendance, setIsLoadingAttendance] = useState<boolean>(true)
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,13 +31,9 @@ export const AttendanceDashboard = ({
         }
 
         const courseId = response.data.courses.id
-        setCourseId(courseId)
-
         await fetchAttendances({ courseId })
       } catch (err) {
         console.error('❌ [AttendanceDashboard] Erreur chargement:', err)
-      } finally {
-        setIsLoadingAttendance(false)
       }
     }
 
@@ -56,8 +41,10 @@ export const AttendanceDashboard = ({
   }, [courseSessionId, fetchAttendances])
 
   function handleCreateAttendance(date: string) {
-    setSelectedDate(date)
-    setIsCreatingAttendance(true)
+    // Navigation vers la page de création avec useRouter
+    router.push(
+      `/teacher/classroom/course/${courseSessionId}/attendance/create?date=${date}`,
+    )
   }
 
   function handleEditAttendance(attendanceId: string, date: string) {
@@ -67,21 +54,7 @@ export const AttendanceDashboard = ({
     )
   }
 
-  async function handleCloseCreate() {
-    setIsCreatingAttendance(false)
-    // Attendre un peu que le modal soit fermé
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    // Recharger les données sans recharger toute la page
-    if (courseId) {
-      await fetchAttendances({ courseId })
-    }
-  }
-
-  // Ajouter un log pour voir quand le composant reçoit de nouvelles données
-  useEffect(() => {
-  }, [allAttendance])
-
-  if (isLoadingCourses || isLoadingAttendance) {
+  if (isLoadingCourses) {
     return <LoadingContent />
   }
 
@@ -94,39 +67,17 @@ export const AttendanceDashboard = ({
   }
 
   return (
-    <>
-      <Card className="w-full border-primary/60 border-2 rounded-sm">
-        <CardContent className="p-2 sm:p-6">
-          <div className="overflow-x-auto -mx-2 sm:mx-0">
-            <AttendanceTable
-              courseDates={courseDates}
-              allAttendance={allAttendance}
-              handleCreateAttendance={handleCreateAttendance}
-              handleEditAttendance={handleEditAttendance}
-            />
-          </div>
-        </CardContent>
-      </Card>
-      <AnimatePresence>
-        {isCreatingAttendance && (
-          <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
-            <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
-              <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center
-               sm:text-left text-primary">
-                Nouvelle Feuille des Présences
-              </SheetTitle>
-              {selectedDate && (
-                <AttendanceCreate
-                  courseId={courseId!}
-                  students={students}
-                  onClose={handleCloseCreate}
-                  date={selectedDate}
-                />
-              )}
-            </SheetContent>
-          </Sheet>
-        )}
-      </AnimatePresence>
-    </>
+    <Card className="w-full border-primary/60 border-2 rounded-sm">
+      <CardContent className="p-2 sm:p-6">
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <AttendanceTable
+            courseDates={courseDates}
+            allAttendance={allAttendance}
+            handleCreateAttendance={handleCreateAttendance}
+            handleEditAttendance={handleEditAttendance}
+          />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
