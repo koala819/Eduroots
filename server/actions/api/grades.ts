@@ -59,7 +59,7 @@ export async function createGradeRecord(
   const { supabase } = await getSessionServer()
 
   try {
-    const stats = calculateGradeStats(data.records)
+    const stats = calculateGradeStats(data.records as GradeRecord[])
 
     // Créer le grade principal
     const { data: grade, error: gradeError } = await supabase
@@ -224,7 +224,7 @@ export async function updateGradeRecord(
     }
 
     // Calculer les nouvelles statistiques
-    const stats = calculateGradeStats(data.records)
+    const stats = calculateGradeStats(data.records as GradeRecord[])
 
     // Mise à jour de la note principale
     const { error: updateError } = await supabase

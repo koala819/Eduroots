@@ -2,8 +2,10 @@
 
 import { createClient as supabaseClient } from '@supabase/supabase-js'
 
+import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
 import { FormSchema } from '@/server/utils/login-schema'
 import { createClient } from '@/server/utils/supabase'
+import { ApiResponse } from '@/types/api'
 import { Database } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
 
@@ -163,5 +165,81 @@ export async function checkUserExists(email: string, role: string) {
   return {
     exists: users && users.length > 0,
     user: users?.[0],
+  }
+}
+
+/**
+ * Récupérer l'utilisateur authentifié avec son ID education
+ * Utilisée comme pont client/serveur pour les contextes React
+ */
+export async function getAuthUser(
+  authUserId: string,
+): Promise<ApiResponse<{ educationUserId: string; role: string }>> {
+  try {
+    const authUser = await getAuthenticatedUser()
+
+    const educationUserId = await getEducationUserId(authUserId)
+
+    if (!educationUserId) {
+      return {
+        success: false,
+        message: 'Utilisateur non trouvé dans education.users',
+        data: null,
+      }
+    }
+
+    const role = authUser?.user_metadata?.role
+    if (!role) {
+      return {
+        success: false,
+        message: 'Rôle utilisateur non trouvé',
+        data: null,
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        educationUserId,
+        role,
+      },
+      message: 'Utilisateur authentifié',
+    }
+  } catch (error: any) {
+    console.error('[GET_AUTH_USER]', error)
+    return {
+      success: false,
+      message: 'Erreur lors de la récupération de l\'utilisateur',
+      data: null,
+    }
+  }
+}
+
+/**
+ * Vérifier si un utilisateur est authentifié
+ */
+export async function checkAuth(): Promise<
+  ApiResponse<{ isAuthenticated: boolean; role?: string }>
+  > {
+  try {
+    const authUser = await getAuthenticatedUser()
+    const role = authUser?.user_metadata?.role
+
+    return {
+      success: true,
+      data: {
+        isAuthenticated: true,
+        role,
+      },
+      message: 'Utilisateur authentifié',
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      data: {
+        isAuthenticated: false,
+      },
+      message: `Utilisateur non authentifié: ${error.message}`,
+    }
   }
 }

@@ -269,6 +269,7 @@ export async function getStudentsByTeacher(
       data: {
         ...teacher,
         courses: coursesWithStudents,
+        type: 'teacher',
       },
       message: 'Cours et leurs étudiants récupérés avec succès',
     }

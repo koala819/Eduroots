@@ -15,6 +15,7 @@ import {
 import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
 import { getCurrentSchedule, saveSchedules } from '@/server/actions/api/schedules'
+import { getAuthUser } from '@/server/actions/auth'
 import { TimeSlotEnum } from '@/types/courses'
 import { DaySchedule, Period } from '@/types/schedule'
 
@@ -198,12 +199,25 @@ export const SchedulesProvider = ({
 
   const handleGetCurrentSchedule = useCallback(async () => {
     // Référence locale à hasLoadedRef pour éviter de dépendre du state
-    if (hasLoadedRef.current) return
+    const hasLoaded = hasLoadedRef.current
+
+    // Si nous avons déjà des données initiales ou déjà chargé, ne chargeons pas à nouveau
+    if (initialSchedulesData || hasLoaded) {
+      return
+    }
 
     dispatch({ type: 'SET_LOADING', payload: true })
+
     try {
       if (!isAuthenticated || !user) {
         throw new Error('Non authentifié')
+      }
+
+      // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+      const authResponse = await getAuthUser(user.id)
+
+      if (!authResponse.success || !authResponse.data) {
+        throw new Error(authResponse.message || 'Erreur d\'authentification')
       }
 
       const response = await getCurrentSchedule(user.id)
@@ -212,75 +226,70 @@ export const SchedulesProvider = ({
         throw new Error(response.message || 'Échec de la récupération des horaires')
       }
 
-      // console.log('API response data:', response.data)
-
-      // Convertir les données de la réponse dans le format attendu
+      // Extraire les horaires de la réponse
       const data = response.data as any
-      const formattedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
+      const schedules = data.schedules ?? []
 
-      if (data && typeof data === 'object' && data.daySchedules) {
-        // Parcourir les propriétés de daySchedules et les transformer
-        Object.entries(data.daySchedules).forEach(([key, value]) => {
-          // Vérifier que la clé est une valeur valide de TimeSlotEnum
-          if (
-            Object.values(TimeSlotEnum).includes(key as TimeSlotEnum) &&
-            value &&
-            typeof value === 'object'
-          ) {
-            formattedSchedules[key as TimeSlotEnum] = value as DaySchedule
+      // Convertir les données en format attendu
+      const convertedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
+      schedules.forEach((schedule: any) => {
+        if (schedule && schedule.dayType && schedule.periods) {
+          convertedSchedules[schedule.dayType as TimeSlotEnum] = {
+            periods: schedule.periods,
           }
-        })
-      }
-
-      // console.log('Formatted schedules:', formattedSchedules)
+        }
+      })
 
       dispatch({
         type: 'SET_SCHEDULES',
-        payload: formattedSchedules,
+        payload: convertedSchedules,
       })
 
-      // Une fois les données chargées, marquer comme chargé
       hasLoadedRef.current = true
     } catch (error) {
       handleError(error as Error)
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [handleError, user, isAuthenticated])
+  }, [handleError, initialSchedulesData, user, isAuthenticated])
 
   const handleSaveSchedules = useCallback(
     async (scheduleData: SaveScheduleData) => {
       try {
+        if (!isAuthenticated || !user) {
+          throw new Error('Non authentifié')
+        }
+
+        // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+        const authResponse = await getAuthUser(user.id)
+
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
+        }
+
         const response = await saveSchedules(scheduleData)
 
         if (!response.success) {
-          throw new Error(response.message || 'Échec de l\'enregistrement des horaires')
+          throw new Error(response.message || 'Échec de la mise à jour des horaires')
         }
 
-        // console.log('Save response data:', response.data)
-
-        // Convertir les données de la réponse dans le format attendu
+        // Extraire les horaires de la réponse
         const data = response.data as any
-        const formattedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
+        const schedules = data.schedules ?? []
 
-        if (data && typeof data === 'object' && data.daySchedules) {
-          // Parcourir les propriétés de daySchedules et les transformer
-          Object.entries(data.daySchedules).forEach(([key, value]) => {
-            if (
-              Object.values(TimeSlotEnum).includes(key as TimeSlotEnum) &&
-              value &&
-              typeof value === 'object'
-            ) {
-              formattedSchedules[key as TimeSlotEnum] = value as DaySchedule
+        // Convertir les données en format attendu
+        const convertedSchedules: {[key in TimeSlotEnum]?: DaySchedule} = {}
+        schedules.forEach((schedule: any) => {
+          if (schedule && schedule.dayType && schedule.periods) {
+            convertedSchedules[schedule.dayType as TimeSlotEnum] = {
+              periods: schedule.periods,
             }
-          })
-        }
-
-        // console.log('Formatted schedules after save:', formattedSchedules)
+          }
+        })
 
         dispatch({
           type: 'SET_SCHEDULES',
-          payload: formattedSchedules,
+          payload: convertedSchedules,
         })
 
         toast({
@@ -289,18 +298,29 @@ export const SchedulesProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(error as Error)
+        handleError(error as Error, 'Erreur lors de la sauvegarde des horaires')
       }
     },
-    [handleError, toast],
+    [handleError, toast, user, isAuthenticated],
   )
 
+  // Effect for initializing data
   useEffect(() => {
-    // Seulement charger si pas encore chargé et utilisateur disponible
-    if (!hasLoadedRef.current && !authLoading && isAuthenticated && user?.id) {
-      handleGetCurrentSchedule()
+    // If we already have initial schedule data, no need to load again
+    if (initialSchedulesData) {
+      console.log('Using initial schedule data, skipping fetch')
+      return
     }
-  }, [handleGetCurrentSchedule, user, isAuthenticated, authLoading])
+
+    // Only load when authentication is ready and user is authenticated
+    if (!authLoading && isAuthenticated && user) {
+      handleGetCurrentSchedule().catch((err) =>
+        console.error('Failed to load initial schedules data:', err),
+      )
+    } else if (authLoading) {
+      // console.log('Auth session is still loading')
+    }
+  }, [initialSchedulesData, user, isAuthenticated, authLoading, handleGetCurrentSchedule])
 
   const value = useMemo(
     () => ({

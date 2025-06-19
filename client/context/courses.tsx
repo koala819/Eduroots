@@ -26,7 +26,7 @@ import {
   updateCourses as updateCoursesAction,
   updateCourseSession as updateCourseSessionAction,
 } from '@/server/actions/api/courses'
-import { getAuthenticatedEducationUser } from '@/server/utils/auth-helpers'
+import { getAuthUser } from '@/server/actions/auth'
 import { TimeSlotEnum } from '@/types/courses'
 import { Database } from '@/types/db'
 
@@ -290,11 +290,10 @@ export const CoursesProvider = ({
 
       dispatch({ type: 'SET_LOADING_COURSE', payload: true })
       try {
-        const { isAuthenticated: isAuth, educationUserId, error } =
-          await getAuthenticatedEducationUser(user)
+        const authResponse = await getAuthUser(user.id)
 
-        if (!isAuth || !educationUserId) {
-          throw new Error(error || 'Erreur d\'authentification')
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
         const response = await getCourseByIdAction(id)
@@ -321,11 +320,10 @@ export const CoursesProvider = ({
       }
 
       try {
-        const { isAuthenticated: isAuth, educationUserId, error } =
-          await getAuthenticatedEducationUser(user)
+        const authResponse = await getAuthUser(user.id)
 
-        if (!isAuth || !educationUserId) {
-          throw new Error(error || 'Erreur d\'authentification')
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
         const response = await getCourseByIdAction(id)
@@ -355,11 +353,10 @@ export const CoursesProvider = ({
       }
 
       try {
-        const { isAuthenticated: isAuth, educationUserId, error } =
-          await getAuthenticatedEducationUser(user)
+        const authResponse = await getAuthUser(user.id)
 
-        if (!isAuth || !educationUserId) {
-          throw new Error(error || 'Erreur d\'authentification')
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
         const response = await addStudentToCourseAction(courseId, studentId, timeSlot)
@@ -451,11 +448,10 @@ export const CoursesProvider = ({
       }
 
       try {
-        const { isAuthenticated: isAuth, educationUserId, error } =
-          await getAuthenticatedEducationUser(user)
+        const authResponse = await getAuthUser(user.id)
 
-        if (!isAuth || !educationUserId) {
-          throw new Error(error || 'Erreur d\'authentification')
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
         const response = await createCourseAction(courseData)
@@ -570,11 +566,10 @@ export const CoursesProvider = ({
       }
 
       try {
-        const { isAuthenticated: isAuth, educationUserId, error } =
-          await getAuthenticatedEducationUser(user)
+        const authResponse = await getAuthUser(user.id)
 
-        if (!isAuth || !educationUserId) {
-          throw new Error(error || 'Erreur d\'authentification')
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
         const response = await updateCourseAction({
@@ -628,14 +623,15 @@ export const CoursesProvider = ({
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
 
-      const { isAuthenticated, role, educationUserId, error } =
-        await getAuthenticatedEducationUser(user)
+      const authResponse = await getAuthUser(user.id)
 
-      if (!isAuthenticated || !educationUserId) {
-        throw new Error(error || 'Erreur d\'authentification')
+      if (!authResponse.success || !authResponse.data) {
+        throw new Error(authResponse.message || 'Erreur d\'authentification')
       }
 
-      const response = await updateCoursesAction(role!, educationUserId)
+      const { educationUserId, role } = authResponse.data
+
+      const response = await updateCoursesAction(role, educationUserId)
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to update courses')

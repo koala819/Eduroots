@@ -8,13 +8,13 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
   useState,
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
 import { getCurrentHolidays, saveHolidays } from '@/server/actions/api/holidays'
+import { getAuthUser } from '@/server/actions/auth'
 import { Holiday } from '@/types/holidays'
 
 interface HolidayState {
@@ -156,6 +156,13 @@ export const HolidaysProvider = ({
         throw new Error('Non authentifié')
       }
 
+      // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+      const authResponse = await getAuthUser(user.id)
+
+      if (!authResponse.success || !authResponse.data) {
+        throw new Error(authResponse.message || 'Erreur d\'authentification')
+      }
+
       const response = await getCurrentHolidays(user.id)
 
       if (!response.success) {
@@ -180,6 +187,17 @@ export const HolidaysProvider = ({
   const handleSaveHolidays = useCallback(
     async (holidayData: SaveHolidayData) => {
       try {
+        if (!isAuthenticated || !user) {
+          throw new Error('Non authentifié')
+        }
+
+        // Utiliser getAuthUser pour récupérer l'utilisateur authentifié
+        const authResponse = await getAuthUser(user.id)
+
+        if (!authResponse.success || !authResponse.data) {
+          throw new Error(authResponse.message || 'Erreur d\'authentification')
+        }
+
         const response = await saveHolidays(holidayData)
 
         if (!response.success) {
@@ -201,23 +219,29 @@ export const HolidaysProvider = ({
           duration: 3000,
         })
       } catch (error) {
-        handleError(error as Error)
+        handleError(error as Error, 'Erreur lors de la sauvegarde des vacances')
       }
     },
-    [handleError, toast],
+    [handleError, toast, user, isAuthenticated],
   )
 
-  // Utilisez une ref pour suivre si nous avons déjà fait le chargement
-  const hasLoadedRef = useRef(!!initialHolidaysData)
-
+  // Effect for initializing data
   useEffect(() => {
-    // Seulement charger si pas encore chargé et utilisateur disponible
-    if (!initialHolidaysData && !hasLoadedRef.current &&
-        !authLoading && isAuthenticated && user?.id) {
-      handleGetCurrentHolidays()
-      hasLoadedRef.current = true
+    // If we already have initial holiday data, no need to load again
+    if (initialHolidaysData) {
+      console.log('Using initial holiday data, skipping fetch')
+      return
     }
-  }, [user, isAuthenticated, authLoading, initialHolidaysData, handleGetCurrentHolidays])
+
+    // Only load when authentication is ready and user is authenticated
+    if (!authLoading && isAuthenticated && user) {
+      handleGetCurrentHolidays().catch((err) =>
+        console.error('Failed to load initial holidays data:', err),
+      )
+    } else if (authLoading) {
+      // console.log('Auth session is still loading')
+    }
+  }, [initialHolidaysData, user, isAuthenticated, authLoading, handleGetCurrentHolidays])
 
   const value = useMemo(
     () => ({
@@ -234,7 +258,7 @@ export const HolidaysProvider = ({
 export const useHolidays = () => {
   const context = useContext(HolidayContext)
   if (!context) {
-    throw new Error('useHolidays must be used within a HolidayProvider')
+    throw new Error('useHolidays must be used within a HolidaysProvider')
   }
   return context
 }
