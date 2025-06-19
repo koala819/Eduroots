@@ -36,9 +36,9 @@ export function AttendanceTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/3 text-[#375073]">Date</TableHead>
-            <TableHead className="w-1/3 text-[#375073]">Statut</TableHead>
-            <TableHead className="w-1/3 text-right sm:pr-16 text-[#375073]">
+            <TableHead className="w-1/3 text-primary">Date</TableHead>
+            <TableHead className="w-1/3 text-primary">Statut</TableHead>
+            <TableHead className="w-1/3 text-right sm:pr-16 text-primary">
               Action
             </TableHead>
           </TableRow>
@@ -60,28 +60,27 @@ export function AttendanceTable({
                 (att) =>
                   new Date(att.date).toDateString() === date.toDateString(),
               )
-              console.log('existingAttendance', existingAttendance)
 
               // Attendances exists
               if (existingAttendance) {
                 return (
                   <TableRow
                     key={date.toISOString()}
-                    className="hover:bg-gray-50 transition-colors duration-200 bg-green-50/30"
+                    className="hover:bg-muted transition-colors duration-200 bg-success/10"
                   >
-                    <TableCell className="text-sm sm:text-base text-[#375073]">
+                    <TableCell className="text-sm sm:text-base text-primary">
                       {date.toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="text-green-500 w-5 h-5" />
-                        <span className="text-sm text-green-700">Présent</span>
+                        <CheckCircle className="text-success w-5 h-5" />
+                        <span className="text-sm text-success">Présent</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right sm:text-left">
                       <Button
-                        className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-[#375073]
-                        hover:bg-[#375073]/90 text-white"
+                        className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base bg-primary
+                        hover:bg-primary-dark text-primary-foreground hover:cursor-pointer"
                         onClick={() =>
                           handleEditAttendance(
                             existingAttendance.id,
@@ -101,27 +100,27 @@ export function AttendanceTable({
                 <React.Fragment key={date.toISOString()}>
                   {today < date ? (
                     <TableRow
-                      className="bg-gray-50"
+                      className="bg-muted"
                     >
                       <TableCell colSpan={3} className="py-6 px-4">
                         <div className="flex flex-row sm:items-center justify-between gap-4">
                           <div className="flex items-center space-x-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg
-                              bg-gray-100 shadow-sm shrink-0"
+                              bg-muted shadow-sm shrink-0"
                             >
-                              <Clock className="h-6 w-6 text-gray-400" />
+                              <Clock className="h-6 w-6 text-muted-foreground" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-700 text-base sm:text-lg">
+                              <p className="font-medium text-foreground text-base sm:text-lg">
                                 Prochaine séance
                               </p>
-                              <p className="text-sm text-gray-500 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {date.toLocaleDateString()}
                               </p>
                             </div>
                           </div>
                           <div className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base
-                            bg-gray-100 text-gray-700 font-medium
+                            bg-muted text-muted-foreground font-medium
                             rounded-lg shadow-sm"
                           >
                             À venir
@@ -131,22 +130,22 @@ export function AttendanceTable({
                     </TableRow>
                   ) : (
                     !currentHoliday && (
-                      <TableRow className="bg-[#375073]/5">
-                        <TableCell className="text-sm sm:text-base text-[#375073]">
+                      <TableRow className="bg-primary/5">
+                        <TableCell className="text-sm sm:text-base text-primary">
                           {date.toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <XCircle className="text-red-500 w-5 h-5" />
-                            <span className="text-sm text-red-700">Absent</span>
+                            <XCircle className="text-error w-5 h-5" />
+                            <span className="text-sm text-error">Absent</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right sm:text-left flex justify-end">
                           <Button
                             className="px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base
-                          border-[#375073] bg-white border
-                          hover:bg-[#375073] text-[#375073] hover:text-white
-                          transition-colors duration-200 shadow-sm hover:shadow-md"
+                          border-primary bg-background border
+                          hover:bg-primary text-primary hover:text-primary-foreground shadow-sm
+                          transition-colors duration-200 hover:shadow-md hover:cursor-pointer"
                             onClick={() =>
                               handleCreateAttendance(date.toISOString())
                             }

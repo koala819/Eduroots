@@ -52,8 +52,8 @@ export default function TeacherCourses({
   }, [selectedSession])
 
   return (
-    <div className="flex flex-col h-full bg-gray-100">
-      <header className="sticky top-0 z-40">
+    <div className="flex flex-col h-full bg-muted">
+      <header className="sticky top-0 z-30">
         {/* Vue desktop */}
         <div className="hidden sm:flex">
           <CourseMenuDesktop
@@ -73,8 +73,8 @@ export default function TeacherCourses({
         </div>
       </header>
 
-      <div className="flex-1 p-4 overflow-auto">
-        <div className="max-w-[1200px] mx-auto bg-white rounded-lg shadow-sm">
+      <div className="flex-1 p-4 overflow-auto pb-20 sm:pb-4 mt-20">
+        <div className="max-w-[1200px] mx-auto bg-background rounded-lg shadow-sm">
           {activeView === 'attendance' ? (
             <AttendanceDashboard
               courseSessionId={courseSessionId}

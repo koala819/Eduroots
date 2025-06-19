@@ -35,7 +35,7 @@ export const CourseMenuMobile = ({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="sticky top-0 z-40 bg-[#375073] text-white border-b border-[#375073]/20"
+      className="sticky top-0 z-30 bg-primary text-primary-foreground border-b border-primary/20"
     >
       {/* Header avec informations du cours */}
       <div className="px-4 py-3">
@@ -53,7 +53,7 @@ export const CourseMenuMobile = ({
             className="flex items-center justify-center w-10 h-10 rounded-full
             transition-colors duration-200"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-primary-foreground" />
           </motion.button>
 
           {/* Informations du cours */}
@@ -62,7 +62,7 @@ export const CourseMenuMobile = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-lg font-bold text-white truncate"
+              className="text-lg font-bold text-primary-foreground truncate"
             >
               {selectedSession.subject}
             </motion.h1>
@@ -72,7 +72,7 @@ export const CourseMenuMobile = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="flex items-center gap-1 text-sm text-white/80"
+                className="flex items-center gap-1 text-sm text-primary-foreground/80"
               >
                 <Clock className="w-4 h-4" />
                 {formatDayOfWeek(selectedSession.courses_sessions_timeslot[0].day_of_week)}
@@ -93,8 +93,8 @@ export const CourseMenuMobile = ({
           className="relative"
         >
           {/* Container avec design cohérent à la sidebar */}
-          <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-1.5
-          border border-white/20">
+          <div className="relative bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1.5
+          border border-primary-foreground/20">
             {/* Background BLANC pour l'onglet actif */}
 
             <motion.div
@@ -109,7 +109,7 @@ export const CourseMenuMobile = ({
                 damping: 30,
                 opacity: { duration: 0.2 },
               }}
-              className="absolute inset-1.5 bg-white rounded-xl shadow-lg"
+              className="absolute inset-1.5 bg-primary-foreground rounded-xl shadow-lg"
               style={{
                 left: activeView === 'attendance' ? '6px' : '50%',
                 width: 'calc(50% - 6px)',
@@ -133,7 +133,8 @@ export const CourseMenuMobile = ({
                     {/* Contenu du bouton */}
                     <motion.div
                       animate={{
-                        color: isActive ? '#375073' : '#ffffff',
+                        color: isActive ? 'var(--color-primary)'
+                          : 'var(--color-primary-foreground)',
                         scale: isActive ? 1.05 : 1,
                       }}
                       transition={{ duration: 0.2 }}
@@ -156,7 +157,7 @@ export const CourseMenuMobile = ({
 
       {/* Séparateur avec dégradé */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent
-       via-white/20 to-transparent" />
+       via-primary-foreground/20 to-transparent" />
     </motion.div>
   )
 }

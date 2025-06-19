@@ -36,7 +36,6 @@ export const AttendanceDashboard = ({
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('🔄 [AttendanceDashboard] Chargement initial des données...')
         const response = await getCourseSessionById(courseSessionId)
         if (!response.success || !response.data) {
           console.error('❌ [AttendanceDashboard] Erreur chargement session:', response.message)
@@ -44,7 +43,6 @@ export const AttendanceDashboard = ({
         }
 
         const courseId = response.data.courses.id
-        console.log('✅ [AttendanceDashboard] CourseId récupéré:', courseId)
         setCourseId(courseId)
 
         await fetchAttendances({ courseId })
@@ -80,7 +78,6 @@ export const AttendanceDashboard = ({
   }
 
   async function handleCloseEdit() {
-    console.log('🔄 [AttendanceDashboard] Fermeture modal édition...')
     setIsEditingAttendance(false)
 
     // Attendre que le modal soit complètement fermé
@@ -88,10 +85,8 @@ export const AttendanceDashboard = ({
 
     // Recharger les données
     if (courseId) {
-      console.log('🔄 [AttendanceDashboard] Rechargement après édition...')
       try {
         await fetchAttendances({ courseId })
-        console.log('✅ [AttendanceDashboard] Données rechargées')
       } catch (error) {
         console.error('❌ [AttendanceDashboard] Erreur rechargement:', error)
       }
@@ -100,7 +95,6 @@ export const AttendanceDashboard = ({
 
   // Ajouter un log pour voir quand le composant reçoit de nouvelles données
   useEffect(() => {
-    console.log('📊 [AttendanceDashboard] allAttendance mis à jour:', allAttendance)
   }, [allAttendance])
 
   if (isLoadingCourses || isLoadingAttendance) {
@@ -117,7 +111,7 @@ export const AttendanceDashboard = ({
 
   return (
     <>
-      <Card className="w-full border-[#375073]/60 border-2 rounded-sm">
+      <Card className="w-full border-primary/60 border-2 rounded-sm">
         <CardContent className="p-2 sm:p-6">
           <div className="overflow-x-auto -mx-2 sm:mx-0">
             <AttendanceTable
@@ -134,7 +128,7 @@ export const AttendanceDashboard = ({
           <Sheet open={isCreatingAttendance} onOpenChange={setIsCreatingAttendance}>
             <SheetContent side="right" className="w-full sm:max-w-xl [&>button]:hidden">
               <SheetTitle className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0 text-center
-               sm:text-left text-[#375073]">
+               sm:text-left text-primary">
                 Nouvelle Feuille des Présences
               </SheetTitle>
               {selectedDate && (
@@ -153,12 +147,12 @@ export const AttendanceDashboard = ({
             <SheetContent
               side="right"
               className="w-full sm:max-w-xl [&>button]:hidden
-                bg-[#375073]"
+                bg-primary"
             >
               <SheetTitle
                 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8
-                  text-center sm:text-left text-white
-                  border-b border-white/20 pb-4"
+                  text-center sm:text-left text-primary-foreground
+                  border-b border-primary-foreground/20 pb-4"
               >
                 Modifier la Feuille des Présences
               </SheetTitle>

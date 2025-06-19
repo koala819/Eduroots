@@ -155,13 +155,13 @@ export const BehaviorDashboard = ({
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">
           <div className="h-[200px] flex items-center justify-center">
-            <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-ping mr-1"></div>
             <div
-              className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
+              className="w-2 h-2 bg-primary rounded-full animate-ping mr-1"
               style={{ animationDelay: '0.2s' }}
             ></div>
             <div
-              className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
+              className="w-2 h-2 bg-primary rounded-full animate-ping"
               style={{ animationDelay: '0.4s' }}
             ></div>
           </div>
@@ -175,7 +175,7 @@ export const BehaviorDashboard = ({
   }
 
   if (!allBehaviors) {
-    return <div className="text-center py-8 text-gray-500">Aucun comportement trouvé</div>
+    return <div className="text-center py-8 text-muted-foreground">Aucun comportement trouvé</div>
   }
 
   return (
