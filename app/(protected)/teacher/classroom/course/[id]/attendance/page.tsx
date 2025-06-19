@@ -1,7 +1,10 @@
-import { ErrorContent } from '@/client/components/atoms/StatusContent'
-import { AttendanceDashboard } from '@/client/components/molecules/AttendanceDashboard'
+import { Suspense } from 'react'
+
+import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { AttendanceDashboard } from '@/client/components/pages/AttendanceDashboard'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { generateSchoolDayDates } from '@/server/utils/server-helpers'
+
 
 interface AttendancePageProps {
   params: Promise<{ id: string }>
@@ -20,9 +23,11 @@ export default async function AttendancePage({ params }: AttendancePageProps) {
     generateSchoolDayDates(session.courses_sessions_timeslot[0].day_of_week)
 
   return (
-    <AttendanceDashboard
-      courseSessionId={courseSessionId}
-      courseDates={sessionScheduleDates}
-    />
+    <Suspense fallback={<LoadingContent />}>
+      <AttendanceDashboard
+        courseSessionId={courseSessionId}
+        courseDates={sessionScheduleDates}
+      />
+    </Suspense>
   )
 }

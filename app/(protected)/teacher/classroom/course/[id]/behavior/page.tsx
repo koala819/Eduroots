@@ -1,5 +1,5 @@
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
-import { BehaviorDashboard } from '@/client/components/molecules/BehaviorDashboard'
+import { BehaviorDashboard } from '@/client/components/pages/BehaviorDashboard'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { generateSchoolDayDates } from '@/server/utils/server-helpers'
 
