@@ -1,4 +1,4 @@
-import { TeacherWelcome } from '@/client/components/pages/TeacherWelcome'
+import TeacherWelcome from '@/client/components/pages/TeacherWelcome'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export default async function TeacherDashboardPage() {
