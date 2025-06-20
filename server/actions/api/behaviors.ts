@@ -11,7 +11,6 @@ import {
   UpdateBehaviorPayload,
 } from '@/types/behavior-payload'
 
-
 export async function createBehaviorRecord(
   data: CreateBehaviorPayload,
 ): Promise<ApiResponse> {

@@ -52,10 +52,11 @@ export const BehaviorDashboard = ({
         }
 
         const realCourseId = response.data.courses.id
+        const sessionId = courseId // courseId est déjà l'ID de la session
 
         await Promise.all([
           fetchAttendances({ courseId: realCourseId }),
-          fetchBehaviors({ courseId: realCourseId }),
+          fetchBehaviors({ courseId: sessionId }), // Utiliser l'ID de la session
         ])
       } catch (err) {
         console.error('Error loading behavior data:', err)

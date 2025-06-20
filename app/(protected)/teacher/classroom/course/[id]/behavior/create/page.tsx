@@ -37,8 +37,18 @@ export default async function BehaviorCreatePage({ params, searchParams }: PageP
       return <ErrorComponent message="Aucune présence trouvée pour cette date" />
     }
 
-    const presentStudents = attendanceResponse.data.attendance_records
+    // Récupérer les IDs des étudiants présents
+    const presentStudentIds = attendanceResponse.data.attendance_records
       .filter((record: AttendanceRecord) => record.is_present)
+      .map((record: AttendanceRecord) => record.student_id)
+
+    // Filtrer les étudiants présents depuis les données du cours
+    const presentStudents = courseResponse.data.courses_sessions_students
+      ?.filter((studentRelation: any) =>
+        presentStudentIds.includes(studentRelation.student_id) && studentRelation.users,
+      )
+      .map((studentRelation: any) => studentRelation.users)
+      .filter(Boolean) || []
 
     return (
       <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
@@ -59,15 +69,18 @@ export default async function BehaviorCreatePage({ params, searchParams }: PageP
 
           <Suspense fallback={<LoadingContent />}>
             <BehaviorCreate
-              students={presentStudents}
+              courseSessionId={courseSessionId}
               date={date}
-              courseId={courseSessionId}
+              students={presentStudents}
+              initialData={{
+                courseSession: courseResponse.data,
+              }}
             />
           </Suspense>
         </div>
       </div>
     )
   } catch (error) {
-    return <ErrorComponent message="Erreur lors du chargement des données" />
+    return <ErrorComponent message={`Erreur lors du chargement des données: ${error}`} />
   }
 }
