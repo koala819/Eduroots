@@ -67,7 +67,7 @@ export const CourseMenuDesktop = ({
               group-hover:text-primary-foreground transition-colors" />
               <span className="text-sm font-medium text-primary-foreground/90
               group-hover:text-primary-foreground">
-                Retour
+                Mes Cours
               </span>
             </motion.button>
 

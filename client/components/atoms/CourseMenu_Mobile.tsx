@@ -57,7 +57,7 @@ export const CourseMenuMobile = ({
             border-primary-foreground/20"
           >
             <ArrowLeft className="w-4 h-4 text-primary-foreground" />
-            <span className="text-sm font-medium text-primary-foreground/90">Retour</span>
+            <span className="text-sm font-medium text-primary-foreground/90">Mes Cours</span>
           </motion.button>
 
           {/* Informations du cours */}
