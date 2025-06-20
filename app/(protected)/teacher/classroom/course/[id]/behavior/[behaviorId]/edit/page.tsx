@@ -5,7 +5,7 @@ import { BehaviorEdit } from '@/client/components/atoms/BehaviorEdit'
 import { ErrorComponent } from '@/client/components/atoms/ErrorComponent'
 import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import { getAttendanceById } from '@/server/actions/api/attendances'
-import { getBehaviorByIdAndDate } from '@/server/actions/api/behaviors'
+import { getBehaviorById } from '@/server/actions/api/behaviors'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { AttendanceRecord } from '@/types/db'
 
@@ -35,7 +35,7 @@ export default async function BehaviorEditPage({ params, searchParams }: PagePro
     const courseId = courseResponse.data.courses.id
     const [attendanceResponse, behaviorResponse] = await Promise.all([
       getAttendanceById(courseId, date),
-      getBehaviorByIdAndDate(courseId, date),
+      getBehaviorById(behaviorId),
     ])
 
     if (!attendanceResponse.success || !attendanceResponse.data) {
@@ -61,8 +61,8 @@ export default async function BehaviorEditPage({ params, searchParams }: PagePro
 
     // Préparer les données de comportement existantes
     const behaviorRecords: { [key: string]: number } = {}
-    if (behaviorResponse.data.records) {
-      behaviorResponse.data.records.forEach((record: any) => {
+    if (behaviorResponse.data.behavior_records) {
+      behaviorResponse.data.behavior_records.forEach((record: any) => {
         behaviorRecords[record.student_id] = record.rating
       })
     }
@@ -108,6 +108,6 @@ export default async function BehaviorEditPage({ params, searchParams }: PagePro
       </div>
     )
   } catch (error) {
-    return <ErrorComponent message="Erreur lors du chargement des données" />
+    return <ErrorComponent message={`Erreur lors du chargement des données: ${error}`} />
   }
 }

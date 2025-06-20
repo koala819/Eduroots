@@ -86,7 +86,7 @@ export function BehaviorCreate({
 
   const onClose = () => {
     // Navigation de retour vers le dashboard
-    router.push(`/teacher/classroom/course/${courseSessionId}`)
+    router.push(`/teacher/classroom/course/${courseSessionId}/behavior`)
   }
 
   if (error) {

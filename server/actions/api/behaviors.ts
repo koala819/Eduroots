@@ -298,6 +298,54 @@ export async function fetchBehaviorsByCourse(
   }
 }
 
+export async function getBehaviorById(
+  behaviorId: string,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data: behavior, error } = await supabase
+      .schema('education')
+      .from('behaviors')
+      .select(`
+        *,
+        behavior_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('id', behaviorId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    }
+
+    if (!behavior) {
+      return {
+        success: false,
+        message: 'Comportement non trouvé',
+        data: null,
+      }
+    }
+
+    return {
+      success: true,
+      data: behavior,
+      message: 'Comportement récupéré avec succès',
+    }
+  } catch (error: any) {
+    console.error('[GET_BEHAVIOR_BY_ID]', error)
+    throw new Error('Failed to fetch behavior by id')
+  }
+}
+
 export async function getBehaviorByIdAndDate(
   courseId: string,
   date: string,

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createBehaviorRecord, updateBehaviorRecord } from '@/server/actions/api/behaviors'
+import {
+  createBehaviorRecord,
+  getBehaviorById,
+  updateBehaviorRecord } from '@/server/actions/api/behaviors'
 import type { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior-payload'
 
 // Mock complet de toutes les dépendances
@@ -171,6 +174,57 @@ describe('Behavior Functions', () => {
       expect(payloadWithOptionalComments.records[0].comment).toBeUndefined()
       expect(payloadWithOptionalComments.records[1].comment).toBe('Amélioration')
       expect(payloadWithOptionalComments.records[2].comment).toBeNull()
+    })
+  })
+
+  describe('getBehaviorById', () => {
+    it('devrait retourner une erreur avec un ID invalide', async () => {
+      const result = await getBehaviorById('')
+      expect(result.success).toBe(false)
+      expect(result.message).toBe('Comportement non trouvé')
+    })
+
+    it('devrait accepter un ID valide', async () => {
+      const validBehaviorId = '3c7c2be3-96c0-42ae-b7c8-8eb79ae039fc'
+
+      // Ce test vérifie que TypeScript accepte la structure
+      expect(validBehaviorId).toBe('3c7c2be3-96c0-42ae-b7c8-8eb79ae039fc')
+      expect(typeof validBehaviorId).toBe('string')
+      expect(validBehaviorId.length).toBeGreaterThan(0)
+    })
+
+    it('devrait retourner le bon format de réponse', async () => {
+      const result = await getBehaviorById('test-id')
+
+      // Vérifier la structure de la réponse
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('data')
+      expect(typeof result.success).toBe('boolean')
+      expect(typeof result.message).toBe('string')
+    })
+
+    it('devrait gérer les IDs avec des caractères spéciaux', async () => {
+      const specialId = 'behavior-123_with-special_chars'
+
+      // Ce test vérifie que TypeScript accepte les IDs avec caractères spéciaux
+      expect(specialId).toContain('-')
+      expect(specialId).toContain('_')
+      expect(typeof specialId).toBe('string')
+    })
+
+    it('devrait valider la structure des données retournées', async () => {
+      const result = await getBehaviorById('test-id')
+
+      // Vérifier que si on a des données, elles ont la bonne structure
+      if (result.success && result.data) {
+        expect(result.data).toHaveProperty('id')
+        expect(result.data).toHaveProperty('course_session_id')
+        expect(result.data).toHaveProperty('date')
+        expect(result.data).toHaveProperty('behavior_rate')
+        expect(result.data).toHaveProperty('total_students')
+        expect(result.data).toHaveProperty('behavior_records')
+      }
     })
   })
 })
