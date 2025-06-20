@@ -18,6 +18,7 @@ import { useAttendances } from '@/client/context/attendances'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
+import { getCourseSessionById } from '@/server/actions/api/courses'
 
 export const BehaviorDashboard = ({
   courseId,
@@ -42,9 +43,19 @@ export const BehaviorDashboard = ({
 
       try {
         setIsLoadingBehavior(true)
+
+        // Récupérer le vrai courseId à partir du courseSessionId
+        const response = await getCourseSessionById(courseId)
+        if (!response.success || !response.data) {
+          console.error('❌ [BehaviorDashboard] Erreur chargement session:', response.message)
+          return
+        }
+
+        const realCourseId = response.data.courses.id
+
         await Promise.all([
-          fetchAttendances({ courseId }),
-          fetchBehaviors({ courseId }),
+          fetchAttendances({ courseId: realCourseId }),
+          fetchBehaviors({ courseId: realCourseId }),
         ])
       } catch (err) {
         console.error('Error loading behavior data:', err)
@@ -223,7 +234,7 @@ export const BehaviorDashboard = ({
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <XCircle className="h-4 w-4 shrink-0" />
                               <span className="text-xs sm:text-sm hidden sm:inline">
-                                Pas de présence
+                                Saisie présence manquante
                               </span>
                             </div>
                           )}

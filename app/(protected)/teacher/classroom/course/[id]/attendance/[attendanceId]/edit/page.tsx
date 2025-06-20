@@ -29,6 +29,7 @@ export default async function EditAttendancePage({ params, searchParams }: PageP
   try {
     // Récupérer la session de cours
     const courseSessionRes = await getCourseSessionById(courseSessionId)
+
     if (!courseSessionRes.success || !courseSessionRes.data) {
       console.error('❌ [EditAttendancePage] Session non trouvée:', courseSessionRes.message)
       return <ErrorComponent message="Session de cours non trouvée" />
@@ -39,6 +40,7 @@ export default async function EditAttendancePage({ params, searchParams }: PageP
 
     // Récupérer la feuille de présence
     const attendanceRes = await getAttendanceById(courseData.course_id, date)
+
     if (!attendanceRes.success) {
       console.error('❌ [EditAttendancePage] Erreur récupération attendance:', attendanceRes.message)
       return <ErrorComponent message="Erreur lors de la récupération des données de présence" />

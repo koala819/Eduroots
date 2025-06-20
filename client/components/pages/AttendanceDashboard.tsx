@@ -114,7 +114,7 @@ export const AttendanceDashboard = ({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="text-success w-5 h-5" />
-                        <span className="text-sm text-success">Présent</span>
+                        <span className="text-sm text-success">Fait</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right sm:text-left">
@@ -177,7 +177,7 @@ export const AttendanceDashboard = ({
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <XCircle className="text-error w-5 h-5" />
-                            <span className="text-sm text-error">Absent</span>
+                            <span className="text-sm text-error">Manquant</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right sm:text-left flex justify-end">

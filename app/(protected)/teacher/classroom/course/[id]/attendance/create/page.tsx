@@ -1,11 +1,10 @@
-import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { AttendanceCreate } from '@/client/components/atoms/AttendanceCreate'
 import { ErrorComponent } from '@/client/components/atoms/ErrorComponent'
 import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import { getCourseSessionById } from '@/server/actions/api/courses'
-import { CourseSessionWithRelations } from '@/types/courses'
+import { convertToCourseSessionWithRelations,CourseSessionResponse } from '@/types/courses'
 
 interface PageProps {
   params: Promise<{
@@ -29,23 +28,19 @@ export default async function CreateAttendancePage({ params, searchParams }: Pag
     const courseSessionRes = await getCourseSessionById(courseSessionId)
 
     if (!courseSessionRes.success || !courseSessionRes.data) {
-      notFound()
+      return <ErrorComponent message="Session de cours non trouvée" />
     }
 
     // courseSessionRes.data contient directement la session
-    const session = courseSessionRes.data
+    const session = courseSessionRes.data as CourseSessionResponse
 
     // Récupérer la liste des étudiants
     const students = session.courses_sessions_students
-      ?.map((s: any) => s.users)
-      .filter((user: any) => user !== null && user !== undefined) || []
+      ?.map((s) => s.users)
+      .filter((user) => user !== null && user !== undefined) || []
 
-    // Préparer les données de session
-    const courseSession: CourseSessionWithRelations = {
-      ...session,
-      courses_sessions_students: session.courses_sessions_students || [],
-      courses_sessions_timeslot: session.courses_sessions_timeslot || [],
-    }
+    // Convertir en CourseSessionWithRelations
+    const courseSession = convertToCourseSessionWithRelations(session)
 
     return (
       <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
@@ -69,6 +64,9 @@ export default async function CreateAttendancePage({ params, searchParams }: Pag
               courseId={courseSessionId}
               students={students}
               date={date}
+              initialData={{
+                courseSession,
+              }}
             />
           </Suspense>
         </div>

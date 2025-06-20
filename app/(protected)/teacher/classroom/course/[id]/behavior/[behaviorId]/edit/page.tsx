@@ -50,18 +50,32 @@ export default async function BehaviorEditPage({ params, searchParams }: PagePro
       .filter((record: AttendanceRecord) => record.is_present)
 
     return (
-      <Suspense fallback={<LoadingContent />}>
-        <BehaviorEdit
-          students={presentStudents}
-          date={date}
-          courseId={courseSessionId}
-          behaviorId={behaviorId}
-          onClose={() => {
-            // Navigation de retour vers le dashboard
-            window.history.back()
-          }}
-        />
-      </Suspense>
+      <div className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
+              Modifier la Feuille de Comportement
+            </h1>
+            <p className="text-muted-foreground">
+              Session du {new Date(date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          </div>
+
+          <Suspense fallback={<LoadingContent />}>
+            <BehaviorEdit
+              students={presentStudents}
+              date={date}
+              courseId={courseSessionId}
+              behaviorId={behaviorId}
+            />
+          </Suspense>
+        </div>
+      </div>
     )
   } catch (error) {
     return <ErrorComponent message="Erreur lors du chargement des données" />

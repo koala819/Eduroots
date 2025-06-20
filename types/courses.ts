@@ -90,5 +90,36 @@ export type CourseSessionWithRelations =
   courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
 }
 
+// Type pour la structure retournée par getCourseSessionById
+export type CourseSessionResponse = Database['education']['Tables']['courses_sessions']['Row'] & {
+  courses: Database['education']['Tables']['courses']['Row']
+  courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
+  courses_sessions_students: (
+    Database['education']['Tables']['courses_sessions_students']['Row'] & {
+      users: Database['education']['Tables']['users']['Row']
+    }
+  )[]
+}
+
+// Fonction utilitaire pour convertir CourseSessionResponse en CourseSessionWithRelations
+export function convertToCourseSessionWithRelations(
+  response: CourseSessionResponse,
+): CourseSessionWithRelations {
+  return {
+    id: response.id,
+    course_id: response.course_id,
+    subject: response.subject,
+    level: response.level,
+    stats_average_attendance: response.stats_average_attendance,
+    stats_average_grade: response.stats_average_grade,
+    stats_average_behavior: response.stats_average_behavior,
+    stats_last_updated: response.stats_last_updated,
+    created_at: response.created_at,
+    updated_at: response.updated_at,
+    courses_sessions_students: response.courses_sessions_students || [],
+    courses_sessions_timeslot: response.courses_sessions_timeslot || [],
+  }
+}
+
 
 

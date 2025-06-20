@@ -2,26 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { BarChart2, Clock, NotebookText, Star } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { useStudents } from '@/client/context/students'
 import { cn } from '@/server/utils/helpers'
-import { CourseWithRelations } from '@/types/courses'
 import { AttendanceRecord } from '@/types/db'
 import { StudentResponse } from '@/types/student-payload'
 import { GenderEnum } from '@/types/user'
@@ -35,7 +24,7 @@ interface BehaviorEditProps {
       email: string
     }
   })[]
-  onClose: () => void
+  onClose?: () => void
   date: string
   courseId: string
   behaviorId: string
@@ -48,11 +37,12 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
   courseId,
   behaviorId,
 }) => {
+  const router = useRouter()
   const { updateBehaviorRecord, isLoadingBehavior, getBehaviorById } = useBehavior()
   const { getCourseSessionById, isLoadingCourse } = useCourses()
   const { getOneStudent } = useStudents()
 
-  const [course, setCourse] = useState<CourseWithRelations | null>(null)
+  const [course, setCourse] = useState<any>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true)
@@ -140,7 +130,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
   async function handleSave() {
     setIsUpdating(true)
-    if (!course?.courses_sessions?.[0]?.id) {
+    if (!course?.id) {
       console.error('Session ID not found')
       return
     }
@@ -156,11 +146,11 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         behaviorId: behaviorId,
         records: records,
         date: date,
-        sessionId: course.courses_sessions[0].id,
+        sessionId: course.id,
       })
 
       // La mise à jour a réussi, on peut fermer le modal
-      onClose()
+      handleClose()
     } catch (error) {
       console.error('Error updating behavior:', error)
     } finally {
@@ -170,7 +160,7 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
 
   function handleCancelAction(confirmClose: boolean) {
     if (confirmClose) {
-      onClose()
+      handleClose()
     }
     setIsConfirmOpen(false)
   }
@@ -180,6 +170,16 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
       ...prev,
       [studentId]: rating,
     }))
+  }
+
+  // Fonction pour gérer la fermeture/navigation de retour
+  const handleClose = () => {
+    if (onClose) {
+      onClose()
+    } else {
+      // Navigation de retour vers le dashboard
+      router.back()
+    }
   }
 
   if (isLoadingBehavior || isLoadingCourse || isInitialLoading) {
@@ -205,36 +205,41 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
         animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-white p-4 rounded-lg shadow-md w-full pb-20"
+        className="bg-background p-4 rounded-lg shadow-md w-full pb-20 border border-border"
       >
         <div className="space-y-6">
           <section className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
               {/* Course Details */}
               {date && course && (
-                <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                <div className="bg-muted rounded-lg p-4 shadow-sm border border-border">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center sm:text-left">
                     {/* Level */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <BarChart2 className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        Niveau {course.courses_sessions[0].level}
+                      <BarChart2 className="w-5 h-5 shrink-0 text-muted-foreground" />
+                      <span className="text-sm text-foreground">
+                        Niveau {course.level}
                       </span>
                     </div>
 
                     {/* Subject */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <NotebookText className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        {course.courses_sessions[0].subject}
+                      <NotebookText className="w-5 h-5 shrink-0 text-muted-foreground" />
+                      <span className="text-sm text-foreground">
+                        {course.subject}
                       </span>
                     </div>
 
                     {/* Date */}
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <Clock className="w-5 h-5 shrink-0 text-gray-400" />
-                      <span className="text-sm text-gray-700">
-                        {new Date(date).toLocaleDateString()}
+                      <Clock className="w-5 h-5 shrink-0 text-muted-foreground" />
+                      <span className="text-sm text-foreground">
+                        Session du {new Date(date).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
                       </span>
                     </div>
                   </div>
@@ -249,117 +254,103 @@ export const BehaviorEdit: React.FC<BehaviorEditProps> = ({
                 {presentStudents.map((student) => {
                   const studentId = student.student_id
                   const studentDetail = studentDetails[studentId]
+
                   if (!studentDetail) return null
 
                   return (
                     <motion.li
-                      key={student.id}
-                      className={cn(
-                        'flex items-center justify-between p-4',
-                        'bg-white border border-gray-200 rounded-lg',
-                        'shadow-sm hover:shadow-md transition-all duration-200',
-                        'ease-in-out cursor-pointer hover:border-blue-200',
-                      )}
+                      key={studentId}
+                      className="flex items-center justify-between p-4 bg-background border
+                      border-border rounded-lg shadow-sm hover:shadow-md transition-all
+                      duration-200 ease-in-out cursor-pointer hover:border-primary"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center space-x-3">
                         {studentDetail.gender === GenderEnum.Masculin ? (
-                          <BiMale className="h-6 w-6 text-blue-400" />
+                          <BiMale className="h-6 w-6 text-primary" />
                         ) : (
-                          <BiFemale className="h-6 w-6 text-pink-400" />
+                          <BiFemale className="h-6 w-6 text-secondary" />
                         )}
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-foreground">
                           {studentDetail.firstname}
-                          <span className="font-bold text-gray-900 ml-1">
+                          <span className="font-bold text-foreground ml-1">
                             {studentDetail.lastname}
                           </span>
                         </span>
                       </div>
-                      <motion.div
-                        className="transition-all duration-300 p-2 rounded-full"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
+
+                      <div className="flex items-center space-x-2">
                         {[1, 2, 3, 4, 5].map((rating) => (
-                          <button
+                          <motion.button
                             key={rating}
-                            onClick={() => setRating(studentId, rating)}
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation()
+                              setRating(studentId, rating)
+                            }}
                             className={cn(
-                              'focus:outline-none focus-visible:ring-2',
-                              'focus-visible:ring-blue-500 rounded-full',
-                              'transition-transform active:scale-95',
+                              'p-1 rounded-full transition-all duration-200 hover:scale-110',
+                              behavior[studentId] >= rating
+                                ? 'text-yellow-400 bg-yellow-400/10'
+                                : 'text-muted-foreground bg-muted hover:bg-muted/80',
                             )}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                           >
-                            <Star
-                              key={rating}
-                              className={cn(
-                                'w-5 h-5 transition-colors inline-block',
-                                rating <= (behavior[studentId] || 5)
-                                  ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-gray-300',
-                              )}
-                            />
-                          </button>
+                            <Star className="h-5 w-5" />
+                          </motion.button>
                         ))}
-                      </motion.div>
+                      </div>
                     </motion.li>
                   )
                 })}
               </ul>
             </div>
           </section>
+
           <section className="mt-6">
             <div className="max-w-4xl mx-auto">
               <div className="flex justify-end space-x-4">
                 <Button
                   onClick={handleSave}
-                  variant="teacherDefault"
-                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                  variant="default"
+                  className="bg-primary hover:bg-primary-dark text-primary-foreground"
                   disabled={isUpdating}
                 >
-                  {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
+                  {isUpdating ? 'Mise à jour en cours...' : 'Mettre à jour'}
                 </Button>
-                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="teacherWarning"
-                      className="border-gray-400 text-white"
-                      onClick={() => setIsConfirmOpen(true)}
-                    >
-                      Annuler
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmer l&apos;annulation</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir annuler la modification ? Les changements non
-                        enregistrés seront perdus.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => handleCancelAction(false)}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500
-                         border-2 border-gray-400"
-                      >
-                        Non
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleCancelAction(true)}
-                        className="bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500"
-                      >
-                        Oui
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  variant="outline"
+                  className="border-border text-foreground hover:bg-muted"
+                  onClick={handleClose}
+                >
+                  Annuler
+                </Button>
               </div>
             </div>
           </section>
         </div>
       </motion.div>
+
+      {/* Overlay de chargement pendant la mise à jour */}
+      {isUpdating && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-background p-6 rounded-lg shadow-lg border border-border">
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-primary rounded-full animate-ping mr-1"></div>
+              <div
+                className="w-2 h-2 bg-primary rounded-full animate-ping mr-1"
+                style={{ animationDelay: '0.2s' }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-primary rounded-full animate-ping"
+                style={{ animationDelay: '0.4s' }}
+              ></div>
+              <span className="text-foreground">Mise à jour en cours...</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

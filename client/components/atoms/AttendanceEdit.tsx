@@ -88,7 +88,7 @@ export function AttendanceEdit({
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Header avec informations du cours */}
-      <div className="bg-background border border-border rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <section className="bg-background border border-border rounded-lg shadow-sm p-4 sm:p-6 mb-6">
         <div id="attendance-edit-description" className="sr-only">
           Formulaire de modification des présences pour la session du{' '}
           {new Date(date).toLocaleDateString()}
@@ -122,10 +122,10 @@ export function AttendanceEdit({
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Liste des étudiants */}
-      <div className="space-y-3 mb-8">
+      <section className="space-y-3 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg sm:text-xl font-semibold text-foreground">
             Liste des étudiants ({students.filter((s) => s && s.id && s.firstname).length})
@@ -196,10 +196,10 @@ export function AttendanceEdit({
               </div>
             ))}
         </div>
-      </div>
+      </section>
 
       {/* Actions */}
-      <div
+      <section
         className="sticky p-4 -mx-4 sm:mx-0"
       >
         <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
@@ -230,7 +230,7 @@ export function AttendanceEdit({
             )}
           </Button>
         </div>
-      </div>
+      </section>
     </div>
   )
 }
