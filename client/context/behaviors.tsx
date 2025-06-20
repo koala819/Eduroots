@@ -402,13 +402,12 @@ export const BehaviorProvider = ({
           } else {
             dispatch({
               type: 'SET_ALL_BEHAVIORS',
-              payload: response.data as Behavior[],
+              payload: Array.isArray(response.data) ? response.data : [response.data],
             })
           }
         })
       } catch (error) {
-        handleError(error as Error, 'Erreur lors de la vérification des comportements')
-        throw error
+        handleError(error as Error, 'Erreur lors de la récupération des comportements')
       } finally {
         dispatch({ type: 'SET_LOADING_BEHAVIOR', payload: false })
       }

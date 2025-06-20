@@ -43,7 +43,7 @@ export type AttendanceRecord = {
 
 export type Behavior = {
   id: string
-  course_id: string
+  course_session_id: string
   date: Date
   behavior_rate: number
   total_students: number

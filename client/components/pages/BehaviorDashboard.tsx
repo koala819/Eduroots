@@ -25,11 +25,9 @@ import {
   TooltipTrigger,
 } from '@/client/components/ui/tooltip'
 import { useAttendances } from '@/client/context/attendances'
-import { useAuthContext } from '@/client/context/auth'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
 import { useHolidays } from '@/client/context/holidays'
-import useCourseStore from '@/client/stores/useCourseStore'
 import { AttendanceRecord } from '@/types/db'
 
 interface AttendanceRecordWithUser extends AttendanceRecord {
@@ -44,14 +42,14 @@ interface AttendanceRecordWithUser extends AttendanceRecord {
 export const BehaviorDashboard = ({
   courseId,
   courseDates,
+  userId,
 }: {
   courseId: string
   courseDates: Date[]
+  userId: string
 }) => {
-  const { session } = useAuthContext()
   const { error: errorCourses } = useCourses()
   const { allAttendance, fetchAttendances, getAttendanceById } = useAttendances()
-  const { fetchTeacherCourses, courses } = useCourseStore()
   const { allBehaviors, fetchBehaviors, error, getBehaviorById } = useBehavior()
   const { holidays } = useHolidays()
 
@@ -64,12 +62,11 @@ export const BehaviorDashboard = ({
 
   useEffect(() => {
     const loadData = async () => {
-      if (!session?.user?.id || !courseId) return
+      if (!userId || !courseId) return
 
       try {
         setIsLoadingBehavior(true)
         await Promise.all([
-          fetchTeacherCourses(session.user.id),
           fetchAttendances({ courseId }),
           fetchBehaviors({ courseId }),
         ])
@@ -81,7 +78,7 @@ export const BehaviorDashboard = ({
     }
 
     loadData()
-  }, [courseId, fetchAttendances, fetchBehaviors, fetchTeacherCourses, session?.user?.id])
+  }, [courseId, fetchAttendances, fetchBehaviors, userId])
 
   function isAttendanceExistsForDate(date: Date) {
     if (!allAttendance) return false
@@ -154,7 +151,7 @@ export const BehaviorDashboard = ({
     setSelectedDate(null)
 
     // Puis rafraîchir les données
-    if (courseId && session?.user?.id) {
+    if (courseId && userId) {
       try {
         setIsLoadingBehavior(true)
         // Recharger les données de comportement uniquement
@@ -167,7 +164,7 @@ export const BehaviorDashboard = ({
     }
   }
 
-  if (isLoadingBehavior || courses.length === 0 || allBehaviors === null) {
+  if (isLoadingBehavior || allBehaviors === null) {
     return (
       <Card className="w-full">
         <CardContent className="p-2 sm:p-6">

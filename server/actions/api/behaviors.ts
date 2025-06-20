@@ -38,7 +38,7 @@ export async function createBehaviorRecord(
       .schema('education')
       .from('behaviors')
       .select('id')
-      .eq('course_id', course)
+      .eq('course_session_id', course)
       .gte('date', startOfDay)
       .lte('date', endOfDay)
       .single()
@@ -60,7 +60,7 @@ export async function createBehaviorRecord(
       .schema('education')
       .from('behaviors')
       .insert({
-        course_id: course,
+        course_session_id: course,
         date: new Date(date).toISOString(),
         behavior_rate: behaviorRate,
         total_students: totalStudents,
@@ -150,7 +150,7 @@ export async function createBehaviorRecord(
         .schema('education')
         .from('behaviors')
         .select('behavior_rate')
-        .eq('course_id', course)
+        .eq('course_session_id', course)
 
       if (sessionBehaviors && sessionBehaviors.length > 0) {
         const sessionBehaviorRate = sessionBehaviors
@@ -282,7 +282,7 @@ export async function fetchBehaviorsByCourse(
           )
         )
       `)
-      .eq('course_id', courseId)
+      .eq('course_session_id', courseId)
 
     if (error) {
       throw new Error(`Erreur lors de la récupération: ${error.message}`)
@@ -322,7 +322,7 @@ export async function getBehaviorByIdAndDate(
           )
         )
       `)
-      .eq('course_id', courseId)
+      .eq('course_session_id', courseId)
 
     if (date) {
       const searchDate = date.split('T')[0]
@@ -367,7 +367,7 @@ export async function getStudentBehaviorHistory(
             id,
             subject,
             level,
-            course_id,
+            course_session_id,
             courses (
               id,
               academic_year
