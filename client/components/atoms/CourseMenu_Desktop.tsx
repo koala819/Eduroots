@@ -1,10 +1,12 @@
 'use client'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Clock, Star } from 'lucide-react'
+import { ArrowLeft, Calendar,CheckCircle2, ChevronDown, Clock, Star } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { CourseSessionWithRelations } from '@/types/courses'
+import { TimeSlotEnum } from '@/types/courses'
 
 const coursesView = [
   {
@@ -19,24 +21,100 @@ const coursesView = [
   },
 ]
 
+interface TimeSlot {
+  id: string
+  subject: string
+  dayOfWeek: string
+  level: string
+  courseId: string
+}
+
 export const CourseMenuDesktop = ({
   courseSessionId,
   selectedSession,
   returnBackName = 'Accueil',
   returnBackUrl = '/teacher/classroom',
   showTabs = true,
+  isClassroomRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
   returnBackName?: string
   returnBackUrl?: string
   showTabs?: boolean
+  isClassroomRoute?: boolean
 }) => {
   const router = useRouter()
   const pathname = usePathname()
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isMoreOpen, setIsMoreOpen] = useState(false)
 
   // Détecter la vue active basée sur le pathname
   const activeView = pathname.includes('/behavior') ? 'behavior' : 'attendance'
+
+  // Récupérer les créneaux depuis le DOM de ClassroomDashboard
+  useEffect(() => {
+    if (isClassroomRoute) {
+      const findTimeSlots = () => {
+        // Chercher les boutons de créneaux dans le DOM
+        const timeSlotButtons = document.querySelectorAll('button[class*="rounded-full"]')
+        const foundTimeSlots: TimeSlot[] = []
+        let foundSelectedSession = ''
+
+        timeSlotButtons.forEach((button) => {
+          const buttonText = button.textContent?.trim()
+          if (buttonText && buttonText.includes('Samedi') || buttonText?.includes('Dimanche')) {
+            // Extraire l'ID du bouton (data-key ou autre attribut)
+            const buttonElement = button as HTMLElement
+            const isSelected = buttonElement.classList.contains('bg-primary') ||
+                             buttonElement.classList.contains('bg-blue-600')
+
+            // Créer un TimeSlot basé sur le texte
+            const timeSlot: TimeSlot = {
+              id: `session-${foundTimeSlots.length + 1}`, // ID temporaire
+              subject: '',
+              dayOfWeek: buttonText.includes('Samedi') ?
+                (buttonText.includes('Matin') ? 'SATURDAY_MORNING' : 'SATURDAY_AFTERNOON') :
+                'SUNDAY_MORNING',
+              level: '',
+              courseId: '',
+            }
+
+            foundTimeSlots.push(timeSlot)
+
+            if (isSelected) {
+              foundSelectedSession = timeSlot.id
+            }
+          }
+        })
+
+        if (foundTimeSlots.length > 0) {
+          setTimeSlots(foundTimeSlots)
+          setSelectedTimeSlot(foundSelectedSession)
+        }
+      }
+
+      // Attendre que le DOM soit chargé
+      const timer = setTimeout(findTimeSlots, 100)
+
+      // Observer les changements dans le DOM
+      const observer = new MutationObserver(() => {
+        findTimeSlots()
+      })
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      })
+
+      return () => {
+        clearTimeout(timer)
+        observer.disconnect()
+      }
+    }
+  }, [isClassroomRoute])
 
   const handleViewChange = (viewId: string) => {
     if (courseSessionId) {
@@ -44,6 +122,27 @@ export const CourseMenuDesktop = ({
       const url = `${baseUrl}/${courseSessionId}/${viewId}`
       router.push(url)
     }
+  }
+
+  const handleTimeSlotChange = (sessionId: string) => {
+    setSelectedTimeSlot(sessionId)
+
+    // Trouver et cliquer sur le bouton correspondant dans ClassroomDashboard
+    const timeSlotButtons = document.querySelectorAll('button[class*="rounded-full"]')
+    timeSlotButtons.forEach((button) => {
+      const buttonElement = button as HTMLElement
+      const buttonText = buttonElement.textContent?.trim()
+
+      if (buttonText) {
+        const timeSlot = timeSlots.find((ts) => ts.id === sessionId)
+        if (timeSlot) {
+          const expectedText = formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)
+          if (buttonText === expectedText) {
+            buttonElement.click()
+          }
+        }
+      }
+    })
   }
 
   return (
@@ -68,7 +167,6 @@ export const CourseMenuDesktop = ({
             <motion.button
               whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
               whileTap={{ scale: 0.95 }}
-              // onClick={() => router.push('/teacher/classroom')}
               onClick={() => router.push(returnBackUrl)}
               className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
               hover:bg-primary-foreground/15 transition-all duration-200 border
@@ -86,7 +184,7 @@ export const CourseMenuDesktop = ({
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-px h-8 bg-primary-foreground/20 flex-shrink-0" />
               <div className="min-w-0">
-                {selectedSession && (
+                {selectedSession ? (
                   <>
                     <motion.h1
                       initial={{ opacity: 0 }}
@@ -108,20 +206,42 @@ export const CourseMenuDesktop = ({
                       </span>
                     </motion.div>
                   </>
-                )}
+                ) : isClassroomRoute ? (
+                  <>
+                    <motion.h1
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-xl font-bold text-primary-foreground truncate"
+                    >
+                      Mes Cours
+                    </motion.h1>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="flex items-center gap-2 text-primary-foreground/70 text-sm mt-1"
+                    >
+                      <Clock className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {timeSlots.length > 0 ? `${timeSlots.length} créneaux disponibles` : 'Chargement...'}
+                      </span>
+                    </motion.div>
+                  </>
+                ) : null}
               </div>
             </div>
           </motion.div>
 
-          {/* Partie droite - Navigation des vues (40%) - seulement affiché si showTabs est true */}
-          {showTabs && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-              className="flex-[0.4] flex justify-end"
-            >
-              {/* Navigation des vues - Style expansif utilisant tout l'espace disponible */}
+          {/* Partie droite - Navigation des vues ou Créneaux horaires (40%) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="flex-[0.4] flex justify-end"
+          >
+            {showTabs ? (
+              /* Navigation des vues - Style expansif utilisant tout l'espace disponible */
               <div className="flex bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1 border
               border-primary-foreground/20 w-full max-w-md h-14">
                 {coursesView.map(({ id, label, Icon }) => {
@@ -184,8 +304,85 @@ export const CourseMenuDesktop = ({
                   )
                 })}
               </div>
-            </motion.div>
-          )}
+            ) : isClassroomRoute && timeSlots.length > 0 ? (
+              /* Créneaux horaires - Sélecteur moderne avec badge */
+              <div className="w-full max-w-md">
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-primary-foreground/10
+                    border border-primary-foreground/20 text-primary-foreground/90
+                    hover:bg-primary-foreground/15 transition-all duration-200
+                    flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-primary-foreground/70" />
+                      <span className="text-sm font-medium">
+                        {selectedTimeSlot
+                          ? formatDayOfWeek(timeSlots.find((ts) => ts.id === selectedTimeSlot)?.dayOfWeek as TimeSlotEnum)
+                          : 'Sélectionner un créneau'
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-primary-foreground/20 px-2 py-0.5 rounded-full">
+                        {timeSlots.length}
+                      </span>
+                      <motion.div
+                        animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </motion.div>
+                    </div>
+                  </motion.button>
+
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-primary-foreground/95
+                      backdrop-blur-md rounded-xl border border-primary-foreground/20
+                      shadow-xl z-50 max-h-64 overflow-y-auto"
+                    >
+                      <div className="p-2">
+                        {timeSlots.map((timeSlot, index) => (
+                          <motion.button
+                            key={timeSlot.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            onClick={() => {
+                              handleTimeSlotChange(timeSlot.id)
+                              setIsDropdownOpen(false)
+                            }}
+                            className={`
+                              w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all duration-200
+                              flex items-center justify-between group
+                              ${selectedTimeSlot === timeSlot.id
+                            ? 'bg-primary-foreground/20 text-primary-foreground shadow-sm'
+                            : 'text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground'
+                          }
+                            `}
+                          >
+                            <span className="font-medium">
+                              {formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)}
+                            </span>
+                            {selectedTimeSlot === timeSlot.id && (
+                              <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </motion.div>
         </div>
       </div>
     </motion.div>
