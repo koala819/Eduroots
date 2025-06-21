@@ -108,7 +108,7 @@ const Profile = () => {
             key={item.title}
             onClick={item.onClick}
             className="flex flex-col items-center justify-center
-            rounded-2xl shadow-lg w-full h-full text-xl
+            rounded-2xl sm:shadow-lg border-1 border-primary/30 w-full h-full text-xl
             font-semibold transition-all hover:cursor-pointer
            hover:bg-primary hover:text-primary-foreground"
           >

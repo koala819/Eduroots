@@ -15,14 +15,16 @@ const ProfilePage = async () => {
 
     return (
       <>
-        <section className="p-2 text-center w-full">
-          <h1 className="text-2xl font-bold text-foreground">
+        <section className="p-4 text-center w-full">
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
             {teacher.firstname} {teacher.lastname}
           </h1>
-          <p style={{ color: 'var(--color-muted-foreground)' }}>Professeur de Al&apos;Ihsane</p>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Professeur de Al&apos;Ihsane
+          </p>
         </section>
 
-        <section className="w-full flex-1 flex flex-col justify-center md:p-4 p-2">
+        <section className="w-full flex-1 flex flex-col justify-center p-4">
           <Suspense fallback={<LoadingContent />}>
             <Profile />
           </Suspense>
