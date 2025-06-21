@@ -210,32 +210,39 @@ export async function getStudentsByTeacher(
       }
     }
 
-    // Récupérer les cours avec leurs sessions et étudiants
+    // Récupérer les cours du professeur
+    const { data: courseTeachers, error: courseTeachersError } = await supabase
+      .schema('education')
+      .from('courses_teacher')
+      .select('course_id')
+      .eq('teacher_id', teacherId)
+      .eq('is_active', true)
+
+    if (courseTeachersError) {
+      console.error('[GET_STUDENTS_BY_TEACHER] Course teachers error:', courseTeachersError)
+      throw new Error('Erreur lors de la récupération des cours du professeur')
+    }
+
+    const courseIds = courseTeachers?.map((ct) => ct.course_id) || []
+
+    if (courseIds.length === 0) {
+      return {
+        success: true,
+        data: {
+          ...teacher,
+          courses: [],
+          type: 'teacher',
+        },
+        message: 'Aucun cours trouvé pour ce professeur',
+      }
+    }
+
+    // Récupérer les détails des cours
     const { data: courses, error: coursesError } = await supabase
       .schema('education')
       .from('courses')
-      .select(`
-        id,
-        academic_year,
-        courses_sessions (
-          id,
-          subject,
-          level,
-          time_slot,
-          courses_sessions_students (
-            users (
-              id,
-              email,
-              secondary_email,
-              firstname,
-              lastname,
-              date_of_birth,
-              gender
-            )
-          )
-        )
-      `)
-      .eq('teacher_id', teacherId)
+      .select('id, academic_year')
+      .in('id', courseIds)
       .eq('is_active', true)
 
     if (coursesError) {
@@ -243,26 +250,82 @@ export async function getStudentsByTeacher(
       throw new Error('Erreur lors de la récupération des cours')
     }
 
-    // Transformer les données pour correspondre à la structure attendue
-    const coursesWithStudents = courses?.map((course) => ({
-      courseId: course.id,
-      academicYear: course.academic_year,
-      sessions: course.courses_sessions?.map((session) => ({
-        sessionId: session.id,
-        subject: session.subject,
-        level: session.level,
-        timeSlot: session.time_slot,
-        students: session.courses_sessions_students?.map((studentRelation: any) => ({
-          id: studentRelation.users.id,
-          firstname: studentRelation.users.firstname,
-          lastname: studentRelation.users.lastname,
-          email: studentRelation.users.email,
-          secondaryEmail: studentRelation.users.secondary_email,
-          gender: studentRelation.users.gender,
-          dateOfBirth: studentRelation.users.date_of_birth,
-        })) || [],
-      })) || [],
-    })) || []
+    // Pour chaque cours, récupérer les sessions et étudiants
+    const coursesWithStudents = await Promise.all(
+      courses?.map(async (course) => {
+        // Récupérer les sessions du cours
+        const { data: sessions, error: sessionsError } = await supabase
+          .schema('education')
+          .from('courses_sessions')
+          .select('id, subject, level')
+          .eq('course_id', course.id)
+          .eq('is_active', true)
+
+        if (sessionsError) {
+          console.error('[GET_STUDENTS_BY_TEACHER] Sessions error:', sessionsError)
+          return {
+            courseId: course.id,
+            academicYear: course.academic_year.toString(),
+            sessions: [],
+          }
+        }
+
+        // Pour chaque session, récupérer les créneaux et étudiants
+        const sessionsWithStudents = await Promise.all(
+          sessions?.map(async (session) => {
+            // Récupérer les créneaux horaires
+            const { data: timeslots } = await supabase
+              .schema('education')
+              .from('courses_sessions_timeslot')
+              .select('day_of_week')
+              .eq('course_sessions_id', session.id)
+
+            // Récupérer les étudiants
+            const { data: sessionStudents } = await supabase
+              .schema('education')
+              .from('courses_sessions_students')
+              .select('student_id')
+              .eq('course_sessions_id', session.id)
+
+            // Récupérer les informations des étudiants
+            const studentsWithDetails = await Promise.all(
+              sessionStudents?.map(async (studentRelation) => {
+                const { data: user } = await supabase
+                  .schema('education')
+                  .from('users')
+                  .select('id, firstname, lastname, email, secondary_email, gender, date_of_birth')
+                  .eq('id', studentRelation.student_id)
+                  .single()
+
+                return user ? {
+                  id: user.id,
+                  firstname: user.firstname,
+                  lastname: user.lastname,
+                  email: user.email,
+                  secondaryEmail: user.secondary_email,
+                  gender: user.gender,
+                  dateOfBirth: user.date_of_birth,
+                } : null
+              }) || [],
+            )
+
+            return {
+              sessionId: session.id,
+              subject: session.subject,
+              level: session.level,
+              timeSlot: timeslots?.[0]?.day_of_week || '',
+              students: studentsWithDetails.filter((student) => student !== null),
+            }
+          }) || [],
+        )
+
+        return {
+          courseId: course.id,
+          academicYear: course.academic_year.toString(),
+          sessions: sessionsWithStudents,
+        }
+      }),
+    )
 
     return {
       success: true,

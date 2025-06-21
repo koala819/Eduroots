@@ -8,7 +8,7 @@ import { useStats } from '@/client/context/stats'
 import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
 
-const ProfileActions = () => {
+const Profile = () => {
   const router = useRouter()
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
   const { toast } = useToast()
@@ -132,4 +132,4 @@ const ProfileActions = () => {
   )
 }
 
-export default ProfileActions
+export default Profile

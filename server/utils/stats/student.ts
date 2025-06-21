@@ -22,21 +22,25 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         )
       `)
       .eq('student_id', studentId)
-      .order('attendances.date', { ascending: false })
 
     if (error) {
       console.error('Erreur lors de la récupération des présences:', error)
       throw error
     }
 
-    console.log('📊 Enregistrements de présence trouvés:', attendanceRecords?.length || 0)
+    // Trier les enregistrements par date décroissante côté client
+    const sortedRecords = attendanceRecords?.sort((a, b) =>
+      new Date(b.attendances.date).getTime() - new Date(a.attendances.date).getTime(),
+    ) || []
+
+    console.log('📊 Enregistrements de présence trouvés:', sortedRecords.length)
 
     // Calculer les statistiques de présence
     let totalSessions = 0
     let absencesCount = 0
     const absences: {date: Date; course: string}[] = []
 
-    attendanceRecords?.forEach((record) => {
+    sortedRecords.forEach((record) => {
       totalSessions++
       if (!record.is_present) {
         absencesCount++
@@ -51,8 +55,8 @@ export async function calculateStudentAttendanceRate(studentId: string) {
     const absencesRate = totalSessions > 0 ? (absencesCount / totalSessions) * 100 : 0
 
     // Récupérer la dernière date d'activité
-    const lastActivity = attendanceRecords && attendanceRecords.length > 0
-      ? new Date(attendanceRecords[0].attendances.date)
+    const lastActivity = sortedRecords && sortedRecords.length > 0
+      ? new Date(sortedRecords[0].attendances.date)
       : null
 
     // Récupérer les statistiques existantes
@@ -64,11 +68,15 @@ export async function calculateStudentAttendanceRate(studentId: string) {
       .single()
 
     // Vérifier si les statistiques sont déjà à jour
+    const existingLastActivity = existingStats?.last_activity
+      ? new Date(existingStats.last_activity).getTime()
+      : null
+
     if (
       existingStats &&
       existingStats.absences_count === absencesCount &&
       existingStats.absences_rate === absencesRate &&
-      existingStats.last_activity?.getTime() === lastActivity?.getTime()
+      existingLastActivity === lastActivity?.getTime()
     ) {
       console.log('📊 Statistiques déjà à jour pour l\'étudiant:', studentId)
       return {
@@ -166,7 +174,7 @@ export async function calculateStudentBehaviorRate(studentId: string) {
         behaviors (
           id,
           date,
-          course_id
+          course_session_id
         )
       `)
       .eq('student_id', studentId)

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import ProfileActions from '@/client/components/atoms/ProfileActions'
+import Profile from '@/client/components/atoms/ProfilePage'
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
@@ -24,7 +24,7 @@ const ProfilePage = async () => {
 
         <section className="w-full flex-1 flex flex-col justify-center md:p-4 p-2">
           <Suspense fallback={<LoadingContent />}>
-            <ProfileActions />
+            <Profile />
           </Suspense>
         </section>
       </>

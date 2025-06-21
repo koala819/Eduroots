@@ -7,13 +7,20 @@ import { ClassOverview } from '@/client/components/atoms/ClassOverview'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { useStats } from '@/client/context/stats'
 import { StudentStats } from '@/types/stats'
-import { StudentResponse } from '@/types/student-payload'
+import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
 
-export interface StudentWithDetails extends StudentResponse {
+// Type pour les étudiants de TeacherWithStudentsResponse
+type TeacherStudent = TeacherWithStudentsResponse['courses'][0]['sessions'][0]['students'][0]
+
+export interface StudentWithDetails extends TeacherStudent {
   stats: StudentStats
 }
 
-export const ProfileCourseCard = ({ students }: Readonly<{students: StudentResponse[]}>) => {
+export const ProfileCourseCard = ({
+  students,
+}: Readonly<{
+  students: TeacherStudent[]
+}>) => {
   const [studentsWithData, setStudentsWithData] = useState<StudentWithDetails[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()

@@ -1,6 +1,6 @@
 'use client'
 
-import { differenceInYears, parseISO } from 'date-fns'
+import { differenceInYears } from 'date-fns'
 import { ClipboardList, Star } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
@@ -61,11 +61,11 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
     return 'text-red-600'
   }
 
-  function calculateAge(dateOfBirth: string) {
-    const birthDate = parseISO(dateOfBirth)
+  function calculateAge(dateOfBirth: Date | null) {
+    if (!dateOfBirth) return 0
 
     const currentDate = new Date()
-    const age = differenceInYears(currentDate, birthDate)
+    const age = differenceInYears(currentDate, dateOfBirth)
 
     return age
   }
@@ -76,7 +76,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
         {sortedStudents.map((student) => {
           const attendanceRate = 100 - (student.stats?.absencesRate || 0)
 
-          console.log('📊 Données reçues dans ClassOverview pour l\'étudiant', student._id, {
+          console.log('📊 Données reçues dans ClassOverview pour l\'étudiant', student.id, {
             student,
             stats: student.stats,
             attendanceRate,
@@ -86,7 +86,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
 
           return (
             <Card
-              key={student._id}
+              key={student.id}
               className={cn(getBorderColorClass(student.stats?.absencesCount || 0))}
             >
               <CardHeader>
@@ -104,7 +104,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                     {student.firstname} {student.lastname}
                   </span>
                 </CardTitle>
-                <CardDescription>{calculateAge(student.dateOfBirth || '')} ans</CardDescription>
+                <CardDescription>{calculateAge(student.dateOfBirth)} ans</CardDescription>
               </CardHeader>
               <CardContent>
                 {/* Absences et taux de présence */}
@@ -243,7 +243,7 @@ export const ClassOverview = ({ students }: DesktopClassViewProps) => {
                               <div>
                                 <span className="text-sm text-gray-500">Âge</span>
                                 <p className="font-medium">
-                                  {calculateAge(student.dateOfBirth || '')} ans
+                                  {calculateAge(student.dateOfBirth)} ans
                                 </p>
                               </div>
 
