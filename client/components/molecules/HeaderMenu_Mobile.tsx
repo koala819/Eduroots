@@ -1,11 +1,10 @@
 'use client'
 import { motion } from 'framer-motion'
-import { usePathname } from 'next/navigation'
 
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
-// import { HeaderSettingsMobile } from '@/client/components/atoms/HeaderSettingsMobile'
+import { HeaderSettings } from '@/client/components/atoms/HeaderSettings'
 import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
 
 export const HeaderMenuMobile = ({
@@ -21,10 +20,6 @@ export const HeaderMenuMobile = ({
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
 }) => {
-  const pathname = usePathname()
-
-  // Détecter la vue active basée sur le pathname
-  const activeView = pathname.includes('/behavior') ? 'behavior' : 'attendance'
 
   return (
     <motion.div
@@ -58,12 +53,12 @@ export const HeaderMenuMobile = ({
         )}
 
         {/* Menu de navigation des vues pour les routes de cours */}
-        {/* {isSettingsRoute && (
-          <HeaderSettingsMobile
-                        classroomTimeSlots={classroomTimeSlots}
+        {isSettingsRoute && (
+          <HeaderSettings
+            classroomTimeSlots={classroomTimeSlots}
 
           />
-        )} */}
+        )}
       </div>
     </motion.div>
   )
