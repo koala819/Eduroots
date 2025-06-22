@@ -277,7 +277,7 @@ export async function getStudentsByTeacher(
             const { data: timeslots } = await supabase
               .schema('education')
               .from('courses_sessions_timeslot')
-              .select('day_of_week')
+              .select('day_of_week, start_time, end_time')
               .eq('course_sessions_id', session.id)
 
             // Récupérer les étudiants
@@ -314,6 +314,8 @@ export async function getStudentsByTeacher(
               subject: session.subject,
               level: session.level,
               timeSlot: timeslots?.[0]?.day_of_week || '',
+              startTime: timeslots?.[0]?.start_time || '',
+              endTime: timeslots?.[0]?.end_time || '',
               students: studentsWithDetails.filter((student) => student !== null),
             }
           }) || [],

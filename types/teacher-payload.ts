@@ -30,6 +30,8 @@ export type TeacherWithStudentsResponse = TeacherResponse & {
       subject: string
       level: string
       timeSlot: string
+      startTime?: string
+      endTime?: string
       students: Array<{
         id: string
         firstname: string

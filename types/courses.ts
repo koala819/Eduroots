@@ -48,6 +48,17 @@ export interface TimeSlot {
   classroom_number: string | null
 }
 
+// Interface pour les créneaux horaires du header (classroom)
+export interface ClassroomTimeSlot {
+  id: string
+  subject: string
+  dayOfWeek: string
+  level: string
+  courseId: string
+  startTime?: string
+  endTime?: string
+}
+
 export const TIME_SLOT_SCHEDULE = {
   [TimeSlotEnum.SATURDAY_MORNING]: {
     START: TimeEnum.MorningStart,

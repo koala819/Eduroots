@@ -3,12 +3,16 @@
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { CourseSessionWithRelations } from '@/types/courses'
+import { ClassroomTimeSlot,CourseSessionWithRelations } from '@/types/courses'
 
 import { CourseMenuDesktop } from './CourseMenu_Desktop'
 import { CourseMenuMobile } from './CourseMenu_Mobile'
 
-export function MenuHeader() {
+export function MenuHeader({
+  classroomTimeSlots = [],
+}: {
+  classroomTimeSlots?: ClassroomTimeSlot[]
+}) {
   const pathname = usePathname()
   const [courseData, setCourseData] = useState<{
     courseSessionId?: string
@@ -91,6 +95,7 @@ export function MenuHeader() {
           selectedSession={courseData.selectedSession}
           showTabs={isOnDashboard}
           isClassroomRoute={isClassroomRoute}
+          classroomTimeSlots={classroomTimeSlots}
         />
       </div>
 
@@ -103,6 +108,7 @@ export function MenuHeader() {
           selectedSession={courseData.selectedSession}
           showTabs={isOnDashboard}
           isClassroomRoute={isClassroomRoute}
+          classroomTimeSlots={classroomTimeSlots}
         />
       </div>
     </>
