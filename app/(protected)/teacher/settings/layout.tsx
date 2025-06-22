@@ -1,7 +1,13 @@
-import { MenuHeader } from '@/client/components/atoms/MenuHeader'
+import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
 import { getStudentsByTeacher } from '@/server/actions/api/teachers'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
-import { ClassroomTimeSlot,TimeEnum, TimeSlotEnum } from '@/types/courses'
+import {
+  ClassroomTimeSlot,
+  CourseSessionWithRelations,
+  TimeEnum,
+  TimeSlotEnum,
+} from '@/types/courses'
+
 
 interface CourseLayoutProps {
   children: React.ReactNode
@@ -9,6 +15,7 @@ interface CourseLayoutProps {
 
 export default async function CourseLayout({ children }: CourseLayoutProps) {
   let classroomTimeSlots: ClassroomTimeSlot[] = []
+  let selectedSession: CourseSessionWithRelations | undefined
 
   try {
     const user = await getAuthenticatedUser()
@@ -78,10 +85,13 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
   return (
     <div className="flex flex-col h-full bg-muted">
       <header className="sticky top-0 z-30">
-        <MenuHeader classroomTimeSlots={classroomTimeSlots} />
+        <MenuHeader
+          classroomTimeSlots={classroomTimeSlots}
+          selectedSession={selectedSession}
+        />
       </header>
 
-      <div className="flex-1 p-4 overflow-auto pb-20 sm:pb-4 mt-4 sm:mt-20">
+      <div className="flex-1 p-4 overflow-auto pb-20 sm:pb-4 mt-28 sm:mt-20">
         <div className="max-w-[1200px] mx-auto bg-background rounded-lg shadow-sm">
           {children}
         </div>

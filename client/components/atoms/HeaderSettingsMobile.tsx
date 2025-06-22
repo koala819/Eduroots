@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Star } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-interface HeaderProfileMobileProps {
+interface HeaderSettingsMobileProps {
   courseSessionId?: string
   activeView: 'attendance' | 'behavior'
 }
@@ -21,7 +21,8 @@ const coursesView = [
   },
 ]
 
-export const HeaderProfileMobile = ({ courseSessionId, activeView }: HeaderProfileMobileProps) => {
+export const HeaderSettingsMobile = (
+  { courseSessionId, activeView }: HeaderSettingsMobileProps) => {
   const router = useRouter()
 
   const handleViewChange = (viewId: string) => {

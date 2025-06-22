@@ -4,25 +4,21 @@ import { motion } from 'framer-motion'
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
-import { HeaderProfil } from '@/client/components/atoms/HeaderProfil'
+import { HeaderSettings } from '@/client/components/atoms/HeaderSettings'
 import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
 
-export const CourseMenuDesktop = ({
+export const HeaderMenuDesktop = ({
   courseSessionId,
   selectedSession,
-  returnBackName = 'Accueil',
-  returnBackUrl = '/teacher/classroom',
-  showTabs = true,
-  isClassroomRoute = false,
   classroomTimeSlots = [],
+  isClassroomTeacherRoute = false,
+  isSettingsRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
-  returnBackName?: string
-  returnBackUrl?: string
-  showTabs?: boolean
-  isClassroomRoute?: boolean
   classroomTimeSlots?: ClassroomTimeSlot[]
+  isClassroomTeacherRoute: boolean
+  isSettingsRoute: boolean
 }) => {
 
 
@@ -45,10 +41,7 @@ export const CourseMenuDesktop = ({
             className="flex items-center gap-6 flex-[0.6]"
           >
             {/* Bouton retour */}
-            <HeaderBackBtn
-              returnBackName={returnBackName}
-              returnBackUrl={returnBackUrl}
-            />
+            <HeaderBackBtn />
 
             {/* Informations du cours avec design moderne */}
             <HeaderInformation
@@ -58,15 +51,17 @@ export const CourseMenuDesktop = ({
           </motion.div>
 
           {/* Partie droite - Navigation des vues ou Créneaux horaires (40%) */}
-          {showTabs ? (
+          {isClassroomTeacherRoute &&
             <HeaderClassroom
               courseSessionId={courseSessionId}
             />
-          ) : isClassroomRoute && classroomTimeSlots.length > 0 ? (
-            <HeaderProfil
+          }
+
+          {isSettingsRoute && (
+            <HeaderSettings
               classroomTimeSlots={classroomTimeSlots}
             />
-          ) : null}
+          )}
         </div>
       </div>
     </motion.div>

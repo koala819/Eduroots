@@ -17,7 +17,7 @@ interface HeaderProfilProps {
   onTimeSlotChange?: (sessionId: string) => void
 }
 
-export const HeaderProfil = ({
+export const HeaderSettings = ({
   classroomTimeSlots,
   onTimeSlotChange,
 }: HeaderProfilProps) => {
@@ -141,7 +141,7 @@ export const HeaderProfil = ({
 
             <DropdownMenuContent className="w-full min-w-[300px] p-2 bg-white
               border border-gray-200 shadow-lg">
-              {classroomTimeSlots.map((timeSlot, index) => {
+              {classroomTimeSlots.map((timeSlot) => {
                 const hours = getTimeSlotHours(timeSlot.dayOfWeek)
                 const isActive = selectedTimeSlot === timeSlot.id
 

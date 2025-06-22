@@ -3,10 +3,37 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 import { createClient } from '@/client/utils/supabase'
+import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
 import { TimeSlotEnum } from '@/types/courses'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+// Fonction simple pour trouver le pattern correspondant
+export const findPattern = (path: string) => {
+  // Chercher d'abord une correspondance exacte
+  if (ROUTE_PATTERNS[path]) {
+    return ROUTE_PATTERNS[path]
+  }
+
+  // Chercher une correspondance par pattern générique
+  for (const [pattern, routePattern] of Object.entries(ROUTE_PATTERNS)) {
+    // Convertir [id] en pattern générique
+    const genericPattern = pattern.replace(/\[.*?\]/g, '*')
+
+    // Créer un pattern de test en remplaçant les segments dynamiques
+    const testPattern = path.split('/').map((segment, index) => {
+      const patternSegments = genericPattern.split('/')
+      return patternSegments[index] === '*' ? '*' : segment
+    }).join('/')
+
+    if (testPattern === genericPattern) {
+      return routePattern
+    }
+  }
+
+  return null
 }
 
 export function formatName(firstname: string, lastname: string) {

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Clock } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
 import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
 
 interface HeaderInformationProps {
@@ -11,71 +11,43 @@ interface HeaderInformationProps {
   classroomTimeSlots?: ClassroomTimeSlot[]
 }
 
-type HeaderPattern = {
-  title:
-    | string
-    | ((params: {
-        selectedSession?: CourseSessionWithRelations
-        classroomTimeSlots?: ClassroomTimeSlot[]
-      }) => string)
-  subtitle:
-    | string
-    | ((params: {
-        selectedSession?: CourseSessionWithRelations
-        classroomTimeSlots?: ClassroomTimeSlot[]
-      }) => string)
-}
-
-const HEADER_PATTERNS: Record<string, HeaderPattern> = {
-  '/teacher/settings/classroom': {
-    title: 'Mes Cours',
-    subtitle: ({ classroomTimeSlots }) =>
-      classroomTimeSlots && classroomTimeSlots.length > 0
-        ? `${classroomTimeSlots.length} créneaux disponibles`
-        : 'Chargement...',
-  },
-  '/teacher/settings': {
-    title: 'Paramètres',
-    subtitle: 'Changer vos paramètres',
-  },
-  '/teacher/classroom/course': {
-    title: ({ selectedSession }) =>
-      selectedSession?.subject || 'Cours',
-    subtitle: ({ selectedSession }) =>
-      selectedSession
-        ? formatDayOfWeek(
-          selectedSession.courses_sessions_timeslot[0].day_of_week,
-        )
-        : 'Chargement...',
-  },
-  '/teacher/classroom/course/attendance': {
-    title: 'Présence',
-    subtitle: 'Gestion des présences',
-  },
-  '/teacher/classroom/course/behavior': {
-    title: 'Comportement',
-    subtitle: 'Gestion du comportement',
-  },
-  '/teacher/settings/grades': {
-    title: 'Notes',
-    subtitle: 'Gestion des notes',
-  },
-  '/admin': {
-    title: 'Administration',
-    subtitle: 'Gestion du système',
-  },
-  '/teacher/classroom': {
-    title: 'Tableau de bord',
-    subtitle: 'Vue d\'ensemble',
-  },
-}
-
 const HeaderInformation = ({
   selectedSession,
   classroomTimeSlots = [],
 }: HeaderInformationProps) => {
   const pathname = usePathname()
-  const pattern = HEADER_PATTERNS[pathname]
+
+  // Fonction simple pour trouver le pattern correspondant
+  const findPattern = (path: string) => {
+    // Chercher d'abord une correspondance exacte
+    if (ROUTE_PATTERNS[path]) {
+      return ROUTE_PATTERNS[path]
+    }
+
+    // Chercher une correspondance par pattern générique
+    for (const [pattern, routePattern] of Object.entries(ROUTE_PATTERNS)) {
+      // Convertir [id] en pattern générique
+      const genericPattern = pattern.replace(/\[.*?\]/g, '*')
+
+      // Créer un pattern de test en remplaçant les segments dynamiques
+      const testPattern = path.split('/').map((segment, index) => {
+        const patternSegments = genericPattern.split('/')
+        return patternSegments[index] === '*' ? '*' : segment
+      }).join('/')
+
+      if (testPattern === genericPattern) {
+        return routePattern
+      }
+    }
+
+    return null
+  }
+
+  const pattern = findPattern(pathname)
+
+  if (!pattern) {
+    console.warn(`Route pattern non trouvé pour: ${pathname}`)
+  }
 
   let title = ''
   let subtitle = ''

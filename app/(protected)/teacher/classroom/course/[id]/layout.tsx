@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 
 import { getCourseSessionById } from '@/server/actions/api/courses'
 
@@ -11,15 +10,19 @@ export default async function CourseLayout({ children, params }: CourseLayoutPro
   const { id: courseSessionId } = await params
 
   // Récupérer le cours spécifique pour la navigation
-  const courseResponse = await getCourseSessionById(courseSessionId)
-  if (!courseResponse.success || !courseResponse.data) {
-    redirect('/teacher/classroom')
+  let session = null
+  try {
+    const courseResponse = await getCourseSessionById(courseSessionId)
+    if (courseResponse.success && courseResponse.data) {
+      session = courseResponse.data
+    }
+  } catch (error) {
+    console.error('[COURSE_LAYOUT] Error loading session:', error)
+    // Ne pas rediriger, laisser l'application continuer
   }
 
-  const session = courseResponse.data
-
   return (
-    <div data-course-id={courseSessionId} data-course-data={JSON.stringify(session)}>
+    <div data-course-id={courseSessionId} data-course-data={session ? JSON.stringify(session) : ''}>
       {children}
     </div>
   )

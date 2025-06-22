@@ -1,4 +1,4 @@
-import { MenuHeader } from '@/client/components/atoms/MenuHeader'
+import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
 
 interface CourseLayoutProps {
   children: React.ReactNode
