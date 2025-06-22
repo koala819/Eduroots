@@ -33,8 +33,6 @@ export async function calculateStudentAttendanceRate(studentId: string) {
       new Date(b.attendances.date).getTime() - new Date(a.attendances.date).getTime(),
     ) || []
 
-    console.log('📊 Enregistrements de présence trouvés:', sortedRecords.length)
-
     // Calculer les statistiques de présence
     let totalSessions = 0
     let absencesCount = 0
@@ -78,7 +76,6 @@ export async function calculateStudentAttendanceRate(studentId: string) {
       existingStats.absences_rate === absencesRate &&
       existingLastActivity === lastActivity?.getTime()
     ) {
-      console.log('📊 Statistiques déjà à jour pour l\'étudiant:', studentId)
       return {
         studentId,
         totalSessions,
@@ -134,18 +131,6 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         .from('student_stats_absences')
         .insert(absenceRecords)
     }
-
-    console.log('📊 Statistiques mises à jour:', {
-      studentId,
-      totalSessions,
-      absencesRate,
-      absencesCount,
-      absences: absences.map((a) => ({
-        date: a.date.toISOString(),
-        course: a.course,
-      })),
-      lastActivity: lastActivity?.toISOString(),
-    })
 
     return {
       studentId,

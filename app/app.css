@@ -54,6 +54,8 @@
   --color-info-dark: hsl(212.7, 25%, 25%);
   --color-info-foreground: hsl(210, 20%, 98%);
 
+  --color-star: hsl(42.333336, 94%, 62%);
+
   /* Layout */
   --radius: 0.5rem;
   --header-height: 64px;

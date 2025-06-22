@@ -139,7 +139,7 @@ export function BehaviorCreate({
             Liste des étudiants ({students.filter((s) => s && s.id && s.firstname).length})
           </h2>
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Star className="w-4 h-4 text-yellow-400" />
+            <Star className='w-4 h-4 text-star fill-current' />
             <span>Note de comportement</span>
           </div>
         </div>

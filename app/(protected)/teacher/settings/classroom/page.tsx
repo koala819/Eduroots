@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
-import ClassroomDashboard from '@/client/components/pages/ClassroomDashboard'
+import SettingsClassroom from '@/client/components/pages/SettingsClassroom'
 import { sortTimeSlots } from '@/client/utils/timeSlots'
 import { getStudentsByTeacher } from '@/server/actions/api/teachers'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
@@ -62,7 +62,7 @@ const ClassroomPage = async () => {
 
     return (
       <Suspense fallback={<LoadingContent />}>
-        <ClassroomDashboard
+        <SettingsClassroom
           initialData={optimizedData}
         />
       </Suspense>
