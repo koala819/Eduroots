@@ -27,14 +27,14 @@ type HeaderPattern = {
 }
 
 const HEADER_PATTERNS: Record<string, HeaderPattern> = {
-  '/teacher/profiles/classroom': {
+  '/teacher/settings/classroom': {
     title: 'Mes Cours',
     subtitle: ({ classroomTimeSlots }) =>
       classroomTimeSlots && classroomTimeSlots.length > 0
         ? `${classroomTimeSlots.length} créneaux disponibles`
         : 'Chargement...',
   },
-  '/teacher/profiles': {
+  '/teacher/settings': {
     title: 'Paramètres',
     subtitle: 'Changer vos paramètres',
   },
@@ -56,7 +56,7 @@ const HEADER_PATTERNS: Record<string, HeaderPattern> = {
     title: 'Comportement',
     subtitle: 'Gestion du comportement',
   },
-  '/teacher/profiles/grades': {
+  '/teacher/settings/grades': {
     title: 'Notes',
     subtitle: 'Gestion des notes',
   },

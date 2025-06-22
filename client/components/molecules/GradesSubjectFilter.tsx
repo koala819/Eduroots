@@ -53,7 +53,7 @@ export const SubjectFilter = ({
         variant="outline"
         className="rounded-full text-sm whitespace-nowrap bg-blue-50 hover:bg-blue-100
          border-blue-200 ml-auto w-full"
-        onClick={() => router.push('/teacher/profiles/grades/create')}
+        onClick={() => router.push('/teacher/settings/grades/create')}
       >
         <Plus className="h-4 w-4 mr-1" />
         Nouvelle

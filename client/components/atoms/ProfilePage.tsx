@@ -25,21 +25,21 @@ const Profile = () => {
       icon: <Users className="h-10 w-10" />,
       title: 'Détail des élèves',
       onClick: () => {
-        handleNavClick('/teacher/profiles/classroom')
+        handleNavClick('/teacher/settings/classroom')
       },
     },
     {
       icon: <PenSquare className="h-10 w-10" />,
       title: 'Devoirs & Contrôles',
       onClick: () => {
-        handleNavClick('/teacher/profiles/grades')
+        handleNavClick('/teacher/settings/grades')
       },
     },
     {
       icon: <Calendar className="h-10 w-10" />,
       title: 'Emploi du temps',
       onClick: () => {
-        handleNavClick('/teacher/profiles/edit')
+        handleNavClick('/teacher/settings/edit')
       },
     },
     {

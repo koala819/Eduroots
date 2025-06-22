@@ -217,7 +217,7 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
                   </div>
                 </Link>
 
-                <Link href="/teacher/profiles/classroom" className="group block">
+                <Link href="/teacher/settings/classroom" className="group block">
                   <div className="bg-gradient-to-br from-accent to-accent-dark rounded-xl p-6
                   text-accent-foreground hover:shadow-lg transition-all duration-300
                    hover:-translate-y-1">
@@ -249,7 +249,7 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
                   </div>
                 </Link>
 
-                <Link href="/teacher/profiles" className="group block">
+                <Link href="/teacher/settings" className="group block">
                   <div className="bg-gradient-to-br from-error to-error-dark rounded-xl p-6
                   text-error-foreground hover:shadow-lg transition-all duration-300
                   hover:-translate-y-1">
@@ -258,7 +258,7 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
                       <ArrowRight
                         className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Mon profil</h3>
+                    <h3 className="text-lg font-semibold mb-2">Paramètres</h3>
                     <p className="text-error-foreground/80 text-sm">
                       Paramètres et préférences
                     </p>

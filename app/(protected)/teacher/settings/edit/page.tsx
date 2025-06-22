@@ -213,7 +213,7 @@ const PlanningViewer = () => {
           <Button
             variant="link"
             className="p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors"
-            onClick={() => router.push('/teacher/profiles')}
+            onClick={() => router.push('/teacher/settings')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Retour</span>

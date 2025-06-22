@@ -26,10 +26,10 @@ export default async function TeacherLayout({
       pathPattern: '^/teacher/messages',
     },
     {
-      href: '/teacher/profiles',
-      label: 'Profil',
+      href: '/teacher/settings',
+      label: 'Paramètres',
       Icon: 'Settings',
-      pathPattern: '^/teacher/profiles',
+      pathPattern: '^/teacher/settings',
     },
   ]
   const supabase = await createClient()

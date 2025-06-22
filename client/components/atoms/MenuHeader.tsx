@@ -47,7 +47,7 @@ export function MenuHeader({
   // Détecter le type de sous-route pour adapter le menu
   const isAttendanceRoute = pathname.includes('/attendance')
   const isBehaviorRoute = pathname.includes('/behavior')
-  const isClassroomRoute = pathname.includes('/profiles/classroom')
+  const isClassroomRoute = pathname.includes('/settings/classroom')
 
   // Détecter si on est sur un dashboard (pas sur create/edit)
   const isOnDashboard = (isAttendanceRoute || isBehaviorRoute) &&
@@ -58,7 +58,7 @@ export function MenuHeader({
   const getReturnConfig = () => {
     // Si on est sur la page classroom dashboard
     if (isClassroomRoute) {
-      return { name: 'Retour', url: '/teacher/profiles' }
+      return { name: 'Retour', url: '/teacher/settings' }
     }
 
     if (!courseData.courseSessionId) {

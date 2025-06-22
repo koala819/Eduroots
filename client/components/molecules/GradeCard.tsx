@@ -35,7 +35,7 @@ export const GradeCard = ({ grade, getSubjectColor, getTypeBackgroundColor }: Gr
         ${grade.is_draft ? 'bg-gray-50' : 'bg-white'}
         hover:shadow-md transition-all cursor-pointer
       `}
-      onClick={() => router.push(`/teacher/profiles/grades/${grade.id}`)}
+      onClick={() => router.push(`/teacher/settings/grades/${grade.id}`)}
     >
       <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex justify-between items-center">
@@ -119,7 +119,7 @@ const GradeActions = ({ grade }: GradeActionsProps) => {
           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2"
           onClick={(e) => {
             e.stopPropagation()
-            router.push(`/teacher/profiles/grades/${grade.id}`)
+            router.push(`/teacher/settings/grades/${grade.id}`)
           }}
         >
           Valider le brouillon

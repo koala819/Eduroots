@@ -209,7 +209,7 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
           description: 'Les modifications ont été enregistrées avec succès',
           duration: 3000,
         })
-        router.push('/teacher/profiles/grades')
+        router.push('/teacher/settings/grades')
       } else {
         toast({
           variant: 'destructive',
@@ -297,7 +297,7 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
             className={`
               p-0 text-gray-500 hover:text-blue-600 -ml-1.5 transition-colors
             `}
-            onClick={() => router.push('/teacher/profiles/grades')}
+            onClick={() => router.push('/teacher/settings/grades')}
           >
             <CircleArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Retour</span>

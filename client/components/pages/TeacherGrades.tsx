@@ -248,7 +248,7 @@ export function GradesClient() {
                 : `Aucune évaluation pour la matière "${selectedSubject}" n'a été trouvée.`}
             </p>
             <Button
-              onClick={() => router.push('/teacher/profiles/grades/create')}
+              onClick={() => router.push('/teacher/settings/grades/create')}
             >
               <Plus className="h-4 w-4 mr-1" />
               Créer une évaluation
