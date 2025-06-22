@@ -1,92 +1,183 @@
 'use client'
-import { motion } from 'framer-motion'
-import { CheckCircle2, Star } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Calendar, CheckCircle2,ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/client/components/ui/dropdown-menu'
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { ClassroomTimeSlot } from '@/types/courses'
+import { TimeSlotEnum } from '@/types/courses'
 
 interface HeaderSettingsMobileProps {
-  courseSessionId?: string
-  activeView: 'attendance' | 'behavior'
+  classroomTimeSlots: ClassroomTimeSlot[]
+  onTimeSlotChange?: (sessionId: string) => void
 }
 
-const coursesView = [
-  {
-    id: 'attendance',
-    label: 'Présence',
-    Icon: CheckCircle2,
-  },
-  {
-    id: 'behavior',
-    label: 'Comportement',
-    Icon: Star,
-  },
-]
+export const HeaderSettingsMobile = ({
+  classroomTimeSlots,
+  onTimeSlotChange,
+}: HeaderSettingsMobileProps) => {
+  // Sélectionner le premier créneau par défaut
+  const defaultTimeSlot = classroomTimeSlots.length > 0 ? classroomTimeSlots[0].id : ''
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(defaultTimeSlot)
 
-export const HeaderSettingsMobile = (
-  { courseSessionId, activeView }: HeaderSettingsMobileProps) => {
-  const router = useRouter()
+  const handleTimeSlotChange = (sessionId: string) => {
+    setSelectedTimeSlot(sessionId)
 
-  const handleViewChange = (viewId: string) => {
-    if (courseSessionId) {
-      const baseUrl = '/teacher/classroom/course'
-      const url = `${baseUrl}/${courseSessionId}/${viewId}`
-      router.push(url)
+    // Trouver le timeSlot correspondant
+    const timeSlot = classroomTimeSlots.find((ts) => ts.id === sessionId)
+    if (timeSlot) {
+      // Émettre un événement personnalisé pour notifier ClassroomDashboard
+      const customEvent = new CustomEvent('headerTimeSlotChanged', {
+        detail: {
+          sessionId,
+          timeSlot,
+          dayOfWeek: timeSlot.dayOfWeek as TimeSlotEnum,
+        },
+      })
+      window.dispatchEvent(customEvent)
+    }
+
+    // Appeler le callback parent si fourni
+    if (onTimeSlotChange) {
+      onTimeSlotChange(sessionId)
     }
   }
 
+  // Fonction pour formater l'heure
+  const formatTime = (time: string) => {
+    // Les heures sont déjà formatées côté serveur en HH:mm
+    // On remplace juste les ":" par "h" pour l'affichage français
+    return time.replace(':', 'h')
+  }
+
+  // Fonction pour obtenir les horaires par créneau
+  const getTimeSlotHours = (dayOfWeek: string) => {
+    // Chercher dans les créneaux statiques
+    const timeSlot = classroomTimeSlots.find((ts) => ts.dayOfWeek === dayOfWeek)
+    if (timeSlot && timeSlot.startTime && timeSlot.endTime) {
+      return { start: timeSlot.startTime, end: timeSlot.endTime }
+    }
+
+    // Fallback avec les valeurs par défaut
+    const defaultTimeSlots = {
+      'saturday_morning': { start: '09:00', end: '12:30' },
+      'saturday_afternoon': { start: '14:00', end: '17:30' },
+      'sunday_morning': { start: '09:00', end: '12:30' },
+    }
+    return defaultTimeSlots[dayOfWeek as keyof typeof defaultTimeSlots] || { start: '', end: '' }
+  }
+
   return (
-    <section className="relative bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1.5
-      border border-primary-foreground/20">
-      {/* Background BLANC pour l'onglet actif */}
-      <motion.div
-        key={activeView}
-        layoutId="activeViewBackground"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{
-          type: 'spring',
-          stiffness: 400,
-          damping: 30,
-          opacity: { duration: 0.2 },
-        }}
-        className="absolute inset-1.5 bg-primary-foreground rounded-xl shadow-lg"
-        style={{
-          left: activeView === 'attendance' ? '6px' : '50%',
-          width: 'calc(50% - 6px)',
-        }}
-      />
+    <section className="mb-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="w-full px-3 py-2.5 rounded-xl bg-primary-foreground/10
+            border border-primary-foreground/20 text-primary-foreground/90
+            hover:bg-primary-foreground/15 hover:scale-[1.02] active:scale-[0.98]
+            transition-all duration-200 flex items-center justify-between group cursor-pointer"
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Calendar className="w-4 h-4 text-primary-foreground/70 flex-shrink-0" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-medium truncate">
+                  {selectedTimeSlot
+                    ? formatDayOfWeek(
+                      classroomTimeSlots.find(
+                        (ts) => ts.id === selectedTimeSlot)?.dayOfWeek as TimeSlotEnum,
+                    )
+                    : 'Sélectionner un créneau'
+                  }
+                </span>
+                {selectedTimeSlot && (
+                  <>
+                    <span className="text-xs text-primary-foreground/60 truncate">
+                      {classroomTimeSlots.find(
+                        (ts) => ts.id === selectedTimeSlot)?.subject || ''}
+                    </span>
+                    <span className="text-xs bg-primary-foreground text-primary
+                      px-1.5 py-0.5 rounded-full flex-shrink-0">
+                      {classroomTimeSlots.find(
+                        (ts) => ts.id === selectedTimeSlot)?.level || ''}
+                    </span>
+                  </>
+                )}
+              </div>
+              {selectedTimeSlot && (
+                <span className="text-xs text-primary-foreground/70 truncate">
+                  {(() => {
+                    const timeSlot = classroomTimeSlots.find(
+                      (ts) => ts.id === selectedTimeSlot)
+                    if (timeSlot) {
+                      const hours = getTimeSlotHours(timeSlot.dayOfWeek)
+                      const startTime = formatTime(hours.start)
+                      const endTime = formatTime(hours.end)
+                      return `${startTime} - ${endTime}`
+                    }
+                    return ''
+                  })()}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs bg-primary-foreground/20 px-2 py-0.5 rounded-full">
+              {classroomTimeSlots.length}
+            </span>
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </DropdownMenuTrigger>
 
-      {/* Boutons des vues */}
-      <div className="relative flex">
-        {coursesView.map(({ id, label, Icon }) => {
-          const isActive = activeView === id
+        <DropdownMenuContent className="w-full min-w-[280px] p-2 bg-white
+          border border-gray-200 shadow-lg">
+          {classroomTimeSlots.map((timeSlot) => {
+            const hours = getTimeSlotHours(timeSlot.dayOfWeek)
+            const isActive = selectedTimeSlot === timeSlot.id
 
-          return (
-            <motion.button
-              key={id}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleViewChange(id)}
-              className="relative flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2
-               sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all
-               duration-200"
-            >
-              {/* Contenu du bouton */}
-              <motion.div
-                animate={{
-                  color: isActive ? 'var(--color-primary)'
-                    : 'var(--color-primary-foreground)',
-                  scale: isActive ? 1.05 : 1,
-                }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center gap-2"
+            return (
+              <DropdownMenuItem
+                key={timeSlot.id}
+                onClick={() => handleTimeSlotChange(timeSlot.id)}
+                className={`
+                  w-full px-3 py-2.5 rounded-lg text-left text-sm
+                  transition-all duration-200
+                  flex items-center justify-between group cursor-pointer
+                  ${isActive
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-foreground hover:bg-muted hover:text-foreground'
+              }
+                `}
               >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-              </motion.div>
-            </motion.button>
-          )
-        })}
-      </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium truncate">
+                      {formatDayOfWeek(timeSlot.dayOfWeek as TimeSlotEnum)}
+                    </span>
+                    <span className="text-xs opacity-70 truncate">
+                      {timeSlot.subject}
+                    </span>
+                    <span className="text-xs bg-foreground text-background
+                      px-1.5 py-0.5 rounded-full flex-shrink-0">
+                      {timeSlot.level}
+                    </span>
+                  </div>
+                  <span className="text-xs opacity-60 truncate">
+                    {formatTime(hours.start)} - {formatTime(hours.end)}
+                  </span>
+                </div>
+                {isActive && (
+                  <CheckCircle2 className="w-4 h-4 text-primary-foreground flex-shrink-0" />
+                )}
+              </DropdownMenuItem>
+            )
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </section>
   )
 }

@@ -4,8 +4,9 @@ import { CheckCircle2, Star } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
 
-interface HeaderProfileProps {
+interface HeaderClassroomProps {
   courseSessionId?: string
+  className?: string
 }
 
 const coursesView = [
@@ -21,18 +22,44 @@ const coursesView = [
   },
 ]
 
-export const HeaderClassroom = ({ courseSessionId }: HeaderProfileProps) => {
+export const HeaderClassroom = ({
+  courseSessionId,
+  className = '',
+}: HeaderClassroomProps) => {
   const router = useRouter()
   const pathname = usePathname()
 
   // Détecter la vue active basée sur le pathname
   const activeView = pathname.includes('/behavior') ? 'behavior' : 'attendance'
 
+  // Extraire l'ID du cours du pathname si courseSessionId n'est pas fourni
+  const getCourseId = () => {
+    if (courseSessionId) return courseSessionId
+
+    // Extraire l'ID du cours du pathname
+    const pathSegments = pathname.split('/')
+    const courseIndex = pathSegments.findIndex((segment) => segment === 'course')
+    if (courseIndex !== -1 && pathSegments[courseIndex + 1]) {
+      return pathSegments[courseIndex + 1]
+    }
+
+    return null
+  }
+
   const handleViewChange = (viewId: string) => {
-    if (courseSessionId) {
+    // Ne pas naviguer si on clique sur l'onglet déjà actif
+    if (viewId === activeView) {
+      return
+    }
+
+    const courseId = getCourseId()
+
+    if (courseId) {
       const baseUrl = '/teacher/classroom/course'
-      const url = `${baseUrl}/${courseSessionId}/${viewId}`
+      const url = `${baseUrl}/${courseId}/${viewId}`
       router.push(url)
+    } else {
+      console.warn('HeaderClassroom - courseId not found in pathname or props')
     }
   }
 
@@ -41,9 +68,9 @@ export const HeaderClassroom = ({ courseSessionId }: HeaderProfileProps) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="flex-[0.4] flex justify-end"
+      className={`flex-[0.4] flex justify-end ${className}`}
     >
-      {/* Navigation des vues - Style expansif utilisant tout l'espace disponible */}
+      {/* Navigation des vues - Design simple et clair */}
       <div className="flex bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-1 border
         border-primary-foreground/20 w-full max-w-md h-14">
         {coursesView.map(({ id, label, Icon }) => {
@@ -57,51 +84,19 @@ export const HeaderClassroom = ({ courseSessionId }: HeaderProfileProps) => {
           return (
             <motion.button
               key={id}
-              whileHover={{ scale: 1.01 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleViewChange(id)}
-              animate={{
-                width: isActive ? '90%' : '10%',
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 300,
-                damping: 30,
-                duration: 0.6,
-              }}
               className={`
-                relative flex items-center justify-center rounded-xl text-sm font-medium
-                transition-all duration-300 h-full
-                ${isActive ? activeClasses : inactiveClasses}
+                relative flex-1 flex items-center justify-center gap-2 rounded-xl
+                text-sm font-medium transition-all duration-200 h-full
+                ${isActive ? activeClasses : inactiveClasses + ' cursor-pointer'}
               `}
             >
-              {/* Contenu de l'onglet actif (90%) */}
-              {isActive && (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ delay: 0.2, duration: 0.3 }}
-                  className="flex items-center gap-3"
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="font-semibold whitespace-nowrap">
-                    {label}
-                  </span>
-                </motion.div>
-              )}
-
-              {/* Contenu de l'onglet inactif (10%) - juste l'icône */}
-              {!isActive && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1, duration: 0.2 }}
-                  className="flex items-center justify-center"
-                >
-                  <Icon className="w-4 h-4" />
-                </motion.div>
-              )}
+              <Icon className="w-4 h-4" />
+              <span className="font-medium">
+                {label}
+              </span>
             </motion.button>
           )
         })}

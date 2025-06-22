@@ -3,9 +3,9 @@ import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
-import { HeaderClassroomMobile } from '@/client/components/atoms/HeaderClassroomMobile'
+import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
-import { HeaderSettingsMobile } from '@/client/components/atoms/HeaderSettingsMobile'
+// import { HeaderSettingsMobile } from '@/client/components/atoms/HeaderSettingsMobile'
 import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
 
 export const HeaderMenuMobile = ({
@@ -50,19 +50,20 @@ export const HeaderMenuMobile = ({
         </section>
 
         {/* Sélecteur de créneaux horaires pour la route settings */}
-        {isSettingsRoute && (
-          <HeaderClassroomMobile
-            classroomTimeSlots={classroomTimeSlots}
+        {isClassroomTeacherRoute && (
+          <HeaderClassroom
+            courseSessionId={courseSessionId}
+            className="flex-[1] justify-center"
           />
         )}
 
         {/* Menu de navigation des vues pour les routes de cours */}
-        {isClassroomTeacherRoute && (
+        {/* {isSettingsRoute && (
           <HeaderSettingsMobile
-            courseSessionId={courseSessionId}
-            activeView={activeView}
+                        classroomTimeSlots={classroomTimeSlots}
+
           />
-        )}
+        )} */}
       </div>
     </motion.div>
   )
