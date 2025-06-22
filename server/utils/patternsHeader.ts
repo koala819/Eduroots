@@ -20,19 +20,16 @@ export type RoutePattern = {
 }
 
 export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
-  '/teacher/settings/classroom': {
-    title: 'Mes Cours',
-    subtitle: ({ classroomTimeSlots }) =>
-      classroomTimeSlots && classroomTimeSlots.length > 0
-        ? `${classroomTimeSlots.length} créneaux disponibles`
-        : 'Chargement...',
+  '/admin': {
+    title: 'Administration',
+    subtitle: 'Gestion du système',
     backButton: {
-      name: 'Retour',
+      name: 'Accueil',
     },
   },
-  '/teacher/settings': {
-    title: 'Paramètres',
-    subtitle: 'Changer vos paramètres',
+  '/teacher/classroom': {
+    title: 'Tableau de bord',
+    subtitle: 'Vue d\'ensemble',
     backButton: {
       name: 'Accueil',
     },
@@ -105,25 +102,28 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
-  '/teacher/settings/grades': {
-    title: 'Notes',
-    subtitle: 'Gestion des notes',
-    backButton: {
-      name: 'Paramètres',
-    },
-  },
-  '/admin': {
-    title: 'Administration',
-    subtitle: 'Gestion du système',
+  '/teacher/settings': {
+    title: 'Paramètres',
+    subtitle: 'Changer vos paramètres',
     backButton: {
       name: 'Accueil',
     },
   },
-  '/teacher/classroom': {
-    title: 'Tableau de bord',
-    subtitle: 'Vue d\'ensemble',
+  '/teacher/settings/classroom': {
+    title: 'Mes Cours',
+    subtitle: ({ classroomTimeSlots }) =>
+      classroomTimeSlots && classroomTimeSlots.length > 0
+        ? `${classroomTimeSlots.length} créneaux disponibles`
+        : 'Chargement...',
     backButton: {
-      name: 'Accueil',
+      name: 'Retour',
+    },
+  },
+  '/teacher/settings/edit': {
+    title: 'Mon Planning',
+    subtitle: 'Gestion de mes créneaux',
+    backButton: {
+      name: 'Retour',
     },
   },
 }
