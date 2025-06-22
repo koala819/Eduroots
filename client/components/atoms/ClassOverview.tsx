@@ -4,7 +4,6 @@ import { differenceInYears } from 'date-fns'
 import { ClipboardList, Star } from 'lucide-react'
 import { BiFemale, BiMale } from 'react-icons/bi'
 
-import { StudentWithDetails as StudentType } from '@/client/components/organisms/ProfileCourseCard'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
@@ -28,10 +27,18 @@ import {
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
 import { cn, getColorClass } from '@/server/utils/helpers'
+import { StudentStats } from '@/types/stats'
+import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
 import { GenderEnum } from '@/types/user'
 
+type TeacherStudent = TeacherWithStudentsResponse['courses'][0]['sessions'][0]['students'][0]
+
+export interface StudentWithDetails extends TeacherStudent {
+  stats: StudentStats
+}
+
 interface DesktopClassViewProps {
-  students: StudentType[]
+  students: StudentWithDetails[]
 }
 
 export const ClassOverview = ({ students }: DesktopClassViewProps) => {

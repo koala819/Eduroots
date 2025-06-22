@@ -26,9 +26,30 @@ const ClassroomPage = async () => {
       return <ErrorContent message="Erreur lors de la récupération des données" />
     }
 
-    // Trier les sessions dans chaque cours pour garantir la cohérence avec le header
-    const sortedData = {
+    // Préparer les données côté serveur pour optimiser les performances
+    const allTimeSlots = studentsResponse.data.courses.flatMap((course) =>
+      course.sessions.map((session) => ({
+        id: session.sessionId,
+        subject: session.subject,
+        dayOfWeek: session.timeSlot,
+        level: session.level,
+        courseId: course.courseId,
+        startTime: session.startTime ? session.startTime.substring(0, 5) : '',
+        endTime: session.endTime ? session.endTime.substring(0, 5) : '',
+      })),
+    )
+
+    // Trier les créneaux côté serveur
+    const sortedTimeSlots = [...allTimeSlots].sort(sortTimeSlots)
+
+    // Préparer les données optimisées
+    const optimizedData = {
       ...studentsResponse.data,
+      // Créneaux triés pour le header
+      timeSlots: sortedTimeSlots,
+      // Premier créneau par défaut
+      defaultSessionId: sortedTimeSlots.length > 0 ? sortedTimeSlots[0].id : null,
+      // Cours avec sessions triées
       courses: studentsResponse.data.courses.map((course) => ({
         ...course,
         sessions: [...course.sessions].sort(sortTimeSlots).map((session) => ({
@@ -42,7 +63,7 @@ const ClassroomPage = async () => {
     return (
       <Suspense fallback={<LoadingContent />}>
         <ClassroomDashboard
-          initialData={sortedData}
+          initialData={optimizedData}
         />
       </Suspense>
     )

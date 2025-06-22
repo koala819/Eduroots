@@ -22,6 +22,18 @@ export type TeacherResponse = Pick<User,
 >
 
 export type TeacherWithStudentsResponse = TeacherResponse & {
+  // Créneaux triés pour le header (optimisation côté serveur)
+  timeSlots?: Array<{
+    id: string
+    subject: string
+    dayOfWeek: string
+    level: string
+    courseId: string
+    startTime: string
+    endTime: string
+  }>
+  // Premier créneau par défaut (optimisation côté serveur)
+  defaultSessionId?: string | null
   courses: Array<{
     courseId: string
     academicYear: string

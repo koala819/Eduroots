@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Users } from 'lucide-react'
+import { useEffect, useMemo,useState } from 'react'
 
-import { EmptyContent } from '@/client/components/atoms/StatusContent'
-import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
+import { ClassOverview, StudentWithDetails } from '@/client/components/atoms/ClassOverview'
+import { EmptyContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { sortTimeSlots } from '@/client/utils/timeSlots'
-import { SubjectNameEnum } from '@/types/courses'
+import { useStats } from '@/client/context/stats'
+import { StudentStats } from '@/types/stats'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
 
 interface ClassroomDashboardProps {
@@ -14,26 +15,27 @@ interface ClassroomDashboardProps {
 }
 
 const ClassroomDashboard = ({ initialData }: ClassroomDashboardProps) => {
-  // Extraire tous les créneaux horaires uniques (déjà triés côté serveur)
-  const allTimeSlots = initialData.courses.flatMap((course) =>
-    course.sessions.map((session) => ({
-      id: session.sessionId,
-      subject: session.subject,
-      dayOfWeek: session.timeSlot,
-      level: session.level,
-      courseId: course.courseId,
-      startTime: session.startTime,
-      endTime: session.endTime,
-    })),
-  )
+  const [studentsWithData, setStudentsWithData] = useState<StudentWithDetails[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const { getStudentAttendance, getStudentBehavior, getStudentGrade } = useStats()
 
-  // Trier globalement tous les créneaux horaires pour garantir l'ordre correct
-  const sortedTimeSlots = [...allTimeSlots].sort(sortTimeSlots)
-
-  // Initialiser avec le premier créneau (maintenant trié globalement)
+  // Initialiser avec le créneau par défaut (pré-calculé côté serveur)
   const [selectedSession, setSelectedSession] = useState<string | null>(
-    sortedTimeSlots.length > 0 ? sortedTimeSlots[0].id : null,
+    initialData.defaultSessionId || null,
   )
+
+  const selectedStudents = useMemo(() => {
+    if (!selectedSession) return []
+
+    return initialData.courses.flatMap((course) => {
+      const filteredSessions = course.sessions.filter(
+        (session) => session.sessionId === selectedSession,
+      )
+      return filteredSessions.flatMap(
+        (session) => session.students,
+      )
+    })
+  }, [selectedSession, initialData.courses])
 
   // Écouter les changements depuis le header
   useEffect(() => {
@@ -48,66 +50,99 @@ const ClassroomDashboard = ({ initialData }: ClassroomDashboardProps) => {
     }
   }, [])
 
+  // Charger les données des étudiants quand le créneau change
+  useEffect(() => {
+    const loadStudentData = async () => {
+      setIsLoading(true)
+
+      try {
+        if (selectedStudents.length > 0) {
+          const allApiCalls = selectedStudents.flatMap((student) => [
+            getStudentAttendance(student.id),
+            getStudentBehavior(student.id),
+            getStudentGrade(student.id),
+          ])
+
+          const allResults = await Promise.all(allApiCalls)
+
+          const completeStudents: StudentWithDetails[] = []
+
+          for (let i = 0; i < selectedStudents.length; i++) {
+            const student = selectedStudents[i]
+            const baseIndex = i * 3
+
+            const [attendanceData, behaviorData, gradesData] = [
+              allResults[baseIndex],
+              allResults[baseIndex + 1],
+              allResults[baseIndex + 2],
+            ]
+
+            const studentStats: StudentStats = {
+              userId: student.id,
+              absencesRate: attendanceData?.data?.absencesRate ?? 0,
+              absencesCount: attendanceData?.data?.absencesCount ?? 0,
+              behaviorAverage: behaviorData?.data?.behaviorAverage ?? 0,
+              absences: attendanceData?.data?.absences ?? [],
+              grades: gradesData?.data ?? { overallAverage: 0 },
+              lastActivity: attendanceData?.data?.lastActivity
+                ? new Date(attendanceData.data.lastActivity)
+                : null,
+              lastUpdate: new Date(),
+            }
+
+            completeStudents.push({
+              ...student,
+              stats: studentStats,
+            })
+          }
+
+          setStudentsWithData(completeStudents)
+        } else {
+          setStudentsWithData([])
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des données des étudiants:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadStudentData()
+  }, [selectedStudents, getStudentAttendance, getStudentBehavior, getStudentGrade])
+
   if (!initialData.courses || initialData.courses.length === 0) {
     return <EmptyContent />
   }
 
+  const selectedTimeSlot = useMemo(() => {
+    return initialData.timeSlots?.find((ts) => ts.id === selectedSession)
+  }, [initialData.timeSlots, selectedSession])
+
+  const selectedSubject = selectedTimeSlot?.subject || ''
+
   return (
     <div className="p-4" data-dashboard="classroom">
       <div className="space-y-6 mt-4">
-        {initialData.courses.map((course) =>
-          Object.values(SubjectNameEnum).map((subject) => {
-            // Filtrer les sessions pour ce cours, cette matière et ce créneau
-            const subjectSessions = course.sessions.filter(
-              (session) =>
-                session.subject === subject &&
-                session.sessionId === selectedSession,
-            )
-
-            if (subjectSessions.length > 0) {
-              return (
-                <Card
-                  key={`${course.courseId}-${subject}`}
-                  className="shadow-sm border-l-4 border-l-blue-500 border-t-0 border-r-0 border-b-0
-                  overflow-hidden rounded-lg animate-fadeIn bg-white"
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg font-semibold text-gray-800">
-                        {subject}
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4 pt-2">
-                    {subjectSessions.map((session) => (
-                      <div
-                        key={session.sessionId}
-                        className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors
-                        duration-200"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:justify-between
-                        sm:items-center mb-3">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <div className="h-7 w-24 rounded-full bg-blue-100 flex items-center
-                            justify-center mr-2">
-                              <span className="text-blue-600 text-xs font-medium">
-                                Niveau {session.level}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <ProfileCourseCard
-                          key={session.sessionId}
-                          students={session.students}
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )
-            }
-            return null
-          }),
+        {isLoading ? (
+          <LoadingContent />
+        ) : (
+          <Card className="bg-white border border-zinc-200 shadow-sm
+          hover:shadow-md transition-shadow duration-200">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                {selectedSubject}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 border-t border-zinc-100">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Users className="h-4 w-4 text-zinc-500" />
+                <span className="text-sm font-medium text-zinc-600">
+                  {selectedStudents.length} étudiants
+                </span>
+              </div>
+              <ClassOverview students={studentsWithData} />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
