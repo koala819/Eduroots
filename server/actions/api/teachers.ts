@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { sortTimeSlots } from '@/client/utils/timeSlots'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
@@ -321,10 +322,13 @@ export async function getStudentsByTeacher(
           }) || [],
         )
 
+        // Trier les sessions selon le créneau horaire
+        const sortedSessions = sessionsWithStudents.sort(sortTimeSlots)
+
         return {
           courseId: course.id,
           academicYear: course.academic_year.toString(),
-          sessions: sessionsWithStudents,
+          sessions: sortedSessions,
         }
       }),
     )

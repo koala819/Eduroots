@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 
+import { EmptyContent } from '@/client/components/atoms/StatusContent'
 import { ProfileCourseCard } from '@/client/components/organisms/ProfileCourseCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { sortTimeSlots } from '@/client/utils/timeSlots'
 import { SubjectNameEnum } from '@/types/courses'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
 
@@ -12,9 +14,7 @@ interface ClassroomDashboardProps {
 }
 
 const ClassroomDashboard = ({ initialData }: ClassroomDashboardProps) => {
-  const [selectedSession, setSelectedSession] = useState<string | null>(null)
-
-  // Extraire tous les créneaux horaires uniques
+  // Extraire tous les créneaux horaires uniques (déjà triés côté serveur)
   const allTimeSlots = initialData.courses.flatMap((course) =>
     course.sessions.map((session) => ({
       id: session.sessionId,
@@ -27,14 +27,15 @@ const ClassroomDashboard = ({ initialData }: ClassroomDashboardProps) => {
     })),
   )
 
-  // Sélectionner automatiquement le premier créneau
-  useEffect(() => {
-    if (allTimeSlots.length > 0 && !selectedSession) {
-      setSelectedSession(allTimeSlots[0].id)
-    }
-  }, [allTimeSlots, selectedSession])
+  // Trier globalement tous les créneaux horaires pour garantir l'ordre correct
+  const sortedTimeSlots = [...allTimeSlots].sort(sortTimeSlots)
 
-  // Écouter les changements de créneau depuis le header
+  // Initialiser avec le premier créneau (maintenant trié globalement)
+  const [selectedSession, setSelectedSession] = useState<string | null>(
+    sortedTimeSlots.length > 0 ? sortedTimeSlots[0].id : null,
+  )
+
+  // Écouter les changements depuis le header
   useEffect(() => {
     const handleHeaderTimeSlotChanged = (event: CustomEvent) => {
       const { sessionId } = event.detail
@@ -48,13 +49,7 @@ const ClassroomDashboard = ({ initialData }: ClassroomDashboardProps) => {
   }, [])
 
   if (!initialData.courses || initialData.courses.length === 0) {
-    return (
-      <div className="p-4">
-        <div className="text-center py-8">
-          <p className="text-gray-500">Aucun cours trouvé pour ce professeur</p>
-        </div>
-      </div>
-    )
+    return <EmptyContent />
   }
 
   return (

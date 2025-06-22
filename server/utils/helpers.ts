@@ -44,12 +44,12 @@ export function formatName(firstname: string, lastname: string) {
 }
 
 export function formatDayOfWeek(dayOfWeek: TimeSlotEnum): string {
-  const translations = {
+  const dayNames = {
     [TimeSlotEnum.SATURDAY_MORNING]: 'Samedi matin',
     [TimeSlotEnum.SATURDAY_AFTERNOON]: 'Samedi après-midi',
     [TimeSlotEnum.SUNDAY_MORNING]: 'Dimanche matin',
   }
-  return translations[dayOfWeek] || dayOfWeek
+  return dayNames[dayOfWeek] || dayOfWeek
 }
 
 export function formatAdminConfigTitle(title: string) {
