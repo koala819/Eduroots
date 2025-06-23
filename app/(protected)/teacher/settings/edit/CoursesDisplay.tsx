@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 
-import CoursesFilter from '@/client/components/atoms/SettingsCourses'
 import SettingsPlanning from '@/client/components/atoms/SettingsPlanning'
 import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
@@ -37,15 +36,6 @@ export const CoursesDisplay = ({ courses }: CoursesDisplayProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Composant de filtrage et navigation */}
-      <CoursesFilter
-        courses={courses}
-        selectedTimeSlot={selectedTimeSlot}
-        onTimeSlotChange={handleTimeSlotChange}
-        currentDayIndex={currentDayIndex}
-        onPrevDay={handlePrevDay}
-        onNextDay={handleNextDay}
-      />
 
 
       {/* Display mobile */}

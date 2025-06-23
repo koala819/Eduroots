@@ -4,21 +4,41 @@ import { motion } from 'framer-motion'
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
+import { HeaderPlanning } from '@/client/components/atoms/HeaderPlanning'
 import { HeaderSettings } from '@/client/components/atoms/HeaderSettings'
-import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
+import {
+  ClassroomTimeSlot,
+  CourseSessionWithRelations,
+  CourseWithRelations,
+  TimeSlotEnum,
+} from '@/types/courses'
 
 export const HeaderMenuDesktop = ({
   courseSessionId,
   selectedSession,
   classroomTimeSlots = [],
+  courses = [],
+  selectedTimeSlot = null,
+  onTimeSlotChange,
+  currentDayIndex = 0,
+  onPrevDay,
+  onNextDay,
   isClassroomTeacherRoute = false,
   isSettingsRoute = false,
+  isPlanningRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
   classroomTimeSlots?: ClassroomTimeSlot[]
+  courses?: CourseWithRelations[]
+  selectedTimeSlot?: TimeSlotEnum | null
+  onTimeSlotChange?: (timeSlot: TimeSlotEnum) => void
+  currentDayIndex?: number
+  onPrevDay?: () => void
+  onNextDay?: () => void
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
+  isPlanningRoute: boolean
 }) => {
 
 
@@ -60,6 +80,17 @@ export const HeaderMenuDesktop = ({
           {isSettingsRoute && (
             <HeaderSettings
               classroomTimeSlots={classroomTimeSlots}
+            />
+          )}
+
+          {isPlanningRoute && (
+            <HeaderPlanning
+              courses={courses}
+              selectedTimeSlot={selectedTimeSlot}
+              onTimeSlotChange={onTimeSlotChange}
+              currentDayIndex={currentDayIndex}
+              onPrevDay={onPrevDay}
+              onNextDay={onNextDay}
             />
           )}
         </div>

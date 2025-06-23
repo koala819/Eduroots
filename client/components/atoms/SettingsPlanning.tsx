@@ -55,8 +55,10 @@ const SettingsPlanning = ({ timeSlot, courses }: SettingsPlanningProps) => {
           <div className="space-y-3">
             {sortedSessions.map((session, sessionIdx) => (
               <React.Fragment key={`session-${sessionIdx}`}>
-                <div className="bg-muted/50 rounded-lg p-4 hover:bg-muted transition-colors duration-200">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
+                <div className="bg-muted/50 rounded-lg p-4 hover:bg-muted
+                transition-colors duration-200">
+                  <div className="flex flex-col sm:flex-row sm:justify-between
+                   sm:items-center mb-3">
                     <div className="flex items-center mb-2 sm:mb-0">
                       <div
                         className={`h-7 px-3 rounded-full flex items-center justify-center mr-2 ${
@@ -65,13 +67,15 @@ const SettingsPlanning = ({ timeSlot, courses }: SettingsPlanningProps) => {
                       >
                         <span className="text-xs font-medium">{session.subject}</span>
                       </div>
-                      <div className="h-7 px-3 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="h-7 px-3 rounded-full bg-primary/10 flex items-center
+                      justify-center">
                         <span className="text-primary text-xs font-medium">
                           Niveau {session.level}
                         </span>
                       </div>
                     </div>
-                    <div className="h-7 px-3 rounded-full bg-muted flex items-center justify-center">
+                    <div className="h-7 px-3 rounded-full bg-muted flex items-center
+                    justify-center">
                       <span className="text-muted-foreground text-xs font-medium">
                         Salle{' '}
                         {session.courses_sessions_timeslot[0]?.classroom_number ||
