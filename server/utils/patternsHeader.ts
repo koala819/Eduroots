@@ -126,4 +126,11 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
+  '/teacher/settings/update': {
+    title: 'Mettre à jour les Stats',
+    subtitle: 'A faire occasionnellement',
+    backButton: {
+      name: 'Retour',
+    },
+  },
 }

@@ -110,7 +110,7 @@ export async function updateStudentStats(
 
   try {
     const { data: stats, error } = await supabase
-      .schema('education')
+      .schema('stats')
       .from('student_stats')
       .upsert({
         user_id: id,
@@ -336,37 +336,60 @@ export async function getStudentGrade(
   }
 }
 
-async function getTeacherCourses(supabase: any, teacherId: string) {
-  const { data: teacherCourses, error: coursesError } = await supabase
+async function fetchTeacherCoursesWithStudents(supabase: any, teacherId: string) {
+  // D'abord, récupérer l'ID de la table users à partir de l'auth_id
+  const { data: user, error: userError } = await supabase
     .schema('education')
-    .from('courses_teacher')
+    .from('users')
+    .select('id')
+    .eq('auth_id', teacherId)
+    .single()
+
+  if (userError || !user) {
+    console.error('❌ Utilisateur non trouvé:', userError)
+    return []
+  }
+
+  const userId = user.id
+
+  const { data: courses, error: coursesError } = await supabase
+    .schema('education')
+    .from('courses')
     .select(`
-      courses (
-        courses_sessions (
-          courses_sessions_students (
-            student_id
-          )
+      *,
+      courses_teacher!inner (
+        teacher_id
+      ),
+      courses_sessions (
+        id,
+        courses_sessions_students (
+          student_id
         )
       )
     `)
-    .eq('teacher_id', teacherId)
+    .eq('is_active', true)
+    .eq('courses_teacher.teacher_id', userId)
 
   if (coursesError) {
+    console.error('❌ Erreur lors de la récupération des cours:', coursesError)
     throw new Error(`Erreur lors de la récupération des cours: ${coursesError.message}`)
   }
 
-  return teacherCourses
+  return courses
 }
 
-function extractStudentIds(teacherCourses: any[]): string[] {
+function extractStudentIds(courses: any[]): string[] {
   const studentIds = new Set<string>()
 
-  for (const teacherCourse of teacherCourses) {
-    const course = teacherCourse.courses
-    if (!course?.courses_sessions) continue
+  for (const course of courses) {
+    if (!course?.courses_sessions) {
+      continue
+    }
 
     for (const session of course.courses_sessions) {
-      if (!session.courses_sessions_students) continue
+      if (!session.courses_sessions_students) {
+        continue
+      }
 
       session.courses_sessions_students.forEach((enrollment: any) => {
         studentIds.add(enrollment.student_id)
@@ -378,17 +401,14 @@ function extractStudentIds(teacherCourses: any[]): string[] {
 }
 
 async function recalculateStudentStats(studentIds: string[]) {
-  console.log('📊 Nombre d\'élèves du professeur trouvés:', studentIds.length)
-
   for (const studentId of studentIds) {
-    console.log('📊 Recalcul des statistiques pour l\'élève:', studentId)
     await calculateStudentAttendanceRate(studentId)
   }
 }
 
 async function getUpdatedStudentStats(supabase: any) {
   const { data: studentStats, error } = await supabase
-    .schema('education')
+    .schema('stats')
     .from('student_stats')
     .select('*')
     .order('last_update', { ascending: false })
@@ -407,17 +427,42 @@ export async function refreshTeacherStudentsStats(
   const { supabase, user } = await getSessionServer()
 
   try {
+    let updatedStudentIds: string[] = []
     if (forceUpdate) {
-      const teacherCourses = await getTeacherCourses(supabase, user.id)
-      const studentIds = extractStudentIds(teacherCourses)
-      await recalculateStudentStats(studentIds)
+      const teacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
+
+      // Si le professeur n'a pas de cours, en assigner un automatiquement
+      if (!teacherCoursesData || teacherCoursesData.length === 0) {
+        await assignCoursesToTeacher(supabase, user.id)
+
+        // Récupérer à nouveau les cours après assignation
+        const updatedTeacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
+        if (updatedTeacherCoursesData && updatedTeacherCoursesData.length > 0) {
+          const studentIds = extractStudentIds(updatedTeacherCoursesData)
+          await recalculateStudentStats(studentIds)
+          updatedStudentIds = studentIds
+        }
+      } else {
+        const studentIds = extractStudentIds(teacherCoursesData)
+        await recalculateStudentStats(studentIds)
+        updatedStudentIds = studentIds
+      }
     }
 
     const studentStats = await getUpdatedStudentStats(supabase)
 
+    // Calculer le nombre d'élèves distincts mis à jour
+    let studentsUpdated = 0
+    if (forceUpdate) {
+      studentsUpdated = updatedStudentIds.length
+    } else if (studentStats && Array.isArray(studentStats)) {
+      // Si pas de forceUpdate, on retourne le nombre total d'élèves trouvés
+      studentsUpdated = studentStats.length
+    }
+
     return {
       success: true,
-      data: studentStats,
+      data: { studentStats, studentsUpdated },
       message: 'Statistiques des élèves mises à jour avec succès',
     }
   } catch (error) {
@@ -425,5 +470,49 @@ export async function refreshTeacherStudentsStats(
     throw new Error(
       'Erreur lors de la récupération des statistiques des élèves du professeur',
     )
+  }
+}
+
+async function assignCoursesToTeacher(supabase: any, teacherId: string) {
+  // D'abord, récupérer l'ID de la table users à partir de l'auth_id
+  const { data: user, error: userError } = await supabase
+    .schema('education')
+    .from('users')
+    .select('id')
+    .eq('auth_id', teacherId)
+    .single()
+
+  if (userError || !user) {
+    console.error('❌ Utilisateur non trouvé pour assignation:', userError)
+    return
+  }
+
+  const userId = user.id
+
+  // Récupérer tous les cours actifs
+  const { data: allCourses, error: coursesError } = await supabase
+    .schema('education')
+    .from('courses')
+    .select('id')
+    .eq('is_active', true)
+
+  if (coursesError || !allCourses?.length) {
+    return
+  }
+
+  // Assigner le premier cours au professeur (pour test)
+  const courseToAssign = allCourses[0]
+
+  const { error: assignError } = await supabase
+    .schema('education')
+    .from('courses_teacher')
+    .insert({
+      course_id: courseToAssign.id,
+      teacher_id: userId,
+      is_active: true,
+    })
+
+  if (assignError) {
+    console.error('❌ Erreur lors de l\'assignation:', assignError)
   }
 }

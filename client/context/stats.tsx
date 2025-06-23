@@ -17,7 +17,7 @@ import {
   getStudentGrade,
   refreshEntityStats,
   refreshGlobalStats,
-  refreshTeacherStudentsStats,
+  refreshTeacherStudentsStats as refreshTeacherStudentsStatsAction,
   updateStudentStats,
   updateTeacherStats,
 } from '@/server/actions/api/stats'
@@ -79,7 +79,7 @@ export function statsReducer(
 
 interface StatsContextType {
   refreshEntityStats: (forceUpdate?: boolean) => Promise<void>
-  refreshTeacherStudentsStats: (forceUpdate?: boolean) => Promise<void>
+  refreshTeacherStudentsStats: (forceUpdate?: boolean) => Promise<any>
   updateStudentStats: (id: string, stats: StudentStatsPayload) => Promise<void>
   updateTeacherStats: (id: string, stats: TeacherStatsPayload) => Promise<void>
   refreshGlobalStats: () => Promise<void>
@@ -125,6 +125,9 @@ export const StatsProvider = ({
 
   // Filtrer les statistiques par type
   const studentStats = useMemo(() => {
+    if (!Array.isArray(state.entityStats)) {
+      return []
+    }
     return state.entityStats.filter((stat) => {
       if (stat && typeof stat === 'object' && !Array.isArray(stat)) {
         return isStudentStats(stat as unknown as EntityStats)
@@ -134,6 +137,9 @@ export const StatsProvider = ({
   }, [state.entityStats])
 
   const teacherStats = useMemo(() => {
+    if (!Array.isArray(state.entityStats)) {
+      return []
+    }
     return state.entityStats.filter((stat) => {
       if (stat && typeof stat === 'object' && !Array.isArray(stat)) {
         return isTeacherStats(stat as unknown as EntityStats)
@@ -185,30 +191,38 @@ export const StatsProvider = ({
   }, [handleError])
 
   const handleRefreshTeacherStudentsStats =
-    useCallback(async (): Promise<void> => {
+    useCallback(async (forceUpdate?: boolean): Promise<any> => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true })
 
-        // Utiliser Server Action
-        startTransition(async () => {
-          const response = await refreshTeacherStudentsStats()
+        // Appeler la fonction directement pour obtenir la réponse
+        const response = await refreshTeacherStudentsStatsAction(forceUpdate)
 
-          if (!response.success || !response.data) {
-            throw new Error(
-              response.message || 'Failed to fetch teacher students stats',
-            )
-          }
+        if (!response.success || !response.data) {
+          throw new Error(
+            response.message || 'Failed to fetch teacher students stats',
+          )
+        }
 
-          dispatch({
-            type: 'SET_ENTITY_STATS',
-            payload: response.data as EntityStats[],
+        // Le backend retourne maintenant { studentStats, studentsUpdated }
+        // On met à jour entityStats avec studentStats
+        if (response.data.studentStats && Array.isArray(response.data.studentStats)) {
+          startTransition(() => {
+            dispatch({
+              type: 'SET_ENTITY_STATS',
+              payload: response.data.studentStats as EntityStats[],
+            })
           })
-        })
+        }
+
+        // Retourner la réponse complète pour que le composant puisse accéder à studentsUpdated
+        return response
       } catch (error) {
         handleError(
           error as Error,
           'Erreur lors de la récupération des statistiques des élèves du professeur',
         )
+        throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
