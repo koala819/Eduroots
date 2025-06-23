@@ -420,49 +420,38 @@ async function getUpdatedStudentStats(supabase: any) {
   return studentStats
 }
 
-export async function refreshTeacherStudentsStats(
-  forceUpdate: boolean = false,
-): Promise<ApiResponse> {
+export async function refreshTeacherStudentsStats(): Promise<ApiResponse> {
   await getAuthenticatedUser()
   const { supabase, user } = await getSessionServer()
 
   try {
     let updatedStudentIds: string[] = []
-    if (forceUpdate) {
-      const teacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
 
-      // Si le professeur n'a pas de cours, en assigner un automatiquement
-      if (!teacherCoursesData || teacherCoursesData.length === 0) {
-        await assignCoursesToTeacher(supabase, user.id)
+    // Toujours récupérer les cours et recalculer les statistiques
+    const teacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
 
-        // Récupérer à nouveau les cours après assignation
-        const updatedTeacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
-        if (updatedTeacherCoursesData && updatedTeacherCoursesData.length > 0) {
-          const studentIds = extractStudentIds(updatedTeacherCoursesData)
-          await recalculateStudentStats(studentIds)
-          updatedStudentIds = studentIds
-        }
-      } else {
-        const studentIds = extractStudentIds(teacherCoursesData)
+    // Si le professeur n'a pas de cours, en assigner un automatiquement
+    if (!teacherCoursesData || teacherCoursesData.length === 0) {
+      await assignCoursesToTeacher(supabase, user.id)
+
+      // Récupérer à nouveau les cours après assignation
+      const updatedTeacherCoursesData = await fetchTeacherCoursesWithStudents(supabase, user.id)
+      if (updatedTeacherCoursesData && updatedTeacherCoursesData.length > 0) {
+        const studentIds = extractStudentIds(updatedTeacherCoursesData)
         await recalculateStudentStats(studentIds)
         updatedStudentIds = studentIds
       }
+    } else {
+      const studentIds = extractStudentIds(teacherCoursesData)
+      await recalculateStudentStats(studentIds)
+      updatedStudentIds = studentIds
     }
 
     const studentStats = await getUpdatedStudentStats(supabase)
 
-    // Calculer le nombre d'élèves distincts mis à jour
-    let studentsUpdated = 0
-    if (forceUpdate) {
-      studentsUpdated = updatedStudentIds.length
-    } else if (studentStats && Array.isArray(studentStats)) {
-      // Si pas de forceUpdate, on retourne le nombre total d'élèves trouvés
-      studentsUpdated = studentStats.length
-    }
-
     return {
       success: true,
-      data: { studentStats, studentsUpdated },
+      data: { studentStats, studentsUpdated: updatedStudentIds.length },
       message: 'Statistiques des élèves mises à jour avec succès',
     }
   } catch (error) {

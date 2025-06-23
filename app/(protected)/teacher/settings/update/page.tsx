@@ -88,7 +88,7 @@ const UpdateStatsPage = () => {
 
       // Mise à jour des statistiques des élèves
       try {
-        const studentsResult: any = await refreshTeacherStudentsStats(true)
+        const studentsResult: any = await refreshTeacherStudentsStats()
         if (
           studentsResult &&
           studentsResult.data &&

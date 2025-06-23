@@ -78,8 +78,8 @@ export function statsReducer(
 }
 
 interface StatsContextType {
-  refreshEntityStats: (forceUpdate?: boolean) => Promise<void>
-  refreshTeacherStudentsStats: (forceUpdate?: boolean) => Promise<any>
+  refreshEntityStats: () => Promise<void>
+  refreshTeacherStudentsStats: () => Promise<any>
   updateStudentStats: (id: string, stats: StudentStatsPayload) => Promise<void>
   updateTeacherStats: (id: string, stats: TeacherStatsPayload) => Promise<void>
   refreshGlobalStats: () => Promise<void>
@@ -191,12 +191,12 @@ export const StatsProvider = ({
   }, [handleError])
 
   const handleRefreshTeacherStudentsStats =
-    useCallback(async (forceUpdate?: boolean): Promise<any> => {
+    useCallback(async (): Promise<any> => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true })
 
         // Appeler la fonction directement pour obtenir la réponse
-        const response = await refreshTeacherStudentsStatsAction(forceUpdate)
+        const response = await refreshTeacherStudentsStatsAction()
 
         if (!response.success || !response.data) {
           throw new Error(
