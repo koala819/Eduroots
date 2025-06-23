@@ -4,11 +4,11 @@ import { Calendar } from 'lucide-react'
 
 import { Holiday } from '@/types/holidays'
 
-interface HolidaysDisplayProps {
+interface HolidaysListProps {
   holidays: Holiday[]
 }
 
-export const HolidaysDisplay = ({ holidays }: HolidaysDisplayProps) => {
+export const HolidaysList = ({ holidays }: HolidaysListProps) => {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('fr-FR', {
       day: 'numeric',

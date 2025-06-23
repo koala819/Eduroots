@@ -4,21 +4,30 @@ import { motion } from 'framer-motion'
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
+import { HeaderPlanning } from '@/client/components/atoms/HeaderPlanning'
 import { HeaderSettings } from '@/client/components/atoms/HeaderSettings'
-import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
+import {
+  ClassroomTimeSlot,
+  CourseSessionWithRelations,
+  CourseWithRelations,
+} from '@/types/courses'
 
 export const HeaderMenuMobile = ({
   courseSessionId,
   selectedSession,
   classroomTimeSlots = [],
+  courses = [],
   isClassroomTeacherRoute = false,
   isSettingsRoute = false,
+  isPlanningRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
   classroomTimeSlots?: ClassroomTimeSlot[]
+  courses?: CourseWithRelations[]
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
+  isPlanningRoute: boolean
 }) => {
 
   return (
@@ -56,7 +65,12 @@ export const HeaderMenuMobile = ({
         {isSettingsRoute && (
           <HeaderSettings
             classroomTimeSlots={classroomTimeSlots}
+          />
+        )}
 
+        {isPlanningRoute && (
+          <HeaderPlanning
+            courses={courses}
           />
         )}
       </div>

@@ -2,33 +2,18 @@
 
 import { usePathname } from 'next/navigation'
 
-import {
-  ClassroomTimeSlot,
-  CourseSessionWithRelations,
-  CourseWithRelations,
-  TimeSlotEnum,
-} from '@/types/courses'
-
-import { HeaderMenuDesktop } from '../molecules/HeaderMenu_Desktop'
+import { HeaderMenuDesktop } from '@/client/components/molecules/HeaderMenu_Desktop'
+import { HeaderMenuMobile } from '@/client/components/molecules/HeaderMenu_Mobile'
+import { ClassroomTimeSlot, CourseSessionWithRelations, CourseWithRelations } from '@/types/courses'
 
 export function MenuHeader({
   classroomTimeSlots = [],
   selectedSession,
   courses = [],
-  selectedTimeSlot = null,
-  onTimeSlotChange,
-  currentDayIndex = 0,
-  onPrevDay,
-  onNextDay,
 }: {
   classroomTimeSlots?: ClassroomTimeSlot[]
   selectedSession: CourseSessionWithRelations | undefined
-  courses?: CourseWithRelations[]
-  selectedTimeSlot?: TimeSlotEnum | null
-  onTimeSlotChange?: (timeSlot: TimeSlotEnum) => void
-  currentDayIndex?: number
-  onPrevDay?: () => void
-  onNextDay?: () => void
+  courses: CourseWithRelations[]
 }) {
   const pathname = usePathname()
 
@@ -50,11 +35,6 @@ export function MenuHeader({
           selectedSession={selectedSession}
           classroomTimeSlots={classroomTimeSlots}
           courses={courses}
-          selectedTimeSlot={selectedTimeSlot}
-          onTimeSlotChange={onTimeSlotChange}
-          currentDayIndex={currentDayIndex}
-          onPrevDay={onPrevDay}
-          onNextDay={onNextDay}
           isClassroomTeacherRoute={isClassroomTeacherRoute}
           isSettingsRoute={isSettingsRoute}
           isPlanningRoute={isPlanningRoute}
@@ -63,21 +43,15 @@ export function MenuHeader({
 
       {/* Vue mobile */}
       <div className="sm:hidden">
-        Menu mobile
-        {/* <HeaderMenuMobile
+        <HeaderMenuMobile
           courseSessionId={selectedSession?.id}
           selectedSession={selectedSession}
           classroomTimeSlots={classroomTimeSlots}
           courses={courses}
-          selectedTimeSlot={selectedTimeSlot}
-          onTimeSlotChange={onTimeSlotChange}
-          currentDayIndex={currentDayIndex}
-          onPrevDay={onPrevDay}
-          onNextDay={onNextDay}
           isClassroomTeacherRoute={isClassroomTeacherRoute}
           isSettingsRoute={isSettingsRoute}
           isPlanningRoute={isPlanningRoute}
-        /> */}
+        />
       </div>
     </>
   )

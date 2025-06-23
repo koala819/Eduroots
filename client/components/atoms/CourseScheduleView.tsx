@@ -4,12 +4,12 @@ import React from 'react'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { CourseWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 
-type SettingsPlanningProps = {
+type CourseScheduleViewProps = {
   timeSlot: TimeSlotEnum
   courses: CourseWithRelations[]
 }
 
-const SettingsPlanning = ({ timeSlot, courses }: SettingsPlanningProps) => {
+export const CourseScheduleView = ({ timeSlot, courses }: CourseScheduleViewProps) => {
   const getSessionsForSlot = (timeSlot: TimeSlotEnum) => {
     return courses.flatMap((course) =>
       course.courses_sessions.filter((session) => {
@@ -118,5 +118,3 @@ const SettingsPlanning = ({ timeSlot, courses }: SettingsPlanningProps) => {
     </div>
   )
 }
-
-export default SettingsPlanning

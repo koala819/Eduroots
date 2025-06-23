@@ -4,10 +4,10 @@ import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-he
 import {
   ClassroomTimeSlot,
   CourseSessionWithRelations,
+  CourseWithRelations,
   TimeEnum,
   TimeSlotEnum,
 } from '@/types/courses'
-
 
 interface CourseLayoutProps {
   children: React.ReactNode
@@ -16,6 +16,7 @@ interface CourseLayoutProps {
 export default async function CourseLayout({ children }: CourseLayoutProps) {
   let classroomTimeSlots: ClassroomTimeSlot[] = []
   let selectedSession: CourseSessionWithRelations | undefined
+  let courses: CourseWithRelations[] = []
 
   try {
     const user = await getAuthenticatedUser()
@@ -76,6 +77,42 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
           startTime: slot.startTime ? slot.startTime.substring(0, 5) : undefined,
           endTime: slot.endTime ? slot.endTime.substring(0, 5) : undefined,
         }))
+
+        // Construction des courses pour HeaderPlanning (type CourseWithRelations)
+        courses = studentsResponse.data.courses.map((course) => ({
+          id: course.courseId,
+          is_active: true,
+          deleted_at: null,
+          created_at: new Date(),
+          updated_at: new Date(),
+          academic_year: course.academicYear || '',
+          courses_teacher: [],
+          courses_sessions: course.sessions.map((session) => ({
+            id: session.sessionId,
+            course_id: course.courseId,
+            subject: session.subject,
+            level: session.level,
+            stats_average_attendance: null,
+            stats_average_grade: null,
+            stats_average_behavior: null,
+            stats_last_updated: new Date(),
+            created_at: new Date(),
+            updated_at: new Date(),
+            courses_sessions_students: [],
+            courses_sessions_timeslot: [
+              {
+                id: '',
+                course_sessions_id: session.sessionId,
+                day_of_week: session.timeSlot as TimeSlotEnum,
+                start_time: session.startTime || '',
+                end_time: session.endTime || '',
+                classroom_number: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+              },
+            ],
+          })),
+        }))
       }
     }
   } catch (error) {
@@ -88,6 +125,7 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
         <MenuHeader
           classroomTimeSlots={classroomTimeSlots}
           selectedSession={selectedSession}
+          courses={courses}
         />
       </header>
 

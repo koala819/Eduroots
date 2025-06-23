@@ -10,7 +10,6 @@ import {
   ClassroomTimeSlot,
   CourseSessionWithRelations,
   CourseWithRelations,
-  TimeSlotEnum,
 } from '@/types/courses'
 
 export const HeaderMenuDesktop = ({
@@ -18,11 +17,6 @@ export const HeaderMenuDesktop = ({
   selectedSession,
   classroomTimeSlots = [],
   courses = [],
-  selectedTimeSlot = null,
-  onTimeSlotChange,
-  currentDayIndex = 0,
-  onPrevDay,
-  onNextDay,
   isClassroomTeacherRoute = false,
   isSettingsRoute = false,
   isPlanningRoute = false,
@@ -31,11 +25,6 @@ export const HeaderMenuDesktop = ({
   selectedSession?: CourseSessionWithRelations
   classroomTimeSlots?: ClassroomTimeSlot[]
   courses?: CourseWithRelations[]
-  selectedTimeSlot?: TimeSlotEnum | null
-  onTimeSlotChange?: (timeSlot: TimeSlotEnum) => void
-  currentDayIndex?: number
-  onPrevDay?: () => void
-  onNextDay?: () => void
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
   isPlanningRoute: boolean
@@ -86,11 +75,6 @@ export const HeaderMenuDesktop = ({
           {isPlanningRoute && (
             <HeaderPlanning
               courses={courses}
-              selectedTimeSlot={selectedTimeSlot}
-              onTimeSlotChange={onTimeSlotChange}
-              currentDayIndex={currentDayIndex}
-              onPrevDay={onPrevDay}
-              onNextDay={onNextDay}
             />
           )}
         </div>

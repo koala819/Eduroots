@@ -1,10 +1,10 @@
+import { TeacherScheduleSection } from '@/client/components/organisms/TeacherScheduleSection'
 import { getTeacherCourses } from '@/server/actions/api/courses'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { Holiday } from '@/types/holidays'
 
-import { CoursesDisplay } from './CoursesDisplay'
-import { HolidaysDisplay } from './HolidaysDisplay'
+import { HolidaysList } from '../../../../../client/components/atoms/HolidaysList'
 
 const PlanningViewer = async () => {
   try {
@@ -44,8 +44,8 @@ const PlanningViewer = async () => {
     return (
       <div className="p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CoursesDisplay courses={coursesResponse.data || []} />
-          <HolidaysDisplay holidays={convertedHolidays} />
+          <TeacherScheduleSection courses={coursesResponse.data || []} />
+          <HolidaysList holidays={convertedHolidays} />
         </div>
       </div>
     )
