@@ -283,13 +283,21 @@ export async function getCourseSessionById(
   const { supabase } = await getSessionServer()
 
   try {
+    await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .select('id, subject, level')
+      .eq('id', id)
+
     // console.log('\n\n\n1. Récupération de la session de base\n\n\n with id:', id)
-    const { data: session, error: sessionError } = await supabase
+    const { data: sessions, error: sessionError } = await supabase
       .schema('education')
       .from('courses_sessions')
       .select('*')
       .eq('id', id)
-      .single()
+      .limit(1)
+
+    const session = sessions?.[0]
 
     if (sessionError || !session) {
       console.error('[GET_COURSE_BY_ID] Session Error:', sessionError)
@@ -301,12 +309,15 @@ export async function getCourseSessionById(
     }
 
     // Récupération du cours
-    const { data: course, error: courseError } = await supabase
+
+    const { data: courses, error: courseError } = await supabase
       .schema('education')
       .from('courses')
       .select('*')
       .eq('id', session.course_id)
-      .single()
+      .limit(1)
+
+    const course = courses?.[0]
 
     if (courseError) {
       console.error('[GET_COURSE_BY_ID] Course Error:', courseError)
@@ -880,12 +891,14 @@ async function cleanInvalidStudents(supabase: any, students: any[]) {
   console.warn(`[GET_COURSE_BY_ID] ${invalidStudents.length} étudiants invalides trouvés`)
 
   for (const student of invalidStudents) {
-    const { data: user, error: userError } = await supabase
+    const { data: users, error: userError } = await supabase
       .schema('education')
       .from('users')
       .select('id')
       .eq('mongo_id', student.mongo_student_id)
-      .single()
+      .limit(1)
+
+    const user = users?.[0]
 
     if (userError || !user) {
       console.warn(`[GET_COURSE_BY_ID] Suppression de l'étudiant ${student.mongo_student_id}
@@ -909,12 +922,14 @@ async function cleanInvalidStudents(supabase: any, students: any[]) {
 async function getStudentsWithUsers(supabase: any, students: any[]) {
   return Promise.all(
     students?.filter((student) => student.student_id).map(async (student) => {
-      const { data: user, error: userError } = await supabase
+      const { data: users, error: userError } = await supabase
         .schema('education')
         .from('users')
         .select('*')
         .eq('id', student.student_id)
-        .single()
+        .limit(1)
+
+      const user = users?.[0]
 
       if (userError) {
         console.error('[GET_COURSE_BY_ID] User Error:', userError)
