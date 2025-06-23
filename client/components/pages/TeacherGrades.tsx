@@ -28,6 +28,7 @@ type ProcessedGrade = {
     absentCount: number
     totalStudents: number
   }
+  originalGrade: GradeWithRelations
 }
 
 type GroupedGrades = Record<string, ProcessedGrade[]>
@@ -77,8 +78,8 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
       return []
     }
 
-    const processedGrades: ProcessedGrade[] = (
-      teacherGrades as unknown as GradeWithRelations[]
+    const processedGrades: (ProcessedGrade & { originalGrade: GradeWithRelations })[] = (
+      teacherGrades as GradeWithRelations[]
     ).map((grade) => {
       const session = grade.courses_sessions
 
@@ -96,6 +97,7 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
           absentCount: grade.stats_absent_count,
           totalStudents: grade.stats_total_students,
         },
+        originalGrade: grade,
       }
     })
 
@@ -129,7 +131,7 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
     if (!teacherGrades || !Array.isArray(teacherGrades))
       return { Inconnu: 0 } as Record<SubjectNameEnum | 'Inconnu', number>
 
-    return (teacherGrades as unknown as GradeWithRelations[]).reduce(
+    return (teacherGrades as GradeWithRelations[]).reduce(
       (acc: Record<SubjectNameEnum | 'Inconnu', number>, grade) => {
         const subject = grade.courses_sessions.subject || 'Inconnu'
         const subjectKey = subject as SubjectNameEnum | 'Inconnu'
@@ -140,40 +142,40 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
     )
   }, [teacherGrades])
 
-  const getSubjectColor = (subject: string) => {
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'border-l-blue-500'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'border-l-green-500'
-    default:
-      return 'border-l-gray-500'
-    }
-  }
+  // const getSubjectColor = (subject: string) => {
+  //   switch (subject) {
+  //   case SubjectNameEnum.Arabe:
+  //     return 'border-l-blue-500'
+  //   case SubjectNameEnum.EducationCulturelle:
+  //     return 'border-l-green-500'
+  //   default:
+  //     return 'border-l-gray-500'
+  //   }
+  // }
 
-  const getSubjectBackgroundColor = (subject: string) => {
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'bg-blue-100 text-blue-600'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'bg-green-100 text-green-600'
-    default:
-      return 'bg-gray-100 text-gray-600'
-    }
-  }
+  // const getSubjectBackgroundColor = (subject: string) => {
+  //   switch (subject) {
+  //   case SubjectNameEnum.Arabe:
+  //     return 'bg-blue-100 text-blue-600'
+  //   case SubjectNameEnum.EducationCulturelle:
+  //     return 'bg-green-100 text-green-600'
+  //   default:
+  //     return 'bg-gray-100 text-gray-600'
+  //   }
+  // }
 
-  const getTypeBackgroundColor = (type: string) => {
-    switch (type as GradeTypeEnum) {
-    case GradeTypeEnum.Controle:
-      return 'bg-purple-100 text-purple-600'
-    case GradeTypeEnum.Devoir:
-      return 'bg-yellow-100 text-yellow-600'
-    case GradeTypeEnum.Examen:
-      return 'bg-blue-100 text-blue-600'
-    default:
-      return 'bg-gray-100 text-gray-600'
-    }
-  }
+  // const getTypeBackgroundColor = (type: string) => {
+  //   switch (type as GradeTypeEnum) {
+  //   case GradeTypeEnum.Controle:
+  //     return 'bg-purple-100 text-purple-600'
+  //   case GradeTypeEnum.Devoir:
+  //     return 'bg-yellow-100 text-yellow-600'
+  //   case GradeTypeEnum.Examen:
+  //     return 'bg-blue-100 text-blue-600'
+  //   default:
+  //     return 'bg-gray-100 text-gray-600'
+  //   }
+  // }
 
   if (isLoading) {
     return (
@@ -210,7 +212,7 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
           setSelectedSubject={setSelectedSubject}
           subjectCounts={subjectCounts}
           totalGrades={teacherGrades?.length || 0}
-          getSubjectBackgroundColor={getSubjectBackgroundColor}
+          // getSubjectBackgroundColor={getSubjectBackgroundColor}
         />
       </div>
 
@@ -222,9 +224,7 @@ export function TeacherGrades({ teacherId }: { teacherId: string }) {
               {grades.map((grade) => (
                 <GradeCard
                   key={grade.id}
-                  grade={grade as unknown as GradeWithRelations}
-                  getSubjectColor={getSubjectColor}
-                  getTypeBackgroundColor={getTypeBackgroundColor}
+                  grade={grade.originalGrade}
                 />
               ))}
             </div>

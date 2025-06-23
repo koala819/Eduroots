@@ -14,15 +14,14 @@ import {
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { getSubjectBadgeColor } from '@/server/utils/helpers'
 import { GradeRecordWithUser,GradeWithRelations } from '@/types/grades'
 
 interface GradeCardProps {
   grade: GradeWithRelations
-  getSubjectColor: (subject: string) => string
-  getTypeBackgroundColor: (type: string) => string
 }
 
-export function GradeCard({ grade, getSubjectColor, getTypeBackgroundColor }: GradeCardProps) {
+export function GradeCard({ grade }: GradeCardProps) {
   if (!grade.courses_sessions) {
     return (
       <div className="p-4 bg-red-100 text-red-700 rounded">
@@ -37,7 +36,7 @@ export function GradeCard({ grade, getSubjectColor, getTypeBackgroundColor }: Gr
   return (
     <Card
       className={`
-        shadow-sm border-l-4 ${getSubjectColor(subject)}
+        shadow-sm border-l-4 ${getSubjectBadgeColor(subject)}
         border-t-0 border-r-0 border-b-0 overflow-hidden
         rounded-lg animate-fadeIn
         ${grade.is_draft ? 'bg-gray-50' : 'bg-white'}
@@ -59,10 +58,8 @@ export function GradeCard({ grade, getSubjectColor, getTypeBackgroundColor }: Gr
         <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100
          transition-colors duration-200">
           <div className="flex flex-wrap gap-2 mb-3">
-            <div className={`
-              h-7 px-3 rounded-full flex items-center justify-center
-              ${getTypeBackgroundColor(grade.type)} text-xs font-medium
-            `}>
+            <div className='h-7 px-3 rounded-full flex items-center justify-center
+              text-xs font-medium'>
               {grade.type}
             </div>
             <div className={`

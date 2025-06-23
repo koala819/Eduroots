@@ -18,12 +18,10 @@ import {
   refreshGradeData,
   updateGradeRecord,
 } from '@/server/actions/api/grades'
-import { Grade, GradeRecord } from '@/types/db'
 import { CreateGradePayload } from '@/types/grade-payload'
+import { GradeWithRelations } from '@/types/grades'
 
-export interface PopulatedGrade extends Grade {
-  records: GradeRecord[]
-}
+export type PopulatedGrade = GradeWithRelations
 
 interface GradeState {
   grades: PopulatedGrade[]

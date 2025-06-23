@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/client/components/ui/button'
+import { getSubjectBadgeColor } from '@/server/utils/helpers'
 import { SubjectNameEnum } from '@/types/courses'
 
 interface SubjectFilterProps {
@@ -11,7 +12,6 @@ interface SubjectFilterProps {
   setSelectedSubject: (subject: string) => void
   subjectCounts: Record<SubjectNameEnum | 'Inconnu', number>
   totalGrades: number
-  getSubjectBackgroundColor: (subject: string) => string
 }
 
 export const SubjectFilter = ({
@@ -19,7 +19,6 @@ export const SubjectFilter = ({
   setSelectedSubject,
   subjectCounts,
   totalGrades,
-  getSubjectBackgroundColor,
 }: SubjectFilterProps) => {
   const router = useRouter()
 
@@ -41,7 +40,7 @@ export const SubjectFilter = ({
             rounded-full text-sm whitespace-nowrap w-full
             ${selectedSubject === subject
           ? ''
-          : getSubjectBackgroundColor(subject).replace('text-', 'hover:text-')}
+          : getSubjectBadgeColor(subject)}
           `}
           onClick={() => setSelectedSubject(subject)}
         >
