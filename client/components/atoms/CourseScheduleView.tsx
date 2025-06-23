@@ -74,9 +74,9 @@ export const CourseScheduleView = ({ timeSlot, courses }: CourseScheduleViewProp
                         </span>
                       </div>
                     </div>
-                    <div className="h-7 px-3 rounded-full bg-muted flex items-center
-                    justify-center">
-                      <span className="text-muted-foreground text-xs font-medium">
+                    <div className="h-7 px-3 rounded-full bg-primary/10 flex items-center
+                    justify-center border border-primary/20">
+                      <span className="text-primary text-xs font-medium">
                         Salle{' '}
                         {session.courses_sessions_timeslot[0]?.classroom_number ||
                           'Non définie'}

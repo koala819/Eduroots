@@ -24,7 +24,7 @@ export function MenuHeader({
     !pathname.includes('/edit')
 
   const isSettingsRoute = pathname.includes('/settings/classroom')
-  const isPlanningRoute = pathname.includes('/settings/edit')
+  const isPlanningRoute = pathname.includes('/settings/planning')
 
   return (
     <>

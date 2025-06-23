@@ -39,7 +39,7 @@ const Profile = () => {
       icon: <Calendar className="h-10 w-10" />,
       title: 'Emploi du temps',
       onClick: () => {
-        handleNavClick('/teacher/settings/edit')
+        handleNavClick('/teacher/settings/planning')
       },
     },
     {

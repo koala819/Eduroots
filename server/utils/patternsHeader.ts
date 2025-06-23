@@ -119,7 +119,7 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
-  '/teacher/settings/edit': {
+  '/teacher/settings/planning': {
     title: 'Mon Planning',
     subtitle: 'Gestion de mes créneaux',
     backButton: {
