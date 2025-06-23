@@ -54,6 +54,22 @@
   --color-info-dark: hsl(212.7, 25%, 25%);
   --color-info-foreground: hsl(210, 20%, 98%);
 
+  /* Couleurs supplémentaires pour plus de variété */
+  --color-purple: hsl(280, 25%, 35%);
+  --color-purple-light: hsl(280, 25%, 45%);
+  --color-purple-dark: hsl(280, 25%, 25%);
+  --color-purple-foreground: hsl(210, 20%, 98%);
+
+  --color-teal: hsl(180, 25%, 35%);
+  --color-teal-light: hsl(180, 25%, 45%);
+  --color-teal-dark: hsl(180, 25%, 25%);
+  --color-teal-foreground: hsl(210, 20%, 98%);
+
+  --color-pink: hsl(340, 70%, 55%);
+  --color-pink-light: hsl(340, 70%, 65%);
+  --color-pink-dark: hsl(340, 70%, 45%);
+  --color-pink-foreground: hsl(210, 20%, 98%);
+
   --color-star: hsl(42.333336, 94%, 62%);
 
   /* Layout */

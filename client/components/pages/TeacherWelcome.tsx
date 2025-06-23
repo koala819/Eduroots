@@ -1,13 +1,16 @@
 'use client'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import {
-  ArrowRight,
   BookOpen,
   MessageSquareMore,
   UserCog,
   Users,
 } from 'lucide-react'
-import Link from 'next/link'
-import { useEffect,useState } from 'react'
+import { useState } from 'react'
+
+import ActionCard from '@/client/components/atoms/ActionCard'
+import LoadingOverlay from '@/client/components/atoms/LoadingOverlay'
 
 // Simulation des données - dans votre vraie app, ces données viendraient de votre API
 // const mockStats = {
@@ -78,6 +81,45 @@ const islamicQuotes = [
   },
 ]
 
+const actionsData = [
+  {
+    href: '/teacher/classroom',
+    icon: <BookOpen className="w-8 h-8" />,
+    title: 'Mes cours',
+    description: 'Gérez votre planning et vos contenus',
+    gradientFrom: 'primary',
+    gradientTo: 'primary-dark',
+    textColor: 'primary-foreground',
+  },
+  {
+    href: '/teacher/settings/classroom',
+    icon: <Users className="w-8 h-8" />,
+    title: 'Mes élèves',
+    description: 'Suivez la progression de vos classes',
+    gradientFrom: 'success',
+    gradientTo: 'success-dark',
+    textColor: 'success-foreground',
+  },
+  {
+    href: '/teacher/messages',
+    icon: <MessageSquareMore className="w-8 h-8" />,
+    title: 'Messages',
+    description: 'Communiquez avec vos élèves',
+    gradientFrom: 'secondary',
+    gradientTo: 'secondary-dark',
+    textColor: 'secondary-foreground',
+  },
+  {
+    href: '/teacher/settings',
+    icon: <UserCog className="w-8 h-8" />,
+    title: 'Paramètres',
+    description: 'Paramètres et préférences',
+    gradientFrom: 'purple',
+    gradientTo: 'purple-dark',
+    textColor: 'purple-foreground',
+  },
+]
+
 interface TeacherWelcomeProps {
   user: {
     firstname: string
@@ -86,29 +128,18 @@ interface TeacherWelcomeProps {
 }
 
 export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [dailyQuote] = useState(() => {
-    // Sélectionne une citation différente chaque jour
-    const dayOfYear = Math.floor(
-      (currentTime.getTime() - new Date(currentTime.getFullYear(), 0, 0).getTime()) / 86400000,
+  const [isLoading, setIsLoading] = useState(false)
+  // Sélectionner une citation aléatoire basée sur le jour de l'année
+  const today = new Date()
+  const dayOfYear = Math.floor(
+    (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000,
+  )
+  const dailyQuote = islamicQuotes[dayOfYear % islamicQuotes.length]
+
+  if (isLoading) {
+    return (
+      <LoadingOverlay title="Chargement en cours..." />
     )
-    return islamicQuotes[dayOfYear % islamicQuotes.length]
-  })
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
   }
 
   return (
@@ -125,7 +156,7 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
                 Salam Aleykoum {user.firstname} {user.lastname}
               </h1>
               <p className="text-primary-foreground/90 text-lg">
-                {formatDate(currentTime)}
+                {format(today, 'EEEE d MMMM yyyy', { locale: fr })}
               </p>
             </div>
           </div>
@@ -201,69 +232,19 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
               </h2> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link href="/teacher/classroom" className="group block">
-                  <div className="bg-gradient-to-br from-primary to-primary-dark rounded-xl p-6
-                  text-primary-foreground hover:shadow-lg transition-all duration-300
-                  hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <BookOpen className="w-8 h-8" />
-                      <ArrowRight
-                        className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Mes cours</h3>
-                    <p className="text-primary-foreground/80 text-sm">
-                      Gérez votre planning et vos contenus
-                    </p>
-                  </div>
-                </Link>
-
-                <Link href="/teacher/settings/classroom" className="group block">
-                  <div className="bg-gradient-to-br from-accent to-accent-dark rounded-xl p-6
-                  text-accent-foreground hover:shadow-lg transition-all duration-300
-                   hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <Users className="w-8 h-8" />
-                      <ArrowRight
-                        className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Mes élèves</h3>
-                    <p className="text-accent-foreground/80 text-sm">
-                      Suivez la progression de vos classes
-                    </p>
-                  </div>
-                </Link>
-
-                <Link href="/teacher/messages" className="group block">
-                  <div className="bg-gradient-to-br from-info to-info-dark rounded-xl p-6
-                  text-info-foreground hover:shadow-lg transition-all duration-300
-                  hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <MessageSquareMore className="w-8 h-8" />
-                      <ArrowRight
-                        className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Messages</h3>
-                    <p className="text-info-foreground/80 text-sm">
-                      Communiquez avec vos élèves
-                    </p>
-                  </div>
-                </Link>
-
-                <Link href="/teacher/settings" className="group block">
-                  <div className="bg-gradient-to-br from-error to-error-dark rounded-xl p-6
-                  text-error-foreground hover:shadow-lg transition-all duration-300
-                  hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <UserCog className="w-8 h-8" />
-                      <ArrowRight
-                        className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Paramètres</h3>
-                    <p className="text-error-foreground/80 text-sm">
-                      Paramètres et préférences
-                    </p>
-                  </div>
-                </Link>
+                {actionsData.map((action, index) => (
+                  <ActionCard
+                    key={index}
+                    href={action.href}
+                    icon={action.icon}
+                    title={action.title}
+                    description={action.description}
+                    gradientFrom={action.gradientFrom}
+                    gradientTo={action.gradientTo}
+                    textColor={action.textColor}
+                    setIsLoading={setIsLoading}
+                  />
+                ))}
               </div>
             </div>
           </div>
