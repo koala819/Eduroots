@@ -20,11 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
-import { useCourses } from '@/client/context/courses'
 import { useGrades } from '@/client/context/grades'
 import { useToast } from '@/client/hooks/use-toast'
-import useCourseStore from '@/client/stores/useCourseStore'
 import { createClient } from '@/client/utils/supabase'
+import { getTeacherCourses } from '@/server/actions/api/courses'
+import { getAuthUser } from '@/server/actions/auth'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import type { CourseWithRelations } from '@/types/courses'
 import { SubjectNameEnum } from '@/types/courses'
@@ -39,12 +39,12 @@ type GradeEntry = {
 }
 
 export default function CreateGradePage() {
-  const { teacherCourses, isLoading } = useCourses()
-  const { fetchTeacherCourses } = useCourseStore()
   const { createGradeRecord, isLoading: isLoadingGrade } = useGrades()
   const router = useRouter()
   const { toast } = useToast()
   const [user, setUser] = useState<any>(null)
+  const [teacherCourses, setTeacherCourses] = useState<CourseWithRelations | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const [error, setError] = useState<string | null>(null)
   const [date, setDate] = useState<Date>()
@@ -83,14 +83,33 @@ export default function CreateGradePage() {
     const fetchCourses = async () => {
       try {
         if (user?.id) {
-          await fetchTeacherCourses(user.id)
+          const authResponse = await getAuthUser(user.id)
+
+          if (!authResponse.success || !authResponse.data) {
+            throw new Error(authResponse.message || 'Erreur d\'authentification')
+          }
+
+          const { educationUserId } = authResponse.data
+
+          const response = await getTeacherCourses(educationUserId)
+
+          if (!response.success) {
+            throw new Error(response.message || 'Erreur lors de la récupération des cours')
+          }
+
+          const coursesData = response.data as CourseWithRelations[]
+          const courseData = coursesData.length > 0 ? coursesData[0] : null
+          setTeacherCourses(courseData)
+          setIsLoading(false)
         }
       } catch (err) {
+        console.error('CreateGradePage - Erreur fetchCourses:', err)
         setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+        setIsLoading(false)
       }
     }
     fetchCourses()
-  }, [user?.id, fetchTeacherCourses])
+  }, [user?.id])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -121,7 +140,7 @@ export default function CreateGradePage() {
 
   const handleSelectSession = useCallback(
     (sessionId: string) => {
-      const session = (teacherCourses as CourseWithRelations).courses_sessions.find(
+      const session = teacherCourses?.courses_sessions.find(
         (s) => s.id === sessionId,
       )
       if (session) {
@@ -264,16 +283,48 @@ export default function CreateGradePage() {
 
   if (isLoading || !teacherCourses) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1"
-          style={{ animationDelay: '0.2s' }}
-        />
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-ping"
-          style={{ animationDelay: '0.4s' }}
-        />
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+          <div
+            className="w-2 h-2 bg-blue-500 rounded-full animate-ping"
+            style={{ animationDelay: '0.2s' }}
+          />
+          <div
+            className="w-2 h-2 bg-blue-500 rounded-full animate-ping"
+            style={{ animationDelay: '0.4s' }}
+          />
+        </div>
+        <h3 className="text-lg font-medium text-gray-700 mb-2">
+          Chargement des cours...
+        </h3>
+        <p className="text-gray-500 text-center max-w-md">
+          Nous récupérons vos cours et sessions pour créer une nouvelle évaluation.
+        </p>
+      </div>
+    )
+  }
+
+  // Vérifier si l'enseignant a des cours
+  if (!teacherCourses.courses_sessions || teacherCourses.courses_sessions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
+        <div className="text-gray-400 mb-3">
+          <ClipboardEdit className="w-12 h-12 mx-auto opacity-50" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-700 mb-2">
+          Aucun cours disponible
+        </h3>
+        <p className="text-gray-500 text-center max-w-md mb-4">
+          Vous devez d'abord créer des cours et des sessions avant de pouvoir créer des évaluations.
+        </p>
+        <Button
+          variant="outline"
+          onClick={() => router.push('/teacher/settings/classroom')}
+        >
+          <CircleArrowLeft className="h-4 w-4 mr-2" />
+          Retour aux cours
+        </Button>
       </div>
     )
   }
@@ -383,7 +434,7 @@ export default function CreateGradePage() {
               <Select
                 value={selectedSession?.id}
                 onValueChange={(sessionId) => {
-                  const session = (teacherCourses as CourseWithRelations).courses_sessions.find(
+                  const session = teacherCourses.courses_sessions.find(
                     (s) => s.id === sessionId,
                   )
                   if (session) {
@@ -401,7 +452,7 @@ export default function CreateGradePage() {
                   <SelectValue placeholder="Sélectionner une classe" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(teacherCourses as CourseWithRelations).courses_sessions.map((session) => (
+                  {teacherCourses.courses_sessions.map((session) => (
                     <SelectItem key={session.id} value={session.id}>
                       {`${session.subject} - Niveau ${session.level} -
                         ${formatDayOfWeek(session.courses_sessions_timeslot[0].day_of_week)}`}

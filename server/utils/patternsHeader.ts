@@ -126,6 +126,20 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
+  '/teacher/settings/grades/create': {
+    title: 'Nouvelle évaluation',
+    subtitle: 'Créer une évaluation',
+    backButton: {
+      name: 'Retour',
+    },
+  },
+  '/teacher/settings/grades/[id]': {
+    title: 'Modifier évaluation',
+    subtitle: 'Éditer les notes',
+    backButton: {
+      name: 'Retour',
+    },
+  },
   '/teacher/settings/planning': {
     title: 'Mon Planning',
     subtitle: 'Gestion de mes créneaux',

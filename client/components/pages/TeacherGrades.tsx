@@ -77,6 +77,17 @@ export function TeacherGrades({
           subjectCounts={subjectCounts}
           totalGrades={initialGrades.length}
         />
+
+        {/* Bouton Créer une évaluation */}
+        <div className="flex justify-end">
+          <Button
+            variant="default"
+            onClick={() => router.push('/teacher/settings/grades/create')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Créer une évaluation
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4 mt-6 max-w-4xl mx-auto">

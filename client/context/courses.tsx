@@ -12,7 +12,6 @@ import {
 } from 'react'
 
 import { useToast } from '@/client/hooks/use-toast'
-import useCourseStore from '@/client/stores/useCourseStore'
 import { createClient } from '@/client/utils/supabase'
 import {
   addStudentToCourse as addStudentToCourseAction,
@@ -21,6 +20,7 @@ import {
   deleteCourse as deleteCourseAction,
   getCourseSessionById as getCourseByIdAction,
   getStudentCourses as getStudentCoursesAction,
+  getTeacherCourses,
   removeStudentFromCourse as removeStudentFromCourseAction,
   updateCourse as updateCourseAction,
   updateCourses as updateCoursesAction,
@@ -62,7 +62,7 @@ type CourseAction =
       payload: {courseId: string; course: CourseWithRelations}
     }
   | {type: 'SET_COURSES'; payload: CourseWithRelations[]}
-  | {type: 'SET_TEACHER_COURSES'; payload: CourseWithRelations}
+  | {type: 'SET_TEACHER_COURSES'; payload: CourseWithRelations | null}
   | {type: 'SET_ERROR'; payload: string | null}
   | {type: 'SET_LOADING'; payload: boolean}
   | {type: 'UPDATE_COURSE'; payload: CourseWithRelations}
@@ -223,8 +223,6 @@ export const CoursesProvider = ({
   const [user, setUser] = useState<any>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
-
-  const { fetchTeacherCourses } = useCourseStore()
 
   // Effet pour gérer l'authentification Supabase
   useEffect(() => {
@@ -700,11 +698,41 @@ export const CoursesProvider = ({
     // Only load when authentication is ready and user is authenticated
     if (!authLoading && isAuthenticated && user) {
       updateCourses().catch((err) => console.error('Failed to load initial courses data:', err))
-      fetchTeacherCourses(user.id)
     } else if (authLoading) {
       // console.log('Auth session is still loading')
     }
-  }, [initialCourseData, user, isAuthenticated, authLoading, fetchTeacherCourses, updateCourses])
+  }, [initialCourseData, user, isAuthenticated, authLoading, updateCourses])
+
+  // Implémentation de fetchTeacherCourses
+  const fetchTeacherCourses = useCallback(async (teacherId: string) => {
+    if (!isAuthenticated || !user) {
+      return
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true })
+    try {
+      const authResponse = await getAuthUser(user.id)
+
+      if (!authResponse.success || !authResponse.data) {
+        throw new Error(authResponse.message || 'Erreur d\'authentification')
+      }
+
+      const response = await getTeacherCourses(teacherId)
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch teacher courses')
+      }
+
+      // getTeacherCourses retourne un tableau, on prend le premier cours
+      const coursesData = response.data as CourseWithRelations[]
+      const courseData = coursesData.length > 0 ? coursesData[0] : null
+      dispatch({ type: 'SET_TEACHER_COURSES', payload: courseData })
+    } catch (error) {
+      handleError(error as Error, 'Erreur lors de la récupération des cours')
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false })
+    }
+  }, [handleError, user, isAuthenticated])
 
   const value = useMemo(
     () => ({
