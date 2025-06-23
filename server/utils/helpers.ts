@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { createClient } from '@/client/utils/supabase'
 import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
-import { TimeSlotEnum } from '@/types/courses'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -91,6 +91,17 @@ export function getColorClass(absences: number): string {
         'text-black' // 3, 6, 9... absences
   default:
     return 'bg-gray-500 text-white' // Should never happen, but for safety
+  }
+}
+
+export function getSubjectBadgeColor(subject: string): string {
+  switch (subject) {
+  case SubjectNameEnum.Arabe:
+    return 'bg-primary-accent text-primary-foreground'
+  case SubjectNameEnum.EducationCulturelle:
+    return 'bg-accent text-accent-foreground'
+  default:
+    return 'bg-muted text-muted-foreground'
   }
 }
 

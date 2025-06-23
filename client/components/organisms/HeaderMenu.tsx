@@ -5,15 +5,18 @@ import { usePathname } from 'next/navigation'
 import { HeaderMenuDesktop } from '@/client/components/molecules/HeaderMenu_Desktop'
 import { HeaderMenuMobile } from '@/client/components/molecules/HeaderMenu_Mobile'
 import { ClassroomTimeSlot, CourseSessionWithRelations, CourseWithRelations } from '@/types/courses'
+import { GradeWithRelations } from '@/types/grades'
 
 export function MenuHeader({
   classroomTimeSlots = [],
   selectedSession,
   courses = [],
+  grades = [],
 }: {
   classroomTimeSlots?: ClassroomTimeSlot[]
   selectedSession: CourseSessionWithRelations | undefined
   courses: CourseWithRelations[]
+  grades: GradeWithRelations[]
 }) {
   const pathname = usePathname()
 
@@ -25,6 +28,7 @@ export function MenuHeader({
 
   const isSettingsRoute = pathname.includes('/settings/classroom')
   const isPlanningRoute = pathname.includes('/settings/planning')
+  const isGradesRoute = pathname.includes('/settings/grades')
 
   return (
     <>
@@ -35,9 +39,11 @@ export function MenuHeader({
           selectedSession={selectedSession}
           classroomTimeSlots={classroomTimeSlots}
           courses={courses}
+          grades={grades}
           isClassroomTeacherRoute={isClassroomTeacherRoute}
           isSettingsRoute={isSettingsRoute}
           isPlanningRoute={isPlanningRoute}
+          isGradesRoute={isGradesRoute}
         />
       </div>
 
@@ -48,9 +54,11 @@ export function MenuHeader({
           selectedSession={selectedSession}
           classroomTimeSlots={classroomTimeSlots}
           courses={courses}
+          grades={grades}
           isClassroomTeacherRoute={isClassroomTeacherRoute}
           isSettingsRoute={isSettingsRoute}
           isPlanningRoute={isPlanningRoute}
+          isGradesRoute={isGradesRoute}
         />
       </div>
     </>

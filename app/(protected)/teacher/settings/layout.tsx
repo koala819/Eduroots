@@ -1,4 +1,5 @@
 import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
+import { getTeacherGrades } from '@/server/actions/api/grades'
 import { getStudentsByTeacher } from '@/server/actions/api/teachers'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
 import {
@@ -8,6 +9,7 @@ import {
   TimeEnum,
   TimeSlotEnum,
 } from '@/types/courses'
+import { GradeWithRelations } from '@/types/grades'
 
 interface CourseLayoutProps {
   children: React.ReactNode
@@ -17,6 +19,7 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
   let classroomTimeSlots: ClassroomTimeSlot[] = []
   let selectedSession: CourseSessionWithRelations | undefined
   let courses: CourseWithRelations[] = []
+  let grades: GradeWithRelations[] = []
 
   try {
     const user = await getAuthenticatedUser()
@@ -113,6 +116,12 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
             ],
           })),
         }))
+
+        // Récupérer les grades de l'enseignant
+        const gradesResponse = await getTeacherGrades(educationUserId)
+        if (gradesResponse.success && gradesResponse.data) {
+          grades = gradesResponse.data as GradeWithRelations[]
+        }
       }
     }
   } catch (error) {
@@ -126,6 +135,7 @@ export default async function CourseLayout({ children }: CourseLayoutProps) {
           classroomTimeSlots={classroomTimeSlots}
           selectedSession={selectedSession}
           courses={courses}
+          grades={grades}
         />
       </header>
 

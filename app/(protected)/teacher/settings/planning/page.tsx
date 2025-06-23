@@ -1,12 +1,11 @@
+import { HolidaysList } from '@/client/components/atoms/HolidaysList'
 import { TeacherScheduleSection } from '@/client/components/organisms/TeacherScheduleSection'
 import { getTeacherCourses } from '@/server/actions/api/courses'
+import { getAllHolidays } from '@/server/actions/api/holidays'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
-import { getSessionServer } from '@/server/utils/server-helpers'
 import { Holiday } from '@/types/holidays'
 
-import { HolidaysList } from '../../../../../client/components/atoms/HolidaysList'
-
-const PlanningViewer = async () => {
+export default async function PlanningViewerPage() {
   try {
     // Récupérer l'utilisateur authentifié
     const user = await getAuthenticatedUser()
@@ -20,26 +19,20 @@ const PlanningViewer = async () => {
     // Récupérer les cours du professeur
     const coursesResponse = await getTeacherCourses(educationUserId)
 
-    // Récupérer toutes les données de la table education.holidays
-    const { supabase } = await getSessionServer()
-    const { data: allHolidays, error: holidaysError } = await supabase
-      .schema('education')
-      .from('holidays')
-      .select('*')
-      .order('created_at', { ascending: false })
+    // Récupérer toutes les vacances
+    const holidaysResponse = await getAllHolidays()
 
-    if (holidaysError) {
-      console.error('[PLANNING_VIEWER] Error fetching all holidays:', holidaysError)
+    let convertedHolidays: Holiday[] = []
+
+    if (holidaysResponse.success && holidaysResponse.data) {
+      convertedHolidays = holidaysResponse.data.map((holiday: Holiday) => ({
+        ...holiday,
+        start_date: new Date(holiday.start_date),
+        end_date: new Date(holiday.end_date),
+        created_at: new Date(holiday.created_at),
+        updated_at: new Date(holiday.updated_at),
+      }))
     }
-
-    // Convertir les dates string en objets Date pour les vacances
-    const convertedHolidays: Holiday[] = (allHolidays || []).map((holiday) => ({
-      ...holiday,
-      start_date: new Date(holiday.start_date),
-      end_date: new Date(holiday.end_date),
-      created_at: new Date(holiday.created_at),
-      updated_at: new Date(holiday.updated_at),
-    }))
 
     return (
       <div className="p-4">
@@ -56,4 +49,3 @@ const PlanningViewer = async () => {
   }
 }
 
-export default PlanningViewer

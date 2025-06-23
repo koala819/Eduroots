@@ -6,7 +6,6 @@ import { Plus, Trophy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
-import { GradesHeader } from '@/client/components/atoms/GradesHeader'
 import { GradeCard } from '@/client/components/molecules/GradeCard'
 import { SubjectFilter } from '@/client/components/molecules/GradesSubjectFilter'
 import { Button } from '@/client/components/ui/button'
@@ -33,7 +32,7 @@ type ProcessedGrade = {
 
 type GroupedGrades = Record<string, ProcessedGrade[]>
 
-export function GradesClient({ teacherId }: { teacherId: string }) {
+export function TeacherGrades({ teacherId }: { teacherId: string }) {
   const { toast } = useToast()
   const { getTeacherGrades, isLoading, teacherGrades } = useGrades()
   const router = useRouter()
@@ -52,6 +51,26 @@ export function GradesClient({ teacherId }: { teacherId: string }) {
     }
     fetchGrades()
   }, [teacherId, getTeacherGrades])
+
+  // Écouter les changements du header (comme TeacherScheduleSection)
+  useEffect(() => {
+    const handleHeaderSubjectChange = (event: CustomEvent) => {
+      const { subject } = event.detail
+      setSelectedSubject(subject)
+    }
+
+    window.addEventListener(
+      'headerGradesSubjectChanged',
+      handleHeaderSubjectChange as any,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'headerGradesSubjectChanged',
+        handleHeaderSubjectChange as any,
+      )
+    }
+  }, [])
 
   const filteredAndSortedGrades = useMemo(() => {
     if (!teacherGrades || !Array.isArray(teacherGrades)) {
@@ -184,7 +203,7 @@ export function GradesClient({ teacherId }: { teacherId: string }) {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="flex flex-col space-y-4 max-w-4xl mx-auto">
-        <GradesHeader totalGrades={teacherGrades?.length || 0} />
+        {/* <GradesHeader totalGrades={teacherGrades?.length || 0} /> */}
 
         <SubjectFilter
           selectedSubject={selectedSubject}

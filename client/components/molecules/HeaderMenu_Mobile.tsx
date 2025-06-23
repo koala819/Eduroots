@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
+import { HeaderGrades } from '@/client/components/atoms/HeaderGrades'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
 import { HeaderPlanning } from '@/client/components/atoms/HeaderPlanning'
 import { HeaderSettings } from '@/client/components/atoms/HeaderSettings'
@@ -11,23 +12,28 @@ import {
   CourseSessionWithRelations,
   CourseWithRelations,
 } from '@/types/courses'
+import { GradeWithRelations } from '@/types/grades'
 
 export const HeaderMenuMobile = ({
   courseSessionId,
   selectedSession,
   classroomTimeSlots = [],
   courses = [],
+  grades = [],
   isClassroomTeacherRoute = false,
   isSettingsRoute = false,
   isPlanningRoute = false,
+  isGradesRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
   classroomTimeSlots?: ClassroomTimeSlot[]
   courses?: CourseWithRelations[]
+  grades: GradeWithRelations[]
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
   isPlanningRoute: boolean
+  isGradesRoute: boolean
 }) => {
 
   return (
@@ -71,6 +77,12 @@ export const HeaderMenuMobile = ({
         {isPlanningRoute && (
           <HeaderPlanning
             courses={courses}
+          />
+        )}
+
+        {isGradesRoute && (
+          <HeaderGrades
+            grades={grades}
           />
         )}
       </div>

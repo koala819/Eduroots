@@ -1,8 +1,8 @@
 import { Clock, Users } from 'lucide-react'
 import React from 'react'
 
-import { formatDayOfWeek } from '@/server/utils/helpers'
-import { CourseWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { formatDayOfWeek, getSubjectBadgeColor } from '@/server/utils/helpers'
+import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 type CourseScheduleViewProps = {
   timeSlot: TimeSlotEnum
@@ -19,16 +19,7 @@ export const CourseScheduleView = ({ timeSlot, courses }: CourseScheduleViewProp
     )
   }
 
-  const getSubjectBadgeColor = (subject: string): string => {
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'bg-primary-accent text-primary-foreground'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'bg-accent text-accent-foreground'
-    default:
-      return 'bg-muted text-muted-foreground'
-    }
-  }
+
 
   const sessionsForDay = getSessionsForSlot(timeSlot)
   // Trier les cours par ordre chronologique
