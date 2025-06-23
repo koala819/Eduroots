@@ -25,6 +25,7 @@ export type GlobalStatsResponse = {
 export type StudentAttendanceResponse = {
   attendanceRate: number
   totalAbsences: number
+  absences: StudentAbsence[]
   lastUpdate: string
 }
 

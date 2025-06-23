@@ -127,8 +127,8 @@ const SettingsClassroom = ({ initialData }: SettingsClassroomProps) => {
 
             const studentStats: StudentStats = {
               userId: student.id,
-              absencesRate: attendanceData?.data?.absencesRate ?? 0,
-              absencesCount: attendanceData?.data?.absencesCount ?? 0,
+              absencesRate: attendanceData?.data?.attendanceRate ?? 0,
+              absencesCount: attendanceData?.data?.totalAbsences ?? 0,
               behaviorAverage: behaviorData?.data?.behaviorAverage ?? 0,
               absences: attendanceData?.data?.absences ?? [],
               grades: gradesData?.data ?? { overallAverage: 0 },

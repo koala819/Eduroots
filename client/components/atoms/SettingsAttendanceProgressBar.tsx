@@ -17,12 +17,6 @@ export function AttendanceProgressBar({
   showCount = true,
   className,
 }: AbsenceProgressBarProps) {
-  const getColorClass = (count: number) => {
-    if (count === 0) return 'bg-success'
-    if (count > 5) return 'bg-error'
-    if (count > 2) return 'bg-warning'
-    return 'bg-success'
-  }
   const progressWidth = Math.min((absencesCount / maxAbsences) * 100, 100)
 
   return (
@@ -41,10 +35,7 @@ export function AttendanceProgressBar({
       )}
       <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
-          className={cn(
-            'h-full rounded-full transition-all duration-300',
-            getColorClass(absencesCount),
-          )}
+          className='h-full rounded-full transition-all duration-300 bg-primary'
           style={{
             width: `${progressWidth}%`,
           }}

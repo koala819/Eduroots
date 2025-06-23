@@ -96,17 +96,25 @@ export async function calculateStudentAttendanceRate(studentId: string) {
       behavior_average: existingStats?.behavior_average || 0,
     }
 
+    let updatedStats
+
     if (existingStats) {
-      await supabase
+      const { data: updateResult } = await supabase
         .schema('stats')
         .from('student_stats')
         .update(statsData)
         .eq('user_id', studentId)
+        .select()
+        .single()
+      updatedStats = updateResult
     } else {
-      await supabase
+      const { data: insertResult } = await supabase
         .schema('stats')
         .from('student_stats')
         .insert([statsData])
+        .select()
+        .single()
+      updatedStats = insertResult
     }
 
     // Gérer les absences individuelles
@@ -116,11 +124,11 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         .schema('stats')
         .from('student_stats_absences')
         .delete()
-        .eq('student_stats_id', existingStats?.id || studentId)
+        .eq('student_stats_id', updatedStats.id)
 
       // Insérer les nouvelles absences
       const absenceRecords = absences.map((absence) => ({
-        student_stats_id: existingStats?.id || studentId,
+        student_stats_id: updatedStats.id,
         date: absence.date.toISOString(),
         course_session_id: absence.course,
         reason: 'absent',
@@ -130,6 +138,7 @@ export async function calculateStudentAttendanceRate(studentId: string) {
         .schema('stats')
         .from('student_stats_absences')
         .insert(absenceRecords)
+        .select()
     }
 
     return {

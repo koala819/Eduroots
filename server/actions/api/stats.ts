@@ -249,11 +249,44 @@ export async function getStudentAttendance(
   }
 
   try {
-    const data = await calculateStudentAttendanceRate(studentId)
+    const { supabase } = await getSessionServer()
+
+    // Récupérer les statistiques de l'étudiant
+    const { data: studentStats, error: statsError } = await supabase
+      .schema('stats')
+      .from('student_stats')
+      .select('*')
+      .eq('user_id', studentId)
+      .single()
+
+    if (statsError) {
+      console.error('❌ Erreur lors de la récupération des stats:', statsError)
+      throw statsError
+    }
+
+    // Récupérer les absences individuelles depuis student_stats_absences
+    let absences: any[] = []
+    if (studentStats) {
+      const { data: absenceRecords, error: absenceError } = await supabase
+        .schema('stats')
+        .from('student_stats_absences')
+        .select('*')
+        .eq('student_stats_id', studentStats.id)
+
+      if (!absenceError && absenceRecords) {
+        absences = absenceRecords.map((absence) => ({
+          date: new Date(absence.date),
+          course: absence.course_session_id,
+          reason: absence.reason,
+        }))
+      }
+    }
+
     const response: StudentAttendanceResponse = {
-      attendanceRate: data.absencesRate,
-      totalAbsences: data.absencesCount,
-      lastUpdate: new Date().toISOString(),
+      attendanceRate: studentStats?.absences_rate || 0,
+      totalAbsences: studentStats?.absences_count || 0,
+      absences: absences,
+      lastUpdate: studentStats?.last_update || new Date().toISOString(),
     }
 
     return {
