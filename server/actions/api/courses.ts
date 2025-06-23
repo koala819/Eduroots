@@ -474,6 +474,49 @@ export async function getTeacherCourses(
       console.log(`Erreur lors de la récupération: ${error.message}`)
     }
 
+    // Récupérer les données des utilisateurs séparément
+    if (courses && courses.length > 0) {
+      const allStudentIds = new Set<string>()
+
+      // Collecter tous les student_ids
+      courses.forEach((course) => {
+        course.courses_sessions?.forEach((session: any) => {
+          session.courses_sessions_students?.forEach((student: any) => {
+            allStudentIds.add(student.student_id)
+          })
+        })
+      })
+
+      // Récupérer les données des utilisateurs
+      const { data: users, error: usersError } = await supabase
+        .schema('education')
+        .from('users')
+        .select('id, firstname, lastname, email, gender')
+        .in('id', Array.from(allStudentIds))
+
+      if (usersError) {
+        console.error('Erreur lors de la récupération des utilisateurs:', usersError)
+      }
+
+      // Créer un map pour un accès rapide
+      const usersMap = new Map()
+      users?.forEach((user) => {
+        usersMap.set(user.id, user)
+      })
+
+      // Enrichir les données avec les informations des utilisateurs
+      courses.forEach((course) => {
+        course.courses_sessions?.forEach((session: any) => {
+          session.courses_sessions_students?.forEach((student: any) => {
+            const userData = usersMap.get(student.student_id)
+            if (userData) {
+              (student as any).users = userData
+            }
+          })
+        })
+      })
+    }
+
     return {
       success: true,
       data: courses ?? [],
