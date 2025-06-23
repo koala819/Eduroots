@@ -1,8 +1,22 @@
 import { Suspense } from 'react'
 
 import { GradesClient } from '@/client/components/pages/TeacherGrades'
+import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
 
-export default function GradesPage() {
+export default async function GradesPage() {
+  const authUser = await getAuthenticatedUser()
+  const teacherId = authUser ? await getEducationUserId(authUser.id) : null
+
+  if (!teacherId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-red-500">
+          Impossible de récupérer les informations de l&apos;enseignant.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <Suspense
       fallback={
@@ -19,7 +33,7 @@ export default function GradesPage() {
         </div>
       }
     >
-      <GradesClient />
+      <GradesClient teacherId={teacherId} />
     </Suspense>
   )
 }

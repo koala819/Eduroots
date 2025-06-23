@@ -22,7 +22,15 @@ interface GradeCardProps {
   getTypeBackgroundColor: (type: string) => string
 }
 
-export const GradeCard = ({ grade, getSubjectColor, getTypeBackgroundColor }: GradeCardProps) => {
+export function GradeCard({ grade, getSubjectColor, getTypeBackgroundColor }: GradeCardProps) {
+  if (!grade.courses_sessions) {
+    return (
+      <div className="p-4 bg-red-100 text-red-700 rounded">
+        Données de session manquantes pour cette note.
+      </div>
+    )
+  }
+
   const router = useRouter()
   const subject = grade.courses_sessions.subject
 

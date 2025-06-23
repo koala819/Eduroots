@@ -12,9 +12,7 @@ import { SubjectFilter } from '@/client/components/molecules/GradesSubjectFilter
 import { Button } from '@/client/components/ui/button'
 import { useGrades } from '@/client/context/grades'
 import { useToast } from '@/client/hooks/use-toast'
-import { createClient } from '@/client/utils/supabase'
 import { SubjectNameEnum } from '@/types/courses'
-import { User } from '@/types/db'
 import { GradeTypeEnum, GradeWithRelations } from '@/types/grades'
 
 type ProcessedGrade = {
@@ -35,48 +33,25 @@ type ProcessedGrade = {
 
 type GroupedGrades = Record<string, ProcessedGrade[]>
 
-export function GradesClient() {
+export function GradesClient({ teacherId }: { teacherId: string }) {
   const { toast } = useToast()
   const { getTeacherGrades, isLoading, teacherGrades } = useGrades()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const dbUser = await supabase
-            .from('users')
-            .select('*')
-            .eq('auth_id', user.id)
-            .single()
-          if (dbUser.data) {
-            setUser(dbUser.data as User)
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      }
-    }
-    getUser()
-  }, [])
 
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        if (user?.id) {
-          await getTeacherGrades(user.id)
+        if (teacherId) {
+          await getTeacherGrades(teacherId)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Une erreur est survenue')
       }
     }
     fetchGrades()
-  }, [user?.id, getTeacherGrades])
+  }, [teacherId, getTeacherGrades])
 
   const filteredAndSortedGrades = useMemo(() => {
     if (!teacherGrades || !Array.isArray(teacherGrades)) {
@@ -85,21 +60,25 @@ export function GradesClient() {
 
     const processedGrades: ProcessedGrade[] = (
       teacherGrades as unknown as GradeWithRelations[]
-    ).map((grade) => ({
-      id: grade.id,
-      date: new Date(grade.date),
-      type: grade.type as GradeTypeEnum,
-      formattedDate: format(new Date(grade.date), 'dd MMM yyyy', { locale: fr }),
-      month: format(new Date(grade.date), 'MMMM yyyy', { locale: fr }),
-      subject: grade.courses_sessions.subject as SubjectNameEnum || 'Inconnu',
-      stats: {
-        averageGrade: grade.stats_average_grade,
-        highestGrade: grade.stats_highest_grade,
-        lowestGrade: grade.stats_lowest_grade,
-        absentCount: grade.stats_absent_count,
-        totalStudents: grade.stats_total_students,
-      },
-    }))
+    ).map((grade) => {
+      const session = grade.courses_sessions
+
+      return {
+        id: grade.id,
+        date: new Date(grade.date),
+        type: grade.type as GradeTypeEnum,
+        formattedDate: format(new Date(grade.date), 'dd MMM yyyy', { locale: fr }),
+        month: format(new Date(grade.date), 'MMMM yyyy', { locale: fr }),
+        subject: session?.subject as SubjectNameEnum || 'Inconnu',
+        stats: {
+          averageGrade: grade.stats_average_grade,
+          highestGrade: grade.stats_highest_grade,
+          lowestGrade: grade.stats_lowest_grade,
+          absentCount: grade.stats_absent_count,
+          totalStudents: grade.stats_total_students,
+        },
+      }
+    })
 
     const filteredGrades =
       selectedSubject === 'all'

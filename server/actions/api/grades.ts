@@ -13,18 +13,46 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
   const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer les grades avec les cours du professeur
-    const { data: grades, error } = await supabase
+    // Étape 1: Récupérer les IDs des sessions de cours de l'enseignant
+    const { data: coursesData, error: coursesError } = await supabase
+      .schema('education')
+      .from('courses')
+      .select('courses_sessions(id), courses_teacher!inner(teacher_id)') // Jointure pour filtrer
+      .eq('courses_teacher.teacher_id', teacherId)
+
+    if (coursesError) {
+      console.error(
+        '******** Erreur Supabase (Etape 1 - cours) :',
+        coursesError,
+        '********',
+      )
+      throw new Error(
+        `Erreur lors de la récupération des sessions de cours: ${coursesError.message}`,
+      )
+    }
+
+    // Aplatir la liste des IDs de session
+    const sessionIds =
+      coursesData?.flatMap((course) =>
+        course.courses_sessions.map((session) => session.id),
+      ) || []
+
+    if (sessionIds.length === 0) {
+      return {
+        success: true,
+        data: [],
+        message: 'Aucune note trouvée pour cet enseignant.',
+      }
+    }
+
+    // Étape 2: Récupérer les notes pour ces sessions
+    const { data: grades, error: gradesError } = await supabase
       .schema('education')
       .from('grades')
-      .select(`
+      .select(
+        `
         *,
-        courses_sessions (
-          *,
-          courses_teacher!inner (
-            teacher_id
-          )
-        ),
+        courses_sessions (*),
         grades_records (
           *,
           users:student_id (
@@ -34,11 +62,17 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
             email
           )
         )
-      `)
-      .eq('courses_sessions.courses_teacher.teacher_id', teacherId)
+      `,
+      )
+      .in('course_session_id', sessionIds)
 
-    if (error) {
-      throw new Error(`Erreur lors de la récupération: ${error.message}`)
+    if (gradesError) {
+      console.error(
+        '******** Erreur Supabase (Etape 2 - notes) :',
+        gradesError,
+        '********',
+      )
+      throw new Error(`Erreur lors de la récupération des notes: ${gradesError.message}`)
     }
 
     return {

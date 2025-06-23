@@ -182,7 +182,7 @@ export const GradesProvider = ({ children, initialGradeData = null }: GradeProvi
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [handleError, initialGradeData, state.teacherGrades],
+    [handleError, initialGradeData],
   )
 
   const handleRefreshGradeData = useCallback(async () => {
