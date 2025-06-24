@@ -59,7 +59,8 @@ export async function getTeacherGrades(teacherId: string): Promise<ApiResponse> 
             id,
             firstname,
             lastname,
-            email
+            email,
+            gender
           )
         )
       `,
@@ -169,7 +170,8 @@ export async function getGradeById(gradeId: string): Promise<ApiResponse> {
             id,
             firstname,
             lastname,
-            email
+            email,
+            gender
           )
         )
       `)

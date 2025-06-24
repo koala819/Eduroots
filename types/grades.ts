@@ -7,7 +7,7 @@ export enum GradeTypeEnum {
   Examen = 'Examen',
 }
 
-export type Student = Pick<User, 'id' | 'firstname' | 'lastname'>
+export type Student = Pick<User, 'id' | 'firstname' | 'lastname' | 'gender'>
 
 export type GradeRecordWithUser = GradeRecord & {
   users: Student

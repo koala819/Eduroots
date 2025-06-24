@@ -1,42 +1,43 @@
-import { GradeEdit } from '@/client/components/pages/TeacherGradesEdit'
+import { Suspense } from 'react'
+
+import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { EditForm } from '@/client/components/pages/GradesFormEdit'
 import { getGradeById } from '@/server/actions/api/grades'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 type Params = Promise<{ gradeId: string }>
 
 export default async function GradeEditPage({ params }: { params: Params }) {
   const { gradeId } = await params
 
-  console.log('🔍 [SERVER] GradeEditPage - gradeId:', gradeId)
-
-  // Récupérer les données du grade côté serveur
-  const gradeResponse = await getGradeById(gradeId)
-
-  console.log('🔍 [SERVER] GradeEditPage - gradeResponse:', {
-    success: gradeResponse.success,
-    hasData: !!gradeResponse.data,
-    error: gradeResponse.error,
-  })
-
-  if (!gradeResponse.success || !gradeResponse.data) {
-    console.error('🔍 [SERVER] GradeEditPage - Failed to load grade:', gradeResponse.error)
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Erreur de chargement
-          </h2>
-          <p className="text-gray-600">
-            {gradeResponse.error || 'Impossible de charger les données de l\'évaluation'}
-          </p>
-        </div>
-      </div>
-    )
+  try {
+    await getAuthenticatedUser()
+  } catch (error) {
+    console.error('🔍 [SERVER] GradeEditPage - error:', error)
+    return <ErrorContent message="Accès non autorisé" />
   }
 
-  return (
-    <GradeEdit
-      gradeId={gradeId}
-      initialGradeData={gradeResponse.data}
-    />
-  )
+  try {
+    const gradeResponse = await getGradeById(gradeId)
+
+    if (!gradeResponse.success || !gradeResponse.data) {
+      return (
+        <ErrorContent
+          message={gradeResponse.error || 'Impossible de charger les données de l\'évaluation'}
+        />
+      )
+    }
+
+    return (
+      <Suspense fallback={<LoadingContent />}>
+        <EditForm
+          gradeId={gradeId}
+          initialGradeData={gradeResponse.data}
+        />
+      </Suspense>
+    )
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'évaluation:', error)
+    return <ErrorContent message="Erreur lors de la récupération de l'évaluation." />
+  }
 }
