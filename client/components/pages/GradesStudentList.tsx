@@ -10,7 +10,7 @@ import { Label } from '@/client/components/ui/label'
 type GradeEntry = {
   student: string
   studentName?: string
-  studentGender?: string
+  studentGender?: string | null
   value: number
   isAbsent: boolean
   comment: string
@@ -33,46 +33,8 @@ export function GradesStudentList({
   getStudentRecord,
   handleGradeUpdate,
 }: GradesStudentListProps) {
-  // Fonction pour normaliser la saisie des notes
-  const normalizeGradeInput = (value: string): number => {
-    // Nettoyer la valeur (supprimer les espaces)
-    const cleanValue = value.trim()
-
-    // Si vide, retourner 0
-    if (cleanValue === '') return 0
-
-    // Remplacer la virgule par un point pour parseFloat
-    const normalizedValue = cleanValue.replace(',', '.')
-
-    // Vérifier si c'est un nombre valide
-    const numValue = parseFloat(normalizedValue)
-
-    if (isNaN(numValue)) return 0
-
-    // Limiter à 20 maximum et arrondir à 1 décimale
-    const limitedValue = Math.min(numValue, 20)
-    const result = Math.round(limitedValue * 10) / 10
-
-    // Debug log temporaire
-    console.log(`Input: "${value}" → Clean: "${cleanValue}" → Normalized: "${normalizedValue}" → Number: ${numValue} → Result: ${result}`)
-
-    return result
-  }
-
-  // Fonction pour formater l'affichage de la note
-  const formatGradeDisplay = (value: number): string => {
-    if (value === 0) return ''
-
-    // S'assurer que c'est un nombre valide
-    const numValue = parseFloat(value.toString())
-    if (isNaN(numValue)) return ''
-
-    // Formater avec une virgule pour l'affichage français
-    return numValue.toString().replace('.', ',')
-  }
-
   // Fonction pour obtenir l'icône selon le genre
-  const getGenderIcon = (gender: string | undefined) => {
+  const getGenderIcon = (gender: string | null | undefined) => {
     switch (gender?.toLowerCase()) {
     case 'masculin':
       return <UserCheck className="w-5 h-5" />
@@ -125,8 +87,10 @@ export function GradesStudentList({
             {/* Info sur la saisie des notes */}
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                💡 <strong>Conseils de saisie :</strong> Vous pouvez utiliser la virgule (,) ou le point (.) pour les décimales.
-                Les notes sont automatiquement limitées à 20 maximum. Laissez le champ vide pour une note de 0.
+                💡 <strong>Conseils de saisie :</strong> Vous pouvez utiliser la virgule (,)
+                ou le point (.) pour les décimales.
+                Les notes sont automatiquement limitées à 20 maximum. Laissez le champ
+                vide pour une note de 0.
               </p>
             </div>
           </div>
@@ -158,7 +122,8 @@ export function GradesStudentList({
                     ? 'bg-green-500'
                     : 'bg-primary'
                 }`}>
-                        {isAbsent ? <XCircle className="w-5 h-5" /> : getGenderIcon(student.studentGender)}
+                        {isAbsent ? <XCircle className="w-5 h-5" />
+                          : getGenderIcon(student.studentGender)}
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">
@@ -191,7 +156,8 @@ export function GradesStudentList({
                         onCheckedChange={(checked) =>
                           handleGradeUpdate(student.student, 'isAbsent', checked as boolean)
                         }
-                        className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                        className="data-[state=checked]:bg-orange-500
+                        data-[state=checked]:border-orange-500"
                       />
                       <Label
                         htmlFor={`absent-${student.student}`}
@@ -207,33 +173,14 @@ export function GradesStudentList({
                         Note (/20):
                       </Label>
                       <Input
-                        type="text"
-                        value={formatGradeDisplay(record?.value || 0)}
+                        type="number"
+                        min="0"
+                        max="20"
+                        step="0.1"
+                        value={record?.value || ''}
                         onChange={(e) => {
-                          const inputValue = e.target.value
-                          console.log('Input value:', inputValue, 'Type:', typeof inputValue)
-
-                          if (inputValue === '') {
-                            handleGradeUpdate(student.student, 'value', 0)
-                          } else {
-                            // Nettoyer et normaliser
-                            const cleanValue = inputValue.trim().replace(',', '.')
-
-                            // Gérer le cas où l'utilisateur tape juste une virgule/point ou termine par un point
-                            if (cleanValue === '.' || cleanValue.endsWith('.')) {
-                              return // Ne rien faire, attendre plus de saisie
-                            }
-
-                            // Vérifier si c'est un nombre valide
-                            const numValue = parseFloat(cleanValue)
-                            console.log('Clean value:', cleanValue, 'Number:', numValue)
-
-                            if (!isNaN(numValue)) {
-                              const finalValue = Math.min(numValue, 20)
-                              console.log('Final value:', finalValue)
-                              handleGradeUpdate(student.student, 'value', finalValue)
-                            }
-                          }
+                          const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
+                          handleGradeUpdate(student.student, 'value', value)
                         }}
                         disabled={isAbsent}
                         className={`w-24 bg-background transition-colors ${
@@ -242,7 +189,6 @@ export function GradesStudentList({
                             : 'hover:border-primary focus:border-primary focus:ring-ring'
                         }`}
                         placeholder="0-20"
-                        maxLength={5}
                       />
                       {isGraded && (
                         <CheckCircle className="w-5 h-5 text-green-500" />

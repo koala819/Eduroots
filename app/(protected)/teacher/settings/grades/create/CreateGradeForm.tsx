@@ -15,7 +15,7 @@ import { GradeTypeEnum } from '@/types/grades'
 type GradeEntry = {
   student: string
   studentName?: string
-  studentGender?: string
+  studentGender?: string | null
   value: number
   isAbsent: boolean
   comment: string
@@ -159,7 +159,8 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
       toast({
         variant: 'destructive',
         title: 'Notes manquantes',
-        description: `${ungradedStudents.length} élève(s) n'ont pas encore de note. Voulez-vous continuer ?`,
+        description: `${ungradedStudents.length} élève(s) n'ont pas encore de note.
+        Voulez-vous continuer ?`,
         duration: 5000,
       })
       return
@@ -186,7 +187,8 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
         toast({
           variant: 'success',
           title: 'Évaluation créée avec succès !',
-          description: `${gradedStudents.length} note(s) enregistrée(s)${absentStudents.length > 0 ? `, ${absentStudents.length} absence(s)` : ''}`,
+          description: `${gradedStudents.length} note(s) enregistrée(s)
+          ${absentStudents.length > 0 ? `, ${absentStudents.length} absence(s)` : ''}`,
           duration: 5000,
         })
         router.push('/teacher/settings/grades')

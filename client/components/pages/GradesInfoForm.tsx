@@ -57,7 +57,7 @@ export function GradesInfoForm({
 
   const isStep1Complete = gradeType && gradeDate
   const isStep2Complete = selectedSession
-  const canProceed = isStep1Complete && isStep2Complete
+
 
   return (
     <div className="space-y-6">
@@ -122,7 +122,8 @@ export function GradesInfoForm({
                   }
                 >
                   <SelectTrigger
-                    className="w-full bg-input hover:border-primary focus:border-primary focus:ring-ring transition-colors"
+                    className="w-full bg-input hover:border-primary
+                    focus:border-primary focus:ring-ring transition-colors"
                   >
                     <SelectValue placeholder="Sélectionner le type" />
                   </SelectTrigger>
@@ -175,7 +176,9 @@ export function GradesInfoForm({
               <Button
                 onClick={onNextStep}
                 disabled={!isStep1Complete}
-                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="px-6 py-2 bg-primary text-primary-foreground
+                hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed
+                transition-all duration-200"
               >
                 Continuer
               </Button>
@@ -241,7 +244,9 @@ export function GradesInfoForm({
               <Button
                 onClick={onNextStep}
                 disabled={!isStep2Complete}
-                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="px-6 py-2 bg-primary text-primary-foreground
+                hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed
+                transition-all duration-200"
               >
                 Commencer la saisie
               </Button>
