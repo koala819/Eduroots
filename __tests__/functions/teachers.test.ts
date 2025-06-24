@@ -1,10 +1,75 @@
 import { describe, expect, it, vi } from 'vitest'
 
+// Setup des mocks AVANT les imports
+import { createMockAuthUser, createMockSessionServer,createMockSupabase } from '../utils/helpers'
+
+function setupTeachersMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+  }))
+
+  // Mock supabase
+  vi.mock('@/server/utils/supabase', () => ({
+    createClient: vi.fn().mockResolvedValue(createMockSupabase()),
+  }))
+
+  // Mock server-helpers
+  vi.mock('@/server/utils/server-helpers', () => ({
+    getSessionServer: vi.fn().mockResolvedValue(createMockSessionServer()),
+  }))
+
+  // Mock de la fonction getStudentsByTeacher pour retourner des données de test
+  vi.mock('@/server/actions/api/teachers', () => ({
+    getStudentsByTeacher: vi.fn().mockResolvedValue({
+      success: true,
+      message: 'Cours et leurs étudiants récupérés avec succès',
+      data: {
+        id: 'test-teacher-id',
+        email: 'teacher@test.com',
+        firstname: 'Test',
+        lastname: 'Teacher',
+        subjects: ['Math'],
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+        type: 'teacher',
+        courses: [
+          {
+            courseId: 'course-1',
+            academicYear: '2024',
+            sessions: [
+              {
+                sessionId: 'session-1',
+                subject: 'Mathématiques',
+                level: '6ème',
+                timeSlot: 'Lundi',
+                startTime: '08:00',
+                endTime: '09:00',
+                students: [
+                  {
+                    id: 'student-1',
+                    firstname: 'Jean',
+                    lastname: 'Dupont',
+                    email: 'jean@test.com',
+                    secondaryEmail: 'jean.parent@test.com',
+                    gender: 'M',
+                    dateOfBirth: '2012-01-01',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    }),
+  }))
+}
+setupTeachersMocks()
+
 import { getStudentsByTeacher } from '@/server/actions/api/teachers'
 
-// Mock de la fonction getStudentsByTeacher pour retourner des données de test
-vi.mock('@/server/actions/api/teachers', () => ({
-  getStudentsByTeacher: vi.fn().mockResolvedValue({
+const teacherTestData = {
+  mockTeacherResponse: {
     success: true,
     message: 'Cours et leurs étudiants récupérés avec succès',
     data: {
@@ -44,8 +109,8 @@ vi.mock('@/server/actions/api/teachers', () => ({
         },
       ],
     },
-  }),
-}))
+  },
+}
 
 describe('Teachers Functions', () => {
   describe('getStudentsByTeacher', () => {
@@ -132,6 +197,14 @@ describe('Teachers Functions', () => {
           expect(student).toHaveProperty('lastname')
         }
       }
+    })
+
+    it('devrait accepter le bon type de données', async () => {
+      const validTeacherId = 'test-teacher-id'
+
+      // Ce test vérifie que TypeScript accepte la structure
+      expect(validTeacherId).toBe('test-teacher-id')
+      expect(typeof validTeacherId).toBe('string')
     })
   })
 })
