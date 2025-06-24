@@ -2,8 +2,8 @@
 
 import { differenceInYears } from 'date-fns'
 import { Star, TrendingUp } from 'lucide-react'
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
@@ -76,11 +76,7 @@ export function StudentProfileDialog({ student }: StudentProfileDialogProps) {
                   ? 'bg-info/10'
                   : 'bg-accent/10',
               )}>
-                {student.gender === GenderEnum.Masculin ? (
-                  <BiMale className="h-4 w-4 text-info" />
-                ) : (
-                  <BiFemale className="h-4 w-4 text-accent" />
-                )}
+                <GenderDisplay gender={student.gender} />
               </div>
               Informations personnelles
             </h3>

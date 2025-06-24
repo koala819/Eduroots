@@ -1,6 +1,6 @@
 import { Calendar } from 'lucide-react'
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getTeachersForStudent } from '@/server/actions/api/students'
 import StudentAvatar from '@/server/components/atoms/StudentAvatar'
@@ -90,11 +90,7 @@ async function StudentChild({ child }: Readonly<{ child: StudentResponse }>) {
           group-hover:text-indigo-600 transition-colors flex items-center">
             {child.lastname + ' ' + child.firstname}
             <span className="ml-2">
-              {child.gender === GenderEnum.Masculin ? (
-                <BiMale className="text-blue-500 h-5 w-5" />
-              ) : (
-                <BiFemale className="text-pink-500 h-5 w-5" />
-              )}
+              <GenderDisplay gender={child.gender} />
             </span>
           </h3>
 

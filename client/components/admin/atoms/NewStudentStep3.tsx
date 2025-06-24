@@ -5,11 +5,10 @@ import { fr } from 'date-fns/locale'
 import { motion } from 'framer-motion'
 import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TeacherResponse } from '@/types/teacher-payload'
-import { GenderEnum } from '@/types/user'
 
 import { FormData } from '../../organisms/NewStudentForm'
 
@@ -62,19 +61,7 @@ const StepThree = ({ form, teachers }: StepThreeProps) => {
               )}
 
               {formValues.gender && (
-                <div className="flex items-center gap-2">
-                  {formValues.gender === GenderEnum.Masculin ? (
-                    <div className="flex items-center gap-1 text-blue-500">
-                      <BiMale className="h-5 w-5" />
-                      <span className="text-sm font-medium">Masculin</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-pink-500">
-                      <BiFemale className="h-5 w-5" />
-                      <span className="text-sm font-medium">Féminin</span>
-                    </div>
-                  )}
-                </div>
+                <GenderDisplay gender={formValues.gender} />
               )}
             </div>
           </motion.div>

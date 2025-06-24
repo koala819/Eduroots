@@ -1,7 +1,7 @@
 'use client'
 
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { TeacherResponse } from '@/types/teacher-payload'
 import { GenderEnum } from '@/types/user'
 
@@ -40,10 +40,10 @@ export const TeacherOption = ({
           <div className="flex space-x-2 items-center">
             <span>(</span>
             <span>{teacher.stats.genderDistribution.percentages[GenderEnum.Feminin]}</span>
-            <BiFemale className="text-pink-500 h-6 w-6 md:h-4 md:w-4" />
+            <GenderDisplay gender={GenderEnum.Feminin} />
             <span>/</span>
             <span>{teacher.stats.genderDistribution.percentages[GenderEnum.Masculin]}</span>
-            <BiMale className="text-blue-500 h-6 w-6 md:h-4 md:w-4" />
+            <GenderDisplay gender={GenderEnum.Masculin} />
             <span>)</span>
           </div>
         </div>

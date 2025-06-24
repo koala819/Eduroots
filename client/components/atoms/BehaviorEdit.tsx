@@ -3,14 +3,13 @@
 import { BarChart2, NotebookText, Star } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Button } from '@/client/components/ui/button'
 import { useBehavior } from '@/client/context/behaviors'
 import { cn } from '@/server/utils/helpers'
 import { CourseSessionWithRelations } from '@/types/courses'
 import { User } from '@/types/db'
-import { GenderEnum } from '@/types/user'
 
 import { ErrorComponent } from './ErrorComponent'
 
@@ -151,13 +150,7 @@ export function BehaviorEdit({
                   {/* Informations étudiant */}
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     {/* Icône genre */}
-                    <div className="flex-shrink-0">
-                      {student.gender === GenderEnum.Masculin ? (
-                        <BiMale className="h-6 w-6 text-primary" />
-                      ) : (
-                        <BiFemale className="h-6 w-6 text-[#E84393]" />
-                      )}
-                    </div>
+                    <GenderDisplay gender={student.gender} />
 
                     {/* Nom et prénom */}
                     <div className="flex-1 min-w-0">

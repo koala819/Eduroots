@@ -9,50 +9,63 @@
   --color-primary-dark: hsl(212.7, 25%, 25%);
   --color-primary-accent: hsl(212.7, 35%, 40%);
 
-  /* Couleurs système basées sur la couleur principale */
+  /* La couleur de fond principale de l'application */
   --color-background: hsl(210, 20%, 98%);
+  /* La couleur du texte principal */
   --color-foreground: hsl(212.7, 25%, 15%);
+  /* La couleur du texte sur la couleur principale */
   --color-primary-foreground: hsl(210, 20%, 98%);
 
   /* Couleurs secondaires - teintes complémentaires */
-  --color-secondary: hsl(32.7, 25%, 35%);  /* Orange-gris complémentaire */
+  /* --color-secondary: hsl(32.7, 25%, 35%);
   --color-secondary-light: hsl(32.7, 25%, 45%);
   --color-secondary-dark: hsl(32.7, 25%, 25%);
+  --color-secondary: hsl(14, 25%, 35%);
+  --color-secondary-light: hsl(14, 25%, 45%);
+  --color-secondary-dark: hsl(14, 25%, 25%);*/
+  --color-secondary: hsl(85, 20%, 35%);
+  --color-secondary-light: hsl(85, 20%, 45%);
+  --color-secondary-dark: hsl(85, 20%, 25%);
   --color-secondary-foreground: hsl(210, 20%, 98%);
 
   /* Couleurs d'accent */
-  --color-accent: hsl(162.7, 25%, 35%);    /* Vert-gris */
-  --color-accent-light: hsl(162.7, 25%, 45%);
-  --color-accent-dark: hsl(162.7, 25%, 25%);
+  --color-accent: hsl(180, 30%, 45%);
+  --color-accent-light: hsl(180, 35%, 55%);
+  --color-accent-dark: hsl(180, 25%, 35%);
   --color-accent-foreground: hsl(210, 20%, 98%);
 
   /* Couleurs neutres */
-  --color-muted: hsl(212.7, 15%, 92%);
-  --color-muted-foreground: hsl(212.7, 15%, 45%);
+  /* --color-muted: hsl(212.7, 15%, 92%);
+  --color-muted-foreground: hsl(212.7, 15%, 45%); */
+  --color-muted: hsl(212.7, 10%, 85%);
+  --color-muted-foreground: hsl(212.7, 10%, 40%);
   --color-border: hsl(212.7, 15%, 85%);
   --color-input: hsl(212.7, 15%, 92%);
   --color-ring: hsl(212.7, 25%, 35%);
 
   /* Couleurs de feedback */
-  --color-success: hsl(162.7, 25%, 35%);
-  --color-success-light: hsl(162.7, 25%, 45%);
-  --color-success-dark: hsl(162.7, 25%, 25%);
-  --color-success-foreground: hsl(210, 20%, 98%);
+  --color-success: hsl(150, 40%, 40%);
+  --color-success-light: hsl(150, 45%, 50%);
+  --color-success-dark: hsl(150, 35%, 30%);
 
   --color-warning: hsl(32.7, 25%, 35%);
   --color-warning-light: hsl(32.7, 25%, 45%);
   --color-warning-dark: hsl(32.7, 25%, 25%);
   --color-warning-foreground: hsl(210, 20%, 98%);
 
-  --color-error: hsl(0, 25%, 35%);
+  /* --color-error: hsl(0, 25%, 35%);
   --color-error-light: hsl(0, 25%, 45%);
-  --color-error-dark: hsl(0, 25%, 25%);
+  --color-error-dark: hsl(0, 25%, 25%); */
+  --color-error: hsl(0, 70%, 45%);
+  --color-error-light: hsl(0, 80%, 55%);
+  --color-error-dark: hsl(0, 60%, 35%);
   --color-error-foreground: hsl(210, 20%, 98%);
 
-  --color-info: hsl(212.7, 25%, 35%);
-  --color-info-light: hsl(212.7, 25%, 45%);
-  --color-info-dark: hsl(212.7, 25%, 25%);
+  --color-info: hsl(200, 40%, 55%);
+  --color-info-light: hsl(200, 45%, 65%);
+  --color-info-dark: hsl(200, 40%, 45%);
   --color-info-foreground: hsl(210, 20%, 98%);
+
 
   /* Couleurs supplémentaires pour plus de variété */
   --color-purple: hsl(280, 25%, 35%);
@@ -65,9 +78,9 @@
   --color-teal-dark: hsl(180, 25%, 25%);
   --color-teal-foreground: hsl(210, 20%, 98%);
 
-  --color-pink: hsl(340, 70%, 55%);
-  --color-pink-light: hsl(340, 70%, 65%);
-  --color-pink-dark: hsl(340, 70%, 45%);
+  --color-pink: hsl(330.9091, 78%, 59%);
+  --color-pink-light: hsl(330.9091, 78%, 69%);
+  --color-pink-dark: hsl(330.9091, 78%, 49%);
   --color-pink-foreground: hsl(210, 20%, 98%);
 
   --color-star: hsl(42.333336, 94%, 62%);

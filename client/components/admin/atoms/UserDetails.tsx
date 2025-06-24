@@ -1,7 +1,7 @@
 'use client'
 
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { GenderEnum } from '@/types/user'
 
 interface UserDetailsClientProps {
@@ -14,13 +14,7 @@ export function UserDetailsClient({ gender, dateOfBirth }: Readonly<UserDetailsC
     <div className="grid grid-cols-2 gap-4">
       <div>
         <h4 className="font-semibold text-sm text-gray-500">Genre</h4>
-        <p>
-          {gender === GenderEnum.Masculin ? (
-            <BiMale className="text-blue-500 h-6 w-6 md:h-8 md:w-8" />
-          ) : (
-            <BiFemale className="text-pink-500 h-6 w-6 md:h-8 md:w-8" />
-          )}
-        </p>
+        <GenderDisplay gender={gender} />
       </div>
       <div>
         <h4 className="font-semibold text-sm text-gray-500">Date de naissance</h4>

@@ -7,8 +7,8 @@ import {
   Users,
 } from 'lucide-react'
 import { useEffect, useMemo,useState } from 'react'
-import { BiFemale, BiMale } from 'react-icons/bi'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { AttendanceProgressBar } from '@/client/components/atoms/SettingsAttendanceProgressBar'
 import { AttendanceRateProgress } from '@/client/components/atoms/SettingsAttendanceRateProgress'
 import { BehaviorStarRating } from '@/client/components/atoms/SettingsBehaviorStarRating'
@@ -26,7 +26,6 @@ import {
 import { useStats } from '@/client/context/stats'
 import { StudentStats } from '@/types/stats'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
-import { GenderEnum } from '@/types/user'
 
 type TeacherStudent = TeacherWithStudentsResponse['courses'][0]['sessions'][0]['students'][0]
 
@@ -256,17 +255,7 @@ const SettingsClassroom = ({ initialData }: SettingsClassroomProps) => {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
-                    {student.gender === GenderEnum.Masculin ? (
-                      <div className="flex items-center justify-center w-8 h-8
-                        rounded-full bg-info/10">
-                        <BiMale className="h-6 w-6 text-primary" />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center w-8 h-8
-                        rounded-full bg-accent/10">
-                        <BiFemale className="h-6 w-6 text-[#E84393]" />
-                      </div>
-                    )}
+                    <GenderDisplay gender={student.gender} />
                     <div>
                       <CardTitle
                         className="text-base font-semibold leading-tight text-foreground">

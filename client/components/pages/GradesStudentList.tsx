@@ -1,7 +1,8 @@
 'use client'
 
-import { CheckCircle, ClipboardEdit, User, UserCheck, UserX,XCircle } from 'lucide-react'
+import { CheckCircle, ClipboardEdit,XCircle } from 'lucide-react'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Checkbox } from '@/client/components/ui/checkbox'
 import { Input } from '@/client/components/ui/input'
@@ -33,24 +34,13 @@ export function GradesStudentList({
   getStudentRecord,
   handleGradeUpdate,
 }: GradesStudentListProps) {
-  // Fonction pour obtenir l'icône selon le genre
-  const getGenderIcon = (gender: string | null | undefined) => {
-    switch (gender?.toLowerCase()) {
-    case 'masculin':
-      return <UserCheck className="w-5 h-5" />
-    case 'feminin':
-      return <UserX className="w-5 h-5" />
-    default:
-      return <User className="w-5 h-5" />
-    }
-  }
+
 
   if (gradeEntries.length > 0) {
     return (
       <Card className="shadow-lg bg-background hover:border-primary transition-all duration-200">
         <CardHeader className="pb-3 border-b bg-primary/5">
           <CardTitle className="text-lg text-foreground flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary"></div>
             Saisie des notes
           </CardTitle>
         </CardHeader>
@@ -119,11 +109,11 @@ export function GradesStudentList({
                 isAbsent
                   ? 'bg-orange-500'
                   : isGraded
-                    ? 'bg-green-500'
-                    : 'bg-primary'
+                    ? 'bg-success-light/50'
+                    : 'bg-primary/50'
                 }`}>
                         {isAbsent ? <XCircle className="w-5 h-5" />
-                          : getGenderIcon(student.studentGender)}
+                          : <GenderDisplay gender={student.studentGender} />}
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">
