@@ -1,7 +1,6 @@
 import { expect, vi } from 'vitest'
 
 import type { ApiResponse } from '@/types/api'
-import type { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance-payload'
 
 // Types pour les mocks
 type AuthenticatedUser = {
@@ -129,45 +128,6 @@ export function createMockAuthUser(overrides: MockAuthUserOptions = {}): Authent
     updated_at: '2024-01-01T00:00:00Z',
     ...overrides,
   }
-}
-
-// Mock des dépendances pour attendance.test.ts
-export function setupAttendanceMocks() {
-  // Mock auth-helpers
-  vi.mock('@/server/utils/auth-helpers', () => ({
-    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
-  }))
-
-  // Mock supabase
-  vi.mock('@/server/utils/supabase', () => ({
-    createClient: vi.fn().mockResolvedValue(createMockSupabase()),
-  }))
-
-  // Mock next/cache
-  vi.mock('next/cache', () => ({
-    revalidatePath: vi.fn(),
-  }))
-}
-
-// Données de test pour attendance avec les vrais types
-export const attendanceTestData = {
-  validCreatePayload: {
-    courseId: 'course-123',
-    date: '2024-01-15',
-    records: [
-      { studentId: 'student-1', isPresent: true, comment: null },
-      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
-    ],
-    sessionId: 'session-123',
-  } as CreateAttendancePayload,
-
-  validUpdatePayload: {
-    attendanceId: 'attendance-123',
-    records: [
-      { studentId: 'student-1', isPresent: true, comment: null },
-      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
-    ],
-  } as UpdateAttendancePayload,
 }
 
 // Fonctions utilitaires pour les tests avec les vrais types

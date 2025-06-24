@@ -1,40 +1,74 @@
 import { describe, expect, it, vi } from 'vitest'
 
+// Setup des mocks AVANT les imports
+import { createMockSupabase, testUtils } from '../utils/helpers'
+
+function setupBehaviorMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue({ id: 'test-user' }),
+  }))
+
+  // Mock supabase
+  vi.mock('@/server/utils/supabase', () => ({
+    createClient: vi.fn(),
+  }))
+
+  // Mock server-helpers
+  vi.mock('@/server/utils/server-helpers', () => ({
+    getSessionServer: vi.fn().mockResolvedValue({
+      supabase: createMockSupabase(),
+    }),
+  }))
+
+  // Mock next/cache
+  vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn(),
+  }))
+}
+
+const behaviorTestData = {
+  validCreatePayload: {
+    course: 'course-123',
+    date: '2024-01-15',
+    records: [
+      { student: 'student-1', rating: 5, comment: null },
+      { student: 'student-2', rating: 3, comment: 'Comportement à améliorer' },
+    ],
+    sessionId: 'session-123',
+  } as CreateBehaviorPayload,
+
+  validUpdatePayload: {
+    behaviorId: 'behavior-123',
+    courseId: 'course-123',
+    sessionId: 'session-123',
+    date: '2024-01-15',
+    records: [
+      { student: 'student-1', rating: 5, comment: null },
+      { student: 'student-2', rating: 3, comment: 'Comportement à améliorer' },
+    ],
+  } as UpdateBehaviorPayload,
+
+  payloadWithOptionalComments: {
+    course: 'course-123',
+    date: '2024-01-15',
+    records: [
+      { student: 'student-1', rating: 5 }, // Sans commentaire
+      { student: 'student-2', rating: 4, comment: 'Bon comportement' }, // Avec commentaire
+      { student: 'student-3', rating: 2, comment: null }, // Commentaire null
+    ],
+    sessionId: 'session-123',
+  } as CreateBehaviorPayload,
+}
+
+
+setupBehaviorMocks()
+
 import {
   createBehaviorRecord,
   getBehaviorById,
   updateBehaviorRecord } from '@/server/actions/api/behaviors'
 import type { CreateBehaviorPayload, UpdateBehaviorPayload } from '@/types/behavior-payload'
-
-// Mock complet de toutes les dépendances
-vi.mock('@/server/utils/auth-helpers', () => ({
-  getAuthenticatedUser: vi.fn().mockResolvedValue({ id: 'test-user' }),
-}))
-
-vi.mock('@/server/utils/supabase', () => ({
-  createClient: vi.fn(),
-}))
-
-vi.mock('@/server/utils/server-helpers', () => ({
-  getSessionServer: vi.fn().mockResolvedValue({
-    supabase: {
-      schema: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      lte: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    },
-  }),
-}))
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}))
 
 describe('Behavior Functions', () => {
   describe('createBehaviorRecord', () => {
@@ -45,15 +79,7 @@ describe('Behavior Functions', () => {
     })
 
     it('devrait accepter le bon type de données', async () => {
-      const validPayload: CreateBehaviorPayload = {
-        course: 'course-123',
-        date: '2024-01-15',
-        records: [
-          { student: 'student-1', rating: 5, comment: null },
-          { student: 'student-2', rating: 3, comment: 'Comportement à améliorer' },
-        ],
-        sessionId: 'session-123',
-      }
+      const validPayload: CreateBehaviorPayload = behaviorTestData.validCreatePayload
 
       // Ce test vérifie que TypeScript accepte la structure
       expect(validPayload.course).toBe('course-123')
@@ -66,11 +92,7 @@ describe('Behavior Functions', () => {
       const result = await createBehaviorRecord({} as any)
 
       // Vérifier la structure de la réponse
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
-      expect(result).toHaveProperty('data')
-      expect(typeof result.success).toBe('boolean')
-      expect(typeof result.message).toBe('string')
+      testUtils.expectStandardResponse(result)
     })
 
     it('devrait valider la structure des records', async () => {
@@ -86,15 +108,8 @@ describe('Behavior Functions', () => {
     })
 
     it('devrait accepter des records avec commentaires optionnels', async () => {
-      const payloadWithOptionalComments: CreateBehaviorPayload = {
-        course: 'course-123',
-        date: '2024-01-15',
-        records: [
-          { student: 'student-1', rating: 5 }, // Sans commentaire
-          { student: 'student-2', rating: 4, comment: 'Bon comportement' }, // Avec commentaire
-          { student: 'student-3', rating: 2, comment: null }, // Commentaire null
-        ],
-      }
+      const payloadWithOptionalComments: CreateBehaviorPayload =
+        behaviorTestData.payloadWithOptionalComments
 
       // Vérifier que TypeScript accepte ces variations
       expect(payloadWithOptionalComments.records[0].comment).toBeUndefined()
@@ -111,16 +126,7 @@ describe('Behavior Functions', () => {
     })
 
     it('devrait accepter le bon type de données', async () => {
-      const validPayload: UpdateBehaviorPayload = {
-        behaviorId: 'behavior-123',
-        courseId: 'course-123',
-        sessionId: 'session-123',
-        date: '2024-01-15',
-        records: [
-          { student: 'student-1', rating: 5, comment: null },
-          { student: 'student-2', rating: 3, comment: 'Comportement à améliorer' },
-        ],
-      }
+      const validPayload: UpdateBehaviorPayload = behaviorTestData.validUpdatePayload
 
       // Ce test vérifie que TypeScript accepte la structure
       expect(validPayload.behaviorId).toBe('behavior-123')
@@ -136,11 +142,7 @@ describe('Behavior Functions', () => {
       const result = await updateBehaviorRecord({} as any)
 
       // Vérifier la structure de la réponse
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
-      expect(result).toHaveProperty('data')
-      expect(typeof result.success).toBe('boolean')
-      expect(typeof result.message).toBe('string')
+      testUtils.expectStandardResponse(result)
     })
 
     it('devrait valider tous les champs requis', async () => {
@@ -197,11 +199,7 @@ describe('Behavior Functions', () => {
       const result = await getBehaviorById('test-id')
 
       // Vérifier la structure de la réponse
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
-      expect(result).toHaveProperty('data')
-      expect(typeof result.success).toBe('boolean')
-      expect(typeof result.message).toBe('string')
+      testUtils.expectStandardResponse(result)
     })
 
     it('devrait gérer les IDs avec des caractères spéciaux', async () => {

@@ -1,8 +1,45 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 // Setup des mocks AVANT les imports
-import { attendanceTestData,setupAttendanceMocks } from '../utils/helpers'
+import { createMockAuthUser, createMockSupabase } from '../utils/helpers'
+
+function setupAttendanceMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+  }))
+
+  // Mock supabase
+  vi.mock('@/server/utils/supabase', () => ({
+    createClient: vi.fn().mockResolvedValue(createMockSupabase()),
+  }))
+
+  // Mock next/cache
+  vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn(),
+  }))
+}
 setupAttendanceMocks()
+
+const attendanceTestData = {
+  validCreatePayload: {
+    courseId: 'course-123',
+    date: '2024-01-15',
+    records: [
+      { studentId: 'student-1', isPresent: true, comment: null },
+      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
+    ],
+    sessionId: 'session-123',
+  } as CreateAttendancePayload,
+
+  validUpdatePayload: {
+    attendanceId: 'attendance-123',
+    records: [
+      { studentId: 'student-1', isPresent: true, comment: null },
+      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
+    ],
+  } as UpdateAttendancePayload,
+}
 
 import { createAttendanceRecord, updateAttendanceRecord } from '@/server/actions/api/attendances'
 import type { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance-payload'
