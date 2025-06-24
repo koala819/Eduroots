@@ -1,12 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
+// Setup des mocks AVANT les imports
+import { attendanceTestData,setupAttendanceMocks } from '../utils/helpers'
+setupAttendanceMocks()
 
 import { createAttendanceRecord, updateAttendanceRecord } from '@/server/actions/api/attendances'
 import type { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance-payload'
-
-// Mock complet de toutes les dépendances
-vi.mock('@/server/utils/auth-helpers')
-vi.mock('@/server/utils/supabase')
-vi.mock('next/cache')
 
 describe('Attendance Functions', () => {
   describe('createAttendanceRecord', () => {
@@ -17,15 +16,7 @@ describe('Attendance Functions', () => {
     })
 
     it('devrait accepter le bon type de données', async () => {
-      const validPayload: CreateAttendancePayload = {
-        courseId: 'course-123',
-        date: '2024-01-15',
-        records: [
-          { studentId: 'student-1', isPresent: true, comment: null },
-          { studentId: 'student-2', isPresent: false, comment: 'Absent' },
-        ],
-        sessionId: 'session-123',
-      }
+      const validPayload: CreateAttendancePayload = attendanceTestData.validCreatePayload
 
       // Ce test vérifie que TypeScript accepte la structure
       expect(validPayload.courseId).toBe('course-123')
@@ -53,13 +44,7 @@ describe('Attendance Functions', () => {
     })
 
     it('devrait accepter le bon type de données', async () => {
-      const validPayload: UpdateAttendancePayload = {
-        attendanceId: 'attendance-123',
-        records: [
-          { studentId: 'student-1', isPresent: true, comment: null },
-          { studentId: 'student-2', isPresent: false, comment: 'Absent' },
-        ],
-      }
+      const validPayload: UpdateAttendancePayload = attendanceTestData.validUpdatePayload
 
       // Ce test vérifie que TypeScript accepte la structure
       expect(validPayload.attendanceId).toBe('attendance-123')

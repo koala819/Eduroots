@@ -1,20 +1,82 @@
-import { vi } from 'vitest'
+import { expect, vi } from 'vitest'
 
-export interface MockSupabaseOptions {
-  data?: any
-  error?: any
-  throwError?: boolean
+import type { ApiResponse } from '@/types/api'
+import type { CreateAttendancePayload, UpdateAttendancePayload } from '@/types/attendance-payload'
+
+// Types pour les mocks
+type AuthenticatedUser = {
+  id: string
+  email: string
+  user_metadata: { role: string }
+  app_metadata: Record<string, unknown>
+  aud: string
+  created_at: string
+  updated_at: string
 }
 
-export function createMockSupabase(options: MockSupabaseOptions = {}) {
-  const { data = [], error = null, throwError = false } = options
+type SupabaseError = {
+  message: string
+  details?: string
+  hint?: string
+  code?: string
+} | null
+
+type SupabaseResponse<T> = {
+  data: T | null
+  error: SupabaseError
+}
+
+type MockSupabaseClient = {
+  schema: ReturnType<typeof vi.fn>
+  from: ReturnType<typeof vi.fn>
+  select: ReturnType<typeof vi.fn>
+  insert: ReturnType<typeof vi.fn>
+  update: ReturnType<typeof vi.fn>
+  delete: ReturnType<typeof vi.fn>
+  eq: ReturnType<typeof vi.fn>
+  gte: ReturnType<typeof vi.fn>
+  lte: ReturnType<typeof vi.fn>
+  in: ReturnType<typeof vi.fn>
+  single: ReturnType<typeof vi.fn>
+  limit: ReturnType<typeof vi.fn>
+  order: ReturnType<typeof vi.fn>
+}
+
+interface MockSupabaseOptions {
+  data?: unknown[]
+  error?: SupabaseError
+  throwError?: boolean
+  singleData?: unknown
+  orderData?: unknown[]
+}
+
+interface MockSessionServerOptions {
+  user?: AuthenticatedUser
+  supabaseOptions?: MockSupabaseOptions
+}
+
+interface MockAuthUserOptions {
+  id?: string
+  email?: string
+  role?: string
+  metadata?: Record<string, unknown>
+}
+
+// Mock Supabase centralisé
+export function createMockSupabase(options: MockSupabaseOptions = {}): MockSupabaseClient {
+  const {
+    error = null,
+    throwError = false,
+    singleData = null,
+    orderData = [],
+  } = options
 
   if (throwError) {
     return {
       schema: vi.fn().mockImplementation(() => {
         throw new Error('Erreur Supabase')
       }),
-    }
+    } as MockSupabaseClient
   }
 
   return {
@@ -28,20 +90,35 @@ export function createMockSupabase(options: MockSupabaseOptions = {}) {
     gte: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    single: vi.fn().mockResolvedValue({ data: singleData, error } as SupabaseResponse<unknown>),
     limit: vi.fn().mockReturnThis(),
-    order: vi.fn().mockResolvedValue({ data, error }),
+    order: vi.fn().mockResolvedValue({ data: orderData, error } as SupabaseResponse<unknown[]>),
   }
 }
 
-export function createMockSessionServer(options: MockSupabaseOptions = {}) {
+// Mock SessionServer centralisé
+export function createMockSessionServer(options: MockSessionServerOptions = {}) {
+  const {
+    user = {
+      id: 'test-user-id',
+      email: 'teacher@test.com',
+      user_metadata: { role: 'teacher' },
+      app_metadata: {},
+      aud: 'authenticated',
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+    } as AuthenticatedUser,
+    supabaseOptions = {},
+  } = options
+
   return {
-    supabase: createMockSupabase(options),
-    user: { id: 'test-user-id' } as any,
+    supabase: createMockSupabase(supabaseOptions),
+    user,
   }
 }
 
-export function createMockAuthUser(overrides: any = {}) {
+// Mock AuthUser centralisé
+export function createMockAuthUser(overrides: MockAuthUserOptions = {}): AuthenticatedUser {
   return {
     id: 'test-auth-user-id',
     email: 'teacher@test.com',
@@ -53,3 +130,75 @@ export function createMockAuthUser(overrides: any = {}) {
     ...overrides,
   }
 }
+
+// Mock des dépendances pour attendance.test.ts
+export function setupAttendanceMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+  }))
+
+  // Mock supabase
+  vi.mock('@/server/utils/supabase', () => ({
+    createClient: vi.fn().mockResolvedValue(createMockSupabase()),
+  }))
+
+  // Mock next/cache
+  vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn(),
+  }))
+}
+
+// Données de test pour attendance avec les vrais types
+export const attendanceTestData = {
+  validCreatePayload: {
+    courseId: 'course-123',
+    date: '2024-01-15',
+    records: [
+      { studentId: 'student-1', isPresent: true, comment: null },
+      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
+    ],
+    sessionId: 'session-123',
+  } as CreateAttendancePayload,
+
+  validUpdatePayload: {
+    attendanceId: 'attendance-123',
+    records: [
+      { studentId: 'student-1', isPresent: true, comment: null },
+      { studentId: 'student-2', isPresent: false, comment: 'Absent' },
+    ],
+  } as UpdateAttendancePayload,
+}
+
+// Fonctions utilitaires pour les tests avec les vrais types
+export const testUtils = {
+  // Vérifier la structure de réponse standard
+  expectStandardResponse: (result: ApiResponse) => {
+    expect(result).toHaveProperty('success')
+    expect(result).toHaveProperty('message')
+    expect(result).toHaveProperty('data')
+    expect(typeof result.success).toBe('boolean')
+    expect(typeof result.message).toBe('string')
+  },
+
+  // Vérifier une réponse de succès
+  expectSuccessResponse: (result: ApiResponse, expectedMessage?: string) => {
+    expect(result.success).toBe(true)
+    if (expectedMessage) {
+      expect(result.message).toBe(expectedMessage)
+    }
+  },
+
+  // Vérifier une réponse d'erreur
+  expectErrorResponse: (result: ApiResponse, expectedMessage?: string) => {
+    expect(result.success).toBe(false)
+    if (expectedMessage) {
+      expect(result.message).toBe(expectedMessage)
+    }
+  },
+}
+
+// Types d'export pour les mocks
+export type MockSupabase = ReturnType<typeof createMockSupabase>
+export type MockSessionServer = ReturnType<typeof createMockSessionServer>
+export type MockAuthUser = ReturnType<typeof createMockAuthUser>
