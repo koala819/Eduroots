@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 
-import { CreateGradeForm } from '@/app/(protected)/teacher/settings/grades/create/CreateGradeForm'
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { CreateGradeForm } from '@/client/components/pages/GradesFormCreate'
 import { getTeacherCourses } from '@/server/actions/api/courses'
 import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
 

@@ -16,7 +16,7 @@ import { formatDayOfWeek, sortSessionsByDayOfWeek } from '@/server/utils/helpers
 import { cn } from '@/server/utils/helpers'
 import { CourseWithRelations } from '@/types/courses'
 
-interface GradeSessionStepProps {
+interface GradeSessionProps {
   selectedSession: string
   setSelectedSession: (session: string) => void
   teacherCourses: CourseWithRelations
@@ -31,7 +31,7 @@ const formatTime = (time: string) => {
   return time.substring(0, 5) // Prend seulement HH:MM
 }
 
-export function GradeSessionStep({
+export function GradesSession({
   selectedSession,
   setSelectedSession,
   teacherCourses,
@@ -39,7 +39,7 @@ export function GradeSessionStep({
   onNextStep,
   onPreviousStep,
   errors,
-}: GradeSessionStepProps) {
+}: GradeSessionProps) {
   const isStepComplete = selectedSession
   const sortedSessions = sortSessionsByDayOfWeek(teacherCourses?.courses_sessions || [])
 

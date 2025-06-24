@@ -1,11 +1,11 @@
 'use client'
 
-import { GradeInfoStep } from '@/app/(protected)/teacher/settings/grades/create/GradeInfoStep'
-import { GradeSessionStep } from '@/app/(protected)/teacher/settings/grades/create/GradeSessionStep'
-import { GradeStepper } from '@/app/(protected)/teacher/settings/grades/create/GradeStepper'
+import { GradeStepper } from '@/client/components/atoms/GradesStepper'
+import { GradesSession } from '@/client/components/molecules/GradesStepSession'
+import { GradeInfo } from '@/client/components/molecules/GradeStepInfo'
 import {
-  GradeSubmissionStep,
-} from '@/app/(protected)/teacher/settings/grades/create/GradeSubmissionStep'
+  GradeSubmission,
+} from '@/client/components/organisms/GradesStepSubmission'
 import { useCreateGradeForm } from '@/client/hooks/use-create-grades'
 import { CourseWithRelations } from '@/types/courses'
 
@@ -43,7 +43,7 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
         <form onSubmit={onSubmit} className="space-y-8">
           {/* Étape 1: Informations de base */}
           {currentStep === 1 && (
-            <GradeInfoStep
+            <GradeInfo
               gradeType={gradeType}
               setGradeType={(value) => setValue('gradeType', value)}
               gradeDate={gradeDate}
@@ -55,7 +55,7 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
 
           {/* Étape 2: Sélection de classe */}
           {currentStep === 2 && (
-            <GradeSessionStep
+            <GradesSession
               selectedSession={selectedSession}
               setSelectedSession={(value) => setValue('selectedSession', value)}
               teacherCourses={teacherCourses}
@@ -68,7 +68,7 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
 
           {/* Étape 3: Saisie des notes */}
           {currentStep === 3 && selectedSession && (
-            <GradeSubmissionStep
+            <GradeSubmission
               gradeType={gradeType}
               gradeDate={gradeDate}
               selectedSession={selectedSession}

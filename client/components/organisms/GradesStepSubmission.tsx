@@ -4,13 +4,13 @@ import { format } from 'date-fns'
 
 import {
   GradesStudentList,
-} from '@/app/(protected)/teacher/settings/grades/create/GradesStudentList'
+} from '@/client/components/molecules/GradesStudentList'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { GradeEntry, GradeTypeEnum } from '@/types/grades'
 
-interface GradeSubmissionStepProps {
+interface GradeSubmissionProps {
   gradeType: GradeTypeEnum
   gradeDate: string
   selectedSession: string
@@ -37,7 +37,7 @@ const formatTime = (time: string) => {
   return time.substring(0, 5) // Prend seulement HH:MM
 }
 
-export function GradeSubmissionStep({
+export function GradeSubmission({
   gradeType,
   gradeDate,
   selectedSession,
@@ -49,7 +49,7 @@ export function GradeSubmissionStep({
   onSubmit,
   isSubmitting,
   isValid,
-}: GradeSubmissionStepProps) {
+}: GradeSubmissionProps) {
   return (
     <div className="space-y-6">
       {/* Résumé de l'évaluation */}

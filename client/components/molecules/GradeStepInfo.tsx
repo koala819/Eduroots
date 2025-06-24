@@ -20,7 +20,7 @@ import {
 import { cn } from '@/server/utils/helpers'
 import { GradeTypeEnum } from '@/types/grades'
 
-interface GradeInfoStepProps {
+interface GradeInfoProps {
   gradeType: GradeTypeEnum
   setGradeType: (type: GradeTypeEnum) => void
   gradeDate: string
@@ -29,14 +29,14 @@ interface GradeInfoStepProps {
   errors?: FieldErrors<any>
 }
 
-export function GradeInfoStep({
+export function GradeInfo({
   gradeType,
   setGradeType,
   gradeDate,
   setGradeDate,
   onNextStep,
   errors,
-}: GradeInfoStepProps) {
+}: GradeInfoProps) {
   const [open, setOpen] = useState<boolean>(false)
 
   const handleDateSelect = (date: Date | undefined) => {
