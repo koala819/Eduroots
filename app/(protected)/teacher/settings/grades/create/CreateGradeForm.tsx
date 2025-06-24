@@ -75,6 +75,16 @@ export function CreateGradeForm({ initialCourses }: CreateGradeFormProps) {
               gradeDate={gradeDate}
               selectedSession={selectedSession}
               gradeEntries={gradeEntries}
+              sessionInfo={(() => {
+                const session = teacherCourses?.courses_sessions
+                  .find((s) => s.id === selectedSession)
+                const timeslot = session?.courses_sessions_timeslot[0]
+                return timeslot ? {
+                  dayOfWeek: timeslot.day_of_week,
+                  startTime: timeslot.start_time,
+                  endTime: timeslot.end_time,
+                } : undefined
+              })()}
               getStudentRecord={getStudentRecord}
               updateGradeFormData={updateGradeFormData}
               onPreviousStep={handlePreviousStep}

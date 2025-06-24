@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek, sortSessionsByDayOfWeek } from '@/server/utils/helpers'
 import { cn } from '@/server/utils/helpers'
 import { CourseWithRelations } from '@/types/courses'
 
@@ -26,6 +26,11 @@ interface GradeSessionStepProps {
   errors?: FieldErrors<any>
 }
 
+// Fonction pour formater l'heure sans les secondes
+const formatTime = (time: string) => {
+  return time.substring(0, 5) // Prend seulement HH:MM
+}
+
 export function GradeSessionStep({
   selectedSession,
   setSelectedSession,
@@ -36,16 +41,17 @@ export function GradeSessionStep({
   errors,
 }: GradeSessionStepProps) {
   const isStepComplete = selectedSession
+  const sortedSessions = sortSessionsByDayOfWeek(teacherCourses?.courses_sessions || [])
 
   return (
-    <Card className="shadow-lg bg-background hover:border-primary transition-all duration-200">
-      <CardHeader className="pb-3 border-b bg-primary/5">
-        <CardTitle className="text-lg text-foreground flex items-center gap-2">
+    <Card className="bg-background border-border">
+      <CardHeader className="pb-4 border-b border-border">
+        <CardTitle className="text-xl font-semibold text-foreground">
           Sélectionner la classe et matière
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-6">
-        <div className="space-y-3">
+      <CardContent className="pt-6 space-y-6">
+        <div className="space-y-4">
           <Label htmlFor="session" className="text-foreground font-medium">
             Session de cours
           </Label>
@@ -58,27 +64,32 @@ export function GradeSessionStep({
           >
             <SelectTrigger
               className={cn(
-                'w-full bg-input hover:border-primary focus:border-primary ' +
-                'focus:ring-ring transition-colors',
-                errors?.selectedSession && 'border-destructive focus:border-destructive',
+                'w-full bg-input border-border hover:border-primary focus:border-primary ' +
+                'transition-colors h-12 px-4',
+                errors?.selectedSession && 'border-error focus:border-error',
               )}
             >
               <SelectValue placeholder="Sélectionner une session" />
             </SelectTrigger>
-            <SelectContent className="bg-background max-h-60">
-              {teacherCourses?.courses_sessions.map((session) => (
-                <SelectItem key={session.id} value={session.id}>
-                  <div className="flex flex-col">
+            <SelectContent className="bg-background border-border max-h-60">
+              {sortedSessions.map((session) => (
+                <SelectItem
+                  key={session.id}
+                  value={session.id}
+                  className="py-3 hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  <div className="flex flex-col space-y-1">
                     <span className="font-medium">
                       {session.subject} - {session.level}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm opacity-80">
                       {formatDayOfWeek(
                         session.courses_sessions_timeslot[0]?.day_of_week || '',
-                      )} -
-                      {session.courses_sessions_timeslot[0]?.start_time} à {
-                        session.courses_sessions_timeslot[0]?.end_time
-                      }
+                      )} - {formatTime(
+                        session.courses_sessions_timeslot[0]?.start_time || '',
+                      )} à {formatTime(
+                        session.courses_sessions_timeslot[0]?.end_time || '',
+                      )}
                     </span>
                   </div>
                 </SelectItem>
@@ -86,26 +97,25 @@ export function GradeSessionStep({
             </SelectContent>
           </Select>
           {errors?.selectedSession && (
-            <p className="text-sm text-destructive">
+            <p className="text-sm text-error">
               {errors.selectedSession.message as string}
             </p>
           )}
         </div>
 
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between pt-6">
           <Button
-            variant="outline"
+            variant="destructive"
             onClick={onPreviousStep}
-            className="px-6 py-2"
+            className="px-6 py-2 transition-colors"
           >
             Retour
           </Button>
           <Button
             onClick={onNextStep}
             disabled={!isStepComplete}
-            className="px-6 py-2 bg-primary text-primary-foreground
-            hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all duration-200"
+            className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary-dark
+            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Continuer
           </Button>

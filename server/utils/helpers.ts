@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { createClient } from '@/client/utils/supabase'
 import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { CourseWithRelations,SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -109,4 +109,33 @@ export async function logoutHandler() {
   const supabase = createClient()
   await supabase.auth.signOut()
   window.location.href = '/'
+}
+
+// Fonction pour trier les sessions par jour de la semaine
+export function sortSessionsByDayOfWeek(sessions: CourseWithRelations['courses_sessions']) {
+  const dayOrder = {
+    [TimeSlotEnum.SATURDAY_MORNING]: 1,
+    [TimeSlotEnum.SATURDAY_AFTERNOON]: 2,
+    [TimeSlotEnum.SUNDAY_MORNING]: 3,
+  }
+
+  return [...sessions].sort((a, b) => {
+    const dayA = a.courses_sessions_timeslot[0]?.day_of_week
+    const dayB = b.courses_sessions_timeslot[0]?.day_of_week
+    const startTimeA = a.courses_sessions_timeslot[0]?.start_time
+    const startTimeB = b.courses_sessions_timeslot[0]?.start_time
+
+    // Si les jours sont différents, trier par jour
+    if (dayA !== dayB) {
+      if (!dayA || !dayB) return 0
+      return dayOrder[dayA] - dayOrder[dayB]
+    }
+
+    // Si les jours sont identiques, trier par heure de début
+    if (startTimeA && startTimeB) {
+      return startTimeA.localeCompare(startTimeB)
+    }
+
+    return 0
+  })
 }

@@ -6,6 +6,8 @@ import {
   GradesStudentList,
 } from '@/app/(protected)/teacher/settings/grades/create/GradesStudentList'
 import { Button } from '@/client/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { formatDayOfWeek } from '@/server/utils/helpers'
 import { GradeEntry, GradeTypeEnum } from '@/types/grades'
 
 interface GradeSubmissionStepProps {
@@ -13,6 +15,11 @@ interface GradeSubmissionStepProps {
   gradeDate: string
   selectedSession: string
   gradeEntries: GradeEntry[]
+  sessionInfo?: {
+    dayOfWeek: string
+    startTime: string
+    endTime: string
+  }
   getStudentRecord: (studentId: string) => GradeEntry | undefined
   updateGradeFormData: (
     studentId: string,
@@ -25,11 +32,17 @@ interface GradeSubmissionStepProps {
   isValid: boolean
 }
 
+// Fonction pour formater l'heure sans les secondes
+const formatTime = (time: string) => {
+  return time.substring(0, 5) // Prend seulement HH:MM
+}
+
 export function GradeSubmissionStep({
   gradeType,
   gradeDate,
   selectedSession,
   gradeEntries,
+  sessionInfo,
   getStudentRecord,
   updateGradeFormData,
   onPreviousStep,
@@ -40,27 +53,41 @@ export function GradeSubmissionStep({
   return (
     <div className="space-y-6">
       {/* Résumé de l'évaluation */}
-      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-        <h3 className="font-semibold text-foreground mb-2">
-          Résumé de l'évaluation
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Type:</span>
-            <span className="ml-2 font-medium">{gradeType}</span>
+      <Card className="bg-background border-border">
+        <CardHeader className="pb-4 border-b border-border">
+          <CardTitle className="text-xl font-semibold text-foreground">
+            Résumé de l'évaluation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <span className="text-muted-foreground">Type:</span>
+              <span className="ml-2 font-medium text-foreground">{gradeType}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Date:</span>
+              <span className="ml-2 font-medium text-foreground">
+                {format(new Date(gradeDate), 'dd/MM/yyyy')}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Session:</span>
+              <span className="ml-2 font-medium text-foreground">
+                {sessionInfo ? (
+                  <>
+                    {formatDayOfWeek(sessionInfo.dayOfWeek as any)}
+                    - {formatTime(sessionInfo.startTime)} à{' '}
+                    {formatTime(sessionInfo.endTime)}
+                  </>
+                ) : (
+                  'Informations non disponibles'
+                )}
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="text-muted-foreground">Date:</span>
-            <span className="ml-2 font-medium">
-              {format(new Date(gradeDate), 'dd/MM/yyyy')}
-            </span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Élèves:</span>
-            <span className="ml-2 font-medium">{gradeEntries.length}</span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Liste des élèves */}
       <GradesStudentList
@@ -74,9 +101,9 @@ export function GradeSubmissionStep({
       <div className="flex justify-between items-center pt-6">
         <Button
           type="button"
-          variant="outline"
+          variant="destructive"
           onClick={onPreviousStep}
-          className="px-6 py-2"
+          className="px-6 py-2 transition-colors"
         >
           Retour
         </Button>
@@ -85,11 +112,8 @@ export function GradeSubmissionStep({
           type="submit"
           onClick={onSubmit}
           disabled={!isValid || isSubmitting}
-          className="px-8 py-3 bg-primary text-primary-foreground
-            rounded-[--radius] font-medium hover:bg-primary-dark
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all duration-200 shadow-lg hover:shadow-xl
-            transform hover:scale-105"
+          className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary-dark
+          disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">

@@ -14,46 +14,56 @@ export function GradeStepper({ currentStep }: GradeStepperProps) {
   ]
 
   return (
-    <>
-      {/* En-tête */}
+    <div className="space-y-8">
+      {/* En-tête simple et élégant */}
       <section className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-foreground
-            bg-gradient-to-r from-primary to-primary-accent
-            bg-clip-text">
-            Créer une nouvelle évaluation
+        <h1 className="text-3xl font-bold text-foreground">
+          Créer une nouvelle évaluation
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-            Suivez les étapes pour créer une évaluation et saisir les notes de vos élèves.
+          Suivez les étapes pour créer une évaluation et saisir les notes de vos élèves.
         </p>
       </section>
-      <section className="flex items-center justify-center space-x-4 mb-8">
-        {steps.map((step, idx) => (
-          <Fragment key={step.label}>
-            <div className="flex items-center space-x-2">
-              <div
-                className={
-                  [
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-                    currentStep >= idx + 1
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground',
-                  ].join(' ')
-                }
-              >
-                {currentStep > idx + 1 ? '✓' : idx + 1}
+
+      {/* Stepper épuré */}
+      <section className="flex items-center justify-center">
+        <div className="flex items-center space-x-8">
+          {steps.map((step, idx) => (
+            <Fragment key={step.label}>
+              <div className="flex flex-col items-center space-y-3">
+                {/* Cercle simple */}
+                <div
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
+                    transition-colors duration-200
+                    ${currentStep >= idx + 1
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground'
+            }
+                  `}
+                >
+                  {currentStep > idx + 1 ? '✓' : idx + 1}
+                </div>
+
+                {/* Label */}
+                <span
+                  className={`
+                    text-sm font-medium transition-colors duration-200
+                    ${currentStep >= idx + 1 ? 'text-foreground' : 'text-muted-foreground'}
+                  `}
+                >
+                  {step.label}
+                </span>
               </div>
-              <span
-                className={`text-sm font-medium ${
-                  currentStep >= idx + 1 ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-            {idx < steps.length - 1 && <div className="w-12 h-0.5 bg-muted"></div>}
-          </Fragment>
-        ))}
+
+              {/* Ligne de séparation */}
+              {idx < steps.length - 1 && (
+                <div className="w-12 h-px bg-muted"></div>
+              )}
+            </Fragment>
+          ))}
+        </div>
       </section>
-    </>
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle, ClipboardEdit,XCircle } from 'lucide-react'
+import { CheckCircle, ClipboardEdit, XCircle } from 'lucide-react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
@@ -8,7 +8,6 @@ import { Checkbox } from '@/client/components/ui/checkbox'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { GradeEntry } from '@/types/grades'
-
 
 interface GradesStudentListProps {
   gradeEntries: GradeEntry[]
@@ -27,49 +26,47 @@ export function GradesStudentList({
   getStudentRecord,
   updateGradeFormData,
 }: GradesStudentListProps) {
-
-
   if (gradeEntries.length > 0) {
     return (
-      <Card className="shadow-lg bg-background hover:border-primary transition-all duration-200">
-        <CardHeader className="pb-3 border-b bg-primary/5">
-          <CardTitle className="text-lg text-foreground flex items-center gap-2">
+      <Card className="bg-background border-border">
+        <CardHeader className="pb-4 border-b border-border">
+          <CardTitle className="text-xl font-semibold text-foreground">
             Saisie des notes
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="pt-6">
           {/* Résumé des statistiques */}
-          <div className="mb-6 p-4 bg-muted/30 rounded-lg">
+          <div className="mb-6 p-4 bg-muted/20 rounded-lg border border-border">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-foreground">
                   {gradeEntries.length}
                 </div>
-                <div className="text-sm text-muted-foreground">Total élèves</div>
+                <div className="text-sm font-extrabold text-muted-foreground">Total élèves</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-success">
                   {gradeEntries.filter((e) => !e.isAbsent && e.value > 0).length}
                 </div>
-                <div className="text-sm text-muted-foreground">Notés</div>
+                <div className="text-sm font-extrabold text-muted-foreground">Notés</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-orange-600">
+                <div className="text-2xl font-bold text-warning">
                   {gradeEntries.filter((e) => e.isAbsent).length}
                 </div>
-                <div className="text-sm text-muted-foreground">Absents</div>
+                <div className="text-sm font-extrabold text-muted-foreground">Absents</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-info">
                   {gradeEntries.filter((e) => !e.isAbsent && e.value === 0).length}
                 </div>
-                <div className="text-sm text-muted-foreground">A noter</div>
+                <div className="text-sm font-extrabold text-muted-foreground">A noter</div>
               </div>
             </div>
 
             {/* Info sur la saisie des notes */}
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-info border border-info/10 rounded-lg">
+              <p className="text-md text-info-foreground">
                 💡 <strong>Conseils de saisie :</strong> Vous pouvez utiliser la virgule (,)
                 ou le point (.) pour les décimales.
                 Les notes sont automatiquement limitées à 20 maximum. Laissez le champ
@@ -79,7 +76,7 @@ export function GradesStudentList({
           </div>
 
           <div className="space-y-4">
-            {gradeEntries.map((student, index) => {
+            {gradeEntries.map((student) => {
               const record = getStudentRecord(student.id)
               const isGraded = !record?.isAbsent && (record?.value || 0) > 0
               const isAbsent = record?.isAbsent || false
@@ -87,43 +84,37 @@ export function GradesStudentList({
               return (
                 <div
                   key={student.id}
-                  className={`p-4 border rounded-[--radius] transition-all duration-200 ${
+                  className={`p-4 border rounded-lg transition-colors ${
                     isAbsent
-                      ? 'border-orange-200 bg-orange-50'
+                      ? 'border-warning bg-warning/5'
                       : isGraded
-                        ? 'border-green-200 bg-green-50'
-                        : 'border-border bg-input hover:border-primary'
+                        ? 'border-success bg-success/5'
+                        : 'border-border bg-background hover:border-primary'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center
-                        text-primary-foreground font-semibold text-sm ${
-                isAbsent
-                  ? 'bg-orange-500'
-                  : isGraded
-                    ? 'bg-success-light/50'
-                    : 'bg-primary/50'
-                }`}>
-                        {isAbsent ? <XCircle className="w-5 h-5" />
-                          : <GenderDisplay gender={student.gender} />}
-                      </div>
+                      {isAbsent ? (
+                        <div className="w-10 h-10 rounded-full bg-warning flex
+                        items-center justify-center">
+                          <XCircle className="w-5 h-5 text-warning-foreground" />
+                        </div>
+                      ) : (
+                        <GenderDisplay gender={student.gender} />
+                      )}
                       <div>
                         <h3 className="font-medium text-foreground">
                           {student.firstname} {student.lastname}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Élève #{index + 1}
-                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         isAbsent
-                          ? 'bg-orange-100 text-orange-700'
+                          ? 'bg-warning/20 text-warning'
                           : isGraded
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-success/20 text-success'
+                            : 'bg-muted text-muted-foreground'
                       }`}>
                         {isAbsent ? 'Absent' : isGraded ? 'Noté' : 'A noter'}
                       </span>
@@ -139,8 +130,8 @@ export function GradesStudentList({
                         onCheckedChange={(checked) =>
                           updateGradeFormData(student.id, 'isAbsent', checked as boolean)
                         }
-                        className="data-[state=checked]:bg-orange-500
-                        data-[state=checked]:border-orange-500"
+                        className="data-[state=checked]:bg-warning
+                        data-[state=checked]:border-warning"
                       />
                       <Label
                         htmlFor={`absent-${student.id}`}
@@ -166,15 +157,15 @@ export function GradesStudentList({
                           updateGradeFormData(student.id, 'value', value)
                         }}
                         disabled={isAbsent}
-                        className={`w-24 bg-background transition-colors ${
+                        className={`w-24 bg-background border-border transition-colors ${
                           isAbsent
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:border-primary focus:border-primary focus:ring-ring'
+                            : 'hover:border-primary focus:border-primary'
                         }`}
                         placeholder="0-20"
                       />
                       {isGraded && (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className="w-5 h-5 text-success" />
                       )}
                     </div>
 
@@ -190,10 +181,10 @@ export function GradesStudentList({
                           updateGradeFormData(student.id, 'comment', e.target.value)
                         }
                         disabled={isAbsent}
-                        className={`flex-1 bg-background transition-colors ${
+                        className={`flex-1 bg-background border-border transition-colors ${
                           isAbsent
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:border-primary focus:border-primary focus:ring-ring'
+                            : 'hover:border-primary focus:border-primary'
                         }`}
                         placeholder="Commentaire optionnel..."
                       />
@@ -210,18 +201,19 @@ export function GradesStudentList({
 
   if (selectedSession) {
     return (
-      <div className="text-center py-16 bg-gradient-to-br from-white to-slate-50/50
-        rounded-lg border border-slate-200 shadow-sm mt-6">
-        <div className="text-slate-400 mb-4">
-          <ClipboardEdit className="w-16 h-16 mx-auto opacity-50" />
-        </div>
-        <h3 className="text-xl font-semibold text-slate-800 mb-2">
-          Aucun élève dans cette classe
-        </h3>
-        <p className="text-slate-500 max-w-md mx-auto">
-          Cette session ne contient pas d'élèves à noter.
-        </p>
-      </div>
+      <Card className="bg-background border-border">
+        <CardContent className="pt-12 pb-12 text-center">
+          <div className="text-muted-foreground mb-4">
+            <ClipboardEdit className="w-16 h-16 mx-auto opacity-50" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Aucun élève dans cette classe
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Cette session ne contient pas d'élèves à noter.
+          </p>
+        </CardContent>
+      </Card>
     )
   }
 

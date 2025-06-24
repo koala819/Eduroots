@@ -49,13 +49,13 @@ export function GradeInfoStep({
   const isStepComplete = gradeType && gradeDate
 
   return (
-    <Card className="shadow-lg bg-background hover:border-primary transition-all duration-200">
-      <CardHeader className="pb-3 border-b bg-primary/5">
-        <CardTitle className="text-lg text-foreground flex items-center gap-2">
+    <Card className="bg-background border-border">
+      <CardHeader className="pb-4 border-b border-border">
+        <CardTitle className="text-xl font-semibold text-foreground">
           Informations de l'évaluation
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-6">
+      <CardContent className="pt-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <Label htmlFor="type" className="text-foreground font-medium">
@@ -69,14 +69,14 @@ export function GradeInfoStep({
             >
               <SelectTrigger
                 className={cn(
-                  'w-full bg-input hover:border-primary focus:border-primary ' +
-                  'focus:ring-ring transition-colors',
-                  errors?.gradeType && 'border-destructive focus:border-destructive',
+                  'w-full bg-input border-border hover:border-primary focus:border-primary ' +
+                  'transition-colors',
+                  errors?.gradeType && 'border-error focus:border-error',
                 )}
               >
                 <SelectValue placeholder="Sélectionner le type" />
               </SelectTrigger>
-              <SelectContent className="bg-background">
+              <SelectContent className="bg-background border-border">
                 {Object.entries(GradeTypeEnum).map(([key, value]) => (
                   <SelectItem key={key} value={value}>
                     {value}
@@ -85,7 +85,7 @@ export function GradeInfoStep({
               </SelectContent>
             </Select>
             {errors?.gradeType && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-error">
                 {errors.gradeType.message as string}
               </p>
             )}
@@ -100,11 +100,10 @@ export function GradeInfoStep({
                 <Button
                   variant="outline"
                   className={cn(
-                    'w-full justify-start text-left font-normal bg-input ' +
-                    'hover:border-primary focus:border-primary focus:ring-ring ' +
-                    'transition-colors',
+                    'w-full justify-start text-left font-normal bg-input border-border ' +
+                    'hover:border-primary focus:border-primary transition-colors',
                     !gradeDate && 'text-muted-foreground',
-                    errors?.gradeDate && 'border-destructive focus:border-destructive',
+                    errors?.gradeDate && 'border-error focus:border-error',
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
@@ -114,7 +113,7 @@ export function GradeInfoStep({
                   }
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-background" align="start">
+              <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
                 <Calendar
                   mode="single"
                   selected={gradeDate ? new Date(gradeDate) : undefined}
@@ -125,7 +124,7 @@ export function GradeInfoStep({
               </PopoverContent>
             </Popover>
             {errors?.gradeDate && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-error">
                 {errors.gradeDate.message as string}
               </p>
             )}
@@ -136,9 +135,8 @@ export function GradeInfoStep({
           <Button
             onClick={onNextStep}
             disabled={!isStepComplete}
-            className="px-6 py-2 bg-primary text-primary-foreground
-            hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all duration-200"
+            className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary-dark
+            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Continuer
           </Button>
