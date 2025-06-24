@@ -133,8 +133,8 @@ export async function createGradeRecord(
       throw new Error(`Erreur lors de la création des enregistrements: ${recordsError.message}`)
     }
 
-    revalidatePath('/courses/[courseId]/grades')
-    revalidatePath('/courses/[courseId]')
+    revalidatePath('/courses/[courseId]/grades', 'page')
+    revalidatePath('/courses/[courseId]', 'page')
 
     return {
       success: true,
@@ -302,8 +302,8 @@ export async function updateGradeRecord(
       throw new Error(`Erreur lors de l'insertion: ${insertError.message}`)
     }
 
-    revalidatePath('/courses/[courseId]/grades')
-    revalidatePath('/courses/[courseId]')
+    revalidatePath('/courses/[courseId]/grades', 'page')
+    revalidatePath('/courses/[courseId]', 'page')
 
     return {
       success: true,

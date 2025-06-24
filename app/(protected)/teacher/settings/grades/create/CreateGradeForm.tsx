@@ -6,9 +6,7 @@ import { GradeStepper } from '@/app/(protected)/teacher/settings/grades/create/G
 import {
   GradeSubmissionStep,
 } from '@/app/(protected)/teacher/settings/grades/create/GradeSubmissionStep'
-import {
-  useCreateGradeForm,
-} from '@/app/(protected)/teacher/settings/grades/create/useCreateGradeForm'
+import { useCreateGradeForm } from '@/client/hooks/use-create-grades'
 import { CourseWithRelations } from '@/types/courses'
 
 interface CreateGradeFormProps {
