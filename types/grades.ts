@@ -17,3 +17,9 @@ export type GradeWithRelations = Grade & {
   courses_sessions: CourseSessionWithRelations
   grades_records: GradeRecordWithUser[]
 }
+
+export type GradeEntry = Pick<User, 'id' | 'firstname' | 'lastname' | 'gender'> & {
+  value: number
+  isAbsent: boolean
+  comment: string
+}

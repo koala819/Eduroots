@@ -7,21 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui
 import { Checkbox } from '@/client/components/ui/checkbox'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
+import { GradeEntry } from '@/types/grades'
 
-type GradeEntry = {
-  student: string
-  studentName?: string
-  studentGender?: string | null
-  value: number
-  isAbsent: boolean
-  comment: string
-}
 
 interface GradesStudentListProps {
   gradeEntries: GradeEntry[]
   selectedSession: string
   getStudentRecord: (studentId: string) => GradeEntry | undefined
-  handleGradeUpdate: (
+  updateGradeFormData: (
     studentId: string,
     field: 'value' | 'isAbsent' | 'comment',
     value: string | number | boolean,
@@ -32,7 +25,7 @@ export function GradesStudentList({
   gradeEntries,
   selectedSession,
   getStudentRecord,
-  handleGradeUpdate,
+  updateGradeFormData,
 }: GradesStudentListProps) {
 
 
@@ -87,13 +80,13 @@ export function GradesStudentList({
 
           <div className="space-y-4">
             {gradeEntries.map((student, index) => {
-              const record = getStudentRecord(student.student)
+              const record = getStudentRecord(student.id)
               const isGraded = !record?.isAbsent && (record?.value || 0) > 0
               const isAbsent = record?.isAbsent || false
 
               return (
                 <div
-                  key={student.student}
+                  key={student.id}
                   className={`p-4 border rounded-[--radius] transition-all duration-200 ${
                     isAbsent
                       ? 'border-orange-200 bg-orange-50'
@@ -113,11 +106,11 @@ export function GradesStudentList({
                     : 'bg-primary/50'
                 }`}>
                         {isAbsent ? <XCircle className="w-5 h-5" />
-                          : <GenderDisplay gender={student.studentGender} />}
+                          : <GenderDisplay gender={student.gender} />}
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">
-                          {student.studentName || student.student}
+                          {student.firstname} {student.lastname}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           Élève #{index + 1}
@@ -141,16 +134,16 @@ export function GradesStudentList({
                     {/* Absence */}
                     <div className="flex items-center space-x-3">
                       <Checkbox
-                        id={`absent-${student.student}`}
+                        id={`absent-${student.id}`}
                         checked={isAbsent}
                         onCheckedChange={(checked) =>
-                          handleGradeUpdate(student.student, 'isAbsent', checked as boolean)
+                          updateGradeFormData(student.id, 'isAbsent', checked as boolean)
                         }
                         className="data-[state=checked]:bg-orange-500
                         data-[state=checked]:border-orange-500"
                       />
                       <Label
-                        htmlFor={`absent-${student.student}`}
+                        htmlFor={`absent-${student.id}`}
                         className="text-sm font-medium cursor-pointer"
                       >
                         Élève absent
@@ -170,7 +163,7 @@ export function GradesStudentList({
                         value={record?.value || ''}
                         onChange={(e) => {
                           const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
-                          handleGradeUpdate(student.student, 'value', value)
+                          updateGradeFormData(student.id, 'value', value)
                         }}
                         disabled={isAbsent}
                         className={`w-24 bg-background transition-colors ${
@@ -194,7 +187,7 @@ export function GradesStudentList({
                         type="text"
                         value={record?.comment || ''}
                         onChange={(e) =>
-                          handleGradeUpdate(student.student, 'comment', e.target.value)
+                          updateGradeFormData(student.id, 'comment', e.target.value)
                         }
                         disabled={isAbsent}
                         className={`flex-1 bg-background transition-colors ${
