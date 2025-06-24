@@ -1,33 +1,33 @@
-import { beforeEach,describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock des dépendances au lieu de la fonction elle-même
-vi.mock('@/server/utils/auth-helpers', () => ({
-  getAuthenticatedUser: vi.fn().mockResolvedValue({ id: 'test-user' }),
-}))
+// Setup des mocks AVANT les imports
+import { createMockAuthUser, createMockSessionServer,createMockSupabase } from '../utils/helpers'
 
-vi.mock('@/server/utils/server-helpers', () => ({
-  getSessionServer: vi.fn().mockResolvedValue({
-    supabase: {
-      schema: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      lte: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      limit: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    },
-    user: { id: 'test-user' } as any,
-  }),
-}))
+function setupCoursesMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+  }))
+
+  // Mock server-helpers
+  vi.mock('@/server/utils/server-helpers', () => ({
+    getSessionServer: vi.fn().mockResolvedValue(createMockSessionServer()),
+  }))
+}
+setupCoursesMocks()
+
+// Données de test pour courses
+const coursesTestData = {
+  mockSession: {
+    id: 'test-session-id',
+    course_id: 'test-course-id',
+    subject: 'Arabe',
+    level: '0',
+  },
+}
 
 // Import de la vraie fonction après les mocks
-import { getCourseSessionById,getTeacherCourses } from '@/server/actions/api/courses'
+import { getCourseSessionById, getTeacherCourses } from '@/server/actions/api/courses'
 import { getSessionServer } from '@/server/utils/server-helpers'
 
 describe('Courses Functions - Tests Robustes', () => {
@@ -75,12 +75,8 @@ describe('Courses Functions - Tests Robustes', () => {
     it('devrait lever une exception en cas d\'erreur critique', async () => {
       // Mock d'une erreur en modifiant le mock de getSessionServer
       vi.mocked(getSessionServer).mockResolvedValueOnce({
-        supabase: {
-          schema: vi.fn().mockImplementation(() => {
-            throw new Error('Erreur critique')
-          }),
-        } as any,
-        user: { id: 'test-user' } as any,
+        supabase: createMockSupabase({ throwError: true }) as any,
+        user: createMockAuthUser(),
       })
 
       await expect(getTeacherCourses('teacher-1')).rejects.toThrow('Failed to get teacher courses')
@@ -98,17 +94,11 @@ describe('Courses Functions - Tests Robustes', () => {
 
     it('devrait retourner une erreur si la session n\'existe pas', async () => {
       // Mock pour simuler une session non trouvée
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
+      const mockSupabase = createMockSupabase({ orderData: [] })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       const result = await getCourseSessionById('non-existent-id')
@@ -120,24 +110,13 @@ describe('Courses Functions - Tests Robustes', () => {
 
     it('devrait retourner les données de session si elle existe', async () => {
       // Mock pour simuler une session trouvée
-      const mockSession = {
-        id: 'test-session-id',
-        course_id: 'test-course-id',
-        subject: 'Arabe',
-        level: '0',
-      }
-
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [mockSession], error: null }),
-      }
+      const mockSupabase = createMockSupabase({
+        orderData: [coursesTestData.mockSession],
+      })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       const result = await getCourseSessionById('test-session-id')
@@ -147,17 +126,11 @@ describe('Courses Functions - Tests Robustes', () => {
     })
 
     it('devrait utiliser .limit(1) au lieu de .single()', async () => {
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
+      const mockSupabase = createMockSupabase({ orderData: [] })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       await getCourseSessionById('test-session-id')
@@ -167,26 +140,14 @@ describe('Courses Functions - Tests Robustes', () => {
     })
 
     it('devrait faire les bonnes requêtes Supabase dans le bon ordre', async () => {
-      // Mock des données de retour
-      const mockSession = {
-        id: 'test-session-id',
-        course_id: 'test-course-id',
-        subject: 'Arabe',
-        level: '0',
-      }
-
       // Créer un mock qui simule correctement l'enchaînement
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [mockSession], error: null }),
-      }
+      const mockSupabase = createMockSupabase({
+        orderData: [coursesTestData.mockSession],
+      })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       const result = await getCourseSessionById('test-session-id')
@@ -199,22 +160,15 @@ describe('Courses Functions - Tests Robustes', () => {
       expect(mockSupabase.limit).toHaveBeenCalledWith(1)
 
       expect(result.success).toBe(true)
+      expect(result.message).toBe('Cours récupéré avec succès')
     })
 
     it('devrait détecter si quelqu\'un remet .single() au lieu de .limit(1)', async () => {
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        // Simulation d'un retour à .single()
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
+      const mockSupabase = createMockSupabase({ orderData: [] })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       await getCourseSessionById('test-session-id')
@@ -225,32 +179,14 @@ describe('Courses Functions - Tests Robustes', () => {
     })
 
     it('devrait vérifier la structure de la réponse complète', async () => {
-      const mockSession = {
-        id: 'test-session-id',
-        course_id: 'test-course-id',
-        subject: 'Arabe',
-        level: '0',
-        stats_average_attendance: 75.5,
-        stats_average_grade: 15.2,
-        stats_average_behavior: 4.1,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: null,
-        is_active: true,
-        deleted_at: null,
-      }
-
       // Créer un mock simple qui retourne les données attendues
-      const mockSupabase = {
-        schema: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [mockSession], error: null }),
-      }
+      const mockSupabase = createMockSupabase({
+        orderData: [coursesTestData.mockSession],
+      })
 
       vi.mocked(getSessionServer).mockResolvedValueOnce({
         supabase: mockSupabase as any,
-        user: { id: 'test-user' } as any,
+        user: createMockAuthUser(),
       })
 
       const result = await getCourseSessionById('test-session-id')

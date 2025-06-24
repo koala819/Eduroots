@@ -90,7 +90,7 @@ export function createMockSupabase(options: MockSupabaseOptions = {}): MockSupab
     lte: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: singleData, error } as SupabaseResponse<unknown>),
-    limit: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue({ data: orderData, error } as SupabaseResponse<unknown[]>),
     order: vi.fn().mockResolvedValue({ data: orderData, error } as SupabaseResponse<unknown[]>),
   }
 }
