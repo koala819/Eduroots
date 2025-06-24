@@ -1,31 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock des dépendances au lieu de la fonction elle-même
-vi.mock('@/server/utils/auth-helpers', () => ({
-  getAuthenticatedUser: vi.fn().mockResolvedValue({ id: 'test-user' }),
-  getEducationUserId: vi.fn().mockResolvedValue('test-education-user-id'),
-}))
+// Setup des mocks AVANT les imports
+import { createMockAuthUser, createMockSessionServer,createMockSupabase } from '../utils/helpers'
 
-vi.mock('@/server/utils/server-helpers', () => ({
-  getSessionServer: vi.fn().mockResolvedValue({
-    supabase: {
-      schema: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      lte: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      limit: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    },
-    user: { id: 'test-user' } as any,
-  }),
-}))
+function setupGradesMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+    getEducationUserId: vi.fn().mockResolvedValue('test-education-user-id'),
+  }))
+
+  // Mock server-helpers
+  vi.mock('@/server/utils/server-helpers', () => ({
+    getSessionServer: vi.fn().mockResolvedValue(createMockSessionServer()),
+  }))
+}
+setupGradesMocks()
 
 // Import de la vraie fonction après les mocks
 import { getTeacherCourses } from '@/server/actions/api/courses'
@@ -42,7 +32,16 @@ describe('Grade Create Page Functions - Tests Robustes', () => {
       const result = await getAuthenticatedUser()
 
       expect(getAuthenticatedUser).toHaveBeenCalled()
-      expect(result).toEqual({ id: 'test-user' })
+      const expectedUser = {
+        id: 'test-auth-user-id',
+        email: 'teacher@test.com',
+        user_metadata: { role: 'teacher' },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      }
+      expect(result).toEqual(expectedUser)
     })
 
     it('devrait gérer les erreurs d\'authentification', async () => {
@@ -101,12 +100,8 @@ describe('Grade Create Page Functions - Tests Robustes', () => {
     it('devrait lever une exception en cas d\'erreur critique', async () => {
       // Mock d'une erreur en modifiant le mock de getSessionServer
       vi.mocked(getSessionServer).mockResolvedValueOnce({
-        supabase: {
-          schema: vi.fn().mockImplementation(() => {
-            throw new Error('Erreur critique')
-          }),
-        } as any,
-        user: { id: 'test-user' } as any,
+        supabase: createMockSupabase({ throwError: true }) as any,
+        user: createMockAuthUser(),
       })
 
       await expect(getTeacherCourses('teacher-1')).rejects.toThrow('Failed to get teacher courses')
