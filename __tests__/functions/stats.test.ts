@@ -1,47 +1,42 @@
 import { describe, expect, it, vi } from 'vitest'
 
+// Setup des mocks AVANT les imports
+import { createMockAuthUser, createMockSessionServer,createMockSupabase } from '../utils/helpers'
+
+function setupStatsMocks() {
+  // Mock auth-helpers
+  vi.mock('@/server/utils/auth-helpers', () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue(createMockAuthUser()),
+  }))
+
+  // Mock supabase
+  vi.mock('@/server/utils/supabase', () => ({
+    createClient: vi.fn().mockResolvedValue(createMockSupabase()),
+  }))
+
+  // Mock server-helpers
+  vi.mock('@/server/utils/server-helpers', () => ({
+    getSessionServer: vi.fn().mockResolvedValue(createMockSessionServer()),
+  }))
+
+  // Mock stats/student
+  vi.mock('@/server/utils/stats/student', () => ({
+    calculateStudentAttendanceRate: vi.fn().mockResolvedValue({
+      absencesRate: 85,
+      absencesCount: 2,
+    }),
+    calculateStudentBehaviorRate: vi.fn(),
+    calculateStudentGrade: vi.fn(),
+  }))
+
+  // Mock next/cache
+  vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn(),
+  }))
+}
+setupStatsMocks()
+
 import { refreshTeacherStudentsStats } from '@/server/actions/api/stats'
-
-// Mock complet de toutes les dépendances
-vi.mock('@/server/utils/auth-helpers', () => ({
-  getAuthenticatedUser: vi.fn().mockResolvedValue({ id: 'test-user' }),
-}))
-
-vi.mock('@/server/utils/supabase', () => ({
-  createClient: vi.fn(),
-}))
-
-vi.mock('@/server/utils/server-helpers', () => ({
-  getSessionServer: vi.fn().mockResolvedValue({
-    supabase: {
-      schema: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      lte: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'test-user-id' }, error: null }),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    },
-    user: { id: 'test-user-id' },
-  }),
-}))
-
-vi.mock('@/server/utils/stats/student', () => ({
-  calculateStudentAttendanceRate: vi.fn().mockResolvedValue({
-    absencesRate: 85,
-    absencesCount: 2,
-  }),
-  calculateStudentBehaviorRate: vi.fn(),
-  calculateStudentGrade: vi.fn(),
-}))
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}))
 
 describe('Stats Functions', () => {
   describe('refreshTeacherStudentsStats', () => {
