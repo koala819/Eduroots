@@ -23,28 +23,42 @@ import type { CreateGradePayload } from '@/types/grade-payload'
 import {
   GradeRecordWithUser,
   GradeTypeEnum,
-  GradeWithRelations,
   Student,
 } from '@/types/grades'
 
-export const GradeEdit = ({ gradeId }: { gradeId: string }) => {
+interface GradeEditProps {
+  gradeId: string
+  initialGradeData?: any
+}
+
+export const GradeEdit = ({ gradeId, initialGradeData }: GradeEditProps) => {
+  console.log('🔍 [CLIENT] GradeEdit - gradeId:', gradeId)
+  console.log('🔍 [CLIENT] GradeEdit - initialGradeData:', !!initialGradeData)
+
   return (
     <AuthenticatedContent>
-      <GradeEditContent gradeId={gradeId} />
+      <GradeEditContent gradeId={gradeId} initialGradeData={initialGradeData} />
     </AuthenticatedContent>
   )
 }
 
-const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
+interface GradeEditContentProps {
+  gradeId: string
+  initialGradeData?: any
+}
+
+const GradeEditContent = ({ gradeId, initialGradeData }: GradeEditContentProps) => {
+  console.log('🔍 [CLIENT] GradeEditContent - gradeId:', gradeId)
+  console.log('🔍 [CLIENT] GradeEditContent - initialGradeData:', !!initialGradeData)
+
   const {
-    teacherGrades,
     updateGradeRecord,
-    isLoading: isLoadingGrade,
-    getTeacherGrades,
   } = useGrades()
   const router = useRouter()
   const { toast } = useToast()
   const { session } = useAuth()
+
+  console.log('🔍 [CLIENT] GradeEditContent - session:', !!session)
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -66,57 +80,46 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
     records: [],
   })
 
-  // Charger les données du grade
+  // Initialiser les données avec les données côté serveur
   useEffect(() => {
-    const fetchGradeData = async () => {
+    if (initialGradeData) {
+      console.log('🔍 [CLIENT] GradeEditContent - initializing with server data')
+
       try {
-        if (session?.user?.id && !teacherGrades) {
-          await getTeacherGrades(session.user.id)
-        }
+        const grade = initialGradeData
+        const courseSession = grade.courses_sessions
 
-        if (teacherGrades) {
-          const grade = teacherGrades.find((g) => g.id === gradeId)
-          if (grade && 'courses_sessions' in grade && 'grades_records' in grade) {
-            const populatedGrade = grade as GradeWithRelations
-            const courseSession = populatedGrade.courses_sessions
+        setGradeInfo({
+          id: grade.id,
+          date: new Date(grade.date),
+          type: grade.type as GradeTypeEnum,
+          courseLevel: courseSession.level,
+          dayOfWeek: courseSession.courses_sessions_timeslot?.[0]?.day_of_week ?? '',
+          subject: courseSession.subject as SubjectNameEnum,
+          is_draft: grade.is_draft,
+        })
 
-            setGradeInfo({
-              id: populatedGrade.id,
-              date: new Date(populatedGrade.date),
-              type: populatedGrade.type as GradeTypeEnum,
-              courseLevel: courseSession.level,
-              dayOfWeek: courseSession.courses_sessions_timeslot[0]?.day_of_week ?? '',
-              subject: courseSession.subject as SubjectNameEnum,
-              is_draft: populatedGrade.is_draft,
-            })
+        // Préparer les données des élèves et leurs notes
+        const convertedRecords = grade.grades_records.map((record: any) => ({
+          ...record,
+          student: record.users,
+        }))
 
-            // Préparer les données des élèves et leurs notes
-            const convertedRecords = populatedGrade.grades_records.map((record) => ({
-              ...record,
-              student: record.users,
-            }))
+        const convertedStudents = grade.grades_records.map((record: any) => record.users)
 
-            const convertedStudents = populatedGrade.grades_records.map((record) => record.users)
+        console.log('🔍 [CLIENT] GradeEditContent - setting grade entries:',
+          convertedStudents.length)
 
-            setGradeEntries({
-              students: convertedStudents,
-              records: convertedRecords,
-            })
-          } else {
-            setError(`Évaluation avec l'ID ${gradeId} non trouvée`)
-          }
-        }
+        setGradeEntries({
+          students: convertedStudents,
+          records: convertedRecords,
+        })
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Une erreur est survenue lors du chargement des données',
-        )
+        console.error('🔍 [CLIENT] GradeEditContent - error initializing data:', err)
+        setError('Erreur lors de l\'initialisation des données')
       }
     }
-
-    fetchGradeData()
-  }, [session?.user?.id, gradeId, teacherGrades, getTeacherGrades])
+  }, [initialGradeData])
 
   // Calcul des statistiques pour la progression
   const stats = useMemo(() => {
@@ -272,7 +275,15 @@ const GradeEditContent = ({ gradeId }: { gradeId: string }) => {
     }
   }
 
-  if (isLoadingGrade || !gradeInfo) {
+  console.log('🔍 [CLIENT] GradeEditContent - render state:', {
+    isLoadingGrade: false,
+    hasGradeInfo: !!gradeInfo,
+    studentsCount: gradeEntries.students.length,
+    error,
+  })
+
+  if (!gradeInfo) {
+    console.log('🔍 [CLIENT] GradeEditContent - showing loader')
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-2 h-2 bg-gray-500 rounded-full animate-ping mr-1" />

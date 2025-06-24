@@ -108,7 +108,7 @@ export function TeacherGrades({
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => router.push(`/teacher/settings/grades/${grade.id}`)}
+                  onClick={() => router.push(`/teacher/settings/grades/edit/${grade.id}`)}
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Modifier

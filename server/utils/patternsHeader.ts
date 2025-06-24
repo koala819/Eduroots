@@ -133,7 +133,7 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
-  '/teacher/settings/grades/[id]': {
+  '/teacher/settings/grades/edit/[id]': {
     title: 'Modifier évaluation',
     subtitle: 'Éditer les notes',
     backButton: {

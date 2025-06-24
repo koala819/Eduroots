@@ -147,6 +147,61 @@ export async function createGradeRecord(
   }
 }
 
+export async function getGradeById(gradeId: string): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data: grade, error } = await supabase
+      .schema('education')
+      .from('grades')
+      .select(`
+        *,
+        courses_sessions (
+          *,
+          courses_sessions_timeslot (
+            day_of_week
+          )
+        ),
+        grades_records (
+          *,
+          users:student_id (
+            id,
+            firstname,
+            lastname,
+            email
+          )
+        )
+      `)
+      .eq('id', gradeId)
+      .single()
+
+    if (error || !grade) {
+      console.error('Erreur lors de la récupération du grade:', error)
+      return {
+        success: false,
+        error: 'Grade non trouvé',
+        message: 'Grade non trouvé',
+        data: null,
+      }
+    }
+
+    return {
+      success: true,
+      data: grade,
+      message: 'Grade récupéré avec succès',
+    }
+  } catch (error: any) {
+    console.error('[GET_GRADE_BY_ID]', error)
+    return {
+      success: false,
+      error: 'Erreur lors de la récupération du grade',
+      message: 'Erreur lors de la récupération du grade',
+      data: null,
+    }
+  }
+}
+
 export async function refreshGradeData(
   id?: string,
   fields?: string,
