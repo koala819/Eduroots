@@ -57,14 +57,14 @@ export async function getEducationUserId(authUserId: string): Promise<string | n
       `auth_id_email.eq.${authUserId},auth_id_gmail.eq.${authUserId},` +
       `parent2_auth_id_email.eq.${authUserId},parent2_auth_id_gmail.eq.${authUserId}`,
     )
-    .single()
+    .limit(1)
 
   if (error) {
-    console.error('Erreur lors de la récupération de l\'utilisateur:', error)
+    console.error('❌ Erreur lors de la récupération de l\'utilisateur:', error)
     return null
   }
 
-  return user?.id ?? null
+  return user?.[0]?.id ?? null
 }
 
 /**
@@ -123,8 +123,6 @@ export async function migrateUserToSuffixedEmail(
 
   try {
     // 1. Récupérer l'utilisateur dans education.users
-    console.log('\n\n\ncurrentEmail', currentEmail)
-    console.log('role', role)
     const { data: educationUsers } = await supabase
       .schema('education')
       .from('users')
@@ -135,8 +133,6 @@ export async function migrateUserToSuffixedEmail(
     if (!educationUsers || educationUsers.length === 0) {
       throw new Error('Utilisateur non trouvé dans education.users')
     }
-
-    console.log('Nombre d\'utilisateurs trouvés:', educationUsers.length)
 
     // 2. Créer le nouvel utilisateur avec suffixe spécifique au role
     const supabaseEmail = generateSupabaseEmail(currentEmail, role)
@@ -160,9 +156,6 @@ export async function migrateUserToSuffixedEmail(
     for (const educationUser of educationUsers) {
       const isPrimaryUser = currentEmail.toLowerCase() === educationUser.email.toLowerCase()
       const fieldToUpdate = isPrimaryUser ? 'auth_id_email' : 'parent2_auth_id_email'
-
-
-      console.log(`Mise à jour utilisateur ${educationUser.id} - champ: ${fieldToUpdate}`)
 
       await supabase
         .schema('education')

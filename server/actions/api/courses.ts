@@ -702,29 +702,66 @@ export async function updateCourses(
         .eq('courses_teacher.teacher_id', userId)
     } else if (userRole === 'student') {
       // Pour un étudiant, on ne regarde que ses cours
+      // D'abord, récupérer les IDs des sessions auxquelles l'étudiant est inscrit
+      const { data: studentSessions, error: sessionsError } = await supabase
+        .schema('education')
+        .from('courses_sessions_students')
+        .select('course_sessions_id')
+        .eq('student_id', userId)
+
+      if (sessionsError) {
+        throw new Error(`Erreur lors de la récupération des sessions: ${sessionsError.message}`)
+      }
+
+      if (!studentSessions || studentSessions.length === 0) {
+        return {
+          success: true,
+          data: [],
+          message: 'Aucun cours trouvé pour cet étudiant',
+        }
+      }
+
+      const sessionIds = studentSessions.map((s) => s.course_sessions_id)
+
+      // Récupérer les IDs des cours correspondants
+      const { data: courseIds, error: courseIdsError } = await supabase
+        .schema('education')
+        .from('courses_sessions')
+        .select('course_id')
+        .in('id', sessionIds)
+
+      if (courseIdsError) {
+        throw new Error(`Erreur lors de la récupération des cours: ${courseIdsError.message}`)
+      }
+
+      if (!courseIds || courseIds.length === 0) {
+        return {
+          success: true,
+          data: [],
+          message: 'Aucun cours trouvé pour cet étudiant',
+        }
+      }
+
+      const uniqueCourseIds = [...new Set(courseIds.map((c) => c.course_id))]
+
+      // Maintenant récupérer les cours avec leurs relations
       query = supabase
         .schema('education')
         .from('courses')
         .select(
           `
           *,
-          courses_sessions!inner (
+          courses_sessions (
             *,
-            courses_sessions_students!inner (
-              *,
-              users (
-                id,
-                firstname,
-                lastname,
-                email
-              )
+            courses_sessions_students (
+              *
             ),
             courses_sessions_timeslot (*)
           )
         `,
         )
         .eq('is_active', true)
-        .eq('courses_sessions.courses_sessions_students.student_id', userId)
+        .in('id', uniqueCourseIds)
     } else {
       // Pour admin/bureau, on voit tout
       query = supabase

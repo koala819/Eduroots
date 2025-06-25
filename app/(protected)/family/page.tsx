@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import StudentDashboard from '@/client/components/organisms/StudentDashboard'
-import { getAllStudents } from '@/server/actions/api/students'
+import { getFamilyStudents } from '@/server/actions/api/students'
 import { createClient } from '@/server/utils/supabase'
 import { User } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
@@ -20,18 +20,17 @@ export default async function StudentPage() {
     redirect('/')
   }
 
-  const response = await getAllStudents()
+  // Récupérer tous les enfants de la fratrie
+  const response = await getFamilyStudents(user.id)
 
   if (!response.success || !response.data) {
     redirect('/')
   }
 
-  const students = response.data as Array<User & { role: UserRoleEnum.Student }>
-  const student = students.find((s) => s.id === user.id)
+  const familyStudents = response.data.map((student) => ({
+    ...student,
+    role: UserRoleEnum.Student,
+  } as User & { role: UserRoleEnum.Student }))
 
-  if (!student) {
-    redirect('/')
-  }
-
-  return <StudentDashboard familyStudents={[student]} />
+  return <StudentDashboard familyStudents={familyStudents} />
 }

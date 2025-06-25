@@ -61,6 +61,7 @@ export async function middleware(req: NextRequest) {
   const userRole = user.user_metadata?.role
 
   if (!userRole) {
+    console.log('❌ Middleware - Pas de rôle dans les métadonnées')
     return NextResponse.redirect(
       new URL('/unauthorized?error=AccessDenied', req.url),
     )
@@ -96,6 +97,7 @@ export async function middleware(req: NextRequest) {
   // Vérification des routes family
   else if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== STUDENT_ROLE) {
+      console.log('❌ Middleware - Accès refusé pour family, redirection vers unauthorized')
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
