@@ -1,0 +1,335 @@
+'use server'
+
+import { getStudentAttendance, getStudentGrade } from '@/server/actions/api/stats'
+import { getOneTeacher } from '@/server/actions/api/teachers'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
+import { getSessionServer } from '@/server/utils/server-helpers'
+import { ApiResponse } from '@/types/api'
+import { CourseWithRelations } from '@/types/courses'
+import { SubjectNameEnum } from '@/types/courses'
+import { User } from '@/types/db'
+import { StudentAttendanceResponse } from '@/types/stats-payload'
+import { UserRoleEnum } from '@/types/user'
+
+// Type correct pour les grades basé sur le retour de calculateStudentGrade
+export interface StudentGradesData {
+  details: Array<{
+    subject: string
+    student: string
+    grade: number
+    sessionId?: string
+  }>
+  bySubject: {
+    [key in SubjectNameEnum]?: {
+      grades: number[]
+      average?: number
+    }
+  }
+  overallAverage?: number
+}
+
+export interface FamilyStudentData {
+  student: User & { role: UserRoleEnum.Student }
+  attendance: StudentAttendanceResponse | null
+  grades: StudentGradesData | null
+  course: CourseWithRelations | null
+  teacher: (User & { role: UserRoleEnum.Teacher }) | null
+}
+
+export interface FamilyDashboardData {
+  familyStudents: Array<User & { role: UserRoleEnum.Student }>
+  selectedStudentData: FamilyStudentData | null
+}
+
+export interface FamilyAllStudentsData {
+  familyStudents: Array<User & { role: UserRoleEnum.Student }>
+  allStudentsData: Record<string, FamilyStudentData>
+}
+
+// Fonction pour récupérer les données d'un étudiant spécifique
+async function getStudentDetailedData(
+  student: User & { role: UserRoleEnum.Student },
+): Promise<FamilyStudentData> {
+  const [attendanceResponse, gradesResponse] = await Promise.all([
+    getStudentAttendance(student.id),
+    getStudentGrade(student.id),
+  ])
+
+  let courseData: CourseWithRelations | null = null
+  let teacherData: (User & { role: UserRoleEnum.Teacher }) | null = null
+
+  // Récupérer les cours de l'étudiant
+  const { supabase } = await getSessionServer()
+
+  // Récupérer les sessions auxquelles l'étudiant est inscrit
+  const { data: studentSessions, error: sessionsError } = await supabase
+    .schema('education')
+    .from('courses_sessions_students')
+    .select('course_sessions_id')
+    .eq('student_id', student.id)
+
+  if (!sessionsError && studentSessions && studentSessions.length > 0) {
+    const sessionId = studentSessions[0].course_sessions_id
+
+    // Récupérer le cours complet avec ses sessions
+    const { data: courseWithSessions, error: courseError } = await supabase
+      .schema('education')
+      .from('courses_sessions')
+      .select(`
+        *,
+        courses (
+          *,
+          courses_teacher (
+            users:teacher_id (
+              id,
+              firstname,
+              lastname,
+              email,
+              subjects
+            )
+          )
+        ),
+        courses_sessions_timeslot (*)
+      `)
+      .eq('id', sessionId)
+      .single()
+
+    if (!courseError && courseWithSessions) {
+      // Construire l'objet CourseWithRelations
+      courseData = {
+        id: courseWithSessions.courses.id,
+        is_active: courseWithSessions.courses.is_active,
+        deleted_at: courseWithSessions.courses.deleted_at,
+        created_at: courseWithSessions.courses.created_at,
+        updated_at: courseWithSessions.courses.updated_at,
+        academic_year: courseWithSessions.courses.academic_year,
+        courses_teacher: courseWithSessions.courses.courses_teacher,
+        courses_sessions: [courseWithSessions],
+      } as CourseWithRelations
+
+      // Récupérer les données du professeur
+      if (courseData?.courses_teacher && courseData.courses_teacher.length > 0) {
+        const teacherId = courseData.courses_teacher[0].users.id
+
+        const teacherResponse = await getOneTeacher(teacherId)
+        if (teacherResponse?.success && teacherResponse.data) {
+          teacherData = {
+            ...teacherResponse.data,
+            role: UserRoleEnum.Teacher,
+            auth_id_email: null,
+            auth_id_gmail: null,
+            parent2_auth_id_email: null,
+            parent2_auth_id_gmail: null,
+            secondary_email: null,
+            is_active: true,
+            deleted_at: null,
+            date_of_birth: null,
+            gender: null,
+            type: null,
+            subjects: null,
+            school_year: null,
+            stats_model: null,
+            student_stats_id: null,
+            teacher_stats_id: null,
+            phone: null,
+            created_at: null,
+            updated_at: null,
+            has_invalid_email: false,
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    student,
+    attendance: attendanceResponse?.success ? attendanceResponse.data : null,
+    grades: gradesResponse?.success ? gradesResponse.data : null,
+    course: courseData,
+    teacher: teacherData,
+  }
+}
+
+export async function getFamilyDashboardData(
+  supabaseUserId: string,
+  selectedStudentId?: string,
+): Promise<ApiResponse<FamilyDashboardData>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // Récupérer l'utilisateur principal pour obtenir son email
+    const { data: mainUser, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('email')
+      .or(
+        `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
+        `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
+      )
+      .eq('is_active', true)
+      .eq('role', 'student')
+      .limit(1)
+
+    if (userError || !mainUser || mainUser.length === 0) {
+      return {
+        success: false,
+        message: 'Utilisateur principal non trouvé',
+        data: null,
+      }
+    }
+
+    const familyEmail = mainUser[0].email
+
+    // Récupérer tous les étudiants de la fratrie
+    const { data: familyStudents, error: studentsError } = await supabase
+      .schema('education')
+      .from('users')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        type,
+        subjects,
+        created_at,
+        updated_at,
+        gender,
+        date_of_birth,
+        secondary_email,
+        phone,
+        school_year
+      `)
+      .eq('email', familyEmail)
+      .eq('is_active', true)
+      .eq('role', 'student')
+      .order('firstname', { ascending: true })
+
+    if (studentsError) {
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    const studentsWithRole = (familyStudents || []).map((student) => ({
+      ...student,
+      role: UserRoleEnum.Student,
+    } as User & { role: UserRoleEnum.Student }))
+
+    // Si un étudiant est sélectionné, récupérer ses données détaillées
+    let selectedStudentData: FamilyStudentData | null = null
+
+    if (selectedStudentId) {
+      const selectedStudent = studentsWithRole.find((s) => s.id === selectedStudentId)
+
+      if (selectedStudent) {
+        selectedStudentData = await getStudentDetailedData(selectedStudent)
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        familyStudents: studentsWithRole,
+        selectedStudentData,
+      },
+      message: 'Données familiales récupérées avec succès',
+    }
+  } catch (error) {
+    console.error('[GET_FAMILY_DASHBOARD_DATA]', error)
+    throw new Error('Erreur lors de la récupération des données familiales')
+  }
+}
+
+// Fonction optimisée pour récupérer les données de tous les enfants en parallèle
+export async function getFamilyAllStudentsData(
+  supabaseUserId: string,
+): Promise<ApiResponse<FamilyAllStudentsData>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // Récupérer l'utilisateur principal pour obtenir son email
+    const { data: mainUser, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('email')
+      .or(
+        `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
+        `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
+      )
+      .eq('is_active', true)
+      .eq('role', 'student')
+      .limit(1)
+
+    if (userError || !mainUser || mainUser.length === 0) {
+      return {
+        success: false,
+        message: 'Utilisateur principal non trouvé',
+        data: null,
+      }
+    }
+
+    const familyEmail = mainUser[0].email
+
+    // Récupérer tous les étudiants de la fratrie
+    const { data: familyStudents, error: studentsError } = await supabase
+      .schema('education')
+      .from('users')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        type,
+        subjects,
+        created_at,
+        updated_at,
+        gender,
+        date_of_birth,
+        secondary_email,
+        phone,
+        school_year
+      `)
+      .eq('email', familyEmail)
+      .eq('is_active', true)
+      .eq('role', 'student')
+      .order('firstname', { ascending: true })
+
+    if (studentsError) {
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    const studentsWithRole = (familyStudents || []).map((student) => ({
+      ...student,
+      role: UserRoleEnum.Student,
+    } as User & { role: UserRoleEnum.Student }))
+
+    // Récupérer les données de tous les étudiants en parallèle
+    const allStudentsDataPromises = studentsWithRole.map(async (student) => {
+      const data = await getStudentDetailedData(student)
+      return [student.id, data] as [string, FamilyStudentData]
+    })
+
+    const allStudentsDataEntries = await Promise.all(allStudentsDataPromises)
+    const allStudentsData = Object.fromEntries(allStudentsDataEntries)
+
+    return {
+      success: true,
+      data: {
+        familyStudents: studentsWithRole,
+        allStudentsData,
+      },
+      message: 'Données familiales récupérées avec succès',
+    }
+  } catch (error) {
+    console.error('[GET_FAMILY_ALL_STUDENTS_DATA]', error)
+    throw new Error('Erreur lors de la récupération des données familiales')
+  }
+}

@@ -41,6 +41,9 @@ export default function ChildStats({
   detailedTeacher,
   subjectGradesData,
 }: Readonly<StudentStatsProps>) {
+  const teacherName =
+    detailedTeacher?.lastname?.toUpperCase() + ' ' + detailedTeacher?.firstname || 'N/A'
+
   return (
     <>
       {/* Dashboard stats */}
@@ -49,7 +52,11 @@ export default function ChildStats({
           icon="chart"
           color="blue"
           title="Moyenne générale"
-          value={detailedGrades?.overallAverage ?? 'N/A'}
+          value={
+            typeof detailedGrades?.overallAverage === 'number'
+              ? detailedGrades.overallAverage.toFixed(2)
+              : 'N/A'
+          }
           description="/ 20"
         />
 
@@ -87,16 +94,16 @@ export default function ChildStats({
           items={[
             {
               label: 'Niveau',
-              value: (detailedCourse?.sessions[0].level as LevelEnum) || 'N/A',
+              value: (detailedCourse?.sessions?.[0]?.level as LevelEnum) || 'N/A',
             },
             {
               label: 'Enseignant',
-              value: detailedTeacher?.lastname.toUpperCase() + ' ' + detailedTeacher?.firstname,
+              value: teacherName,
             },
             {
               label: 'Jour de cours',
               value: formatDayOfWeek(
-                (detailedCourse?.sessions[0].timeSlot.day_of_week) || 'N/A',
+                (detailedCourse?.sessions?.[0]?.timeSlot?.day_of_week) || 'N/A',
               ),
             },
           ]}

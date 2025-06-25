@@ -1,36 +1,44 @@
-import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-import StudentDashboard from '@/client/components/organisms/StudentDashboard'
-import { getFamilyStudents } from '@/server/actions/api/students'
-import { createClient } from '@/server/utils/supabase'
-import { User } from '@/types/db'
-import { UserRoleEnum } from '@/types/user'
+import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { FamilyDashboard } from '@/client/components/pages/FamilyDashboard'
+import { getFamilyDashboardData } from '@/server/actions/api/family'
+import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 
 export const metadata = {
   title: 'Dashboard Famille | École',
   description: 'Visualisez les informations scolaires de vos enfants',
 }
 
-export default async function StudentPage() {
-  const supabase = await createClient()
+export default async function FamilyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ student?: string }>
+}) {
+  const user = await getAuthenticatedUser()
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/')
+  if (!user?.id) {
+    return null
   }
 
-  // Récupérer tous les enfants de la fratrie
-  const response = await getFamilyStudents(user.id)
+  const resolvedSearchParams = await searchParams
+  const selectedStudentId = resolvedSearchParams?.student
+
+  const response = await getFamilyDashboardData(user.id, selectedStudentId)
 
   if (!response.success || !response.data) {
-    redirect('/')
+    return <ErrorContent message='Erreur lors du chargement des données familiales' />
   }
 
-  const familyStudents = response.data.map((student) => ({
-    ...student,
-    role: UserRoleEnum.Student,
-  } as User & { role: UserRoleEnum.Student }))
+  const { familyStudents, selectedStudentData } = response.data
 
-  return <StudentDashboard familyStudents={familyStudents} />
+  return (
+    <Suspense fallback={<LoadingContent />}>
+      <FamilyDashboard
+        familyStudents={familyStudents}
+        selectedStudentData={selectedStudentData}
+        selectedStudentId={selectedStudentId}
+      />
+    </Suspense>
+  )
 }
