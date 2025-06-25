@@ -68,49 +68,49 @@ setupTeachersMocks()
 
 import { getStudentsByTeacher } from '@/server/actions/api/teachers'
 
-const teacherTestData = {
-  mockTeacherResponse: {
-    success: true,
-    message: 'Cours et leurs étudiants récupérés avec succès',
-    data: {
-      id: 'test-teacher-id',
-      email: 'teacher@test.com',
-      firstname: 'Test',
-      lastname: 'Teacher',
-      subjects: ['Math'],
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01',
-      type: 'teacher',
-      courses: [
-        {
-          courseId: 'course-1',
-          academicYear: '2024',
-          sessions: [
-            {
-              sessionId: 'session-1',
-              subject: 'Mathématiques',
-              level: '6ème',
-              timeSlot: 'Lundi',
-              startTime: '08:00',
-              endTime: '09:00',
-              students: [
-                {
-                  id: 'student-1',
-                  firstname: 'Jean',
-                  lastname: 'Dupont',
-                  email: 'jean@test.com',
-                  secondaryEmail: 'jean.parent@test.com',
-                  gender: 'M',
-                  dateOfBirth: '2012-01-01',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  },
-}
+// const teacherTestData = {
+//   mockTeacherResponse: {
+//     success: true,
+//     message: 'Cours et leurs étudiants récupérés avec succès',
+//     data: {
+//       id: 'test-teacher-id',
+//       email: 'teacher@test.com',
+//       firstname: 'Test',
+//       lastname: 'Teacher',
+//       subjects: ['Math'],
+//       created_at: '2024-01-01',
+//       updated_at: '2024-01-01',
+//       type: 'teacher',
+//       courses: [
+//         {
+//           courseId: 'course-1',
+//           academicYear: '2024',
+//           sessions: [
+//             {
+//               sessionId: 'session-1',
+//               subject: 'Mathématiques',
+//               level: '6ème',
+//               timeSlot: 'Lundi',
+//               startTime: '08:00',
+//               endTime: '09:00',
+//               students: [
+//                 {
+//                   id: 'student-1',
+//                   firstname: 'Jean',
+//                   lastname: 'Dupont',
+//                   email: 'jean@test.com',
+//                   secondaryEmail: 'jean.parent@test.com',
+//                   gender: 'M',
+//                   dateOfBirth: '2012-01-01',
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       ],
+//     },
+//   },
+// }
 
 describe('Teachers Functions', () => {
   describe('getStudentsByTeacher', () => {
