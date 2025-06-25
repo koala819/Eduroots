@@ -36,6 +36,7 @@ type MockSupabaseClient = {
   gte: ReturnType<typeof vi.fn>
   lte: ReturnType<typeof vi.fn>
   in: ReturnType<typeof vi.fn>
+  or: ReturnType<typeof vi.fn>
   single: ReturnType<typeof vi.fn>
   limit: ReturnType<typeof vi.fn>
   order: ReturnType<typeof vi.fn>
@@ -89,6 +90,7 @@ export function createMockSupabase(options: MockSupabaseOptions = {}): MockSupab
     gte: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
+    or: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: singleData, error } as SupabaseResponse<unknown>),
     limit: vi.fn().mockResolvedValue({ data: orderData, error } as SupabaseResponse<unknown[]>),
     order: vi.fn().mockResolvedValue({ data: orderData, error } as SupabaseResponse<unknown[]>),

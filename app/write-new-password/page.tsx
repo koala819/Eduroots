@@ -33,7 +33,11 @@ export default function WriteNewPassword() {
       const result = await migrateUserAction(user.id, user.email, user.user_metadata.role, password)
 
       if (result.success) {
-        router.push(`/${user.user_metadata.role}`)
+        const redirectPath = user.user_metadata.role === 'student'
+          ? '/family'
+          : `/${user.user_metadata.role}`
+
+        router.push(redirectPath)
 
         toast({
           variant: 'success',
@@ -41,10 +45,6 @@ export default function WriteNewPassword() {
           description: 'Votre mot de passe a été mis à jour',
         })
 
-        // Redirection après un court délai
-        setTimeout(() => {
-          router.push('/')
-        }, 2000)
       } else {
         toast({
           variant: 'destructive',

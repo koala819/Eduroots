@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server'
 const SU_ROLE = 'admin'
 const ADMIN_ROLES = ['admin', 'bureau']
 const TEACHER_ROLE = 'teacher'
-const STUDENT_ROLE = 'family'
+const STUDENT_ROLE = 'student'
 
 // Routes qui ne nécessitent pas d'authentification
 const PUBLIC_ROUTES = ['/', '/link-account', '/auth/callback']

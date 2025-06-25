@@ -114,7 +114,12 @@ export const LoginClient = () => {
         return
       }
 
-      router.push(`/${result.role}`)
+      const redirectPath = result.role === 'student'
+        ? '/family'
+        : `/${result.role}`
+
+      router.push(redirectPath)
+
       toast({
         variant: 'success',
         title: 'Succès',
