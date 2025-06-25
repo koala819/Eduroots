@@ -26,11 +26,16 @@ export default async function FamilyPage({
 
   const response = await getFamilyDashboardData(user.id, selectedStudentId)
 
+
+  // Récupérer tous les enfants de la fratrie
+  // const response = await getFamilyStudents(user.id)
+
   if (!response.success || !response.data) {
     return <ErrorContent message='Erreur lors du chargement des données familiales' />
   }
 
   const { familyStudents, selectedStudentData } = response.data
+
 
   return (
     <Suspense fallback={<LoadingContent />}>

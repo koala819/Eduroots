@@ -1,14 +1,14 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useMemo } from 'react'
+import { useEffect,useMemo } from 'react'
 
-import StudentSelector from '@/client/components/atoms/StudentSelector'
 import ChildStats from '@/client/components/molecules/StudentStats'
 import { FamilyStudentData } from '@/server/actions/api/family'
 import { SubjectNameEnum } from '@/types/courses'
 import { User } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
+import StudentSelector from '@/zUnused/StudentSelector'
 
 interface FamilyDashboardProps {
   familyStudents: Array<User & { role: UserRoleEnum.Student }>
@@ -29,6 +29,20 @@ export function FamilyDashboard({
     params.set('student', studentId)
     router.push(`/family?${params.toString()}`)
   }
+
+  // Écouter les changements du header
+  useEffect(() => {
+    const handleHeaderStudentChange = (event: any) => {
+      const { studentId } = event.detail
+      handleSelectStudent(studentId)
+    }
+
+    window.addEventListener('headerFamilyStudentChanged', handleHeaderStudentChange)
+
+    return () => {
+      window.removeEventListener('headerFamilyStudentChanged', handleHeaderStudentChange)
+    }
+  }, [searchParams]) // Dépendance à searchParams pour avoir la version la plus récente
 
   const subjectGradesData = useMemo(() => {
     if (!selectedStudentData?.grades?.bySubject) return []

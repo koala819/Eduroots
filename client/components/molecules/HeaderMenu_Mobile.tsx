@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 
 import { HeaderBackBtn } from '@/client/components/atoms/HeaderBackBtn'
 import { HeaderClassroom } from '@/client/components/atoms/HeaderClassroom'
+import { HeaderFamily } from '@/client/components/atoms/HeaderFamily'
 import { HeaderGrades } from '@/client/components/atoms/HeaderGrades'
 import HeaderInformation from '@/client/components/atoms/HeaderInformation'
 import { HeaderPlanning } from '@/client/components/atoms/HeaderPlanning'
@@ -12,7 +13,9 @@ import {
   CourseSessionWithRelations,
   CourseWithRelations,
 } from '@/types/courses'
+import { User } from '@/types/db'
 import { GradeWithRelations } from '@/types/grades'
+import { UserRoleEnum } from '@/types/user'
 
 export const HeaderMenuMobile = ({
   courseSessionId,
@@ -20,20 +23,24 @@ export const HeaderMenuMobile = ({
   classroomTimeSlots = [],
   courses = [],
   grades = [],
+  familyStudents = [],
   isClassroomTeacherRoute = false,
   isSettingsRoute = false,
   isPlanningRoute = false,
   isGradesRoute = false,
+  isFamilyRoute = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
   classroomTimeSlots?: ClassroomTimeSlot[]
   courses?: CourseWithRelations[]
   grades: GradeWithRelations[]
+  familyStudents?: Array<User & { role: UserRoleEnum.Student }>
   isClassroomTeacherRoute: boolean
   isSettingsRoute: boolean
   isPlanningRoute: boolean
   isGradesRoute: boolean
+  isFamilyRoute: boolean
 }) => {
 
   return (
@@ -83,6 +90,12 @@ export const HeaderMenuMobile = ({
         {isGradesRoute && (
           <HeaderGrades
             grades={grades}
+          />
+        )}
+
+        {isFamilyRoute && (
+          <HeaderFamily
+            familyStudents={familyStudents}
           />
         )}
       </div>

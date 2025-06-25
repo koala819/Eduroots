@@ -154,4 +154,25 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Retour',
     },
   },
+  '/family': {
+    title: 'Scolarité',
+    subtitle: 'Vue d\'ensemble',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/family/messages': {
+    title: 'Messagerie',
+    subtitle: 'Communication avec l\'école',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/family/profile': {
+    title: 'Profil',
+    subtitle: 'Informations personnelles',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
 }

@@ -1,5 +1,6 @@
 'use server'
 
+import { getCourseSessionById } from '@/server/actions/api/courses'
 import { getStudentAttendance, getStudentGrade } from '@/server/actions/api/stats'
 import { getOneTeacher } from '@/server/actions/api/teachers'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
@@ -71,47 +72,17 @@ async function getStudentDetailedData(
   if (!sessionsError && studentSessions && studentSessions.length > 0) {
     const sessionId = studentSessions[0].course_sessions_id
 
-    // Récupérer le cours complet avec ses sessions
-    const { data: courseWithSessions, error: courseError } = await supabase
-      .schema('education')
-      .from('courses_sessions')
-      .select(`
-        *,
-        courses (
-          *,
-          courses_teacher (
-            users:teacher_id (
-              id,
-              firstname,
-              lastname,
-              email,
-              subjects
-            )
-          )
-        ),
-        courses_sessions_timeslot (*)
-      `)
-      .eq('id', sessionId)
-      .single()
-
-    if (!courseError && courseWithSessions) {
-      // Construire l'objet CourseWithRelations
-      courseData = {
-        id: courseWithSessions.courses.id,
-        is_active: courseWithSessions.courses.is_active,
-        deleted_at: courseWithSessions.courses.deleted_at,
-        created_at: courseWithSessions.courses.created_at,
-        updated_at: courseWithSessions.courses.updated_at,
-        academic_year: courseWithSessions.courses.academic_year,
-        courses_teacher: courseWithSessions.courses.courses_teacher,
-        courses_sessions: [courseWithSessions],
-      } as CourseWithRelations
+    const courseResponse = await getCourseSessionById(sessionId)
+    if (courseResponse?.success && courseResponse.data) {
+      courseData = courseResponse.data as CourseWithRelations
 
       // Récupérer les données du professeur
-      if (courseData?.courses_teacher && courseData.courses_teacher.length > 0) {
-        const teacherId = courseData.courses_teacher[0].users.id
+      if (courseData?.courses_teacher) {
+        const teacherId = Array.isArray(courseData.courses_teacher)
+          ? courseData.courses_teacher[0]
+          : courseData.courses_teacher
 
-        const teacherResponse = await getOneTeacher(teacherId)
+        const teacherResponse = await getOneTeacher(teacherId.users.id)
         if (teacherResponse?.success && teacherResponse.data) {
           teacherData = {
             ...teacherResponse.data,

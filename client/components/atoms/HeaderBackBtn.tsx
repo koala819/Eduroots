@@ -1,13 +1,24 @@
 'use client'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
 
 export const HeaderBackBtn = () => {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const studentId = searchParams.get('student')
+
+  const pathTeacher = pathname === '/teacher'
+  const pathFamily = pathname === '/family'
+
+  // Ne pas afficher le bouton retour sur la page d'accueil familiale
+  const isFamilyHomePage = pathFamily && !studentId
+  if (isFamilyHomePage) {
+    return null
+  }
 
   // Trouver le pattern correspondant
   const findPattern = (path: string) => {
@@ -40,7 +51,10 @@ export const HeaderBackBtn = () => {
       <motion.button
         whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => router.push('/teacher')}
+        onClick={
+          pathFamily && (() => router.push('/family')) ||
+          pathTeacher && (() => router.push('/teacher'))
+        }
         className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
           hover:bg-primary-foreground/15 transition-all duration-200 border
           border-primary-foreground/20 flex-shrink-0"
@@ -49,7 +63,7 @@ export const HeaderBackBtn = () => {
           group-hover:text-primary-foreground transition-colors" />
         <span className="text-sm font-medium text-primary-foreground/90
           group-hover:text-primary-foreground">
-          Retour
+          {pathFamily ? 'Accueil' : 'Retour'}
         </span>
       </motion.button>
     )
@@ -58,6 +72,11 @@ export const HeaderBackBtn = () => {
   // Fonction pour déterminer l'URL de retour
   const getBackUrl = () => {
     const segments = pathname.split('/').filter(Boolean)
+
+    // CAS spécial: Routes familiales
+    if (segments[0] === 'family') {
+      return '/family'
+    }
 
     // CAS spécial: Pages de grades
     if (
