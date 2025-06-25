@@ -7,10 +7,11 @@ import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
+import { migrateUserAction } from '@/server/actions/migrate-user'
 
 export default function WriteNewPassword() {
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [password, setPassword] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
@@ -18,36 +19,43 @@ export default function WriteNewPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    console.log('password', password)
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      })
+      const { data: { user } } = await supabase.auth.getUser()
 
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: error.message,
-        })
-      } else {
+      if (!user || !user.email) {
+        throw new Error('Utilisateur non trouvé')
+      }
+
+      console.log('user', user)
+
+      const result = await migrateUserAction(user.id, user.email, user.user_metadata.role, password)
+
+      if (result.success) {
+        router.push(`/${user.user_metadata.role}`)
+
         toast({
           variant: 'success',
           title: 'Succès',
           description: 'Votre mot de passe a été mis à jour',
         })
+
         // Redirection après un court délai
         setTimeout(() => {
           router.push('/')
         }, 2000)
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Erreur',
+          description: 'Une erreur est survenue',
+        })
+        throw new Error('Erreur lors de la mise à jour du user', result.error)
+
       }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error.message ??
-          'Une erreur est survenue lors de la mise à jour du mot de passe',
-      })
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'utilisateur:', error)
     } finally {
       setLoading(false)
     }
@@ -81,15 +89,18 @@ export default function WriteNewPassword() {
                 focus:border-primary focus:ring-primary/50"
               placeholder="Nouveau mot de passe"
             />
+            {password.length > 0 && password.length < 8 && (
+              <p className="text-xs text-error mt-1">
+                Le mot de passe doit contenir au moins 8 caractères
+              </p>
+            )}
           </div>
 
-          <div>
+          <div className="flex flex-col">
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-primary to-primary-light
-                hover:from-primary-dark hover:to-primary text-primary-foreground
-                transition-all duration-200 shadow-md hover:shadow-lg"
+              disabled={loading || !password.trim() || password.length < 8}
+              variant="default"
             >
               {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
             </Button>

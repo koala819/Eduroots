@@ -1,6 +1,8 @@
+import { SupabaseClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'
 
+import { getOriginalEmail } from '@/server/utils/auth-helpers'
 import { getRedirectUrl } from '@/server/utils/redirects'
 import { createClient } from '@/server/utils/supabase'
 
@@ -44,14 +46,14 @@ export async function GET(request: Request) {
   }
 
   const data_from_auth = data.user
-  if (!data_from_auth) {
+  if (!data_from_auth || !data_from_auth.email) {
     redirect('/error')
   }
 
   const {
     data: existingLinkedUser,
     error: existingLinkedUserError,
-  } = await findUserInDatabase(supabase, 'auth_id', data_from_auth.id, role!)
+  } = await findUserInDatabase(supabase, data_from_auth.id, role!)
 
   if (existingLinkedUserError) {
     console.error('Erreur lors de la vérification du compte:', existingLinkedUserError)
@@ -66,8 +68,14 @@ export async function GET(request: Request) {
     redirect(redirectUrl)
   }
 
-  const { data: find_user_in_education_users, error: findError } =
-    await findUserInDatabase(supabase, 'email', data_from_auth.email!, role!)
+  const originalEmail = getOriginalEmail(data_from_auth.email!)
+  if (!originalEmail) {
+    console.error('Email manquant dans google-auth pour la mise à jour')
+    return NextResponse.redirect(new URL('/error', request.url))
+  }
+
+  const { data: userData, error: findError } =
+    await findUserInDatabase(supabase, originalEmail, role!)
 
   if (findError) {
     return NextResponse.redirect(
@@ -75,7 +83,7 @@ export async function GET(request: Request) {
     )
   }
 
-  if (!find_user_in_education_users) {
+  if (!userData) {
     return NextResponse.redirect(
       new URL(
         `/link-account?email=${encodeURIComponent(data_from_auth.email!)}
@@ -85,13 +93,12 @@ export async function GET(request: Request) {
     )
   }
 
-  await userUpdate(supabase, data_from_auth, find_user_in_education_users)
-  redirect(`/${find_user_in_education_users.role}`)
+  await userUpdate(supabase, data_from_auth, userData)
+  redirect(`/${userData.role}`)
 }
 
 async function findUserInDatabase(
-  supabase: any,
-  field: 'auth_id' | 'email',
+  supabase: SupabaseClient,
   value: string,
   role: string,
 ) {
@@ -99,7 +106,12 @@ async function findUserInDatabase(
     .schema('education')
     .from('users')
     .select('*')
-    .eq(field, value)
+    .or(`
+      auth_id_email.eq.${value},
+      auth_id_gmail.eq.${value},
+      parent2_auth_id_email.eq.${value},
+      parent2_auth_id_gmail.eq.${value}
+    `)
     .eq('role', role)
     .maybeSingle()
 
@@ -112,15 +124,25 @@ async function findUserInDatabase(
 }
 
 async function userUpdate(
-  supabase: any,
-  data_from_auth: any,
-  find_user_in_education_users: any,
+  supabase: SupabaseClient,
+  data_from_auth: {
+    id: string
+    email?: string
+  },
+  user_from_education: {
+    id: string
+    firstname: string
+    lastname: string
+    role: string
+    email: string
+    secondary_email: string | null
+  },
 ) {
   const { error: updateUserError } = await supabase.auth.updateUser({
     data: {
-      firstname: find_user_in_education_users.firstname,
-      lastname: find_user_in_education_users.lastname,
-      role: find_user_in_education_users.role,
+      firstname: user_from_education.firstname,
+      lastname: user_from_education.lastname,
+      role: user_from_education.role,
     },
   })
 
@@ -129,14 +151,42 @@ async function userUpdate(
     redirect('/error')
   }
 
-  const { error: updateEducationUserError } = await supabase
-    .schema('education')
-    .from('users')
-    .update({ auth_id: data_from_auth.id })
-    .eq('id', find_user_in_education_users.id)
-
-  if (updateEducationUserError) {
-    console.error('Erreur lors de la mise à jour de education.users:', updateEducationUserError)
+  // Déterminer quel champ mettre à jour selon l'email
+  if (!data_from_auth.email) {
+    console.error('Email manquant pour la mise à jour')
     redirect('/error')
   }
+
+  const originalEmail = getOriginalEmail(data_from_auth.email)
+
+  // Utilisateur principal
+  if (originalEmail.toLowerCase() === user_from_education.email.toLowerCase()) {
+    const { error: updateEducationUserError } = await supabase
+      .schema('education')
+      .from('users')
+      .update({ auth_id_gmail: data_from_auth.id })
+      .eq('id', user_from_education.id)
+
+    if (updateEducationUserError) {
+      console.error('Erreur lors de la mise à jour de education.users:', updateEducationUserError)
+      redirect('/error')
+    }
+  }
+  // Parent 2
+  else if (
+    originalEmail.toLowerCase() === user_from_education.secondary_email?.toLowerCase()) {
+
+    const { error: updateEducationUserError } = await supabase
+      .schema('education')
+      .from('users')
+      .update({ parent2_auth_id_gmail: data_from_auth.id })
+      .eq('id', user_from_education.id)
+
+    if (updateEducationUserError) {
+      console.error('Erreur lors de la mise à jour de education.users:', updateEducationUserError)
+      redirect('/error')
+    }
+  }
+
+  redirect(`/${user_from_education.role}`)
 }

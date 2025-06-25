@@ -14,7 +14,14 @@ export type CreateTeacherPayload = Omit<User,
 }
 
 export type UpdateTeacherPayload =
-  Partial<Omit<User, 'id' | 'auth_id' | 'created_at' | 'updated_at'>>
+  Partial<Omit<User,
+    'id' |
+    'auth_id_email' |
+    'auth_id_gmail' |
+    'parent2_auth_id_email' |
+    'parent2_auth_id_gmail' |
+    'created_at' |
+    'updated_at'>>
 
 export type TeacherResponse = Pick<User,
   'id' |

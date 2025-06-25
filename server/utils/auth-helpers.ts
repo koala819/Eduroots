@@ -1,6 +1,8 @@
 import { User } from '@supabase/supabase-js'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 import { createClient } from '@/server/utils/supabase'
+
 
 /**
  * Vérifie si l'utilisateur est authentifié et a un rôle valide
@@ -93,5 +95,95 @@ export async function getAuthenticatedEducationUser(user: User | null): Promise<
     isAuthenticated: true,
     role,
     educationUserId,
+  }
+}
+
+/**
+ * Migre un utilisateur vers un email avec suffixe
+ */
+export async function migrateUserToSuffixedEmail(
+  authUserId: string,
+  currentEmail: string,
+  role: string,
+  newPassword: string,
+) {
+  const supabase = await createClient()
+
+  // Créer un client admin
+  const adminClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    },
+  )
+
+  try {
+    // 1. Récupérer l'utilisateur dans education.users
+    console.log('\n\n\ncurrentEmail', currentEmail)
+    console.log('role', role)
+    const { data: educationUsers } = await supabase
+      .schema('education')
+      .from('users')
+      .select('*')
+      .eq('role', role)
+      .or(`email.eq.${currentEmail},secondary_email.eq.${currentEmail}`)
+
+    if (!educationUsers || educationUsers.length === 0) {
+      throw new Error('Utilisateur non trouvé dans education.users')
+    }
+
+    console.log('Nombre d\'utilisateurs trouvés:', educationUsers.length)
+
+    // 2. Créer le nouvel utilisateur avec suffixe spécifique au role
+    const supabaseEmail = generateSupabaseEmail(currentEmail, role)
+
+    const { data: newAuthUser, error: createError } = await adminClient.auth.admin.createUser({
+      email: supabaseEmail,
+      email_confirm: true,
+      password: newPassword,
+      user_metadata: {
+        firstname: educationUsers[0].firstname, // Prendre le premier pour les métadonnées
+        lastname: educationUsers[0].lastname,
+        role: educationUsers[0].role,
+      },
+    })
+
+    if (createError) {
+      throw new Error('Erreur lors de la création du nouvel utilisateur')
+    }
+
+    // 3. Mettre à jour TOUS les utilisateurs de la fratrie
+    for (const educationUser of educationUsers) {
+      const isPrimaryUser = currentEmail.toLowerCase() === educationUser.email.toLowerCase()
+      const fieldToUpdate = isPrimaryUser ? 'auth_id_email' : 'parent2_auth_id_email'
+
+
+      console.log(`Mise à jour utilisateur ${educationUser.id} - champ: ${fieldToUpdate}`)
+
+      await supabase
+        .schema('education')
+        .from('users')
+        .update({ [fieldToUpdate]: newAuthUser.user.id })
+        .eq('id', educationUser.id)
+    }
+
+    // 4. Supprimer l'ancien utilisateur
+    await adminClient.auth.admin.deleteUser(authUserId)
+
+    return {
+      success: true,
+      role: educationUsers[0].role,
+    }
+
+  } catch (error: any) {
+    console.error('Erreur migration:', error)
+    return {
+      success: false,
+      error: error.message,
+    }
   }
 }

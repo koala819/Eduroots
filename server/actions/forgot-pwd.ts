@@ -97,7 +97,6 @@ export async function forgotPassword(formData: FormData, role: string) {
         redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}write-new-password`,
       })
 
-
     return {
       success: true,
       message: 'Si votre email est enregistré, vous recevrez un lien de réinitialisation',

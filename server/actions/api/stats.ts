@@ -375,7 +375,10 @@ async function fetchTeacherCoursesWithStudents(supabase: any, teacherId: string)
     .schema('education')
     .from('users')
     .select('id')
-    .eq('auth_id', teacherId)
+    .or(`
+      auth_id_email.eq.${teacherId},
+      auth_id_gmail.eq.${teacherId}`,
+    )
     .single()
 
   if (userError || !user) {
@@ -501,7 +504,10 @@ async function assignCoursesToTeacher(supabase: any, teacherId: string) {
     .schema('education')
     .from('users')
     .select('id')
-    .eq('auth_id', teacherId)
+    .or(`
+      auth_id_email.eq.${teacherId},
+      auth_id_gmail.eq.${teacherId}`,
+    )
     .single()
 
   if (userError || !user) {

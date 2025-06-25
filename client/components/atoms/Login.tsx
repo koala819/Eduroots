@@ -68,7 +68,6 @@ export const LoginClient = () => {
     setLoading(true)
     try {
       const supabase = createClient()
-      console.log('Tentative de connexion Google avec le rôle:', role)
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -482,13 +481,15 @@ export const LoginClient = () => {
                       )}
                     </div>
 
-                    <Button
-                      type="submit"
-                      disabled={loading || !form.watch('role')}
-                      variant="default"
-                    >
-                      {loading ? 'Connexion...' : 'Se connecter'}
-                    </Button>
+                    <div className="flex flex-col">
+                      <Button
+                        type="submit"
+                        disabled={loading || !form.watch('role')}
+                        variant="default"
+                      >
+                        {loading ? 'Connexion...' : 'Se connecter'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </form>

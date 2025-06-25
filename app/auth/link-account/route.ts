@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { getOriginalEmail } from '@/server/utils/auth-helpers'
 import { createClient } from '@/server/utils/supabase'
 
 export async function GET(request: Request) {
@@ -34,11 +35,18 @@ export async function GET(request: Request) {
     // })
 
     // inserer auth_id dans auth_id de education.users
+    const originalEmail = getOriginalEmail(data.user.email!)
+
+    if (!originalEmail) {
+      console.error('Email manquant dans link-account pour la mise à jour')
+      return NextResponse.redirect(new URL('/error', request.url))
+    }
+
     const { data: user, error: userError } = await supabase
       .schema('education')
       .from('users')
       .select()
-      .or(`email.eq.${data.user.email},secondary_email.eq.${data.user.email}`)
+      .or(`email.eq.${originalEmail},secondary_email.eq.${originalEmail}`)
       .eq('role', role)
       .single()
 
@@ -53,7 +61,7 @@ export async function GET(request: Request) {
     const { error: updateError } = await supabase
       .schema('education')
       .from('users')
-      .update({ auth_id: auth_id })
+      .update({ auth_id_email: auth_id })
       .eq('id', user.id)
       // .select() // optionnel, pour récupérer les données mises à jour
 

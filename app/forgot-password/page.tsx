@@ -167,7 +167,7 @@ export default function ForgotPasswordForm() {
 
               <p className="text-sm text-muted-foreground">
                 Un email de réinitialisation a été envoyé à
-                <strong className="text-foreground">{email}</strong>.
+                <strong className="text-foreground">{' '}{email}</strong>
               </p>
 
               <p className="text-xs text-muted-foreground">
@@ -176,11 +176,10 @@ export default function ForgotPasswordForm() {
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div className="flex flex-col">
               <Button
                 onClick={handleBackToLogin}
-                className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground
-                 shadow-sm transition-all hover:bg-primary-600 hover:shadow-md"
+                variant="default"
               >
                 Retour à la connexion
               </Button>

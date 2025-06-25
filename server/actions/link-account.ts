@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 
+import { generateSupabaseEmail } from '@/server/utils/auth-helpers'
 import { createClient } from '@/server/utils/supabase'
 
 export async function linkAccount(formData: FormData) {
@@ -35,8 +36,10 @@ export async function linkAccount(formData: FormData) {
   }
 
   // Envoi de l'email de vérification via Supabase
+  const supabaseEmail = generateSupabaseEmail(email, role)
+
   const { error: emailError } = await supabase.auth.signInWithOtp({
-    email: email,
+    email: supabaseEmail,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/link-account`,
       data: {

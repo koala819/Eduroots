@@ -2,7 +2,11 @@
 
 import { createClient as supabaseClient } from '@supabase/supabase-js'
 
-import { getAuthenticatedUser, getEducationUserId } from '@/server/utils/auth-helpers'
+import {
+  generateSupabaseEmail,
+  getAuthenticatedUser,
+  getEducationUserId,
+} from '@/server/utils/auth-helpers'
 import { FormSchema } from '@/server/utils/login-schema'
 import { createClient } from '@/server/utils/supabase'
 import { ApiResponse } from '@/types/api'
@@ -61,7 +65,6 @@ export async function loginAction(formData: FormData) {
       .eq('role', role)
       .eq('is_active', true)
       .limit(1)
-
     if (userError || !users || users.length === 0) {
       return {
         success: false,
@@ -115,8 +118,9 @@ export async function loginAction(formData: FormData) {
     }
 
     // 3. Authentification avec Supabase
+    const supabaseEmail = generateSupabaseEmail(email, role)
     const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
+      email: supabaseEmail,
       password: pwd,
     })
 
