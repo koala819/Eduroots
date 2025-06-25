@@ -174,7 +174,6 @@ export type GradeTeacherMigration = {
   updated_at: Date | null
 }
 
-
 export type Holiday = {
   id: string
   updated_by: string | null
@@ -288,8 +287,10 @@ export type TeacherStatsGenderDistribution = {
 
 export type User = {
   id: string //uuid
-  auth_id: string //uuid
-  parent2_auth_id: string | null //uuid
+  auth_id_email: string | null      // Pour connexion email/mot de passe
+  auth_id_gmail: string | null      // Pour connexion Google
+  parent2_auth_id_email: string | null  // Pour parent 2 email/mot de passe
+  parent2_auth_id_gmail: string | null  // Pour parent 2 Google
   firstname: string
   lastname: string
   email: string
