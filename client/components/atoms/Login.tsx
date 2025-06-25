@@ -309,7 +309,7 @@ export const LoginClient = () => {
 
                 {/* Login Options */}
                 <div className="space-y-4 lg:space-y-6">
-                  {/* Google Login - First */}
+                  {/* Google Login */}
                   <div className="space-y-3">
                     <h3
                       className="text-sm font-medium text-muted-foreground
@@ -484,13 +484,8 @@ export const LoginClient = () => {
 
                     <Button
                       type="submit"
-                      disabled={loading}
-                      className="w-full py-2.5 lg:py-3 px-4 lg:px-6 bg-gradient-to-r
-                        from-primary to-primary-light text-primary-foreground font-semibold
-                        rounded-lg shadow-lg hover:shadow-primary/25 hover:shadow-xl
-                        active:scale-95 transform transition-all duration-300
-                        focus:outline-none focus:ring-2 focus:ring-primary/50
-                        focus:ring-offset-2 text-sm lg:text-base hover:cursor-pointer"
+                      disabled={loading || !form.watch('role')}
+                      variant="default"
                     >
                       {loading ? 'Connexion...' : 'Se connecter'}
                     </Button>

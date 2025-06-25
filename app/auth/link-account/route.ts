@@ -14,16 +14,9 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
+    if (error || !data.user) {
       console.error('Erreur lors de l\'échange du code:', error)
       return NextResponse.redirect(new URL('/error', request.url))
-    }
-
-    if (!data.user) {
-      console.error('Aucun utilisateur trouvé après l\'échange du code')
-      return NextResponse.redirect(
-        new URL('/error?message=Session utilisateur non trouvée', request.url),
-      )
     }
 
     // Récupération des métadonnées
@@ -41,7 +34,6 @@ export async function GET(request: Request) {
     // })
 
     // inserer auth_id dans auth_id de education.users
-
     const { data: user, error: userError } = await supabase
       .schema('education')
       .from('users')

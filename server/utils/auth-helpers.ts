@@ -20,6 +20,11 @@ export async function checkUserAuth(
   return { isAuthenticated: true, role }
 }
 
+export function generateSupabaseEmail(email: string, role: string): string {
+  const [localPart, domain] = email.split('@')
+  return `${localPart}.${role}@${domain}`
+}
+
 export async function getAuthenticatedUser() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -29,6 +34,10 @@ export async function getAuthenticatedUser() {
   }
 
   return user
+}
+
+export function getOriginalEmail(supabaseEmail: string): string {
+  return supabaseEmail.replace(/\.(teacher|student|admin|bureau)@/, '@')
 }
 
 /**

@@ -146,7 +146,7 @@ export async function checkUserExists(email: string, role: string) {
     bureau: 'bureau',
   }
   const roleInEnglish = rolesInEnglish[role as keyof typeof rolesInEnglish]
-  console.log('roleInEnglish', roleInEnglish)
+  // console.log('roleInEnglish', roleInEnglish)
 
   const { data: users, error } = await supabaseAdmin
     .schema('education')
