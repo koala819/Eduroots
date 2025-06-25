@@ -75,20 +75,21 @@ export async function forgotPassword(formData: FormData, role: string) {
 
     // Si c'est un nouvel utilisateur, mettre à jour education.users
     for (const user of users) {
-      if (sendEmail === user.email) {
+      if (sendEmail.toLowerCase() === user.email.toLowerCase()) {
         await supabase
           .schema('education')
           .from('users')
-          .update({ auth_id: authUser.user.id })
+          .update({ auth_id_email: authUser.user.id })
+          .eq('id', user.id)
+      } else if (sendEmail.toLowerCase() === user.secondary_email?.toLowerCase()) {
+        await supabase
+          .schema('education')
+          .from('users')
+          .update({ parent2_auth_id_email: authUser.user.id })
           .eq('id', user.id)
       }
-      await supabase
-        .schema('education')
-        .from('users')
-        .update({ parent2_auth_id: authUser.user.id })
-        .eq('id', user.id)
-
     }
+
     // 2. Envoyer l'email de réinitialisation
     await supabase.auth.resetPasswordForEmail(
       sendEmail,

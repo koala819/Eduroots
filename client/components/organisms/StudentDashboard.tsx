@@ -67,8 +67,10 @@ export default function StudentDashboard({ familyStudents }: Readonly<StudentDas
       setDetailedTeacher({
         ...teacherData,
         role: UserRoleEnum.Teacher,
-        auth_id: teacherData.id,
-        parent2_auth_id: null,
+        auth_id_email: null,
+        auth_id_gmail: null,
+        parent2_auth_id_email: null,
+        parent2_auth_id_gmail: null,
         secondary_email: null,
         is_active: true,
         deleted_at: null,

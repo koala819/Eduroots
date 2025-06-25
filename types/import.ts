@@ -308,8 +308,10 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
 
     const student: ImportStudent = {
       id: '', // Sera généré par la base de données
-      auth_id: '', // Sera généré par la base de données
-      parent2_auth_id: null,
+      auth_id_email: '', // Sera généré par la base de données
+      auth_id_gmail: null,
+      parent2_auth_id_email: null,
+      parent2_auth_id_gmail: null,
       firstname: firstName,
       lastname: lastName,
       email: email || '',
@@ -391,8 +393,10 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
 
     const teacher: Teacher = {
       id: '', // Sera généré par la base de données
-      auth_id: '', // Sera généré par la base de données
-      parent2_auth_id: null,
+      auth_id_email: '', // Sera généré par la base de données
+      auth_id_gmail: null,
+      parent2_auth_id_email: null,
+      parent2_auth_id_gmail: null,
       firstname: firstName,
       lastname: lastName,
       email,

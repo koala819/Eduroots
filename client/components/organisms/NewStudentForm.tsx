@@ -54,8 +54,6 @@ const studentSchema = z.object({
   phone: z.string().optional(),
 })
 
-// const studentSchema = z.object({})
-
 export type FormData = z.infer<typeof studentSchema>;
 
 const NewStudentForm = () => {
@@ -173,7 +171,6 @@ const NewStudentForm = () => {
         has_invalid_email: values.parentEmail1 === 'user@mail.fr',
         date_of_birth: values.dateOfBirth ? new Date(values.dateOfBirth) : null,
         is_active: true,
-        parent2_auth_id: null,
         deleted_at: null,
         stats_model: null,
         student_stats_id: null,

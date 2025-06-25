@@ -22,30 +22,40 @@ vi.mock('@/server/utils/supabase', () => ({
 
 describe('Auth Helpers', () => {
   describe('getAuthenticatedUser', () => {
-    it('devrait retourner un utilisateur authentifié', async () => {
-      const mockUser = {
-        id: 'test-user-id',
-        email: 'test@example.com',
-        user_metadata: { role: 'teacher' },
+    it('devrait retourner l\'ID education pour un auth_id valide', async () => {
+      const mockEducationUser = {
+        id: 'education-user-id',
       }
 
       const mockSupabase = {
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
+        schema: vi.fn(() => ({
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              or: vi.fn((query) => {
+                // Vérifier que la requête utilise les bons champs
+                expect(query).toContain('auth_id_email')
+                expect(query).toContain('auth_id_gmail')
+                expect(query).toContain('parent2_auth_id_email')
+                expect(query).toContain('parent2_auth_id_gmail')
+
+                return {
+                  single: vi.fn().mockResolvedValue({
+                    data: mockEducationUser,
+                    error: null,
+                  }),
+                }
+              }),
+            })),
+          })),
+        })),
       }
 
-      // Mock createClient pour retourner notre mockSupabase
       const { createClient } = await import('@/server/utils/supabase')
       vi.mocked(createClient).mockReturnValue(mockSupabase as any)
 
-      const result = await getAuthenticatedUser()
+      const result = await getEducationUserId('test-auth-id')
 
-      expect(result).toEqual(mockUser)
-      expect(mockSupabase.auth.getUser).toHaveBeenCalled()
+      expect(result).toBe('education-user-id')
     })
 
     it('devrait lever une erreur si aucun utilisateur', async () => {
@@ -144,12 +154,20 @@ describe('Auth Helpers', () => {
         schema: vi.fn(() => ({
           from: vi.fn(() => ({
             select: vi.fn(() => ({
-              or: vi.fn(() => ({
-                single: vi.fn().mockResolvedValue({
-                  data: mockEducationUser,
-                  error: null,
-                }),
-              })),
+              or: vi.fn((query) => {
+                // Vérifier que la requête utilise les bons champs
+                expect(query).toContain('auth_id_email')
+                expect(query).toContain('auth_id_gmail')
+                expect(query).toContain('parent2_auth_id_email')
+                expect(query).toContain('parent2_auth_id_gmail')
+
+                return {
+                  single: vi.fn().mockResolvedValue({
+                    data: mockEducationUser,
+                    error: null,
+                  }),
+                }
+              }),
             })),
           })),
         })),
@@ -235,6 +253,40 @@ describe('Auth Helpers', () => {
       // La fonction devrait gérer l'erreur et retourner null
       const result = await getEducationUserId('test-auth-id')
       expect(result).toBeNull()
+    })
+
+    it('ne devrait plus utiliser les anciens champs auth_id et parent2_auth_id', async () => {
+      const mockSupabase = {
+        schema: vi.fn(() => ({
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              or: vi.fn((query) => {
+                // Vérifier que les anciens champs ne sont PAS utilisés (exactement)
+                expect(query).not.toContain('auth_id.eq.')
+                expect(query).not.toContain('parent2_auth_id.eq.')
+
+                // Vérifier que les nouveaux champs SONT utilisés
+                expect(query).toContain('auth_id_email.eq.')
+                expect(query).toContain('auth_id_gmail.eq.')
+                expect(query).toContain('parent2_auth_id_email.eq.')
+                expect(query).toContain('parent2_auth_id_gmail.eq.')
+
+                return {
+                  single: vi.fn().mockResolvedValue({
+                    data: null,
+                    error: null,
+                  }),
+                }
+              }),
+            })),
+          })),
+        })),
+      }
+
+      const { createClient } = await import('@/server/utils/supabase')
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any)
+
+      await getEducationUserId('test-auth-id')
     })
   })
 })

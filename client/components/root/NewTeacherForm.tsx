@@ -133,7 +133,6 @@ const NewTeacherForm = () => {
         student_stats_id: null,
         teacher_stats_id: null,
         secondary_email: null,
-        parent2_auth_id: null,
         phone: null,
         has_invalid_email: false,
       }

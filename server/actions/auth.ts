@@ -43,9 +43,18 @@ export async function loginAction(formData: FormData) {
     const { data: users, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select(
-        'id, email, role, firstname, lastname, auth_id, secondary_email, parent2_auth_id',
-      )
+      .select(`
+        id,
+        email,
+        role,
+        firstname,
+        lastname,
+        auth_id_email,
+        auth_id_gmail,
+        secondary_email,
+        parent2_auth_id_email,
+        parent2_auth_id_gmail
+      `)
       .or(
         `email.eq.${email.toLowerCase()},secondary_email.eq.${email.toLowerCase()}`,
       )
@@ -65,7 +74,7 @@ export async function loginAction(formData: FormData) {
 
     // 2. Créer le log avec les informations de l'utilisateur
     const logData: ConnectionLogInsert = {
-      user_id: user.auth_id ?? null,
+      user_id: user.auth_id_email ?? null,
       email,
       role,
       firstname: user.firstname,
@@ -87,10 +96,15 @@ export async function loginAction(formData: FormData) {
     }
 
     // Déterminer quel auth_id utiliser
-    const authId =
-      email.toLowerCase() === user.email.toLowerCase()
-        ? user.auth_id
-        : user.parent2_auth_id
+    let authId: string | null = null
+
+    if (email.toLowerCase() === user.email.toLowerCase()) {
+      // Utilisateur principal
+      authId = user.auth_id_email
+    } else if (email.toLowerCase() === user.secondary_email?.toLowerCase()) {
+      // Parent 2
+      authId = user.parent2_auth_id_email
+    }
 
     if (!authId) {
       return {
@@ -176,8 +190,6 @@ export async function getAuthUser(
   authUserId: string,
 ): Promise<ApiResponse<{ educationUserId: string; role: string }>> {
   try {
-    const authUser = await getAuthenticatedUser()
-
     const educationUserId = await getEducationUserId(authUserId)
 
     if (!educationUserId) {
@@ -187,6 +199,8 @@ export async function getAuthUser(
         data: null,
       }
     }
+
+    const authUser = await getAuthenticatedUser()
 
     const role = authUser?.user_metadata?.role
     if (!role) {

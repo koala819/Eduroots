@@ -41,7 +41,8 @@ export function getOriginalEmail(supabaseEmail: string): string {
 }
 
 /**
- * Récupère l'ID de l'utilisateur dans education.users en vérifiant auth_id et parent2_auth_id
+ * Récupère l'ID de l'utilisateur dans education.users en vérifiant
+ *  auth_id_email et auth_id_gmail et parent2_auth_id_email et parent2_auth_id_gmail
  */
 export async function getEducationUserId(authUserId: string): Promise<string | null> {
   const supabase = await createClient()
@@ -50,7 +51,10 @@ export async function getEducationUserId(authUserId: string): Promise<string | n
     .schema('education')
     .from('users')
     .select('id')
-    .or(`auth_id.eq.${authUserId},parent2_auth_id.eq.${authUserId}`)
+    .or(
+      `auth_id_email.eq.${authUserId},auth_id_gmail.eq.${authUserId},` +
+      `parent2_auth_id_email.eq.${authUserId},parent2_auth_id_gmail.eq.${authUserId}`,
+    )
     .single()
 
   if (error) {

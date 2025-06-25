@@ -268,8 +268,10 @@ def recreate_users_table(pg_conn):
             CREATE TABLE education.users (
                 id UUID PRIMARY KEY,
                 mongo_id TEXT NOT NULL UNIQUE,
-                auth_id UUID,
-                parent2_auth_id UUID,
+                auth_id_email UUID,
+                auth_id_gmail UUID,
+                parent2_auth_id_email UUID,
+                parent2_auth_id_gmail UUID,
                 email TEXT,
                 secondary_mail TEXT,
                 has_invalid_email BOOLEAN DEFAULT false,
