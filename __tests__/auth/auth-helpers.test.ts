@@ -12,7 +12,9 @@ vi.mock('@/server/utils/supabase', () => ({
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           or: vi.fn(() => ({
-            single: vi.fn(),
+            limit: vi.fn(() => ({
+              then: vi.fn((callback) => callback({ data: null, error: null })),
+            })),
           })),
         })),
       })),
@@ -23,39 +25,27 @@ vi.mock('@/server/utils/supabase', () => ({
 describe('Auth Helpers', () => {
   describe('getAuthenticatedUser', () => {
     it('devrait retourner l\'ID education pour un auth_id valide', async () => {
-      const mockEducationUser = {
-        id: 'education-user-id',
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        user_metadata: { role: 'student' },
       }
 
       const mockSupabase = {
-        schema: vi.fn(() => ({
-          from: vi.fn(() => ({
-            select: vi.fn(() => ({
-              or: vi.fn((query) => {
-                // Vérifier que la requête utilise les bons champs
-                expect(query).toContain('auth_id_email')
-                expect(query).toContain('auth_id_gmail')
-                expect(query).toContain('parent2_auth_id_email')
-                expect(query).toContain('parent2_auth_id_gmail')
-
-                return {
-                  single: vi.fn().mockResolvedValue({
-                    data: mockEducationUser,
-                    error: null,
-                  }),
-                }
-              }),
-            })),
-          })),
-        })),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
       }
 
       const { createClient } = await import('@/server/utils/supabase')
       vi.mocked(createClient).mockReturnValue(mockSupabase as any)
 
-      const result = await getEducationUserId('test-auth-id')
+      const result = await getAuthenticatedUser()
 
-      expect(result).toBe('education-user-id')
+      expect(result).toEqual(mockUser)
     })
 
     it('devrait lever une erreur si aucun utilisateur', async () => {
@@ -126,12 +116,19 @@ describe('Auth Helpers', () => {
         schema: vi.fn(() => ({
           from: vi.fn(() => ({
             select: vi.fn(() => ({
-              or: vi.fn(() => ({
-                single: vi.fn().mockResolvedValue({
-                  data: mockEducationUser,
-                  error: null,
-                }),
-              })),
+              or: vi.fn((query) => {
+                // Vérifier que la requête utilise les bons champs
+                expect(query).toContain('auth_id_email')
+                expect(query).toContain('auth_id_gmail')
+                expect(query).toContain('parent2_auth_id_email')
+                expect(query).toContain('parent2_auth_id_gmail')
+
+                return {
+                  limit: vi.fn(() => ({
+                    then: vi.fn((callback) => callback({ data: [mockEducationUser], error: null })),
+                  })),
+                }
+              }),
             })),
           })),
         })),
@@ -162,10 +159,9 @@ describe('Auth Helpers', () => {
                 expect(query).toContain('parent2_auth_id_gmail')
 
                 return {
-                  single: vi.fn().mockResolvedValue({
-                    data: mockEducationUser,
-                    error: null,
-                  }),
+                  limit: vi.fn(() => ({
+                    then: vi.fn((callback) => callback({ data: [mockEducationUser], error: null })),
+                  })),
                 }
               }),
             })),
@@ -187,10 +183,9 @@ describe('Auth Helpers', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               or: vi.fn(() => ({
-                single: vi.fn().mockResolvedValue({
-                  data: null,
-                  error: null,
-                }),
+                limit: vi.fn(() => ({
+                  then: vi.fn((callback) => callback({ data: [], error: null })),
+                })),
               })),
             })),
           })),
@@ -212,10 +207,9 @@ describe('Auth Helpers', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               or: vi.fn(() => ({
-                single: vi.fn().mockResolvedValue({
-                  data: null,
-                  error: mockError,
-                }),
+                limit: vi.fn(() => ({
+                  then: vi.fn((callback) => callback({ data: null, error: mockError })),
+                })),
               })),
             })),
           })),
@@ -237,10 +231,9 @@ describe('Auth Helpers', () => {
           from: vi.fn(() => ({
             select: vi.fn(() => ({
               or: vi.fn(() => ({
-                single: vi.fn().mockResolvedValue({
-                  data: null,
-                  error: mockError,
-                }),
+                limit: vi.fn(() => ({
+                  then: vi.fn((callback) => callback({ data: null, error: mockError })),
+                })),
               })),
             })),
           })),
@@ -272,10 +265,9 @@ describe('Auth Helpers', () => {
                 expect(query).toContain('parent2_auth_id_gmail.eq.')
 
                 return {
-                  single: vi.fn().mockResolvedValue({
-                    data: null,
-                    error: null,
-                  }),
+                  limit: vi.fn(() => ({
+                    then: vi.fn((callback) => callback({ data: [], error: null })),
+                  })),
                 }
               }),
             })),
