@@ -6,14 +6,10 @@ import { Edit, Plus, Trophy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { SubjectFilter } from '@/client/components/molecules/GradesSubjectFilter'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { getSubjectBadgeColor } from '@/server/utils/helpers'
-import { SubjectNameEnum } from '@/types/courses'
 import { GradeWithRelations } from '@/types/grades'
-
-type SubjectCounts = Record<SubjectNameEnum | 'Inconnu', number>
 
 export function TeacherGrades({
   initialGrades,
@@ -52,31 +48,9 @@ export function TeacherGrades({
   const sortedGrades = filteredGrades
     .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)))
 
-  // Compter les notes par matière
-  const initialCounts: SubjectCounts = {
-    Inconnu: 0,
-    [SubjectNameEnum.Arabe]: 0,
-    [SubjectNameEnum.EducationCulturelle]: 0,
-  }
-  const subjectCounts = initialGrades.reduce(
-    (acc: SubjectCounts, grade) => {
-      const subject = grade.courses_sessions?.subject || 'Inconnu'
-      const subjectKey = subject as SubjectNameEnum | 'Inconnu'
-      acc[subjectKey] = (acc[subjectKey] || 0) + 1
-      return acc
-    },
-    initialCounts,
-  )
-
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="flex flex-col space-y-4 max-w-4xl mx-auto">
-        <SubjectFilter
-          selectedSubject={selectedSubject}
-          setSelectedSubject={setSelectedSubject}
-          subjectCounts={subjectCounts}
-          totalGrades={initialGrades.length}
-        />
 
         {/* Bouton Créer une évaluation */}
         <div className="flex justify-end">
