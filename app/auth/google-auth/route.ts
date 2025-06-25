@@ -48,10 +48,18 @@ export async function GET(request: Request) {
     redirect('/error')
   }
 
-  const existingLinkedUser = await existingUser(supabase, data_from_auth.id, role!, request)
+  const {
+    data: existingLinkedUser,
+    error: existingLinkedUserError,
+  } = await findUserInDatabase(supabase, 'auth_id', data_from_auth.id, role!)
+
+  if (existingLinkedUserError) {
+    console.error('Erreur lors de la vérification du compte:', existingLinkedUserError)
+    return NextResponse.redirect(new URL('/error', request.url))
+  }
 
   if (existingLinkedUser) {
-    await handleUserUpdate(supabase, data_from_auth, existingLinkedUser)
+    await userUpdate(supabase, data_from_auth, existingLinkedUser)
 
     const redirectUrl = getRedirectUrl(existingLinkedUser.role)
 
@@ -59,7 +67,7 @@ export async function GET(request: Request) {
   }
 
   const { data: find_user_in_education_users, error: findError } =
-    await findUserInDatabase(supabase, data_from_auth.email!, role!)
+    await findUserInDatabase(supabase, 'email', data_from_auth.email!, role!)
 
   if (findError) {
     return NextResponse.redirect(
@@ -77,12 +85,33 @@ export async function GET(request: Request) {
     )
   }
 
-  await handleUserUpdate(supabase, data_from_auth, find_user_in_education_users)
+  await userUpdate(supabase, data_from_auth, find_user_in_education_users)
   redirect(`/${find_user_in_education_users.role}`)
 }
 
+async function findUserInDatabase(
+  supabase: any,
+  field: 'auth_id' | 'email',
+  value: string,
+  role: string,
+) {
+  const { data, error } = await supabase
+    .schema('education')
+    .from('users')
+    .select('*')
+    .eq(field, value)
+    .eq('role', role)
+    .maybeSingle()
 
-async function handleUserUpdate(
+  if (error) {
+    console.error('Erreur lors de la recherche de l\'utilisateur:', error)
+    return { error }
+  }
+
+  return { data }
+}
+
+async function userUpdate(
   supabase: any,
   data_from_auth: any,
   find_user_in_education_users: any,
@@ -110,41 +139,4 @@ async function handleUserUpdate(
     console.error('Erreur lors de la mise à jour de education.users:', updateEducationUserError)
     redirect('/error')
   }
-}
-
-async function findUserInDatabase(supabase: any, email: string, role: string) {
-  const { data, error } = await supabase
-    .schema('education')
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .eq('role', role)
-    .maybeSingle()
-
-  if (error) {
-    console.error('Erreur lors de la recherche de l\'utilisateur:', error)
-    return { error }
-  }
-
-  return { data }
-}
-
-
-async function existingUser(supabase: any, auth_id: string, role: string, request: Request) {
-  const { data: existingLinkedUser, error: linkedUserError } = await supabase
-    .schema('education')
-    .from('users')
-    .select('*')
-    .eq('auth_id', auth_id)
-    .eq('role', role)
-    .maybeSingle()
-
-  if (linkedUserError) {
-    console.error('Erreur lors de la vérification du lien:', linkedUserError)
-    return NextResponse.redirect(
-      new URL('/error?message=Erreur lors de la vérification du compte', request.url),
-    )
-  }
-
-  return existingLinkedUser
 }
