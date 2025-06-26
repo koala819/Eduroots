@@ -1,4 +1,5 @@
 import { SubjectNameEnum } from '@/types/courses'
+import { StudentResponse } from '@/types/student-payload'
 import { GenderEnum } from '@/types/user'
 
 // export interface AbsenceLevelGroup {
@@ -95,3 +96,12 @@ export interface GlobalStats {
 }
 
 // export type EntityType = 'students' | 'teachers'
+
+// Type pour les étudiants à risque d'absence
+export interface HighRiskStudentData {
+  student: StudentResponse
+  stats: StudentStats
+  riskLevel: 'low' | 'medium' | 'high'
+  lastAbsenceDate: Date | null
+  daysSinceLastAbsence: number
+}
