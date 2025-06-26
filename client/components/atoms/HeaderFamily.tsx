@@ -39,6 +39,11 @@ export const HeaderFamily = ({
 
   const selectedStudentData = getSelectedStudent()
 
+  // Filtrer les étudiants pour exclure celui qui est actuellement sélectionné
+  const availableStudents = familyStudents.filter(
+    (student) => student.id !== selectedStudent,
+  )
+
   return (
     <div
       className={'flex-[0.4] flex justify-end'}
@@ -81,9 +86,8 @@ export const HeaderFamily = ({
 
             <DropdownMenuContent className="w-full min-w-[280px] sm:min-w-[300px] p-2 bg-white
               border border-gray-200 shadow-lg">
-              {familyStudents.map((student) => {
-
-                return (
+              {availableStudents.length > 0 ? (
+                availableStudents.map((student) => (
                   <DropdownMenuItem
                     key={student.id}
                     onClick={() => handleStudentChange(student.id)}
@@ -100,8 +104,12 @@ export const HeaderFamily = ({
                       </div>
                     </div>
                   </DropdownMenuItem>
-                )
-              })}
+                ))
+              ) : (
+                <div className="px-3 py-2.5 text-sm text-muted-foreground text-center">
+                  Aucun autre enfant disponible
+                </div>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
