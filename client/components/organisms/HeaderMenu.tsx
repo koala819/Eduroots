@@ -15,15 +15,16 @@ export function MenuHeader({
   courses = [],
   grades = [],
   familyStudents = [],
+  isAdmin=false ,
 }: {
   classroomTimeSlots?: ClassroomTimeSlot[]
   selectedSession: CourseSessionWithRelations | undefined
   courses: CourseWithRelations[]
   grades: GradeWithRelations[]
   familyStudents?: Array<User & { role: UserRoleEnum.Student }>
+  isAdmin?: boolean
 }) {
   const pathname = usePathname()
-
   const isAttendanceRoute = pathname.includes('/attendance')
   const isBehaviorRoute = pathname.includes('/behavior')
   const isClassroomTeacherRoute = (isAttendanceRoute || isBehaviorRoute) &&
@@ -52,6 +53,7 @@ export function MenuHeader({
           isPlanningRoute={isPlanningRoute}
           isGradesRoute={isGradesRoute}
           isFamilyRoute={isFamilyRoute}
+          isAdmin={isAdmin}
         />
       </div>
 
@@ -69,6 +71,7 @@ export function MenuHeader({
           isPlanningRoute={isPlanningRoute}
           isGradesRoute={isGradesRoute}
           isFamilyRoute={isFamilyRoute}
+          isAdmin={isAdmin}
         />
       </div>
     </>

@@ -29,6 +29,7 @@ export const HeaderMenuDesktop = ({
   isPlanningRoute = false,
   isGradesRoute = false,
   isFamilyRoute = false,
+  isAdmin = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
@@ -41,16 +42,18 @@ export const HeaderMenuDesktop = ({
   isPlanningRoute: boolean
   isGradesRoute: boolean
   isFamilyRoute: boolean
+  isAdmin: boolean
 }) => {
-
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="w-full bg-gradient-to-br from-primary via-primary to-primary-dark
-       text-primary-foreground relative"
+      className={`w-full
+        ${isAdmin ? 'bg-error'
+      : 'bg-gradient-to-br from-primary via-primary to-primary-dark'}
+        text-primary-foreground relative`}
     >
       <div className="px-8 py-6">
         {/* Header avec breadcrumb et informations - Split 60/40 */}

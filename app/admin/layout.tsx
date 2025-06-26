@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 
+import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
 import { CustomLayout } from '@/client/components/pages/CustomLayout'
 import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
 import { createClient } from '@/server/utils/supabase'
@@ -52,6 +53,13 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   return (
     <GlobalServerProvider>
       <CustomLayout navItems={navItems} isAdmin={isAdmin}>
+        <MenuHeader
+          selectedSession={undefined}
+          courses={[]}
+          grades={[]}
+          familyStudents={[]}
+          isAdmin={isAdmin}
+        />
         {children}
       </CustomLayout>
     </GlobalServerProvider>

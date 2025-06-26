@@ -41,7 +41,7 @@ export default function SidebarMenu({
       {/* Sidebar desktop */}
       <aside
         className={`hidden md:flex flex-col
-        ${isAdmin ? 'bg-destructive' : 'bg-primary'}
+        ${isAdmin ? 'bg-error' : 'bg-primary'}
         text-primary-foreground w-64 py-6 px-4 h-full`}>
         {/* Logo */}
         <div>
@@ -71,8 +71,8 @@ export default function SidebarMenu({
                   'flex flex-col items-center px-2 py-1 rounded-md text-primary-foreground',
                   isActive({ href, pathPattern })
                     ? isAdmin
-                      ? 'bg-destructive-dark cursor-default text-primary-foreground '+
-                      'border-l-4 border - destructive'
+                      ? 'bg-error cursor-default text-error-foreground '+
+                      'border-l-4 border-error-foreground shadow-xl'
                       : 'bg-background cursor-default text-primary'
                     : 'transition-colors hover:bg-background/10 cursor-pointer ' +
                     'group-hover:shadow-sm',

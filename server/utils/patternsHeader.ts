@@ -22,7 +22,28 @@ export type RoutePattern = {
 export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
   '/admin': {
     title: 'Administration',
-    subtitle: 'Gestion du système',
+    subtitle: 'Gestion du l\'établissement',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/family': {
+    title: 'Scolarité',
+    subtitle: 'Vue d\'ensemble',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/family/messages': {
+    title: 'Messagerie',
+    subtitle: 'Communication avec l\'école',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/family/profile': {
+    title: 'Profil',
+    subtitle: 'Informations personnelles',
     backButton: {
       name: 'Accueil',
     },
@@ -152,27 +173,6 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
     subtitle: 'A faire occasionnellement',
     backButton: {
       name: 'Retour',
-    },
-  },
-  '/family': {
-    title: 'Scolarité',
-    subtitle: 'Vue d\'ensemble',
-    backButton: {
-      name: 'Accueil',
-    },
-  },
-  '/family/messages': {
-    title: 'Messagerie',
-    subtitle: 'Communication avec l\'école',
-    backButton: {
-      name: 'Accueil',
-    },
-  },
-  '/family/profile': {
-    title: 'Profil',
-    subtitle: 'Informations personnelles',
-    backButton: {
-      name: 'Accueil',
     },
   },
 }

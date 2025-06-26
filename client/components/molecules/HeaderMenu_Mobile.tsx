@@ -29,6 +29,7 @@ export const HeaderMenuMobile = ({
   isPlanningRoute = false,
   isGradesRoute = false,
   isFamilyRoute = false,
+  isAdmin = false,
 }: {
   courseSessionId?: string
   selectedSession?: CourseSessionWithRelations
@@ -41,6 +42,7 @@ export const HeaderMenuMobile = ({
   isPlanningRoute: boolean
   isGradesRoute: boolean
   isFamilyRoute: boolean
+  isAdmin: boolean
 }) => {
 
   return (

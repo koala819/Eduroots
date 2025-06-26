@@ -13,10 +13,11 @@ export const HeaderBackBtn = () => {
 
   const pathTeacher = pathname === '/teacher'
   const pathFamily = pathname === '/family'
+  const pathAdmin = pathname === '/admin'
 
-  // Ne pas afficher le bouton retour sur la page d'accueil familiale
-  const isFamilyHomePage = pathFamily && !studentId
-  if (isFamilyHomePage) {
+  // Ne pas afficher le bouton retour
+  const hiddenBtn = (pathFamily && !studentId) || pathAdmin
+  if (hiddenBtn) {
     return null
   }
 
@@ -53,7 +54,8 @@ export const HeaderBackBtn = () => {
         whileTap={{ scale: 0.95 }}
         onClick={
           pathFamily && (() => router.push('/family')) ||
-          pathTeacher && (() => router.push('/teacher'))
+          pathTeacher && (() => router.push('/teacher')) ||
+          pathAdmin && (() => router.push('/admin'))
         }
         className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
           hover:bg-primary-foreground/15 transition-all duration-200 border
