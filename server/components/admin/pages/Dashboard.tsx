@@ -6,7 +6,6 @@ import {
   GraduationCap,
   Info,
   Plus,
-  Settings,
   Users,
 } from 'lucide-react'
 import { Suspense } from 'react'
@@ -20,7 +19,7 @@ import { cn } from '@/server/utils/helpers'
 
 export const Dashboard = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       {/* Actions rapides */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Button
@@ -151,29 +150,6 @@ export const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <HighRiskStudentsButton className="w-full" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold">Configuration</h3>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Calendar className="w-4 h-4 mr-2" />
-                Gérer les horaires
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <FileText className="w-4 h-4 mr-2" />
-                Paramètres système
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Users className="w-4 h-4 mr-2" />
-                Gestion des rôles
-              </Button>
             </CardContent>
           </Card>
         </div>

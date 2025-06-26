@@ -782,13 +782,7 @@ export async function updateCourses(
           courses_sessions (
             *,
             courses_sessions_students (
-              *,
-              users (
-                id,
-                firstname,
-                lastname,
-                email
-              )
+              *
             ),
             courses_sessions_timeslot (*)
           )

@@ -1,4 +1,4 @@
-import PlanningGridClient from '@/client/components/organisms/PlanningGrid'
+import PlanningGridClient from '@/client/components/admin/organisms/PlanningGrid'
 import { SubjectNameEnum } from '@/types/courses'
 
 export default function PlanningGrid() {
