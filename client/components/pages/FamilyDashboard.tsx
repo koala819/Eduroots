@@ -15,6 +15,7 @@ export function FamilyDashboard() {
   const searchParams = useSearchParams()
   const [selectedStudentData, setSelectedStudentData] = useState<FamilyStudentData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [familyStudents, setFamilyStudents] = useState<any[]>([])
 
   const selectedStudentId = searchParams.get('student')
 
@@ -37,6 +38,45 @@ export function FamilyDashboard() {
       window.removeEventListener('headerFamilyStudentChanged', handleHeaderStudentChange)
     }
   }, [searchParams])
+
+  // Récupérer la liste des enfants depuis le header
+  useEffect(() => {
+    const getFamilyStudentsFromHeader = () => {
+      // Chercher l'élément du header qui contient les enfants
+      const headerElement = document.querySelector('[data-family-students]')
+      if (headerElement) {
+        const studentsData = headerElement.getAttribute('data-family-students')
+        if (studentsData) {
+          try {
+            const students = JSON.parse(studentsData)
+            setFamilyStudents(students)
+
+            // Si aucun enfant n'est sélectionné et qu'il y a des enfants, sélectionner le premier
+            if (!selectedStudentId && students.length > 0) {
+              handleSelectStudent(students[0].id)
+            }
+          } catch (error) {
+            console.error('Erreur lors du parsing des données des enfants:', error)
+          }
+        }
+      }
+    }
+
+    // Essayer de récupérer les données immédiatement
+    getFamilyStudentsFromHeader()
+
+    // Observer les changements du DOM pour récupérer les données quand elles sont disponibles
+    const observer = new MutationObserver(() => {
+      getFamilyStudentsFromHeader()
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
+
+    return () => observer.disconnect()
+  }, [selectedStudentId])
 
   // Charger les données de l'étudiant sélectionné
   useEffect(() => {
@@ -106,8 +146,14 @@ export function FamilyDashboard() {
     }
   }, [selectedStudentData?.grades])
 
-  if (!isLoading && !selectedStudentId) {
-    return <ErrorContent message='Aucun enfant sélectionné' />
+  // Si aucun enfant n'est disponible
+  if (familyStudents.length === 0) {
+    return <ErrorContent message="Aucun enfant trouvé dans votre famille" />
+  }
+
+  // Si aucun enfant n'est sélectionné mais qu'il y en a, afficher le loading
+  if (!selectedStudentId && familyStudents.length > 0) {
+    return <LoadingContent />
   }
 
   if (isLoading || !selectedStudentData) {

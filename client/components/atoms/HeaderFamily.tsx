@@ -40,7 +40,10 @@ export const HeaderFamily = ({
   const selectedStudentData = getSelectedStudent()
 
   return (
-    <div className={'flex-[0.4] flex justify-end'}>
+    <div
+      className={'flex-[0.4] flex justify-end'}
+      data-family-students={JSON.stringify(familyStudents)}
+    >
       {/* Sélecteur d'enfant - Design moderne avec badge */}
       {familyStudents && familyStudents.length > 0 && (
         <div className="w-full max-w-md">
