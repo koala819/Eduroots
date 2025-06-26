@@ -11,7 +11,6 @@ interface FamilyProfileProps {
 }
 
 export const FamilyProfile = ({ data }: FamilyProfileProps) => {
-  // console.log('data', data)
   return (
     <div className="p-4">
       <div className="mx-auto max-w-4xl w-full space-y-6">

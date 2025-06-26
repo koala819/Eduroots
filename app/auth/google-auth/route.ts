@@ -102,18 +102,26 @@ async function findUserInDatabase(
   value: string,
   role: string,
 ) {
-  const { data, error } = await supabase
+  // Cas spécial pour les rôles admin/bureau
+  const adminRoles = ['admin', 'bureau']
+  const isAdminRole = adminRoles.includes(role)
+
+  let query = supabase
     .schema('education')
     .from('users')
     .select('*')
-    .or(`
-      auth_id_email.eq.${value},
-      auth_id_gmail.eq.${value},
-      parent2_auth_id_email.eq.${value},
-      parent2_auth_id_gmail.eq.${value}
-    `)
-    .eq('role', role)
-    .maybeSingle()
+    // eslint-disable-next-line max-len
+    .or(`auth_id_email.eq.${value},auth_id_gmail.eq.${value},parent2_auth_id_email.eq.${value},parent2_auth_id_gmail.eq.${value}`)
+
+  if (isAdminRole) {
+    // Pour les rôles admin, chercher dans tous les rôles admin
+    query = query.in('role', adminRoles)
+  } else {
+    // Pour les autres rôles, chercher exactement le rôle spécifié
+    query = query.eq('role', role)
+  }
+
+  const { data, error } = await query.maybeSingle()
 
   if (error) {
     console.error('Erreur lors de la recherche de l\'utilisateur:', error)
