@@ -72,7 +72,7 @@ export const HeaderMenuDesktop = ({
             />
           </motion.div>
 
-          {/* Partie droite - Navigation des vues ou Créneaux horaires (40%) */}
+          {/* Partie droite */}
           {isClassroomTeacherRoute &&
             <HeaderClassroom
               courseSessionId={courseSessionId}

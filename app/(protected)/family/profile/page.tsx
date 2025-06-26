@@ -1,37 +1,27 @@
-import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-import { getAllStudents } from '@/server/actions/api/students'
-import StudentInfo from '@/server/components/organisms/StudentInfo'
+import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { getFamilyDashboardData } from '@/server/actions/api/family'
+import { FamilyProfile } from '@/server/components/organisms/FamilyProfile'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
-import { StudentResponse } from '@/types/student-payload'
 
-export default async function StudentProfilePage() {
+export default async function FamilyProfilePage() {
   const user = await getAuthenticatedUser()
 
   if (!user?.email) {
-    redirect('/')
+    return <ErrorContent message="Vous n'êtes pas connecté" />
   }
 
-  const familyData = await getStudentDataByEmail(user.email)
+  const familyData = await getFamilyDashboardData(user.id)
 
-  async function getStudentDataByEmail(email: string): Promise<StudentResponse[]> {
-    try {
-      const studentsResponse = await getAllStudents()
-      const studentsArray = studentsResponse.data as StudentResponse[]
-
-      return studentsArray.filter(
-        (student) =>
-          student.email === email && student.type === 'student',
-      )
-    } catch (error) {
-      console.error('Erreur lors de la récupération des étudiants:', error)
-      return []
-    }
+  if (!familyData.data) {
+    return <ErrorContent message="Aucune donnée trouvée" />
   }
+
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <StudentInfo data={familyData} />
-    </div>
+    <Suspense fallback={<LoadingContent />}>
+      <FamilyProfile data={familyData.data.familyStudents} />
+    </Suspense>
   )
 }

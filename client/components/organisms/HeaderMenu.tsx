@@ -34,7 +34,7 @@ export function MenuHeader({
   const isPlanningRoute = pathname.includes('/settings/planning')
   const isGradesRoute = pathname.endsWith('/settings/grades')
 
-  const isFamilyRoute = pathname.includes('/family')
+  const isFamilyRoute = pathname.endsWith('/family')
 
   return (
     <>

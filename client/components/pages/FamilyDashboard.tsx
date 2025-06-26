@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
-import ChildStats from '@/client/components/molecules/StudentStats'
+import { ChildStats } from '@/client/components/molecules/FamilyStats'
 import { getStudentDetailedData } from '@/server/actions/api/family'
 import { FamilyStudentData } from '@/server/actions/api/family'
 import { SubjectNameEnum } from '@/types/courses'

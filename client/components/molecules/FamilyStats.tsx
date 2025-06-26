@@ -32,13 +32,13 @@ type StudentStatsProps = {
   subjectGradesData: SubjectGrade[]
 }
 
-export default function ChildStats({
+export const ChildStats = ({
   detailedGrades,
   detailedAttendance,
   detailedCourse,
   detailedTeacher,
   subjectGradesData,
-}: Readonly<StudentStatsProps>) {
+}: Readonly<StudentStatsProps>) => {
   const teacherName =
     detailedTeacher?.lastname?.toUpperCase() + ' ' + detailedTeacher?.firstname || 'N/A'
 
@@ -56,7 +56,7 @@ export default function ChildStats({
           </p>
         </div>
 
-        {/* Stats principales avec design moderne */}
+        {/* Stats principales */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Moyenne générale */}
           <Card className="group hover:shadow-xl transition-all duration-500
