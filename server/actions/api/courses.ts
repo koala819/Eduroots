@@ -275,6 +275,37 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
   }
 }
 
+export async function getAllCourses(): Promise<ApiResponse<CourseWithRelations[]>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data: courses, error } = await supabase
+      .schema('education')
+      .from('courses')
+      .select('*')
+      .eq('is_active', true)
+
+    if (error) {
+      console.error('[GET_ALL_COURSES]', error)
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération des cours',
+        data: null,
+      }
+    }
+
+    return {
+      success: true,
+      data: courses,
+      message: 'Cours récupérés avec succès',
+    }
+  } catch (error: any) {
+    console.error('[GET_ALL_COURSES]', error)
+    throw new Error('Failed to get all courses')
+  }
+}
+
 export async function getCourseSessionById(
   id: string,
   fields?: string,

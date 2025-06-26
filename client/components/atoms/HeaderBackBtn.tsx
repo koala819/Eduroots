@@ -48,15 +48,20 @@ export const HeaderBackBtn = () => {
 
   if (!pattern) {
     console.warn(`Route pattern non trouvé pour: ${pathname}`)
+
+    // Déterminer l'URL de retour de manière sécurisée
+    const getFallbackUrl = () => {
+      if (pathFamily) return '/family'
+      if (pathTeacher) return '/teacher'
+      if (pathAdmin) return '/admin'
+      return '/'
+    }
+
     return (
       <motion.button
         whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
         whileTap={{ scale: 0.95 }}
-        onClick={
-          pathFamily && (() => router.push('/family')) ||
-          pathTeacher && (() => router.push('/teacher')) ||
-          pathAdmin && (() => router.push('/admin'))
-        }
+        onClick={() => router.push(getFallbackUrl())}
         className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
           hover:bg-primary-foreground/15 transition-all duration-200 border
           border-primary-foreground/20 flex-shrink-0"

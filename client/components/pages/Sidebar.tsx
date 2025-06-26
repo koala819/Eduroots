@@ -62,7 +62,11 @@ export default function SidebarMenu({
             return (
               <button
                 key={href}
-                onClick={() => !isActive({ href, pathPattern }) && handleNavClick(href)}
+                onClick={() => {
+                  if (!isActive({ href, pathPattern })) {
+                    handleNavClick(href)
+                  }
+                }}
                 disabled={isActive({ href, pathPattern })}
                 aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
                 aria-label={label}
@@ -108,7 +112,11 @@ export default function SidebarMenu({
           return (
             <button
               key={href}
-              onClick={() => !isActive({ href, pathPattern }) && handleNavClick(href)}
+              onClick={() => {
+                if (!isActive({ href, pathPattern })) {
+                  handleNavClick(href)
+                }
+              }}
               disabled={isActive({ href, pathPattern })}
               aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
               className={cn(

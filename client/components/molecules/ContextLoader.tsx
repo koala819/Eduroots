@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-import LoadingOverlay from '@/client/components/atoms/LoadingOverlay'
 import { useAttendances } from '@/client/context/attendances'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
@@ -12,6 +11,7 @@ import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
+import LoadingOverlay from '@/zUnused/LoadingOverlay'
 
 export default function GlobalLoadingIndicator() {
   const [isAnyLoading, setIsAnyLoading] = useState(true)

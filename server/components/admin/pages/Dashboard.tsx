@@ -12,48 +12,64 @@ import { Suspense } from 'react'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card'
+import { getAllCourses } from '@/server/actions/api/courses'
+import { getAllStudents } from '@/server/actions/api/students'
+import { getAllTeachers } from '@/server/actions/api/teachers'
 import { HighRiskStudentsButton } from '@/server/components/admin/atoms/HighRiskStudentsButton'
 import Loading from '@/server/components/admin/atoms/Loading'
 import { SchoolPeople } from '@/server/components/admin/organisms/SchoolPeople'
 import { cn } from '@/server/utils/helpers'
+import { CourseWithRelations } from '@/types/courses'
+import { StudentResponse } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 
-export const Dashboard = () => {
+export const Dashboard = async ({ isAdmin }: { isAdmin: boolean }) => {
+  const [studentsResponse, teachersResponse, coursesResponse] = await Promise.all([
+    getAllStudents(),
+    getAllTeachers(),
+    getAllCourses(),
+  ])
+  const students = studentsResponse.success ? (studentsResponse.data as StudentResponse[]) : []
+  const teachers = teachersResponse.success ? (teachersResponse.data as TeacherResponse[]) : []
+  const courses = coursesResponse.success ? (coursesResponse.data as CourseWithRelations[]) : []
   return (
     <div className="space-y-6 p-4">
-      {/* Actions rapides */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Button
-          variant="outline"
-          className="h-20 flex flex-col gap-2 hover:bg-primary/5"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="text-xs">Nouvel élève</span>
-        </Button>
+      {/* Actions for admin */}
+      {isAdmin && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Button
+            variant="outline"
+            className="h-20 flex flex-col gap-2 hover:bg-primary/5"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-xs">Nouvel élève</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="h-20 flex flex-col gap-2 hover:bg-secondary/5"
-        >
-          <GraduationCap className="w-5 h-5" />
-          <span className="text-xs">Nouveau prof</span>
-        </Button>
+          <Button
+            variant="outline"
+            className="h-20 flex flex-col gap-2 hover:bg-secondary/5"
+          >
+            <GraduationCap className="w-5 h-5" />
+            <span className="text-xs">Nouveau prof</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="h-20 flex flex-col gap-2 hover:bg-accent/5"
-        >
-          <Calendar className="w-5 h-5" />
-          <span className="text-xs">Planning</span>
-        </Button>
+          <Button
+            variant="outline"
+            className="h-20 flex flex-col gap-2 hover:bg-accent/5"
+          >
+            <Calendar className="w-5 h-5" />
+            <span className="text-xs">Planning</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="h-20 flex flex-col gap-2 hover:bg-purple/5"
-        >
-          <FileText className="w-5 h-5" />
-          <span className="text-xs">Rapports</span>
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            className="h-20 flex flex-col gap-2 hover:bg-purple/5"
+          >
+            <FileText className="w-5 h-5" />
+            <span className="text-xs">Rapports</span>
+          </Button>
+        </div>
+      )}
 
       {/* Statistiques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -62,7 +78,7 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Élèves</p>
-                <p className="text-2xl font-bold text-primary">0</p>
+                <p className="text-2xl font-bold text-primary">{students.length}</p>
               </div>
               <div className={cn(
                 'w-10 h-10 rounded-lg bg-primary/10',
@@ -79,7 +95,7 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Profs</p>
-                <p className="text-2xl font-bold text-secondary">0</p>
+                <p className="text-2xl font-bold text-secondary">{teachers.length}</p>
               </div>
               <div className={cn(
                 'w-10 h-10 rounded-lg bg-secondary/10',
@@ -96,7 +112,7 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Cours actifs</p>
-                <p className="text-2xl font-bold text-accent">0</p>
+                <p className="text-2xl font-bold text-accent">{courses.length}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-accent" />

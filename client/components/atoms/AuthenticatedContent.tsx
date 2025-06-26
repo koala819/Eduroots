@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 
 import { useAuth } from '@/client/hooks/use-auth'
 
-import LoadingOverlay from './LoadingOverlay'
+import LoadingOverlay from '../../../zUnused/LoadingOverlay'
 
 interface AuthenticatedContentProps {
   children: React.ReactNode

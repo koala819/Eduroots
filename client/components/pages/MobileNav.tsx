@@ -29,14 +29,18 @@ export default function MobileNav({
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-primary text-primary-foreground
       flex justify-around items-center py-2 md:hidden z-50 border-t border-border/30
-      backdrop-blur-sm bg-primary/95">
+      backdrop-blur-sm">
       {navItems.map(({ href, label, Icon, pathPattern }) => {
         const IconComponent =
           LucideIcons[Icon as keyof typeof LucideIcons] as React.ComponentType<{ size: number }>
         return (
           <button
             key={href}
-            onClick={() => !isActive({ href, pathPattern }) && handleNavClick(href)}
+            onClick={() => {
+              if (!isActive({ href, pathPattern })) {
+                handleNavClick(href)
+              }
+            }}
             disabled={isActive({ href, pathPattern })}
             aria-current={isActive({ href, pathPattern }) ? 'page' : undefined}
             className={cn(

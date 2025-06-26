@@ -11,9 +11,9 @@ export async function SchoolPeople() {
   ])
 
   const students =
-    studentsResponse.success ? (studentsResponse.data as unknown as StudentResponse[]) : []
+    studentsResponse.success ? (studentsResponse.data as StudentResponse[]) : []
   const teachers =
-    teachersResponse.success ? (teachersResponse.data as unknown as TeacherResponse[]) : []
+    teachersResponse.success ? (teachersResponse.data as TeacherResponse[]) : []
 
   return <SchoolPeopleClient students={students} teachers={teachers} />
 }

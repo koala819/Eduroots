@@ -10,7 +10,7 @@ import {
 import { useState } from 'react'
 
 import ActionCard from '@/client/components/atoms/ActionCard'
-import LoadingOverlay from '@/client/components/atoms/LoadingOverlay'
+import LoadingOverlay from '@/zUnused/LoadingOverlay'
 
 // Simulation des données - dans votre vraie app, ces données viendraient de votre API
 // const mockStats = {
