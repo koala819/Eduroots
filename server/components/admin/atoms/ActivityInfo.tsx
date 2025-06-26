@@ -3,13 +3,26 @@ import { CalendarDays, Clock } from 'lucide-react'
 
 import { StudentStats } from '@/types/stats'
 
-import { formatAbsenceDate,formatTimeToNow, getLastAbsence } from './utils'
+import { formatAbsenceDate,formatTimeToNow } from './utils'
 
 interface ActivityInfoProps {
   stats: StudentStats
 }
 
 export const ActivityInfo = ({ stats }: Readonly<ActivityInfoProps>) => {
+  // Fonction pour convertir une date en objet Date
+  const parseDate = (date: Date | string): Date => {
+    if (date instanceof Date) return date
+    return new Date(date)
+  }
+
+  // Récupérer la dernière absence avec gestion des dates
+  const getLastAbsenceDate = () => {
+    if (!stats.absences || stats.absences.length === 0) return null
+    const lastAbsence = stats.absences[stats.absences.length - 1]
+    return parseDate(lastAbsence.date)
+  }
+
   return (
     <div className="px-4">
       {/* Dernière activité et absence */}
@@ -26,8 +39,8 @@ export const ActivityInfo = ({ stats }: Readonly<ActivityInfoProps>) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            {getLastAbsence(stats.absences) ?
-              formatAbsenceDate(getLastAbsence(stats.absences)!) : 'Aucune'}
+            {getLastAbsenceDate() ?
+              formatAbsenceDate(getLastAbsenceDate()!) : 'Aucune'}
           </motion.span>
         </div>
 
@@ -38,7 +51,7 @@ export const ActivityInfo = ({ stats }: Readonly<ActivityInfoProps>) => {
             <span>Dernière activité</span>
           </div>
           <span className="font-medium text-xs">
-            {stats.lastActivity ? formatTimeToNow(stats.lastActivity) : 'Jamais'}
+            {stats.lastActivity ? formatTimeToNow(parseDate(stats.lastActivity)) : 'Jamais'}
           </span>
         </div>
       </div>

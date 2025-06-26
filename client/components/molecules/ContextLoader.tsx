@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import { useAttendances } from '@/client/context/attendances'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
@@ -11,7 +12,6 @@ import { useSchedules } from '@/client/context/schedules'
 import { useStats } from '@/client/context/stats'
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
-import LoadingOverlay from '@/zUnused/LoadingOverlay'
 
 export default function GlobalLoadingIndicator() {
   const [isAnyLoading, setIsAnyLoading] = useState(true)
@@ -68,9 +68,8 @@ export default function GlobalLoadingIndicator() {
   if (!isAnyLoading) return null
 
   return (
-    <LoadingOverlay
-      title="Chargement en cours..."
-      loadingContexts={loadingContexts}
+    <LoadingContent
+
     />
   )
 }

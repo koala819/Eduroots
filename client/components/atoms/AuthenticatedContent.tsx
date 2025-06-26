@@ -2,9 +2,9 @@
 
 import { Suspense } from 'react'
 
+import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import { useAuth } from '@/client/hooks/use-auth'
 
-import LoadingOverlay from '../../../zUnused/LoadingOverlay'
 
 interface AuthenticatedContentProps {
   children: React.ReactNode
@@ -13,7 +13,7 @@ interface AuthenticatedContentProps {
 
 export function AuthenticatedContent({
   children,
-  fallback = <LoadingOverlay />,
+  fallback = <LoadingContent />,
 }: Readonly<AuthenticatedContentProps>) {
   const { session, isLoading } = useAuth()
 

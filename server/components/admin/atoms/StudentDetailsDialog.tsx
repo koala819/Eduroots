@@ -1,4 +1,4 @@
-import { ChevronRight, Info, X } from 'lucide-react'
+import { ChevronRight, Info } from 'lucide-react'
 
 import { Button } from '@/client/components/ui/button'
 import { CardFooter } from '@/client/components/ui/card'
@@ -45,10 +45,6 @@ export const StudentDetailsDialog = ({ student, stats }: Readonly<StudentDetails
                   Analyse complète des absences et comportement
                 </DialogDescription>
               </div>
-              <DialogClose className="rounded-full w-8 h-8 flex
-              items-center justify-center hover:bg-gray-200">
-                <X className="h-4 w-4" />
-              </DialogClose>
             </div>
           </DialogHeader>
 

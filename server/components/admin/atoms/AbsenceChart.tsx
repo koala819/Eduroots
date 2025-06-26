@@ -6,6 +6,12 @@ interface AbsenceChartProps {
 }
 
 export const AbsenceChart = ({ stats }: Readonly<AbsenceChartProps>) => {
+  // Fonction pour convertir une date en objet Date
+  const parseDate = (date: Date | string): Date => {
+    if (date instanceof Date) return date
+    return new Date(date)
+  }
+
   return (
     <TabsContent value="statistics" className="mt-0">
       <div className="space-y-6">
@@ -60,11 +66,12 @@ export const AbsenceChart = ({ stats }: Readonly<AbsenceChartProps>) => {
 
               // Compter les absences par mois
               stats.absences.forEach((absence) => {
+                const absenceDate = parseDate(absence.date)
                 // Ignorer les absences antérieures à 6 mois
-                if (absence.date < sixMonthsAgo) return
+                if (absenceDate < sixMonthsAgo) return
 
                 // Calculer l'index du mois (0 = il y a 5 mois, 5 = mois actuel)
-                const monthDiff = (today.getMonth() - absence.date.getMonth() + 12) % 12
+                const monthDiff = (today.getMonth() - absenceDate.getMonth() + 12) % 12
 
                 // Vérifier si cette absence est dans les 6 derniers mois
                 if (monthDiff < 6) {

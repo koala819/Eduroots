@@ -28,8 +28,18 @@ type SortType = 'risk-level' | 'absences-desc' | 'recent-absence' | 'alphabetica
 export const HighRiskAbsenceStudents = ({ initialData }: HighRiskAbsenceStudentsProps) => {
   const [sortType, setSortType] = useState<SortType>('risk-level')
 
+  // Vérifier si les données sont complètement chargées
+  const isDataLoaded = useMemo(() => {
+    return initialData.students && initialData.students.length > 0 &&
+           initialData.students.every((student) =>
+             student.stats && student.stats.absences !== undefined,
+           )
+  }, [initialData.students])
+
   // Fonction de tri
   const sortedStudents = useMemo(() => {
+    if (!isDataLoaded) return []
+
     return [...initialData.students].sort((a, b) => {
       let lastNameComparison: number
 
@@ -59,10 +69,12 @@ export const HighRiskAbsenceStudents = ({ initialData }: HighRiskAbsenceStudents
         return 0
       }
     })
-  }, [initialData.students, sortType])
+  }, [initialData.students, sortType, isDataLoaded])
 
   // Statistiques calculées
   const stats = useMemo(() => {
+    if (!isDataLoaded) return { criticalCount: 0, highCount: 0, totalAbsences: 0, avgAbsences: 0 }
+
     const criticalCount = initialData.students.filter((s) => s.riskLevel === 'critical').length
     const highCount = initialData.students.filter((s) => s.riskLevel === 'high').length
     const totalAbsences = initialData.students.reduce((sum, s) => sum + s.stats.absencesCount, 0)
@@ -70,19 +82,45 @@ export const HighRiskAbsenceStudents = ({ initialData }: HighRiskAbsenceStudents
       .round(totalAbsences / initialData.students.length) : 0
 
     return { criticalCount, highCount, totalAbsences, avgAbsences }
-  }, [initialData.students])
+  }, [initialData.students, isDataLoaded])
+
+  // Afficher un état de chargement si les données ne sont pas prêtes
+  if (!isDataLoaded) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center
+        gap-6 pt-6">
+          <div className="space-y-3">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+              Étudiants à risque élevé d'absences
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-base">
+              Chargement des données...
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* En-tête avec statistiques */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pt-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center
+      gap-6 pt-6">
         <div className="space-y-3">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-            Étudiants à risque élevé d'absences
+          <h1 className="text-2xl lg:text-3xl font-bold">
+            <span className="text-5xl font-bold text-error mr-2">
+              {initialData.students.length}
+            </span>
+            Etudiants à risque élevé d'absences
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-base">
+          {/* <p className="text-gray-600 dark:text-gray-400 text-base">
             Surveillance des étudiants avec un nombre d'absences multiple de 3
-          </p>
+          </p> */}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -108,15 +146,6 @@ export const HighRiskAbsenceStudents = ({ initialData }: HighRiskAbsenceStudents
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Remplacement du badge arrondi par un design plus approprié */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100
-          dark:bg-gray-800 rounded-lg border">
-            <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {initialData.students.length} étudiant{initialData.students.length !== 1 ? 's' : ''}
-            </span>
-          </div>
         </div>
       </div>
 

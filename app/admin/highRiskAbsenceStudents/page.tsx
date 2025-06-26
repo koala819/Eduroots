@@ -27,6 +27,15 @@ interface RawStudentStats {
   last_update: string
 }
 
+// Interface pour les absences brutes
+interface RawAbsence {
+  id: string
+  student_stats_id: string
+  date: string
+  course_session_id: string
+  reason?: string
+}
+
 export default async function HighRiskAbsenceStudentsPage() {
 
   const initialData = await getHighRiskStudents()
@@ -78,17 +87,108 @@ export default async function HighRiskAbsenceStudentsPage() {
         return isMultipleOf3 && hasAbsences
       })
 
+      // Récupérer les IDs des étudiants à risque
+      const highRiskStudentIds = highRiskStats.map((stat) => stat.user_id)
+
+      // Récupérer les absences détaillées pour ces étudiants
+      console.log('🔍 [DEBUG] IDs des étudiants à risque:', highRiskStudentIds)
+
+      // D'abord, récupérer les student_stats_id pour ces étudiants
+      const { data: studentStatsData, error: studentStatsError } = await supabase
+        .schema('stats')
+        .from('student_stats')
+        .select('id, user_id')
+        .in('user_id', highRiskStudentIds)
+
+      console.log('🔍 [DEBUG] Student stats data:', studentStatsData)
+
+      if (studentStatsError) {
+        throw new Error(`Erreur lors de la récupération des student_stats:
+        ${studentStatsError.message}`)
+      }
+
+      const studentStatsIds = studentStatsData.map((stat) => stat.id)
+      console.log('🔍 [DEBUG] Student stats IDs:', studentStatsIds)
+
+      // Maintenant récupérer les absences avec ces student_stats_id
+      const { data: absences, error: absencesError } = await supabase
+        .schema('stats')
+        .from('student_stats_absences')
+        .select(`
+          id,
+          student_stats_id,
+          date,
+          course_session_id,
+          reason
+        `)
+        .in('student_stats_id', studentStatsIds)
+        .order('date', { ascending: false })
+
+      console.log('🔍 [DEBUG] Résultat de la requête absences:', { absences, absencesError })
+
+      if (absencesError) {
+        throw new Error(`Erreur lors de la récupération des absences: ${absencesError.message}`)
+      }
+
       // Créer un Map pour un accès rapide aux statistiques
       const statsMap = new Map<string, RawStudentStats>()
       highRiskStats.forEach((stat: RawStudentStats) => {
         statsMap.set(stat.user_id, stat)
       })
 
+      // Créer un Map pour les absences par étudiant
+      const absencesMap = new Map<string, RawAbsence[]>()
+
+      // Créer un Map pour mapper student_stats_id vers user_id
+      const statsIdToUserIdMap = new Map<string, string>()
+      studentStatsData.forEach((stat) => {
+        statsIdToUserIdMap.set(stat.id, stat.user_id)
+      })
+
+      absences.forEach((absence: RawAbsence) => {
+        const userId = statsIdToUserIdMap.get(absence.student_stats_id)
+        console.log('🔍 [DEBUG] Traitement absence:', {
+          absenceId: absence.id,
+          studentStatsId: absence.student_stats_id,
+          userId,
+          date: absence.date,
+        })
+        if (userId && !absencesMap.has(userId)) {
+          absencesMap.set(userId, [])
+        }
+        if (userId) {
+          absencesMap.get(userId)!.push(absence)
+        }
+      })
+
+      console.log('🔍 [DEBUG] Map des absences par étudiant:', Object.fromEntries(absencesMap))
+
       // Combiner les données étudiant et statistiques
       const highRiskStudents: InterfaceHighRiskStudentData[] = students
         .filter((student: any) => statsMap.has(student.id))
         .map((student: any) => {
           const rawStats = statsMap.get(student.id)!
+          const studentAbsences = absencesMap.get(student.id) || []
+
+          console.log('🔍 [DEBUG] Traitement étudiant:', {
+            studentId: student.id,
+            studentName: `${student.firstname} ${student.lastname}`,
+            rawStats,
+            studentAbsencesCount: studentAbsences.length,
+            studentAbsences,
+          })
+
+          // Convertir les absences en format Date
+          const formattedAbsences = studentAbsences.map(
+            (absence: RawAbsence) => ({
+              id: absence.id,
+              date: new Date(absence.date),
+              course: absence.course_session_id,
+              reason: absence.reason,
+            }),
+          )
+
+          console.log('🔍 [DEBUG] Absences formatées pour', student.firstname, ':', formattedAbsences)
 
           // Convertir les données brutes en format StudentStats
           const stats: StudentStats = {
@@ -96,14 +196,17 @@ export default async function HighRiskAbsenceStudentsPage() {
             absencesCount: rawStats.absences_count,
             absencesRate: rawStats.absences_rate,
             behaviorAverage: rawStats.behavior_average,
-            absences: [], // On n'a pas les détails des absences ici
+            absences: formattedAbsences,
             grades: { overallAverage: 0 },
             lastActivity: null,
             lastUpdate: new Date(rawStats.last_update),
           }
 
-          const lastAbsence = null // Pas de données détaillées pour l'instant
-          const daysSinceLastAbsence = Infinity
+          // Calculer la dernière absence
+          const lastAbsence = formattedAbsences.length > 0 ? formattedAbsences[0].date : null
+          const daysSinceLastAbsence = lastAbsence
+            ? Math.floor((new Date().getTime() - lastAbsence.getTime()) / (1000 * 60 * 60 * 24))
+            : Infinity
 
           const riskLevel: 'high' | 'critical' = stats.absencesCount >= 9 ? 'critical' : 'high'
 

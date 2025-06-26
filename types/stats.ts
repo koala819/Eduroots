@@ -43,6 +43,7 @@ export interface StudentStats {
   absencesCount: number
   behaviorAverage: number
   absences: {
+    id: string
     date: Date
     course: string
     reason?: string

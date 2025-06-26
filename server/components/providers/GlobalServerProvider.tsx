@@ -2,6 +2,7 @@
 
 import { ReactNode, Suspense } from 'react'
 
+import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import GlobalLoadingIndicator from '@/client/components/molecules/ContextLoader'
 import AttendancesServerComponent from '@/server/context/attendances'
 import BehaviorsServerComponent from '@/server/context/behaviors'
@@ -12,11 +13,10 @@ import SchedulesServerComponent from '@/server/context/schedules'
 import StatsServerComponent from '@/server/context/stats'
 import StudentsServerComponent from '@/server/context/students'
 import TeachersServerComponent from '@/server/context/teachers'
-import LoadingOverlay from '@/zUnused/LoadingOverlay'
 
 export default async function GlobalServerProvider({ children }: Readonly<{children: ReactNode}>) {
   return (
-    <Suspense fallback={<LoadingOverlay />}>
+    <Suspense fallback={<LoadingContent />}>
       <StatsServerComponent>
         <TeachersServerComponent>
           <CoursesServerComponent>

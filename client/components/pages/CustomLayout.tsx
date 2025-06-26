@@ -3,9 +3,9 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { LoadingContent } from '@/client/components/atoms/StatusContent'
 import MobileNav from '@/client/components/pages/MobileNav'
 import SidebarMenu from '@/client/components/pages/Sidebar'
-import LoadingOverlay from '@/zUnused/LoadingOverlay'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -46,7 +46,7 @@ export function CustomLayout({
     <div className="flex min-h-screen bg-background">
       {/* Loading Overlay */}
       {isNavigating && (
-        <LoadingOverlay title="Chargement..." />
+        <LoadingContent  />
       )}
 
       <div className="hidden md:block sticky top-0 h-screen">
