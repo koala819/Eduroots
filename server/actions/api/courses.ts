@@ -803,9 +803,12 @@ export async function updateCourses(
       throw new Error(error.message)
     }
 
+    // S'assurer que data est toujours un tableau
+    const coursesData = courses || []
+
     return {
       success: true,
-      data: courses,
+      data: coursesData,
       message: 'Courses updated successfully',
     }
   } catch (error: any) {

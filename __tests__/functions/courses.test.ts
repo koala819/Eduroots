@@ -27,7 +27,11 @@ const coursesTestData = {
 }
 
 // Import de la vraie fonction après les mocks
-import { getCourseSessionById, getTeacherCourses } from '@/server/actions/api/courses'
+import {
+  getCourseSessionById,
+  getTeacherCourses,
+  updateCourses,
+} from '@/server/actions/api/courses'
 import { getSessionServer } from '@/server/utils/server-helpers'
 
 describe('Courses Functions - Tests Robustes', () => {
@@ -197,6 +201,131 @@ describe('Courses Functions - Tests Robustes', () => {
       expect(result.data).toHaveProperty('courses')
       expect(result.data).toHaveProperty('courses_sessions_timeslot')
       expect(result.data).toHaveProperty('courses_sessions_students')
+    })
+  })
+
+  describe('updateCourses - Tests', () => {
+    it('devrait appeler getAuthenticatedUser et getSessionServer', async () => {
+      await updateCourses('admin', 'admin-1')
+
+      const { getAuthenticatedUser } = await import('@/server/utils/auth-helpers')
+      expect(getAuthenticatedUser).toHaveBeenCalled()
+      expect(getSessionServer).toHaveBeenCalled()
+    })
+
+    it('devrait retourner une réponse de succès pour admin', async () => {
+      // Mock qui retourne un tableau vide à la fin de la chaîne
+      const mockSupabase = createMockSupabase({ orderData: [] })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      const result = await updateCourses('admin', 'admin-1')
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual([]) // Par défaut, le mock retourne un tableau vide
+      expect(result.message).toBe('Courses updated successfully')
+    })
+
+    it('devrait retourner une réponse de succès pour teacher', async () => {
+      // Mock qui retourne un tableau vide à la fin de la chaîne
+      const mockSupabase = createMockSupabase({ orderData: [] })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      const result = await updateCourses('teacher', 'teacher-1')
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual([]) // Par défaut, le mock retourne un tableau vide
+      expect(result.message).toBe('Courses updated successfully')
+    })
+
+    it('devrait retourner une réponse de succès pour student avec données vides', async () => {
+      // Mock qui retourne un tableau vide pour les sessions d'étudiant
+      const mockSupabase = createMockSupabase({ orderData: [] })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      const result = await updateCourses('student', 'student-1')
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual([]) // Par défaut, le mock retourne un tableau vide
+      expect(result.message).toBe('Aucun cours trouvé pour cet étudiant')
+    })
+
+    it('devrait gérer les erreurs de requête', async () => {
+      // Mock d'une erreur
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: createMockSupabase({ throwError: true }) as any,
+        user: createMockAuthUser(),
+      })
+
+      await expect(updateCourses('admin', 'admin-1')).rejects.toThrow('Failed to update courses')
+    })
+
+    it('devrait construire la bonne requête pour admin', async () => {
+      const mockSupabase = createMockSupabase({ orderData: [] })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      await updateCourses('admin', 'admin-1')
+
+      // Vérifier que les bonnes méthodes ont été appelées
+      expect(mockSupabase.schema).toHaveBeenCalledWith('education')
+      expect(mockSupabase.from).toHaveBeenCalledWith('courses')
+      expect(mockSupabase.select).toHaveBeenCalled()
+      expect(mockSupabase.eq).toHaveBeenCalledWith('is_active', true)
+    })
+
+    it('devrait construire la bonne requête pour teacher', async () => {
+      const mockSupabase = createMockSupabase({ orderData: [] })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      await updateCourses('teacher', 'teacher-1')
+
+      // Vérifier que les bonnes méthodes ont été appelées
+      expect(mockSupabase.schema).toHaveBeenCalledWith('education')
+      expect(mockSupabase.from).toHaveBeenCalledWith('courses')
+      expect(mockSupabase.select).toHaveBeenCalled()
+      expect(mockSupabase.eq).toHaveBeenCalledWith('is_active', true)
+      expect(mockSupabase.eq).toHaveBeenCalledWith('courses_teacher.teacher_id', 'teacher-1')
+    })
+
+    it('devrait construire la bonne requête pour student', async () => {
+      const mockSupabase = createMockSupabase({
+        orderData: [
+          { course_sessions_id: 'session-1' },
+          { course_sessions_id: 'session-2' },
+        ],
+      })
+
+      vi.mocked(getSessionServer).mockResolvedValueOnce({
+        supabase: mockSupabase as any,
+        user: createMockAuthUser(),
+      })
+
+      await updateCourses('student', 'student-1')
+
+      // Vérifier que les bonnes méthodes ont été appelées
+      expect(mockSupabase.schema).toHaveBeenCalledWith('education')
+      expect(mockSupabase.from).toHaveBeenCalledWith('courses_sessions_students')
+      expect(mockSupabase.select).toHaveBeenCalledWith('course_sessions_id')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('student_id', 'student-1')
     })
   })
 })
