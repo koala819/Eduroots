@@ -48,7 +48,7 @@ export interface FamilyAllStudentsData {
 }
 
 // Fonction pour récupérer les données d'un étudiant spécifique
-async function getStudentDetailedData(
+export async function getStudentDetailedData(
   student: User & { role: UserRoleEnum.Student },
 ): Promise<FamilyStudentData> {
   const [attendanceResponse, gradesResponse] = await Promise.all([
@@ -74,51 +74,71 @@ async function getStudentDetailedData(
 
     const courseResponse = await getCourseSessionById(sessionId)
     if (courseResponse?.success && courseResponse.data) {
-      courseData = courseResponse.data as CourseWithRelations
+      // Restructurer les données pour correspondre à l'attendu
+      const sessionData = courseResponse.data
+      courseData = {
+        ...sessionData,
+        // Créer un tableau courses_sessions avec la session actuelle
+        courses_sessions: [{
+          ...sessionData,
+          courses_sessions_timeslot: sessionData.courses_sessions_timeslot || [],
+        }],
+      } as CourseWithRelations
 
       // Récupérer les données du professeur
-      if (courseData?.courses_teacher) {
-        const teacherId = Array.isArray(courseData.courses_teacher)
-          ? courseData.courses_teacher[0]
-          : courseData.courses_teacher
+      if (sessionData.courses?.id) {
+        // Récupérer le professeur via la relation courses_teacher
+        const { data: teacherRelation, error: teacherRelationError } = await supabase
+          .schema('education')
+          .from('courses_teacher')
+          .select('teacher_id')
+          .eq('course_id', sessionData.courses.id)
+          .limit(1)
 
-        const teacherResponse = await getOneTeacher(teacherId.users.id)
-        if (teacherResponse?.success && teacherResponse.data) {
-          teacherData = {
-            ...teacherResponse.data,
-            role: UserRoleEnum.Teacher,
-            auth_id_email: null,
-            auth_id_gmail: null,
-            parent2_auth_id_email: null,
-            parent2_auth_id_gmail: null,
-            secondary_email: null,
-            is_active: true,
-            deleted_at: null,
-            date_of_birth: null,
-            gender: null,
-            type: null,
-            subjects: null,
-            school_year: null,
-            stats_model: null,
-            student_stats_id: null,
-            teacher_stats_id: null,
-            phone: null,
-            created_at: null,
-            updated_at: null,
-            has_invalid_email: false,
+        if (!teacherRelationError && teacherRelation && teacherRelation.length > 0) {
+          const teacherId = teacherRelation[0].teacher_id
+
+          const teacherResponse = await getOneTeacher(teacherId)
+
+          if (teacherResponse?.success && teacherResponse.data) {
+            teacherData = {
+              ...teacherResponse.data,
+              role: UserRoleEnum.Teacher,
+              auth_id_email: null,
+              auth_id_gmail: null,
+              parent2_auth_id_email: null,
+              parent2_auth_id_gmail: null,
+              secondary_email: null,
+              is_active: true,
+              deleted_at: null,
+              date_of_birth: null,
+              gender: null,
+              type: null,
+              subjects: null,
+              school_year: null,
+              stats_model: null,
+              student_stats_id: null,
+              teacher_stats_id: null,
+              phone: null,
+              created_at: null,
+              updated_at: null,
+              has_invalid_email: false,
+            }
           }
         }
       }
     }
   }
 
-  return {
+  const result = {
     student,
     attendance: attendanceResponse?.success ? attendanceResponse.data : null,
     grades: gradesResponse?.success ? gradesResponse.data : null,
     course: courseData,
     teacher: teacherData,
   }
+
+  return result
 }
 
 export async function getFamilyDashboardData(

@@ -1,28 +1,22 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect,useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
 import ChildStats from '@/client/components/molecules/StudentStats'
+import { getStudentDetailedData } from '@/server/actions/api/family'
 import { FamilyStudentData } from '@/server/actions/api/family'
 import { SubjectNameEnum } from '@/types/courses'
-import { User } from '@/types/db'
 import { UserRoleEnum } from '@/types/user'
-import StudentSelector from '@/zUnused/StudentSelector'
 
-interface FamilyDashboardProps {
-  familyStudents: Array<User & { role: UserRoleEnum.Student }>
-  selectedStudentData: FamilyStudentData | null
-  selectedStudentId?: string
-}
-
-export function FamilyDashboard({
-  familyStudents,
-  selectedStudentData,
-  selectedStudentId,
-}: FamilyDashboardProps) {
+export function FamilyDashboard() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [selectedStudentData, setSelectedStudentData] = useState<FamilyStudentData | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const selectedStudentId = searchParams.get('student')
 
   const handleSelectStudent = (studentId: string) => {
     const params = new URLSearchParams(searchParams)
@@ -42,7 +36,37 @@ export function FamilyDashboard({
     return () => {
       window.removeEventListener('headerFamilyStudentChanged', handleHeaderStudentChange)
     }
-  }, [searchParams]) // Dépendance à searchParams pour avoir la version la plus récente
+  }, [searchParams])
+
+  // Charger les données de l'étudiant sélectionné
+  useEffect(() => {
+    const loadStudentData = async () => {
+      if (!selectedStudentId) {
+        setSelectedStudentData(null)
+        return
+      }
+
+      setIsLoading(true)
+      try {
+        // Créer un objet étudiant minimal avec l'ID
+        const student = {
+          id: selectedStudentId,
+          role: UserRoleEnum.Student,
+        } as any
+
+        // Récupérer directement les données détaillées de l'étudiant
+        const studentData = await getStudentDetailedData(student)
+        setSelectedStudentData(studentData)
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error)
+        setSelectedStudentData(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadStudentData()
+  }, [selectedStudentId])
 
   const subjectGradesData = useMemo(() => {
     if (!selectedStudentData?.grades?.bySubject) return []
@@ -82,37 +106,32 @@ export function FamilyDashboard({
     }
   }, [selectedStudentData?.grades])
 
-  return (
-    <>
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold text-slate-500 mb-3">Choisir un enfant</h2>
-        <StudentSelector
-          familyStudents={familyStudents}
-          selectedChildId={selectedStudentId}
-          onSelectStudent={handleSelectStudent}
-        />
-      </section>
+  if (!isLoading && !selectedStudentId) {
+    return <ErrorContent message='Aucun enfant sélectionné' />
+  }
 
-      {selectedStudentData && (
-        <ChildStats
-          detailedGrades={detailedGrades}
-          detailedAttendance={{
-            absencesCount: selectedStudentData.attendance?.totalAbsences ?? 0,
-            attendanceRate: selectedStudentData.attendance?.attendanceRate ?? 0,
-          }}
-          detailedCourse={{
-            sessions: selectedStudentData.course?.courses_sessions?.map((session) => ({
-              ...session,
-              timeSlot: session.courses_sessions_timeslot?.[0],
-            })) ?? [],
-          }}
-          detailedTeacher={{
-            firstname: selectedStudentData.teacher?.firstname ?? '',
-            lastname: selectedStudentData.teacher?.lastname ?? '',
-          }}
-          subjectGradesData={subjectGradesData}
-        />
-      )}
-    </>
+  if (isLoading || !selectedStudentData) {
+    return <LoadingContent />
+  }
+
+  return (
+    <ChildStats
+      detailedGrades={detailedGrades}
+      detailedAttendance={{
+        absencesCount: selectedStudentData.attendance?.totalAbsences ?? 0,
+        attendanceRate: selectedStudentData.attendance?.attendanceRate ?? 0,
+      }}
+      detailedCourse={{
+        sessions: selectedStudentData.course?.courses_sessions?.map((session) => ({
+          ...session,
+          timeSlot: session.courses_sessions_timeslot?.[0],
+        })) ?? [],
+      }}
+      detailedTeacher={{
+        firstname: selectedStudentData.teacher?.firstname ?? '',
+        lastname: selectedStudentData.teacher?.lastname ?? '',
+      }}
+      subjectGradesData={subjectGradesData}
+    />
   )
 }
