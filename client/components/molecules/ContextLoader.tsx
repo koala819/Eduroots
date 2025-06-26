@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import { LoadingContent } from '@/client/components/atoms/StatusContent'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { useAttendances } from '@/client/context/attendances'
 import { useBehavior } from '@/client/context/behaviors'
 import { useCourses } from '@/client/context/courses'
@@ -68,8 +68,6 @@ export default function GlobalLoadingIndicator() {
   if (!isAnyLoading) return null
 
   return (
-    <LoadingContent
-
-    />
+    <LoadingScreen />
   )
 }

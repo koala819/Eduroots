@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { LoadingContent } from '@/client/components/atoms/StatusContent'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import MobileNav from '@/client/components/pages/MobileNav'
 import SidebarMenu from '@/client/components/pages/Sidebar'
 
@@ -46,7 +46,7 @@ export function CustomLayout({
     <div className="flex min-h-screen bg-background">
       {/* Loading Overlay */}
       {isNavigating && (
-        <LoadingContent  />
+        <LoadingScreen />
       )}
 
       <div className="hidden md:block sticky top-0 h-screen">

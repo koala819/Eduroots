@@ -10,7 +10,7 @@ import {
 import { useState } from 'react'
 
 import ActionCard from '@/client/components/atoms/ActionCard'
-import { LoadingContent } from '@/client/components/atoms/StatusContent'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 
 // Simulation des données - dans votre vraie app, ces données viendraient de votre API
 // const mockStats = {
@@ -138,7 +138,7 @@ export default function TeacherWelcome({ user }: TeacherWelcomeProps) {
 
   if (isLoading) {
     return (
-      <LoadingContent />
+      <LoadingScreen />
     )
   }
 

@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 
-import { LoadingContent } from '@/client/components/atoms/StatusContent'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { useAuth } from '@/client/hooks/use-auth'
 
 
@@ -13,7 +13,7 @@ interface AuthenticatedContentProps {
 
 export function AuthenticatedContent({
   children,
-  fallback = <LoadingContent />,
+  fallback = <LoadingScreen />,
 }: Readonly<AuthenticatedContentProps>) {
   const { session, isLoading } = useAuth()
 
