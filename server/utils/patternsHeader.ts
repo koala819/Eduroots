@@ -27,9 +27,37 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Accueil',
     },
   },
-  '/admin/highRiskAbsenceStudents': {
+  '/admin/highRisk': {
     title: 'Étudiants à risque',
     subtitle: 'Suivi des absences critiques',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/admin/root/logs': {
+    title: 'Logs',
+    subtitle: 'Gestion des logs',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/admin/schedule': {
+    title: 'Planning',
+    subtitle: 'Gestion du planning',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/admin/root/student/new': {
+    title: 'Nouvel élève',
+    subtitle: 'Créer un nouvel élève',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
+  '/admin/root/teacher/new': {
+    title: 'Nouveau prof',
+    subtitle: 'Créer un nouveau prof',
     backButton: {
       name: 'Accueil',
     },

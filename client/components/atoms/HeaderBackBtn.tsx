@@ -62,9 +62,10 @@ export const HeaderBackBtn = () => {
         whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
         whileTap={{ scale: 0.95 }}
         onClick={() => router.push(getFallbackUrl())}
-        className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
-          hover:bg-primary-foreground/15 transition-all duration-200 border
-          border-primary-foreground/20 flex-shrink-0"
+        className="group flex items-center gap-2 px-4 py-2 rounded-xl
+        bg-primary-foreground/10
+        hover:bg-primary-foreground/15 transition-all duration-200 border
+        border-primary-foreground/20 flex-shrink-0"
       >
         <ArrowLeft className="w-4 h-4 text-primary-foreground
           group-hover:text-primary-foreground transition-colors" />
@@ -79,6 +80,13 @@ export const HeaderBackBtn = () => {
   // Fonction pour déterminer l'URL de retour
   const getBackUrl = () => {
     const segments = pathname.split('/').filter(Boolean)
+
+    // CAS spécial: Routes admin - nouveau étudiant
+    if (pathname === '/admin/root/student/new' ||
+      pathname === '/admin/root/teacher/new' ||
+      pathname === '/admin/root/logs') {
+      return '/admin'
+    }
 
     // CAS spécial: Routes familiales
     if (segments[0] === 'family') {
@@ -128,7 +136,8 @@ export const HeaderBackBtn = () => {
       whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
       whileTap={{ scale: 0.95 }}
       onClick={() => router.push(backUrl)}
-      className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-foreground/10
+      className="group flex items-center gap-2 px-4 py-2 rounded-xl
+      bg-primary-foreground/10 hover:cursor-pointer
         hover:bg-primary-foreground/15 transition-all duration-200 border
         border-primary-foreground/20 flex-shrink-0"
     >

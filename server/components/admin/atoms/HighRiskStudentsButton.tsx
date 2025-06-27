@@ -5,7 +5,7 @@ import {
 export const HighRiskStudentsButton = ({ className }: {className?: string}) => {
   // Définir l'URL au niveau du serveur
   const baseUrl = process.env.NEXT_PUBLIC_CLIENT_URL ?? ''
-  const targetUrl = `${baseUrl}/admin/highRiskAbsenceStudents`
+  const targetUrl = `${baseUrl}/admin/highRisk`
 
   return <HighRiskStudentsButtonClient className={className} targetUrl={targetUrl} />
 }
