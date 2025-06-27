@@ -14,7 +14,6 @@ import {
 import { useRouter } from 'next/navigation'
 import { useMemo,useState } from 'react'
 
-import { Avatar, AvatarFallback } from '@/client/components/ui/avatar'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -33,7 +32,7 @@ import {
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
 
-interface PeopleViewProps {
+interface MembersViewProps {
   students: StudentResponse[]
   teachers: TeacherResponse[]
 }
@@ -45,10 +44,10 @@ type Person = (StudentResponse | TeacherResponse) & {
   status: 'active' | 'inactive'
 }
 
-export function PeopleView({
+export function MembersView({
   students,
   teachers,
-}: Readonly<PeopleViewProps>) {
+}: Readonly<MembersViewProps>) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'student' | 'teacher'>('all')
@@ -95,6 +94,14 @@ export function PeopleView({
     inactive: allPeople.filter((p) => p.status === 'inactive').length,
   }), [allPeople, students, teachers])
 
+  const statsTotal = {
+    total: stats.total,
+    students: stats.students,
+    teachers: stats.teachers,
+    active: stats.active,
+    inactive: stats.inactive,
+  }
+
   return (
     <div className="bg-background p-3 md:p-4 lg:p-6 pb-8 sm:pb-0">
       <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
@@ -139,105 +146,79 @@ export function PeopleView({
           </div>
         </div>
 
-        {/* Statistiques rapides */}
+        {/* Statistiques */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl
-          border border-primary/20 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-primary">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Total</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-purple/10 to-purple/5 rounded-2xl border
-          border-purple/20 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-purple">{stats.students}</p>
-              <p className="text-sm text-muted-foreground">Élèves</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl
-          border border-secondary/20 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-secondary">{stats.teachers}</p>
-              <p className="text-sm text-muted-foreground">Professeurs</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-success/10 to-success/5 rounded-2xl
-           border border-success/20 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-success">{stats.active}</p>
-              <p className="text-sm text-muted-foreground">Actifs</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-2xl
-          border border-warning/20 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-warning">{stats.inactive}</p>
-              <p className="text-sm text-muted-foreground">Inactifs</p>
-            </CardContent>
-          </Card>
+          { Object.entries(statsTotal).map(([key, value]) => (
+            <Card key={key} className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl
+            border border-primary/20">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-primary">{value}</p>
+                <p className="text-sm text-muted-foreground">{key}</p>
+              </CardContent>
+            </Card>
+          )) }
         </div>
 
         {/* Filtres et recherche */}
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border
-        border-border/50 shadow-sm">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2
+        <Card className=" rounded-2xl border border-border/50 shadow-sm">
+          <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row gap-4
+          justify-between">
+            <aside className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2
                 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher par nom ou email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <Input
+                placeholder="Rechercher par nom ou email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </aside>
 
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      {roleFilter === 'all' ? 'Tous les rôles' :
-                        roleFilter === 'student' ? 'Élèves' : 'Professeurs'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setRoleFilter('all')}>
+            <aside className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    {roleFilter === 'all' ? 'Tous les rôles' :
+                      roleFilter === 'student' ? 'Élèves' : 'Professeurs'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white/80 backdrop-blur-sm">
+                  <DropdownMenuItem onClick={() => setRoleFilter('all')}>
                       Tous les rôles
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setRoleFilter('student')}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setRoleFilter('student')}>
                       Élèves
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setRoleFilter('teacher')}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setRoleFilter('teacher')}>
                       Professeurs
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      {statusFilter === 'all' ? 'Tous les statuts' :
-                        statusFilter === 'active' ? 'Actifs' : 'Inactifs'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default" className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    {statusFilter === 'all' ? 'Tous les statuts' :
+                      statusFilter === 'active' ? 'Actifs' : 'Inactifs'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white/80 backdrop-blur-sm">
+                  <DropdownMenuItem onClick={() => setStatusFilter('all')}>
                       Tous les statuts
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter('active')}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('active')}>
                       Actifs
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter('inactive')}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('inactive')}>
                       Inactifs
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </aside>
           </CardContent>
         </Card>
 
@@ -252,15 +233,6 @@ export function PeopleView({
                   border-border/50 hover:border-primary/30 hover:shadow-md
                   transition-all duration-300">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarFallback className={
-                        person.type === 'student'
-                          ? 'bg-purple/10 text-purple'
-                          : 'bg-secondary/10 text-secondary'
-                      }>
-                        {person.firstname[0]}{person.lastname[0]}
-                      </AvatarFallback>
-                    </Avatar>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-medium text-foreground truncate">

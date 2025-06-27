@@ -13,10 +13,10 @@ const navItems = [
     pathPattern: '^/admin$',
   },
   {
-    href: '/admin/people',
-    label: 'Personnel',
+    href: '/admin/members',
+    label: 'Membres',
     Icon: 'Users',
-    pathPattern: '^/admin/people$',
+    pathPattern: '^/admin/members$',
   },
   {
     href: '/admin/schedule',

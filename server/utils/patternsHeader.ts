@@ -34,8 +34,8 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Accueil',
     },
   },
-  '/admin/people': {
-    title: 'Personnel',
+  '/admin/members': {
+    title: 'Membres',
     subtitle: 'Gestion des membres',
     backButton: {
       name: 'Accueil',
