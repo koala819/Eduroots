@@ -22,7 +22,6 @@ import {
 import { useRouter } from 'next/navigation'
 import { useEffect,useState } from 'react'
 
-import { UserListDialog } from '@/client/components/admin/atoms/UserListDialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
@@ -38,6 +37,7 @@ import { createClient } from '@/client/utils/supabase'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
 import { UserRoleEnum } from '@/types/user'
+import { UserListDialog } from '@/zUnused/@oldEditStudentsTeachers/UserListDialog'
 
 type EntityType = UserRoleEnum.Student | UserRoleEnum.Teacher
 

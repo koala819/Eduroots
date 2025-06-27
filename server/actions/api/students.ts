@@ -182,7 +182,8 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Stud
         date_of_birth,
         secondary_email,
         phone,
-        school_year
+        school_year,
+        is_active
       `)
       .eq('is_active', true)
       .eq('role', 'student')
@@ -297,7 +298,8 @@ export async function getTeachersForStudent(
         date_of_birth,
         secondary_email,
         phone,
-        school_year
+        school_year,
+        is_active
       `)
       .eq('id', studentId)
       .single()
@@ -363,7 +365,8 @@ export async function updateStudent(
         date_of_birth,
         secondary_email,
         phone,
-        school_year
+        school_year,
+        is_active
       `)
       .single()
 
@@ -377,6 +380,8 @@ export async function updateStudent(
 
     revalidatePath('/family')
     revalidatePath(`/family/${studentId}`)
+    revalidatePath('/admin/members')
+    revalidatePath(`/admin/members/student/edit/${studentId}`)
 
     return {
       success: true,

@@ -87,7 +87,17 @@ export const HeaderBackBtn = () => {
     }
 
     if (pathname === '/admin/members/student/create' ||
-      pathname === '/admin/members/teacher/create') {
+      pathname === '/admin/members/teacher/create' ||
+      pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+$/)) {
+      return '/admin/members'
+    }
+
+    if (pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+\/personal$/)) {
+      const match = pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/([^/]+)\/personal$/)
+      if (match) {
+        const [, type, id] = match
+        return `/admin/members/${type}/edit/${id}`
+      }
       return '/admin/members'
     }
 

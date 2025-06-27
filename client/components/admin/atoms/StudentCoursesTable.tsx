@@ -2,7 +2,6 @@
 
 import { CalendarDays, GraduationCap, Users } from 'lucide-react'
 
-import { Badge } from '@/client/components/ui/badge'
 import {
   Card,
   CardContent,
@@ -39,6 +38,25 @@ interface CoursesTableProps {
   formatDayOfWeek: (dayOfWeek: TimeSlotEnum) => string
 }
 
+// Fonction pour formater les horaires sans les secondes
+const formatTime = (time: string): string => {
+  if (!time) return 'N/A'
+  // Si le format est HH:MM:SS, on garde seulement HH:MM
+  return time.split(':').slice(0, 2).join(':')
+}
+
+// Fonction pour obtenir les couleurs des matières sans bordures arrondies
+const getSubjectColors = (subject: string): string => {
+  switch (subject) {
+  case 'Arabe':
+    return 'bg-primary-accent/10 text-primary-accent border-l-4 border-primary-accent'
+  case 'Education Culturelle':
+    return 'bg-accent/10 text-accent border-l-4 border-accent'
+  default:
+    return 'bg-muted/10 text-muted-foreground border-l-4 border-muted'
+  }
+}
+
 export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTableProps>) {
   return (
     <Card className="w-full">
@@ -68,13 +86,14 @@ export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTabl
                   {formatDayOfWeek(session.timeSlot.day_of_week as TimeSlotEnum)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {session.timeSlot.startTime} - {session.timeSlot.endTime}
+                  {formatTime(session.timeSlot.startTime)} - {formatTime(session.timeSlot.endTime)}
                 </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <GraduationCap className="h-4 w-4" />
-                    {session.subject}
-                  </Badge>
+                <TableCell className="min-w-[160px]">
+                  <div className={`flex items-center gap-2 px-3 py-2
+                    ${getSubjectColors(session.subject)}`}>
+                    <GraduationCap className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium">{session.subject}</span>
+                  </div>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">{session.level}</TableCell>
                 <TableCell className="whitespace-nowrap">

@@ -20,11 +20,12 @@ import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 import { RadioGroup, RadioGroupItem } from '@/client/components/ui/radio-group'
-import { useStudents } from '@/client/context/students'
 import { useToast } from '@/client/hooks/use-toast'
+import { updateStudentAdminAction } from '@/server/actions/admin/update-student-admin'
+import { StudentResponse } from '@/types/student-payload'
 import { GenderEnum } from '@/types/user'
 
-const adminSchema = z.object({
+const personalDataSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastname: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   parentEmail1: z.string().email('Email invalide').optional().default('user@mail.fr'),
@@ -35,77 +36,93 @@ const adminSchema = z.object({
   dateOfBirth: z.string().optional(),
 })
 
-type AdminFormData = z.infer<typeof adminSchema>
+type AdminFormData = z.infer<typeof personalDataSchema>
 
-export const EditAdminStudent = ({ id }: {id: string}) => {
-  const [isLoading, setIsLoading] = useState(true)
-  const { getOneStudent, updateStudent } = useStudents()
+interface EditPersonalDataProps {
+  studentData: StudentResponse
+}
+
+export const EditPersonalData = ({ studentData }: EditPersonalDataProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
+  // Initialiser le formulaire avec des valeurs par défaut pour éviter les inputs non contrôlés
+  const defaultValues = {
+    firstname: studentData.firstname || '',
+    lastname: studentData.lastname || '',
+    parentEmail1: studentData.email || '',
+    parentEmail2: studentData.secondary_email || '',
+    gender: (studentData.gender as GenderEnum) || GenderEnum.Masculin,
+    dateOfBirth: studentData.date_of_birth
+      ? new Date(studentData.date_of_birth).toISOString().split('T')[0]
+      : '',
+  }
+
   const form = useForm<AdminFormData>({
-    resolver: zodResolver(adminSchema),
+    resolver: zodResolver(personalDataSchema),
+    defaultValues,
   })
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const student = await getOneStudent(id)
-        if (student) {
-          const formattedDate = student.date_of_birth
-            ? new Date(student.date_of_birth).toISOString().split('T')[0]
-            : ''
+    // Mettre à jour le formulaire si les données changent
+    const formattedDate = studentData.date_of_birth
+      ? new Date(studentData.date_of_birth).toISOString().split('T')[0]
+      : ''
 
-          form.reset({
-            firstname: student.firstname,
-            lastname: student.lastname,
-            parentEmail1: student.email,
-            parentEmail2: student.secondary_email ?? '',
-            gender: student.gender as GenderEnum || GenderEnum.Masculin,
-            dateOfBirth: formattedDate,
-          })
-        }
-      } catch (error) {
-        console.error(error)
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de charger les données de l\'étudiant',
-          variant: 'destructive',
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadData()
-  }, [id])
+    form.reset({
+      firstname: studentData.firstname || '',
+      lastname: studentData.lastname || '',
+      parentEmail1: studentData.email || '',
+      parentEmail2: studentData.secondary_email || '',
+      gender: (studentData.gender as GenderEnum) || GenderEnum.Masculin,
+      dateOfBirth: formattedDate,
+    })
+  }, [studentData, form])
 
   const handleSubmit = async (data: AdminFormData) => {
+    setIsSubmitting(true)
+
     try {
-      const studentData = {
+      const result = await updateStudentAdminAction({
+        studentId: studentData.id,
         firstname: data.firstname,
         lastname: data.lastname,
         email: data.parentEmail1,
         secondaryEmail: data.parentEmail2,
         gender: data.gender,
         dateOfBirth: data.dateOfBirth,
-      }
-      await updateStudent(id, studentData)
-      toast({
-        title: 'Succès',
-        description: 'Informations mises à jour',
-        variant: 'success',
       })
-      router.push(`/admin/root/student/edit/${id}`)
+
+      if (result.success) {
+        toast({
+          title: 'Succès',
+          description: result.message || 'Informations mises à jour',
+          variant: 'success',
+        })
+        router.push(`/admin/members/student/edit/${studentData.id}`)
+      } else {
+        toast({
+          title: 'Erreur',
+          description: result.message || 'Erreur lors de la mise à jour',
+          variant: 'destructive',
+        })
+      }
     } catch (error) {
+      console.error('Erreur lors de la soumission:', error)
       toast({
         title: 'Erreur',
-        description: `Erreur lors de la mise à jour: ${error}`,
+        description: 'Erreur lors de la mise à jour des informations',
         variant: 'destructive',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  if (isLoading) return <LoadingSpinner text="Chargement..." />
+  if (isSubmitting) {
+    return <LoadingSpinner text="Mise à jour en cours..." />
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -230,11 +247,14 @@ export const EditAdminStudent = ({ id }: {id: string}) => {
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => router.push(`/admin/root/student/edit/${id}`)}
+                  onClick={() => router.push(`/admin/members/student/edit/${studentData.id}`)}
+                  disabled={isSubmitting}
                 >
                   Annuler
                 </Button>
-                <Button type="submit">Enregistrer</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                </Button>
               </div>
             </form>
           </Form>
