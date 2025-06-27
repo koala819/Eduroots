@@ -81,11 +81,14 @@ export const HeaderBackBtn = () => {
   const getBackUrl = () => {
     const segments = pathname.split('/').filter(Boolean)
 
-    // CAS spécial: Routes admin - nouveau étudiant
-    if (pathname === '/admin/root/student/new' ||
-      pathname === '/admin/root/teacher/new' ||
-      pathname === '/admin/root/logs') {
+    // CAS spécial: Routes admin
+    if (pathname === '/admin/root/logs') {
       return '/admin'
+    }
+
+    if (pathname === '/admin/members/student/create' ||
+      pathname === '/admin/members/teacher/create') {
+      return '/admin/members'
     }
 
     // CAS spécial: Routes familiales

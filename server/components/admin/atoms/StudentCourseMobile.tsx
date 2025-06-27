@@ -3,12 +3,21 @@ import { GraduationCap } from 'lucide-react'
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { formatDayOfWeek } from '@/server/utils/helpers'
-import { CourseSessionWithRelations } from '@/types/courses'
 import { Teacher } from '@/zUnused/types/user'
 
 interface StudentCourseMobileProps {
   sessions: Array<{
-    session: CourseSessionWithRelations
+    session: {
+      id: string
+      subject: string
+      level: string
+      timeSlot: {
+        day_of_week: string
+        startTime: string
+        endTime: string
+        classroom_number?: string
+      }
+    }
     teacher: Teacher
   }>
 }
@@ -22,11 +31,10 @@ export const StudentCourseMobile = ({ sessions }: StudentCourseMobileProps) => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="font-medium">
-                  {formatDayOfWeek(session.courses_sessions_timeslot[0].day_of_week)}
+                  {formatDayOfWeek(session.timeSlot.day_of_week)}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {session.courses_sessions_timeslot[0].start_time} -
-                  {session.courses_sessions_timeslot[0].end_time}
+                  {session.timeSlot.startTime} - {session.timeSlot.endTime}
                 </span>
               </div>
 
@@ -59,10 +67,12 @@ export const StudentCourseMobile = ({ sessions }: StudentCourseMobileProps) => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Salle:</span>
-                  <span>{session.courses_sessions_timeslot[0].classroom_number}</span>
-                </div>
+                {session.timeSlot.classroom_number && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Salle:</span>
+                    <span>{session.timeSlot.classroom_number}</span>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

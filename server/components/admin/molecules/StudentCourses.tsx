@@ -1,10 +1,5 @@
-import { AlertCircle } from 'lucide-react'
-
-import { CoursesTable } from '@/client/components/admin/atoms/StudentCoursesTable'
-import { Alert, AlertDescription } from '@/client/components/ui/alert'
+import { StudentCoursesClient } from '@/client/components/admin/molecules/StudentCoursesClient'
 import { getStudentCourses } from '@/server/actions/api/courses'
-import { StudentCourseMobile } from '@/server/components/admin/atoms/StudentCourseMobile'
-import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 
 export async function StudentCourses({
@@ -14,24 +9,59 @@ export async function StudentCourses({
     const response = await getStudentCourses(studentId)
 
     if (!response.success || !response.data) {
-      return (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {response.message || 'Aucun cours trouvé pour cet étudiant.'}
-          </AlertDescription>
-        </Alert>
-      )
+      return {
+        success: false,
+        message: response.message || 'Aucun cours trouvé pour cet étudiant.',
+        data: null,
+      }
     }
 
     const courses = response.data as any[]
 
+    // Transformer les enrollments en structure attendue
+    const transformedCourses = courses.map((enrollment) => {
+      const session = enrollment.courses_sessions
+      const course = session.courses
+      const teacher = course.courses_teacher?.[0]?.users
+
+      return {
+        id: course.id,
+        teacher: teacher || {},
+        sessions: [{
+          id: session.id,
+          subject: session.subject,
+          level: session.level,
+          timeSlot: {
+            day_of_week: session.courses_sessions_timeslot?.[0]?.day_of_week,
+            startTime: session.courses_sessions_timeslot?.[0]?.start_time,
+            endTime: session.courses_sessions_timeslot?.[0]?.end_time,
+          },
+          students: [{
+            _id: enrollment.student_id,
+            // Ajouter d'autres propriétés si nécessaire
+          }],
+        }],
+      }
+    })
+
     // Traitement similaire à celui de votre code original
-    const filteredCourses = courses
+    const filteredCourses = transformedCourses
       .map((course) => {
-        const filteredSessions = course.sessions.filter((session: any) =>
-          session.students.some((student: any) => student._id === studentId),
-        )
+        // Vérifier que course.sessions existe avant de filtrer
+        if (!course.sessions || !Array.isArray(course.sessions)) {
+          return {
+            ...course,
+            sessions: [],
+          }
+        }
+
+        const filteredSessions = course.sessions.filter((session: any) => {
+          // Vérifier que session.students existe et est un tableau
+          if (!session.students || !Array.isArray(session.students)) {
+            return false
+          }
+          return session.students.some((student: any) => student._id === studentId)
+        })
         return {
           ...course,
           sessions: filteredSessions,
@@ -67,35 +97,25 @@ export async function StudentCourses({
       return getMinutes(a.session.timeSlot.startTime) - getMinutes(b.session.timeSlot.startTime)
     })
 
-    if (sortedStudentSessions.length === 0) {
-      return (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Aucun cours trouvé pour cet étudiant.</AlertDescription>
-        </Alert>
-      )
+    return {
+      success: true,
+      data: sortedStudentSessions,
+      message: 'Cours récupérés avec succès',
     }
-
-    return (
-      <>
-        {/* Version mobile */}
-        <div className="block md:hidden">
-          <StudentCourseMobile sessions={sortedStudentSessions} />
-        </div>
-
-        {/* Version desktop */}
-        <div className="hidden md:block overflow-x-auto">
-          <CoursesTable sessions={sortedStudentSessions} formatDayOfWeek={formatDayOfWeek} />
-        </div>
-      </>
-    )
   } catch (error) {
     console.error('Error in CourseDataLoader:', error)
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Erreur lors de la récupération des cours</AlertDescription>
-      </Alert>
-    )
+    return {
+      success: false,
+      message: 'Erreur lors de la récupération des cours',
+      data: null,
+    }
   }
+}
+
+// Composant serveur qui utilise le client
+export async function StudentCoursesWrapper({
+  studentId,
+}: Readonly<{ studentId: string }>) {
+  const result = await StudentCourses({ studentId })
+  return <StudentCoursesClient result={result} />
 }

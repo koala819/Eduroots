@@ -95,9 +95,9 @@ export const UserListDialog = ({
                 onBack={() => onSelectEntity(null)}
                 onEdit={() => {
                   router.push(
-                    `/${type === UserRoleEnum.Student ? 'students' : 'teachers'}/${
+                    `/admin/members/${type === UserRoleEnum.Student ? 'student' : 'teacher'}/edit/${
                       selectedEntity.id
-                    }/edit`,
+                    }`,
                   )
                 }}
               />
@@ -127,11 +127,10 @@ export const UserListDialog = ({
                               size="icon"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                router.push(
-                                  `/${type === UserRoleEnum.Student ? 'students' : 'teachers'}/${
-                                    person.id
-                                  }/edit`,
-                                )
+                                const typePath = type === UserRoleEnum.Student ? 'student' : 'teacher'
+                                const basePath = `/admin/members/${typePath}/edit`
+                                const fullPath = `${basePath}/${person.id}`
+                                router.push(fullPath)
                               }}
                             >
                               <Pencil className="h-4 w-4" />

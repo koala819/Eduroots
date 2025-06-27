@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { StudentCoursesClient } from '@/client/components/admin/molecules/StudentCoursesClient'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 import { useStudents } from '@/client/context/students'
 import { useTeachers } from '@/client/context/teachers'
-import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
 import { AdminInfoDisplay } from '@/server/components/root/StudentAdministratiView'
 
 export const StudentManagementView = ({ id }: {id: string}) => {
@@ -66,7 +66,7 @@ export const StudentManagementView = ({ id }: {id: string}) => {
       <Button className="w-full mb-8" onClick={handleEditAdmin}>
         Modifier
       </Button>
-      <StudentCourses studentId={id} />
+      <StudentCoursesClient studentId={id} />
       <Button className="w-full mb-8" onClick={handleEditCourse}>
         Modifier
       </Button>

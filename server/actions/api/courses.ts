@@ -424,6 +424,12 @@ export async function getStudentCourses(
         *,
         courses_sessions (
           *,
+          courses_sessions_timeslot (
+            day_of_week,
+            start_time,
+            end_time,
+            classroom_number
+          ),
           courses (
             *,
             courses_teacher (

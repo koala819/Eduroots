@@ -18,12 +18,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
-import { CourseSessionWithRelations,TimeSlotEnum } from '@/types/courses'
+import { TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface CoursesTableProps {
   sessions: Array<{
-    session: CourseSessionWithRelations
+    session: {
+      id: string
+      subject: string
+      level: string
+      timeSlot: {
+        day_of_week: string
+        startTime: string
+        endTime: string
+        classroom_number?: string
+      }
+    }
     teacher: TeacherResponse
   }>
   formatDayOfWeek: (dayOfWeek: TimeSlotEnum) => string
@@ -55,11 +65,10 @@ export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTabl
             {sessions.map(({ session, teacher }, index) => (
               <TableRow key={`session-${index}`}>
                 <TableCell className="font-medium whitespace-nowrap">
-                  {formatDayOfWeek(session.courses_sessions_timeslot[0].day_of_week)}
+                  {formatDayOfWeek(session.timeSlot.day_of_week as TimeSlotEnum)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {session.courses_sessions_timeslot[0].start_time} -
-                  {session.courses_sessions_timeslot[0].end_time}
+                  {session.timeSlot.startTime} - {session.timeSlot.endTime}
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="flex items-center gap-1">
@@ -85,7 +94,7 @@ export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTabl
                   </div>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {session.courses_sessions_timeslot[0].classroom_number ?? 'N/A'}
+                  {session.timeSlot.classroom_number ?? 'N/A'}
                 </TableCell>
               </TableRow>
             ))}

@@ -3,12 +3,11 @@
 import {
   BookOpen,
   Edit,
-  Eye,  Filter,
+  Filter,
   GraduationCap,
   Mail,
   Phone,
   Search,
-  TrendingUp,
   UserPlus,
   Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -106,44 +105,27 @@ export function MembersView({
     <div className="bg-background p-3 md:p-4 lg:p-6 pb-8 sm:pb-0">
       <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
 
-        {/* Actions rapides */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 border
-        border-border/50 shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start
-           sm:items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-8 md:w-10 h-8 md:h-10 rounded-full bg-primary/10 flex
-               items-center justify-center">
-                <TrendingUp className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg md:text-xl font-bold text-foreground">Actions rapides</h2>
-                <p className="text-sm text-muted-foreground">Ajouter de nouveaux membres</p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" />
+        {/* Ajouter un membre */}
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
                     Ajouter un membre
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => router.push('/admin/root/student/new')}>
-                    <Users className="h-4 w-4 mr-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-white/80 backdrop-blur-sm">
+              <DropdownMenuItem onClick={() => router.push('/admin/members/student/create')}>
+                <Users className="h-4 w-4 mr-2" />
                     Nouvel élève
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/admin/root/teacher/new')}>
-                    <GraduationCap className="h-4 w-4 mr-2" />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/admin/members/teacher/create')}>
+                <GraduationCap className="h-4 w-4 mr-2" />
                     Nouveau professeur
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Statistiques */}
@@ -292,9 +274,8 @@ export function MembersView({
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              const path = `/admin/root/
-                              ${person.type === 'student' ? 'student' : 'teacher'}/
-                              ${person.id}/edit`
+                              const typePath = person.type === 'student' ? 'student' : 'teacher'
+                              const path = `/admin/members/${typePath}/edit/${person.id}`
                               router.push(path)
                             }}
                             className="hover:bg-primary/10 hover:text-primary"
@@ -304,26 +285,6 @@ export function MembersView({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Modifier</p>
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              const path = `/admin/root/
-                              ${person.type === 'student' ? 'student' : 'teacher'}/${person.id}`
-                              router.push(path)
-                            }}
-                            className="hover:bg-primary/10 hover:text-primary"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Voir détails</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

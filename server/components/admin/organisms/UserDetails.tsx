@@ -8,7 +8,7 @@ import Loading from '@/server/components/admin/atoms/Loading'
 import { StudentAttendanceStats } from '@/server/components/admin/atoms/StudentAttendanceStats'
 import { StudentBehaviorStats } from '@/server/components/admin/atoms/StudentBehaviorStats'
 import { TeacherStats } from '@/server/components/admin/atoms/TeacherStats'
-import { StudentCourses } from '@/server/components/admin/molecules/StudentCourses'
+import { StudentCoursesWrapper } from '@/server/components/admin/molecules/StudentCourses'
 import { StudentResponse } from '@/types/student-payload'
 import { TeacherResponse } from '@/types/teacher-payload'
 import { GenderEnum, UserType } from '@/types/user'
@@ -44,7 +44,7 @@ export const UserDetails = ({
           dateOfBirth={student.date_of_birth ?? undefined}
         />
         <Suspense fallback={<Loading name="cours des étudiants" />}>
-          <StudentCourses studentId={student.id} />
+          <StudentCoursesWrapper studentId={student.id} />
         </Suspense>
         <Suspense fallback={<Loading name="statistiques des absences" />}>
           <StudentAttendanceStats studentId={student.id} />
