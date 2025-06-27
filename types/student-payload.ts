@@ -37,7 +37,8 @@ export type StudentResponse = Pick<User,
   'date_of_birth' |
   'secondary_email' |
   'phone' |
-  'school_year'
+  'school_year' |
+  'is_active'
 >
 
 export type StudentWithTeachersResponse = StudentResponse & {
