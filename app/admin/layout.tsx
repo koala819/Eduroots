@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 
+import LoadingRoute from '@/client/components/atoms/LoadingRoute'
 import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
 import { CustomLayout } from '@/client/components/pages/CustomLayout'
 import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
@@ -66,6 +67,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
           familyStudents={[]}
           isAdmin={isAdmin}
         />
+        <LoadingRoute />
         {children}
       </CustomLayout>
     </GlobalServerProvider>
