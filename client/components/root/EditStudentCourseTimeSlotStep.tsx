@@ -1,28 +1,51 @@
 import { ChevronRight } from 'lucide-react'
+import { UseFormReturn } from 'react-hook-form'
 
 import { Button } from '@/client/components/ui/button'
 import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'
-import { TimeSlotEnum } from '@/types/courses'
+import { formatDayOfWeek } from '@/server/utils/helpers'
+import { TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 interface TimeSlotSelectionStepProps {
-  timeSlotConfigs: Array<{
-    id: TimeSlotEnum
-    label: string
-    sessions: Array<{ startTime: string; endTime: string }>
-  }>
-  selectedTimeSlot: TimeSlotEnum
-  onTimeSlotChange: (timeSlot: TimeSlotEnum) => void
+  form: UseFormReturn<any>
   onNextStep: () => void
   isStepValid: boolean
 }
 
 export const TimeSlotSelectionStep = ({
-  timeSlotConfigs,
-  selectedTimeSlot,
-  onTimeSlotChange,
+  form,
   onNextStep,
   isStepValid,
 }: TimeSlotSelectionStepProps) => {
+  const selectedTimeSlot = form.watch('timeSlot')
+
+  // Configuration des créneaux horaires (déplacée ici)
+  const timeSlotConfigs = Object.entries(TIME_SLOT_SCHEDULE).map(([key, value]) => ({
+    id: key as TimeSlotEnum,
+    label: formatDayOfWeek(key as TimeSlotEnum),
+    sessions: [
+      { startTime: value.START, endTime: value.PAUSE },
+      { startTime: value.PAUSE, endTime: value.FINISH },
+    ],
+  }))
+
+  const handleTimeSlotChange = (timeSlot: TimeSlotEnum) => {
+    form.setValue('timeSlot', timeSlot)
+
+    // Réinitialiser les sélections pour le nouveau créneau
+    const timeSlotConfig = timeSlotConfigs.find((c) => c.id === timeSlot)
+    if (timeSlotConfig) {
+      const newSelections = timeSlotConfig.sessions.map((session) => ({
+        dayOfWeek: timeSlot,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        subject: '' as any,
+        teacherId: '',
+      }))
+      form.setValue('selections', newSelections)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-medium">Sélectionnez un créneau</h2>
@@ -32,7 +55,7 @@ export const TimeSlotSelectionStep = ({
             key={config.id}
             config={config}
             isSelected={selectedTimeSlot === config.id}
-            onSelect={onTimeSlotChange}
+            onSelect={handleTimeSlotChange}
           />
         ))}
       </div>

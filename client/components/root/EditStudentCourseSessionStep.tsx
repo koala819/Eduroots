@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
@@ -7,39 +8,43 @@ import { Button } from '@/client/components/ui/button'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 import { useToast } from '@/client/hooks/use-toast'
 import { getAvailableTeachersForConstraints } from '@/server/actions/api/teachers'
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 interface SessionConfigurationStepProps {
-  selectedTimeSlot: TimeSlotEnum
-  timeSlotConfigs: Array<{
-    id: TimeSlotEnum
-    label: string
-    sessions: Array<{ startTime: string; endTime: string }>
-  }>
   form: UseFormReturn<any>
   onPreviousStep: () => void
-  onCancel: () => void
   onSubmit: (data: any) => Promise<void>
   isStepValid: boolean
   isSubmitting: boolean
+  studentId: string
 }
 
 export const SessionConfigurationStep = ({
-  selectedTimeSlot,
-  timeSlotConfigs,
   form,
   onPreviousStep,
-  onCancel,
   onSubmit,
   isStepValid,
   isSubmitting,
+  studentId,
 }: SessionConfigurationStepProps) => {
   const { toast } = useToast()
+  const router = useRouter()
   const [availableTeachers, setAvailableTeachers] = useState<TeacherResponse[]>([])
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(false)
 
-  // Fonction pour récupérer les professeurs
+  const selectedTimeSlot = form.watch('timeSlot')
+
+  // Configuration des créneaux horaires
+  const timeSlotConfigs = Object.entries(TIME_SLOT_SCHEDULE).map(([key, value]) => ({
+    id: key as TimeSlotEnum,
+    label: key,
+    sessions: [
+      { startTime: value.START, endTime: value.PAUSE },
+      { startTime: value.PAUSE, endTime: value.FINISH },
+    ],
+  }))
+
   const fetchTeachers = async (
     subject: SubjectNameEnum,
     timeSlot: TimeSlotEnum,
@@ -88,6 +93,10 @@ export const SessionConfigurationStep = ({
     await onSubmit(data)
   }
 
+  if (isLoadingTeachers) {
+    return <LoadingSpinner />
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-medium">Configuration des sessions</h2>
@@ -120,7 +129,7 @@ export const SessionConfigurationStep = ({
           <Button
             type="button"
             variant="destructive"
-            onClick={onCancel}
+            onClick={() => router.push(`/admin/root/student/edit/${studentId}`)}
           >
             Annuler
           </Button>

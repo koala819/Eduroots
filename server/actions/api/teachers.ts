@@ -163,6 +163,13 @@ export async function getAvailableTeachersForConstraints(
       }
     }
 
+    console.log('🔍 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Recherche pour:', {
+      subject,
+      timeSlot,
+      startTime,
+      endTime,
+    })
+
     // Récupérer tous les professeurs qui enseignent cette matière
     const { data: teachers, error: teachersError } = await supabase
       .schema('education')
@@ -193,6 +200,9 @@ export async function getAvailableTeachersForConstraints(
       }
     }
 
+    console.log('👥 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Professeurs trouvés:', teachers?.length || 0)
+    console.log('👥 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Professeurs:', teachers?.map((t) => `${t.firstname} ${t.lastname}`))
+
     if (!teachers || teachers.length === 0) {
       return {
         success: false,
@@ -204,39 +214,83 @@ export async function getAvailableTeachersForConstraints(
     // Vérifier les conflits d'horaires pour chaque professeur
     const availableTeachers = await Promise.all(
       teachers.map(async (teacher) => {
+        console.log(`🔍 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Vérification conflits pour: ${teacher.firstname} ${teacher.lastname}`)
+
         // Vérifier s'il a des cours sur ce créneau qui chevauchent
         const { data: conflicts, error: conflictsError } = await supabase
           .schema('education')
-          .from('courses_sessions_timeslot')
+          .from('courses_teacher')
           .select(`
-            start_time,
-            end_time,
-            courses_sessions (
-              subject,
-              courses_teacher!inner (
-                teacher_id
+            course_id,
+            courses!inner (
+              courses_sessions!inner (
+                subject,
+                courses_sessions_timeslot!inner (
+                  start_time,
+                  end_time
+                )
               )
             )
           `)
-          .eq('day_of_week', timeSlot)
-          .eq('courses_sessions.courses_teacher.teacher_id', teacher.id)
+          .eq('teacher_id', teacher.id)
+          .eq('is_active', true)
+          .eq(
+            'courses.courses_sessions.courses_sessions_timeslot.day_of_week',
+            timeSlot,
+          )
 
         if (conflictsError) {
           console.error('[GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Conflicts error:', conflictsError)
           return null // En cas d'erreur, on considère le prof comme indisponible
         }
 
+        console.log(
+          `📅 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Conflits trouvés pour ${teacher.firstname}:`,
+          conflicts?.length || 0,
+        )
+
+        // Extraire tous les créneaux de tous les cours du professeur
+        const allTimeSlots: Array<{start: string, end: string, subject: string}> = []
+        conflicts?.forEach((conflict: any) => {
+          conflict.courses?.courses_sessions?.forEach((session: any) => {
+            session.courses_sessions_timeslot?.forEach((timeslot: any) => {
+              allTimeSlots.push({
+                start: timeslot.start_time,
+                end: timeslot.end_time,
+                subject: session.subject,
+              })
+            })
+          })
+        })
+
+        if (allTimeSlots.length > 0) {
+          console.log('📅 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Détails conflits:', allTimeSlots)
+        }
+
         // Vérifier s'il y a des chevauchements
-        const hasConflict = conflicts?.some((conflict) => {
-          const conflictStart = conflict.start_time
-          const conflictEnd = conflict.end_time
+        const hasConflict = allTimeSlots.some((timeslot) => {
+          const conflictStart = timeslot.start
+          const conflictEnd = timeslot.end
 
           // Vérifier si les créneaux se chevauchent
-          return (
+          const overlap = (
             (startTime < conflictEnd && endTime > conflictStart) ||
             (conflictStart < endTime && conflictEnd > startTime)
           )
+
+          console.log('⏰ [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Vérification chevauchement:', {
+            requested: `${startTime}-${endTime}`,
+            existing: `${conflictStart}-${conflictEnd}`,
+            overlap,
+          })
+
+          return overlap
         })
+
+        console.log(
+          `✅ [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] ${teacher.firstname} ${teacher.lastname} - Conflit:`,
+          hasConflict,
+        )
 
         // Si pas de conflit, le professeur est disponible
         return hasConflict ? null : teacher
@@ -244,6 +298,9 @@ export async function getAvailableTeachersForConstraints(
     )
 
     const filteredTeachers = availableTeachers.filter((teacher) => teacher !== null)
+
+    console.log('🎯 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Professeurs disponibles après filtrage:', filteredTeachers.length)
+    console.log('🎯 [GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Professeurs disponibles:', filteredTeachers.map((t) => `${t.firstname} ${t.lastname}`))
 
     if (filteredTeachers.length === 0) {
       return {
