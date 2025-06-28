@@ -6,6 +6,7 @@ import { sortTimeSlots } from '@/client/utils/timeSlots'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import {
   CreateTeacherPayload,
   TeacherResponse,
@@ -143,6 +144,126 @@ export async function getAllTeachers(): Promise<ApiResponse<TeacherResponse[]>> 
   }
 }
 
+export async function getAvailableTeachersForConstraints(
+  subject: SubjectNameEnum,
+  timeSlot: TimeSlotEnum,
+  startTime: string,
+  endTime: string,
+): Promise<ApiResponse<TeacherResponse[]>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // Validation des données
+    if (!subject || !timeSlot || !startTime || !endTime) {
+      return {
+        success: false,
+        message: 'Toutes les informations sont requises',
+        data: null,
+      }
+    }
+
+    // Récupérer tous les professeurs qui enseignent cette matière
+    const { data: teachers, error: teachersError } = await supabase
+      .schema('education')
+      .from('users')
+      .select(`
+        id,
+        email,
+        firstname,
+        lastname,
+        subjects,
+        created_at,
+        updated_at,
+        type,
+        is_active
+      `)
+      .eq('role', 'teacher')
+      .eq('is_active', true)
+      .contains('subjects', [subject])
+      .order('firstname', { ascending: true })
+      .order('lastname', { ascending: true })
+
+    if (teachersError) {
+      console.error('[GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Teachers error:', teachersError)
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération des professeurs',
+        data: null,
+      }
+    }
+
+    if (!teachers || teachers.length === 0) {
+      return {
+        success: false,
+        message: `Aucun professeur disponible pour la matière "${subject}"`,
+        data: [],
+      }
+    }
+
+    // Vérifier les conflits d'horaires pour chaque professeur
+    const availableTeachers = await Promise.all(
+      teachers.map(async (teacher) => {
+        // Vérifier s'il a des cours sur ce créneau qui chevauchent
+        const { data: conflicts, error: conflictsError } = await supabase
+          .schema('education')
+          .from('courses_sessions_timeslot')
+          .select(`
+            start_time,
+            end_time,
+            courses_sessions (
+              subject,
+              courses_teacher!inner (
+                teacher_id
+              )
+            )
+          `)
+          .eq('day_of_week', timeSlot)
+          .eq('courses_sessions.courses_teacher.teacher_id', teacher.id)
+
+        if (conflictsError) {
+          console.error('[GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS] Conflicts error:', conflictsError)
+          return null // En cas d'erreur, on considère le prof comme indisponible
+        }
+
+        // Vérifier s'il y a des chevauchements
+        const hasConflict = conflicts?.some((conflict) => {
+          const conflictStart = conflict.start_time
+          const conflictEnd = conflict.end_time
+
+          // Vérifier si les créneaux se chevauchent
+          return (
+            (startTime < conflictEnd && endTime > conflictStart) ||
+            (conflictStart < endTime && conflictEnd > startTime)
+          )
+        })
+
+        // Si pas de conflit, le professeur est disponible
+        return hasConflict ? null : teacher
+      }),
+    )
+
+    const filteredTeachers = availableTeachers.filter((teacher) => teacher !== null)
+
+    if (filteredTeachers.length === 0) {
+      return {
+        success: false,
+        message: `Aucun professeur disponible pour ce créneau (${timeSlot})`,
+        data: [],
+      }
+    }
+
+    return {
+      success: true,
+      data: filteredTeachers,
+      message: `${filteredTeachers.length} professeur(s) disponible(s)`,
+    }
+  } catch (error) {
+    console.error('[GET_AVAILABLE_TEACHERS_FOR_CONSTRAINTS]', error)
+    throw new Error('Erreur lors de la récupération des professeurs disponibles')
+  }
+}
+
 export async function getOneTeacher(teacherId: string): Promise<ApiResponse<TeacherResponse>> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
@@ -196,7 +317,7 @@ export async function getStudentsByTeacher(
     const { data: teacher, error: teacherError } = await supabase
       .schema('education')
       .from('users')
-      .select('id, email, firstname, lastname, subjects, created_at, updated_at')
+      .select('id, email, firstname, lastname, subjects, created_at, updated_at, type, is_active')
       .eq('id', teacherId)
       .eq('role', 'teacher')
       .eq('is_active', true)

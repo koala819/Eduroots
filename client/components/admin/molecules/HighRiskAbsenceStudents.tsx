@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/client/components/ui/dropdown-menu'
-import { SortType } from '@/server/actions/admin/high-risk-students'
+import { SortType } from '@/server/actions/admin/student-high-risk'
 import { StudentAbsenceCard } from '@/server/components/admin/atoms/StudentAbsenceCard'
 import { HighRiskStudentData } from '@/types/stats'
 

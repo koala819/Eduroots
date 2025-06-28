@@ -3,7 +3,7 @@
 import { Award, Book, Calendar, GraduationCap, Star } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { formatDayOfWeek, getSubjectBadgeColor } from '@/server/utils/helpers'
+import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
 import { LevelEnum } from '@/types/courses'
 import { CourseSession, CourseSessionTimeslot } from '@/types/db'
 import { StudentStats as StudentStatsType } from '@/types/stats'
@@ -230,7 +230,7 @@ export const ChildStats = ({
                       <span className={`px-3 py-1 rounded-sm text-sm font-extrabold
                       w-full max-w-[280px] text-center transition-all duration-200
                       hover:scale-105 hover:shadow-md
-                      ${getSubjectBadgeColor(subjectData.subject)}`}>
+                      ${getSubjectColors(subjectData.subject)}`}>
                         {subjectData.subject}
                       </span>
                       <span className="text-lg font-bold text-foreground ml-4">
@@ -245,7 +245,7 @@ export const ChildStats = ({
                           key={gradeIndex}
                           className={`px-2.5 py-1 rounded-xs text-sm font-medium
                           transition-all duration-200 hover:scale-110 hover:shadow-sm
-                          ${getSubjectBadgeColor(subjectData.subject)}`}
+                          ${getSubjectColors(subjectData.subject)}`}
                         >
                           {grade}/20
                         </div>

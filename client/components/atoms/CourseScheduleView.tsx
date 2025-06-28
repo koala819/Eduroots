@@ -1,7 +1,7 @@
 import { Clock, Users } from 'lucide-react'
 import React from 'react'
 
-import { formatDayOfWeek, getSubjectBadgeColor } from '@/server/utils/helpers'
+import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
 import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 type CourseScheduleViewProps = {
@@ -53,7 +53,7 @@ export const CourseScheduleView = ({ timeSlot, courses }: CourseScheduleViewProp
                     <div className="flex items-center mb-2 sm:mb-0">
                       <div
                         className={`h-7 px-3 rounded-full flex items-center justify-center mr-2 ${
-                          getSubjectBadgeColor(session.subject)
+                          getSubjectColors(session.subject)
                         }`}
                       >
                         <span className="text-xs font-medium">{session.subject}</span>

@@ -21,7 +21,7 @@ import { Label } from '@/client/components/ui/label'
 import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
 import { RadioGroup, RadioGroupItem } from '@/client/components/ui/radio-group'
 import { useToast } from '@/client/hooks/use-toast'
-import { updateStudentAdminAction } from '@/server/actions/admin/update-student-admin'
+import { updateStudentAdminAction } from '@/server/actions/admin/student-update'
 import { StudentResponse } from '@/types/student-payload'
 import { GenderEnum } from '@/types/user'
 
@@ -43,7 +43,7 @@ interface EditPersonalDataProps {
 }
 
 export const EditPersonalData = ({ studentData }: EditPersonalDataProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
 

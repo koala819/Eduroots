@@ -4,7 +4,7 @@ import {
   HighRiskAbsenceStudents,
 } from '@/client/components/admin/molecules/HighRiskAbsenceStudents'
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
-import { getHighRiskStudents } from '@/server/actions/admin/high-risk-students'
+import { getHighRiskStudents } from '@/server/actions/admin/student-high-risk'
 
 export default async function HighRiskAbsenceStudentsPage() {
   const initialData = await getHighRiskStudents()

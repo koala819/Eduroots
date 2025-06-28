@@ -1,294 +1,167 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronRight } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
-import { SessionConfig } from '@/client/components/root/EditStudentSessionConfig'
-import { Button } from '@/client/components/ui/button'
+import { SessionConfigurationStep } from '@/client/components/root/EditStudentCourseSessionStep'
+import { TimeSlotSelectionStep } from '@/client/components/root/EditStudentCourseTimeSlotStep'
 import { Form } from '@/client/components/ui/form'
-import { LoadingSpinner } from '@/client/components/ui/loading-spinner'
-import { useCourses } from '@/client/context/courses'
-import { useTeachers } from '@/client/context/teachers'
 import { useToast } from '@/client/hooks/use-toast'
-import { TimeSlotCard } from '@/server/components/root/EditStudentTimeSlotCard'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { updateStudentCourses } from '@/server/actions/api/courses'
 import {
   CourseWithRelations,
   SubjectNameEnum,
-  TIME_SLOT_SCHEDULE,
   TimeSlotEnum,
 } from '@/types/courses'
+import { TeacherResponse } from '@/types/teacher-payload'
 
-const sessionSchema = z.object({
+// Schéma simplifié avec validation des heures
+const CourseSessionSchema = z.object({
   timeSlot: z.nativeEnum(TimeSlotEnum, {
     required_error: 'Veuillez sélectionner un créneau',
   }),
   selections: z.array(
     z.object({
-      dayOfWeek: z.nativeEnum(TimeSlotEnum, {
-        required_error: 'Le jour est requis',
-      }),
-      startTime: z.string({ required_error: 'L heure de debut est requise' }),
-      endTime: z.string({ required_error: 'L heure de fin est requise' }),
+      dayOfWeek: z.nativeEnum(TimeSlotEnum),
+      startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:MM requis'),
+      endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:MM requis'),
       subject: z.nativeEnum(SubjectNameEnum, {
         required_error: 'La matière est requise',
       }),
       teacherId: z.string().min(1, 'Veuillez sélectionner un professeur'),
+    }).refine((data) => {
+      const startMinutes = parseInt(data.startTime
+        .split(':')[0]) * 60 + parseInt(data.startTime.split(':')[1])
+      const endMinutes = parseInt(data.endTime
+        .split(':')[0]) * 60 + parseInt(data.endTime.split(':')[1])
+      return endMinutes > startMinutes
+    }, {
+      message: 'L\'heure de fin doit être après l\'heure de début',
+      path: ['endTime'],
     }),
   ),
 })
 
-type FormData = z.infer<typeof sessionSchema>
+type FormData = z.infer<typeof CourseSessionSchema>
 
-export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
+interface EditCourseStudentProps {
+  studentId: string
+  initialData: {
+    existingCourses: CourseWithRelations[]
+    availableTeachers: TeacherResponse[]
+    timeSlotConfigs: Array<{
+      id: TimeSlotEnum
+      label: string
+      sessions: Array<{ startTime: string; endTime: string }>
+    }>
+  }
+}
+
+export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentProps) => {
   const router = useRouter()
   const { toast } = useToast()
-  const { getStudentCourses, addStudentToCourse, courses } = useCourses()
-  const { teachers, getAllTeachers } = useTeachers()
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [existingCourses, setExistingCourses] = useState<CourseWithRelations[]>([])
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotEnum | ''>('')
-  const [pageIsLoading, setPageIsLoading] = useState<boolean>(true)
-  const [isSaving, setIsSaving] = useState<boolean>(false)
+  // Valeurs par défaut simplifiées
+  const defaultTimeSlot = initialData.timeSlotConfigs[0]?.id || TimeSlotEnum.SATURDAY_MORNING
+
+  const defaultSelections = (() => {
+    try {
+      // Essayer de récupérer les cours existants
+      const existingSelections = initialData.existingCourses
+        ?.filter((course) => course.courses_sessions && Array.isArray(course.courses_sessions))
+        ?.flatMap((course) =>
+          course.courses_sessions.map((session) => ({
+            dayOfWeek: session.courses_sessions_timeslot[0]?.day_of_week || defaultTimeSlot,
+            startTime: session.courses_sessions_timeslot[0]?.start_time || '09:00',
+            endTime: session.courses_sessions_timeslot[0]?.end_time || '10:00',
+            subject: session.subject as SubjectNameEnum,
+            teacherId: course.courses_teacher[0]?.users?.id || '',
+          })),
+        ) || []
+
+      // Si on a des sélections existantes, les utiliser
+      if (existingSelections.length > 0) {
+        return existingSelections
+      }
+    } catch (error) {
+      console.warn('Erreur lors de la récupération des cours existants:', error)
+    }
+
+    // Sinon, utiliser la configuration par défaut
+    const defaultConfig = initialData.timeSlotConfigs.find((c) => c.id === defaultTimeSlot)
+    return defaultConfig?.sessions.map((session) => ({
+      dayOfWeek: defaultTimeSlot,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      subject: '' as SubjectNameEnum,
+      teacherId: '',
+    })) || []
+  })()
 
   const form = useForm<FormData>({
-    resolver: zodResolver(sessionSchema),
+    resolver: zodResolver(CourseSessionSchema),
     defaultValues: {
-      timeSlot: undefined,
-      selections: [],
+      timeSlot: defaultTimeSlot,
+      selections: defaultSelections,
     },
   })
 
-  // Configuration des créneaux horaires
-  const timeSlotConfigs = useMemo(
-    () =>
-      Object.entries(TIME_SLOT_SCHEDULE).map(([key, value]) => ({
-        id: key as TimeSlotEnum,
-        label: formatDayOfWeek(key as TimeSlotEnum),
-        sessions: [
-          { startTime: value.START, endTime: value.PAUSE },
-          { startTime: value.PAUSE, endTime: value.FINISH },
-        ],
-      })),
-    [],
+  const selectedTimeSlot = form.watch('timeSlot')
+  const selections = form.watch('selections')
+
+  // Validation des étapes
+  const isStep1Valid = !!selectedTimeSlot
+  const isStep2Valid = selections.every((selection) =>
+    selection.subject && selection.teacherId,
   )
 
-  const loadData = async () => {
-    setPageIsLoading(true)
-    try {
-      const [courses] = await Promise.all([getStudentCourses(studentId), getAllTeachers()])
-      setExistingCourses(courses)
-
-      if (courses.length > 0) {
-        const firstCourse = courses[0]
-        const firstSession = firstCourse.courses_sessions.find((session) =>
-          session.courses_sessions_students.some((student) => student.users.id === studentId),
-        )
-
-        if (firstSession) {
-          const initialTimeSlot = firstSession.courses_sessions_timeslot[0].day_of_week
-          setSelectedTimeSlot(initialTimeSlot)
-          form.setValue('timeSlot', initialTimeSlot)
-
-          const initialSelections = courses
-            .flatMap((course) =>
-              course.courses_sessions
-                .filter(
-                  (session) =>
-                    session.courses_sessions_students.some(
-                      (student) => student.users.id === studentId,
-                    ) &&
-                    session.courses_sessions_timeslot[0].day_of_week === initialTimeSlot,
-                )
-                .map((session) => ({
-                  dayOfWeek: initialTimeSlot,
-                  startTime: session.courses_sessions_timeslot[0].start_time,
-                  endTime: session.courses_sessions_timeslot[0].end_time,
-                  subject: session.subject as SubjectNameEnum,
-                  teacherId: course.courses_teacher[0].users.id,
-                })),
-            )
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-
-          form.setValue('selections', initialSelections)
-        }
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: `Impossible de charger les données de l'étudiant: ${error}`,
-      })
-    } finally {
-      setPageIsLoading(false)
+  const handleNextStep = () => {
+    if (currentStep === 1 && isStep1Valid) {
+      setCurrentStep(2)
     }
   }
 
-  // Chargement initial des données
-  useEffect(() => {
-    loadData()
-  }, [studentId, getStudentCourses, getAllTeachers, toast, form])
-
-  // Mise à jour des sélections lors du changement de créneau
-  useEffect(() => {
-    if (existingCourses && selectedTimeSlot) {
-      const filteredCourses = existingCourses
-        .map((course) => ({
-          ...course,
-          courses_sessions: course.courses_sessions.filter(
-            (session) =>
-              session.courses_sessions_students.some((student) => student.users.id === studentId) &&
-              session.courses_sessions_timeslot[0].day_of_week === selectedTimeSlot,
-          ),
-        }))
-        .filter((course) => course.courses_sessions.length > 0)
-
-      const formattedSelections = filteredCourses
-        .flatMap((course) =>
-          course.courses_sessions.map((session) => ({
-            dayOfWeek: selectedTimeSlot,
-            startTime: session.courses_sessions_timeslot[0].start_time,
-            endTime: session.courses_sessions_timeslot[0].end_time,
-            subject: session.subject as SubjectNameEnum,
-            teacherId: course.courses_teacher[0].users.id,
-          })),
-        )
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
-
-      form.setValue('selections', formattedSelections)
-      form.setValue('timeSlot', selectedTimeSlot)
+  const handlePreviousStep = () => {
+    if (currentStep === 2) {
+      setCurrentStep(1)
     }
-  }, [existingCourses, selectedTimeSlot, studentId])
+  }
 
-  const getAvailableTeachers = useCallback(
-    (subject: SubjectNameEnum, startTime: string, endTime: string) => {
-      if (!selectedTimeSlot || !subject) return []
+  const handleCancel = () => {
+    router.push(`/admin/root/student/edit/${studentId}`)
+  }
 
-      // Filtrer les cours pour trouver les professeurs qui enseignent la matière demandée
-      // sur le créneau horaire spécifique
-      const availableTeachers = new Set<string>()
+  const handleTimeSlotChange = (timeSlot: TimeSlotEnum) => {
+    form.setValue('timeSlot', timeSlot)
 
-      courses.forEach((course) => {
-        course.courses_sessions.forEach((session) => {
-          if (
-            session.courses_sessions_timeslot[0].day_of_week === selectedTimeSlot &&
-            session.subject === subject &&
-            session.courses_sessions_timeslot[0].start_time === startTime &&
-            session.courses_sessions_timeslot[0].end_time === endTime
-          ) {
-            const teacherId = course.courses_teacher[0].users.id
-            if (teacherId) {
-              availableTeachers.add(teacherId)
-            }
-          }
-        })
-      })
-
-      return teachers
-        .filter((teacher) => availableTeachers.has(teacher.id))
-        .sort((a, b) => a.firstname.localeCompare(b.firstname))
-    },
-    [selectedTimeSlot, courses, teachers],
-  )
-
-  function handleTimeSlotChange(value: TimeSlotEnum) {
-    setSelectedTimeSlot(value)
-    form.setValue('timeSlot', value)
-
-    const timeSlotConfig = timeSlotConfigs.find((config) => config.id === value)
+    // Réinitialiser les sélections avec le nouveau créneau
+    const timeSlotConfig = initialData.timeSlotConfigs.find((c) => c.id === timeSlot)
     if (timeSlotConfig) {
-      const initialSelections = timeSlotConfig.sessions.map((_session) => ({
-        dayOfWeek: value,
+      const newSelections = timeSlotConfig.sessions.map((session) => ({
+        dayOfWeek: timeSlot,
+        startTime: session.startTime,
+        endTime: session.endTime,
         subject: '' as SubjectNameEnum,
         teacherId: '',
-        startTime: _session.startTime,
-        endTime: _session.endTime,
       }))
-
-      form.setValue('selections', initialSelections)
+      form.setValue('selections', newSelections)
     }
   }
-
-  function handleTeacherSelect(
-    startTime: string,
-    endTime: string,
-    subject: SubjectNameEnum,
-    teacherId: string,
-    index: number,
-  ) {
-    const selections = form.getValues('selections')
-    const timeSlot = form.getValues('timeSlot')
-
-    // Mettre à jour uniquement la sélection à l'index spécifié
-    form.setValue(`selections.${index}`, {
-      ...selections[index],
-      dayOfWeek: timeSlot as TimeSlotEnum,
-      startTime,
-      endTime,
-      subject,
-      teacherId,
-    })
-  }
-
-  function handleSubjectSelect(index: number) {
-    const selections = form.getValues('selections')
-    const subject = form.getValues(`selections.${index}.subject`)
-    const timeSlot = form.getValues('timeSlot')
-
-    form.setValue(`selections.${index}`, {
-      ...selections[index],
-      subject,
-      dayOfWeek: timeSlot,
-      startTime: selections[index].startTime,
-      endTime: selections[index].endTime,
-      teacherId: '', // Reset le prof quand on change de matière
-    })
-  }
-
-
 
   async function onSubmit(data: FormData) {
     try {
-      setIsSaving(true)
+      setIsSubmitting(true)
+      const result = await updateStudentCourses(studentId, data.selections)
 
-      // 1. Supprimer les inscriptions qui ne sont plus sélectionnées
-      if (existingCourses.length > 0) {
-        const oldTeacherId = existingCourses[0].courses_teacher[0].users.id
-
-        const response = await fetch(
-          `api/courses/clean?oldTeacherId=${oldTeacherId}&studentId=${studentId}`,
-          {
-            method: 'DELETE',
-          },
-        )
-        if (response.status !== 200) {
-          throw new Error('Erreur lors de la suppression des anciennes sélections')
-        }
+      if (!result.success) {
+        throw new Error(result.message)
       }
-
-      // 2. Ajouter les nouvelles sélections
-      await Promise.all(
-        data.selections.map((selection) => {
-          const teacherCourse = courses.find((course) =>
-            course.courses_teacher[0].users.id === selection.teacherId,
-          )
-
-          if (!teacherCourse) {
-            throw new Error(`Cours non trouvé pour le professeur ${selection.teacherId}`)
-          }
-
-          return addStudentToCourse(teacherCourse.id, studentId, {
-            day_of_week: selection.dayOfWeek as TimeSlotEnum,
-            start_time: selection.startTime,
-            end_time: selection.endTime,
-            subject: selection.subject,
-          })
-        }),
-      )
 
       toast({
         title: 'Succès',
@@ -296,6 +169,11 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
         description: 'Les modifications ont été enregistrées',
         duration: 5000,
       })
+
+      setTimeout(() => {
+        router.push('/admin')
+        window.location.reload()
+      }, 100)
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error)
       toast({
@@ -305,93 +183,60 @@ export const EditCourseStudent = ({ studentId }: { studentId: string }) => {
         duration: 5000,
       })
     } finally {
-      setIsSaving(false)
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setTimeout(() => {
-        router.push('/admin')
-        window.location.reload()
-      }, 100)
+      setIsSubmitting(false)
     }
-  }
-
-  if (pageIsLoading) {
-    return (
-      <div className="w-full h-[400px] flex items-center justify-center">
-        <LoadingSpinner text="Chargement des données..." />
-      </div>
-    )
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-8">
-        <div className="space-y-4 md:space-y-6">
-          <h2 className="text-base md:text-lg font-medium">Sélectionnez un créneau</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {timeSlotConfigs.map((config) => (
-              <TimeSlotCard
-                key={config.id}
-                config={config}
-                isSelected={selectedTimeSlot === config.id}
-                onSelect={handleTimeSlotChange}
-              />
-            ))}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Indicateur d'étapes */}
+        <div className="flex items-center justify-center space-x-4 mb-8">
+          <div className={`flex items-center space-x-2
+            ${currentStep >= 1 ? 'text-primary' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              currentStep >= 1 ? 'bg-primary text-white border-primary' : 'border-gray-300'
+            }`}>
+              {currentStep > 1 ? <CheckCircle className="w-4 h-4" /> : '1'}
+            </div>
+            <span className="font-medium">Créneau</span>
+          </div>
+          <div className="w-8 h-1 bg-gray-300" />
+          <div className={`flex items-center space-x-2
+            ${currentStep >= 2 ? 'text-primary' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              currentStep >= 2 ? 'bg-primary text-white border-primary' : 'border-gray-300'
+            }`}>
+              {currentStep > 2 ? <CheckCircle className="w-4 h-4" /> : '2'}
+            </div>
+            <span className="font-medium">Sessions</span>
           </div>
         </div>
 
-        {selectedTimeSlot && (
-          <div className="space-y-4 md:space-y-6">
-            <h2 className="text-base md:text-lg font-medium">Configuration des sessions</h2>
-            <div className="space-y-3 md:space-y-4">
-              {timeSlotConfigs
-                .find((c) => c.id === selectedTimeSlot)
-                ?.sessions.map((session, index) => (
-                  <SessionConfig
-                    key={`${selectedTimeSlot}_${index}`}
-                    startTime={session.startTime}
-                    endTime={session.endTime}
-                    form={form}
-                    availableTeachers={getAvailableTeachers(
-                      form.watch(`selections.${index}.subject`),
-                      session.startTime,
-                      session.endTime,
-                    )}
-                    index={index}
-                    onSubjectSelect={handleSubjectSelect}
-                    onTeacherSelect={handleTeacherSelect}
-                  />
-                ))}
-            </div>
-          </div>
+        {/* Étape 1: Sélection du créneau */}
+        {currentStep === 1 && (
+          <TimeSlotSelectionStep
+            timeSlotConfigs={initialData.timeSlotConfigs}
+            selectedTimeSlot={selectedTimeSlot}
+            onTimeSlotChange={handleTimeSlotChange}
+            onNextStep={handleNextStep}
+            isStepValid={isStep1Valid}
+          />
         )}
 
-        <div className="flex flex-col sm:flex-row justify-start gap-3 sm:gap-4 pt-4">
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => router.push(`/admin/root/student/edit/${studentId}`)}
-            className="w-full sm:w-auto"
-          >
-          Annuler
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSaving}
-            className="w-full sm:w-auto flex items-center justify-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <LoadingSpinner className="w-4 h-4" />
-                <span>Sauvegarde en cours...</span>
-              </>
-            ) : (
-              <>
-                <span>Sauvegarder</span>
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        </div>
+        {/* Étape 2: Configuration des sessions */}
+        {currentStep === 2 && (
+          <SessionConfigurationStep
+            selectedTimeSlot={selectedTimeSlot}
+            timeSlotConfigs={initialData.timeSlotConfigs}
+            form={form}
+            onPreviousStep={handlePreviousStep}
+            onCancel={handleCancel}
+            onSubmit={onSubmit}
+            isStepValid={isStep2Valid}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </form>
     </Form>
   )

@@ -94,7 +94,7 @@ export function getColorClass(absences: number): string {
   }
 }
 
-export function getSubjectBadgeColor(subject: string): string {
+export function getSubjectColors(subject: string): string {
   switch (subject) {
   case SubjectNameEnum.Arabe:
     return 'bg-primary-accent text-primary-foreground'

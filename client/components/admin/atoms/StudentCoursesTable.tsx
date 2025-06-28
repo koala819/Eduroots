@@ -17,47 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
-import { TimeSlotEnum } from '@/types/courses'
-import { TeacherResponse } from '@/types/teacher-payload'
+import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { StudentCourseSession, TimeSlotEnum } from '@/types/courses'
 
 interface CoursesTableProps {
-  sessions: Array<{
-    session: {
-      id: string
-      subject: string
-      level: string
-      timeSlot: {
-        day_of_week: string
-        startTime: string
-        endTime: string
-        classroom_number?: string
-      }
-    }
-    teacher: TeacherResponse
-  }>
-  formatDayOfWeek: (dayOfWeek: TimeSlotEnum) => string
+  coursesSessions: StudentCourseSession[]
 }
 
-// Fonction pour formater les horaires sans les secondes
-const formatTime = (time: string): string => {
-  if (!time) return 'N/A'
-  // Si le format est HH:MM:SS, on garde seulement HH:MM
-  return time.split(':').slice(0, 2).join(':')
-}
-
-// Fonction pour obtenir les couleurs des matières sans bordures arrondies
-const getSubjectColors = (subject: string): string => {
-  switch (subject) {
-  case 'Arabe':
-    return 'bg-primary-accent/10 text-primary-accent border-l-4 border-primary-accent'
-  case 'Education Culturelle':
-    return 'bg-accent/10 text-accent border-l-4 border-accent'
-  default:
-    return 'bg-muted/10 text-muted-foreground border-l-4 border-muted'
-  }
-}
-
-export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTableProps>) {
+export function CoursesTable({ coursesSessions }: Readonly<CoursesTableProps>) {
   return (
     <Card className="w-full">
       <CardHeader>
@@ -80,13 +47,13 @@ export function CoursesTable({ sessions, formatDayOfWeek }: Readonly<CoursesTabl
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sessions.map(({ session, teacher }, index) => (
+            {coursesSessions.map(({ session, teacher }, index) => (
               <TableRow key={`session-${index}`}>
                 <TableCell className="font-medium whitespace-nowrap">
                   {formatDayOfWeek(session.timeSlot.day_of_week as TimeSlotEnum)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {formatTime(session.timeSlot.startTime)} - {formatTime(session.timeSlot.endTime)}
+                  {session.timeSlot.startTime.slice(0, 5)} - {session.timeSlot.endTime.slice(0, 5)}
                 </TableCell>
                 <TableCell className="min-w-[160px]">
                   <div className={`flex items-center gap-2 px-3 py-2

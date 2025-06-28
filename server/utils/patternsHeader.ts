@@ -48,6 +48,13 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Accueil',
     },
   },
+  '/admin/members/student/edit/*/courses': {
+    title: 'Gestion des cours',
+    subtitle: 'Modifier les cours',
+    backButton: {
+      name: 'Retour',
+    },
+  },
   '/admin/members/student/edit/*/personal': {
     title: 'Modifier les informations personnelles',
     subtitle: 'Modifier les informations personnelles',

@@ -325,7 +325,7 @@ export const LoginClient = () => {
                     <Button
                       type="button"
                       onClick={signInWithGoogle}
-                      disabled={loading}
+                      disabled={loading || !form.watch('role')}
                       aria-label="Se connecter avec Google"
                       className="w-full flex items-center justify-center p-0 border border-[#4285F4]
                       bg-background hover:bg-background rounded-lg shadow-sm hover:border-[#4285F4]

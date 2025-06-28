@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/client/components/ui/dropdown-menu'
-import { getSubjectBadgeColor } from '@/server/utils/helpers'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { SubjectNameEnum } from '@/types/courses'
 import { GradeWithRelations } from '@/types/grades'
 
@@ -139,7 +139,7 @@ export const HeaderGrades = ({ grades }: HeaderGradesProps) => {
                       {subject}
                     </span>
                     <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0
-                      ${getSubjectBadgeColor(subject)}`}>
+                      ${getSubjectColors(subject)}`}>
                       {subjectCounts[subject] || 0} évaluations
                     </span>
                   </div>

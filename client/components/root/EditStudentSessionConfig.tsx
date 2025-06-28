@@ -37,13 +37,12 @@ interface SessionConfigProps {
   form: UseFormReturn<SessionFormData>
   availableTeachers: TeacherResponse[]
   index: number
-  onSubjectSelect: (index: number) => void
-  onTeacherSelect: (
+  timeSlot: TimeSlotEnum
+  onFetchTeachers: (
+    subject: SubjectNameEnum,
+    timeSlot: TimeSlotEnum,
     startTime: string,
     endTime: string,
-    subject: SubjectNameEnum,
-    teacherId: string,
-    index: number,
   ) => void
 }
 
@@ -53,8 +52,8 @@ export const SessionConfig = ({
   form,
   availableTeachers,
   index,
-  onSubjectSelect,
-  onTeacherSelect,
+  timeSlot,
+  onFetchTeachers,
 }: SessionConfigProps) => {
   const selections = form.watch('selections')
   const currentSelection = selections?.[index]
@@ -77,7 +76,8 @@ export const SessionConfig = ({
                 <Select
                   onValueChange={(value: SubjectNameEnum) => {
                     field.onChange(value)
-                    onSubjectSelect(index)
+                    form.setValue(`selections.${index}.teacherId`, '')
+                    onFetchTeachers(value, timeSlot, startTime, endTime)
                   }}
                   value={field.value}
                 >
@@ -107,10 +107,7 @@ export const SessionConfig = ({
                 <FormLabel className="text-sm md:text-base">Professeur</FormLabel>
                 <FormControl>
                   <Select
-                    onValueChange={(value) => {
-                      field.onChange(value)
-                      onTeacherSelect(startTime, endTime, currentSelection.subject, value, index)
-                    }}
+                    onValueChange={field.onChange}
                     value={field.value}
                     disabled={availableTeachers.length === 0}
                   >

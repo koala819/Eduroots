@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { getSubjectBadgeColor } from '@/server/utils/helpers'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { GradeWithRelations } from '@/types/grades'
 
 export function TeacherGrades({
@@ -72,7 +72,7 @@ export function TeacherGrades({
                 <div>
                   <CardTitle
                     className={`text-sm p-2 rounded-lg text-center
-                    ${getSubjectBadgeColor(grade.courses_sessions?.subject)}`}>
+                    ${getSubjectColors(grade.courses_sessions?.subject)}`}>
                     {grade.courses_sessions?.subject || 'Matière inconnue'}
                   </CardTitle>
                   <p className="text-sm text-gray-500 mt-1">

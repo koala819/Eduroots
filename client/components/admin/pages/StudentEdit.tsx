@@ -1,29 +1,20 @@
 'use client'
-
-import { Edit, GraduationCap } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useCallback } from 'react'
-
 import { PersonalCardInfo } from '@/client/components/admin/atoms/StudentCardPersonal'
-import { StudentCoursesClient } from '@/client/components/admin/molecules/StudentCoursesClient'
-import { Button } from '@/client/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { CoursesCardInfo } from '@/client/components/admin/molecules/StudentCardCourses'
+import { StudentCourseSession } from '@/types/courses'
 import { StudentResponse } from '@/types/student-payload'
 
 interface StudentEditProps {
   id: string
-  studentData: StudentResponse
+  studentPersonalData: StudentResponse
+  studentCoursesData: StudentCourseSession[]
 }
 
 export const StudentEdit = ({
   id,
-  studentData,
+  studentPersonalData,
+  studentCoursesData,
 }: StudentEditProps) => {
-  const router = useRouter()
-
-  const handleEditCourse = useCallback(() => {
-    router.push(`${process.env.NEXT_PUBLIC_CLIENT_URL}/admin/root/student/edit/${id}/courses`)
-  }, [router, id])
 
   return (
     <div className="bg-background p-3 md:p-4 lg:p-6">
@@ -31,11 +22,11 @@ export const StudentEdit = ({
 
         {/* Contenu principal */}
         <div className="space-y-4 md:space-y-6">
-          <PersonalCardInfo id={id} data={studentData} />
+          <PersonalCardInfo id={id} data={studentPersonalData} />
 
 
           {/* Cours de l'étudiant */}
-          <Card className="hover:shadow-lg transition-all duration-300 border-border
+          {/* <Card className="hover:shadow-lg transition-all duration-300 border-border
             bg-white/80 backdrop-blur-sm hover:border-accent group">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-3">
@@ -56,15 +47,12 @@ export const StudentEdit = ({
                 Modifier
               </Button>
             </CardHeader>
-            <CardContent>
-              <StudentCoursesClient studentId={id} />
-            </CardContent>
-          </Card>
+            <CardContent> */}
+          <CoursesCardInfo studentId={id} data={studentCoursesData} />
+          {/* </CardContent>
+          </Card> */}
         </div>
       </div>
     </div>
   )
 }
-
-// Export pour compatibilité avec l'ancien nom
-export const StudentManagementView = StudentEdit

@@ -7,7 +7,7 @@ import { getOneStudent } from '@/server/actions/api/students'
 export const metadata: Metadata = {
   title: 'Modifier info Administratives Elève',
   alternates: {
-    canonical: `${process.env.CLIENT_URL}/admin/root/student/edit/[id]/admin`,
+    canonical: `${process.env.CLIENT_URL}/admin/members/student/edit/[id]/personal`,
   },
 }
 

@@ -37,7 +37,7 @@ export const PersonalCardInfo = ({ id, data }: PersonalCardInfoProps) => {
           </CardTitle>
         </div>
         <Button
-          onClick={handleEditAdmin}
+          onClick={() => router.push(`/admin/members/student/edit/${id}/personal`)}
         >
           <Edit className="h-4 w-4 mr-2" />
           Modifier

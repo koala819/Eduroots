@@ -132,5 +132,37 @@ export function convertToCourseSessionWithRelations(
   }
 }
 
+// Type pour les enrollments retournés par getStudentCourses
+export type StudentEnrollment =
+  Database['education']['Tables']['courses_sessions_students']['Row'] & {
+    courses_sessions: Database['education']['Tables']['courses_sessions']['Row'] & {
+      // eslint-disable-next-line max-len
+      courses_sessions_timeslot: Database['education']['Tables']['courses_sessions_timeslot']['Row'][]
+      courses: Database['education']['Tables']['courses']['Row'] & {
+        courses_teacher: (
+          Database['education']['Tables']['courses_teacher']['Row'] & {
+            users: Database['education']['Tables']['users']['Row']
+          }
+        )[]
+      }
+    }
+  }
+
+// Type pour les sessions transformées d'un étudiant
+export type StudentCourseSession = {
+  session: {
+    id: string
+    subject: string
+    level: string
+    timeSlot: {
+      day_of_week: string
+      startTime: string
+      endTime: string
+      classroom_number?: string
+    }
+  }
+  teacher: Database['education']['Tables']['users']['Row']
+}
+
 
 

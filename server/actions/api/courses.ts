@@ -11,7 +11,11 @@ import {
   UpdateCoursePayload,
   UpdateCourseSessionPayload,
 } from '@/types/course-payload'
-import { CourseWithRelations } from '@/types/courses'
+import {
+  CourseWithRelations,
+  SubjectNameEnum,
+  TimeSlotEnum,
+} from '@/types/courses'
 import {
   CourseSessionTimeslot,
 } from '@/types/db'
@@ -411,7 +415,7 @@ export async function getCourseSessionById(
 
 export async function getStudentCourses(
   studentId: string,
-): Promise<ApiResponse> {
+): Promise<ApiResponse<CourseWithRelations[]>> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
@@ -1061,4 +1065,123 @@ async function getStudentsWithUsers(supabase: any, students: any[]) {
 function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
+}
+
+export async function updateStudentCourses(
+  studentId: string,
+  selections: Array<{
+    dayOfWeek: TimeSlotEnum
+    startTime: string
+    endTime: string
+    subject: SubjectNameEnum
+    teacherId: string
+  }>,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // 1. Récupérer les inscriptions actuelles de l'étudiant
+    const { data: currentEnrollments, error: fetchError } = await supabase
+      .schema('education')
+      .from('courses_sessions_students')
+      .select('id, course_sessions_id')
+      .eq('student_id', studentId)
+
+    if (fetchError) {
+      throw new Error(`Erreur lors de la récupération des inscriptions: ${fetchError.message}`)
+    }
+
+    // 2. Identifier les inscriptions à supprimer et à ajouter
+    const currentSessionIds = new Set(currentEnrollments?.map((e) => e.course_sessions_id) || [])
+    const newSessionIds = new Set<string>()
+
+    // Préparer les nouvelles inscriptions
+    const newEnrollments = []
+
+    for (const selection of selections) {
+      // Trouver le cours du professeur
+      const { data: course, error: courseError } = await supabase
+        .schema('education')
+        .from('courses')
+        .select(`
+          id,
+          courses_teacher!inner (
+            teacher_id
+          )
+        `)
+        .eq('is_active', true)
+        .eq('courses_teacher.teacher_id', selection.teacherId)
+        .single()
+
+      if (courseError || !course) {
+        throw new Error(`Cours non trouvé pour le professeur ${selection.teacherId}`)
+      }
+
+      // Trouver la session correspondante
+      const { data: session, error: sessionError } = await supabase
+        .schema('education')
+        .from('courses_sessions')
+        .select('id')
+        .eq('course_id', course.id)
+        .eq('subject', selection.subject)
+        .single()
+
+      if (sessionError || !session) {
+        throw new Error(`Session non trouvée pour ${selection.subject}`)
+      }
+
+      newSessionIds.add(session.id)
+      newEnrollments.push({
+        course_sessions_id: session.id,
+        student_id: studentId,
+      })
+    }
+
+    // 3. Identifier les inscriptions à supprimer
+    // (celles qui ne sont plus dans les nouvelles sélections)
+    const enrollmentsToDelete = currentEnrollments?.filter(
+      (enrollment) => !newSessionIds.has(enrollment.course_sessions_id),
+    ) || []
+
+    // 4. Identifier les inscriptions à ajouter (nouvelles sélections qui n'existent pas déjà)
+    const enrollmentsToAdd = newEnrollments.filter(
+      (enrollment) => !currentSessionIds.has(enrollment.course_sessions_id),
+    )
+
+    // 5. Effectuer les opérations de mise à jour
+    // Supprimer les inscriptions obsolètes
+    if (enrollmentsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .schema('education')
+        .from('courses_sessions_students')
+        .delete()
+        .in('id', enrollmentsToDelete.map((e) => e.id))
+
+      if (deleteError) {
+        throw new Error(`Erreur lors de la suppression: ${deleteError.message}`)
+      }
+    }
+
+    // Ajouter les nouvelles inscriptions
+    if (enrollmentsToAdd.length > 0) {
+      const { error: insertError } = await supabase
+        .schema('education')
+        .from('courses_sessions_students')
+        .insert(enrollmentsToAdd)
+
+      if (insertError) {
+        throw new Error(`Erreur lors de l'ajout: ${insertError.message}`)
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Cours de l\'étudiant mis à jour avec succès',
+      data: null,
+    }
+  } catch (error: any) {
+    console.error('[UPDATE_STUDENT_COURSES]', error)
+    throw new Error('Failed to update student courses')
+  }
 }

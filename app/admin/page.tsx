@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Suspense } from 'react'
 
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
-import { getHighRiskStudents } from '@/server/actions/admin/high-risk-students'
+import { getHighRiskStudents } from '@/server/actions/admin/student-high-risk'
 import { getAllCourses } from '@/server/actions/api/courses'
 import { getAllStudents } from '@/server/actions/api/students'
 import { getAllTeachers } from '@/server/actions/api/teachers'
