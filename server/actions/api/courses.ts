@@ -1185,3 +1185,243 @@ export async function updateStudentCourses(
     throw new Error('Failed to update student courses')
   }
 }
+
+export async function getAllCoursesWithStats(): Promise<ApiResponse<CourseWithRelations[]>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // Récupérer d'abord les cours avec leurs relations de base
+    const { data: courses, error } = await supabase
+      .schema('education')
+      .from('courses')
+      .select(`
+        *,
+        courses_teacher (
+          *,
+          users:teacher_id (
+            id,
+            firstname,
+            lastname,
+            email,
+            subjects,
+            date_of_birth,
+            gender
+          )
+        ),
+        courses_sessions (
+          *,
+          courses_sessions_timeslot (
+            day_of_week,
+            start_time,
+            end_time,
+            classroom_number
+          )
+        )
+      `)
+      .eq('is_active', true)
+      .order('academic_year', { ascending: false })
+
+    if (error) {
+      console.error('[GET_ALL_COURSES_WITH_STATS]', error)
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération des cours',
+        data: null,
+      }
+    }
+
+    // Enrichir avec les données des étudiants pour chaque session
+    const enrichedCourses = await Promise.all(
+      (courses || []).map(async (course) => {
+        const enrichedSessions = await Promise.all(
+          (course.courses_sessions || []).map(async (session: any) => {
+            // Récupérer les étudiants de cette session
+            const { data: enrollments, error: enrollmentError } = await supabase
+              .schema('education')
+              .from('courses_sessions_students')
+              .select('*')
+              .eq('course_sessions_id', session.id)
+
+            if (enrollmentError) {
+              console.error('Erreur lors de la récupération des inscriptions:', enrollmentError)
+              return { ...session, courses_sessions_students: [] }
+            }
+
+            // Récupérer les données des étudiants
+            const studentIds = enrollments
+              ?.map((e) => e.student_id)
+              .filter((id) => id !== null) || []
+
+            const { data: students, error: studentsError } = await supabase
+              .schema('education')
+              .from('users')
+              .select('id, firstname, lastname, email, date_of_birth, gender')
+              .in('id', studentIds)
+
+            if (studentsError) {
+              console.error('Erreur lors de la récupération des étudiants:', studentsError)
+              return { ...session, courses_sessions_students: [] }
+            }
+
+            // Associer les étudiants à leurs inscriptions
+            const enrichedEnrollments = enrollments?.map((enrollment) => {
+              const student = students?.find((s) => s.id === enrollment.student_id)
+              return {
+                ...enrollment,
+                users: student || null,
+              }
+            }) || []
+
+            return {
+              ...session,
+              courses_sessions_students: enrichedEnrollments,
+            }
+          }),
+        )
+
+        return {
+          ...course,
+          courses_sessions: enrichedSessions,
+        }
+      }),
+    )
+
+    return {
+      success: true,
+      data: enrichedCourses,
+      message: 'Cours avec statistiques récupérés avec succès',
+    }
+  } catch (error: any) {
+    console.error('[GET_ALL_COURSES_WITH_STATS]', error)
+    throw new Error('Failed to get all courses with stats')
+  }
+}
+
+type CourseTimeRange = {
+  course_id: string
+  academic_year: string
+  day_of_week: string
+  min_start_time: string
+  max_end_time: string
+  subjects: Array<{
+    subject: string
+    level: string
+    start_time: string
+    end_time: string
+  }>
+}
+
+export async function getCoursesTimeRange(): Promise<
+  ApiResponse<CourseTimeRange[]>
+  > {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data, error } = await supabase
+      .schema('education')
+      .from('courses')
+      .select(`
+        id,
+        academic_year,
+        courses_sessions (
+          id,
+          subject,
+          level,
+          courses_sessions_timeslot (
+            day_of_week,
+            start_time,
+            end_time
+          )
+        )
+      `)
+      .eq('is_active', true)
+      .order('academic_year', { ascending: false })
+
+    if (error) {
+      console.error('[GET_COURSES_TIME_RANGE]', error)
+      return {
+        success: false,
+        message: 'Erreur lors de la récupération des plages horaires',
+        data: null,
+      }
+    }
+
+    // Traiter les données pour obtenir les plages horaires par cours et par jour
+    const timeRanges = data?.flatMap((course) => {
+      const dayGroups = new Map<string, Array<{
+        subject: string
+        level: string
+        start_time: string
+        end_time: string
+        session_id: string
+      }>>()
+
+      // Grouper les sessions par jour
+      course.courses_sessions?.forEach((session) => {
+        session.courses_sessions_timeslot?.forEach((timeslot) => {
+          const day = timeslot.day_of_week
+          if (!dayGroups.has(day)) {
+            dayGroups.set(day, [])
+          }
+
+          // Ajouter la session avec ses informations
+          dayGroups.get(day)!.push({
+            subject: session.subject,
+            level: session.level,
+            start_time: timeslot.start_time,
+            end_time: timeslot.end_time,
+            session_id: session.id,
+          })
+        })
+      })
+
+      // Calculer les plages min/max et organiser les sujets pour chaque jour
+      return Array.from(dayGroups.entries()).map(([day_of_week, sessions]) => {
+        // Trier les sessions par heure de début pour avoir l'ordre chronologique
+        const sortedSessions = sessions.sort((a, b) =>
+          a.start_time.localeCompare(b.start_time),
+        )
+
+        const min_start_time = sortedSessions.reduce((min, session) =>
+          session.start_time < min ? session.start_time : min, sortedSessions[0].start_time,
+        )
+        const max_end_time = sortedSessions.reduce((max, session) =>
+          session.end_time > max ? session.end_time : max, sortedSessions[0].end_time,
+        )
+
+        return {
+          course_id: course.id,
+          academic_year: course.academic_year,
+          day_of_week,
+          min_start_time,
+          max_end_time,
+          subjects: sortedSessions.map((session) => ({
+            subject: session.subject,
+            level: session.level,
+            start_time: session.start_time,
+            end_time: session.end_time,
+          })),
+        }
+      })
+    }) || []
+
+    // Trier par jour de la semaine (ordre alphabétique) puis par cours
+    const sortedTimeRanges = timeRanges.sort((a, b) => {
+      if (a.day_of_week !== b.day_of_week) {
+        return a.day_of_week.localeCompare(b.day_of_week)
+      }
+      return a.course_id.localeCompare(b.course_id)
+    })
+
+    return {
+      success: true,
+      data: sortedTimeRanges,
+      message: 'Plages horaires récupérées avec succès',
+    }
+  } catch (error: any) {
+    console.error('[GET_COURSES_TIME_RANGE]', error)
+    throw new Error('Failed to get courses time range')
+  }
+}
