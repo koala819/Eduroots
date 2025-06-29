@@ -17,7 +17,7 @@ const navItems = [
     href: '/admin/members',
     label: 'Membres',
     Icon: 'Users',
-    pathPattern: '^/admin/members$',
+    pathPattern: '^/admin/members',
   },
   {
     href: '/admin/schedule',
