@@ -13,6 +13,7 @@ import {
 } from '@/types/course-payload'
 import {
   CourseWithRelations,
+  StudentEnrollment,
   SubjectNameEnum,
   TimeSlotEnum,
 } from '@/types/courses'
@@ -415,7 +416,7 @@ export async function getCourseSessionById(
 
 export async function getStudentCourses(
   studentId: string,
-): Promise<ApiResponse<CourseWithRelations[]>> {
+): Promise<ApiResponse<StudentEnrollment[]>> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
 
