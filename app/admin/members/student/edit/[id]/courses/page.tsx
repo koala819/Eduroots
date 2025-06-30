@@ -1,12 +1,12 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { EditCourseStudent } from '@/client/components/admin/molecules/EditStudentCourse'
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getAllTeachers } from '@/server/actions/api/teachers'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
-import { EditCourseStudent } from '@/zUnused/@oldEditStudentsTeachers/EditStudentCourse'
 
 export const metadata: Metadata = {
   title: 'Modifier info Cours pour l\'Elève',

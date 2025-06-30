@@ -31,13 +31,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/client/components/ui/card'
-import { useStudents } from '@/client/context/students'
-import { useTeachers } from '@/client/context/teachers'
 import { createClient } from '@/client/utils/supabase'
-import { StudentResponse } from '@/types/student-payload'
-import { TeacherResponse } from '@/types/teacher-payload'
 import { UserRoleEnum } from '@/types/user'
-import { UserListDialog } from '@/zUnused/@oldEditStudentsTeachers/UserListDialog'
 
 type EntityType = UserRoleEnum.Student | UserRoleEnum.Teacher
 
@@ -83,17 +78,17 @@ interface ActionGroup {
 }
 
 export default function SettingsPage() {
-  const { students } = useStudents()
-  const { teachers } = useTeachers()
+  // const { students } = useStudents()
+  // const { teachers } = useTeachers()
   const router = useRouter()
   const [session, setSession] = useState<any>(null)
   const isAdmin = session?.user?.user_metadata?.role === 'admin'
 
   const [selectedType, setSelectedType] = useState<EntityType | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedEntity, setSelectedEntity] = useState<
-    StudentResponse | TeacherResponse | null
-  >(null)
+  // const [searchQuery, setSearchQuery] = useState('')
+  // const [selectedEntity, setSelectedEntity] = useState<
+  //   StudentResponse | TeacherResponse | null
+  // >(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -269,11 +264,11 @@ export default function SettingsPage() {
       : []),
   ]
 
-  const filteredData = selectedType
-    ? (selectedType === UserRoleEnum.Student ? students : teachers).filter((item) =>
-      `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-    : []
+  // const filteredData = selectedType
+  //   ? (selectedType === UserRoleEnum.Student ? students : teachers).filter((item) =>
+  //     `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchQuery.toLowerCase()),
+  //   )
+  //   : []
 
   async function handleLogout() {
     const supabase = createClient()
@@ -362,7 +357,9 @@ export default function SettingsPage() {
       ))}
 
       {selectedType && (
-        <UserListDialog
+        <>
+          User List Dialog
+          {/* <UserListDialog
           type={selectedType}
           people={filteredData}
           selectedEntity={selectedEntity}
@@ -370,7 +367,8 @@ export default function SettingsPage() {
           searchQuery={searchQuery}
           onSearch={setSearchQuery}
           onClose={() => setSelectedType(null)}
-        />
+          /> */}
+        </>
       )}
 
       <Card className="shadow-sm border border-zinc-200 dark:border-zinc-800">
