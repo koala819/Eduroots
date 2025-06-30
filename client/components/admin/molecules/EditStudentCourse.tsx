@@ -6,11 +6,12 @@ import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/client/components/ui/card'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/client/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 import { useToast } from '@/client/hooks/use-toast'
 import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
@@ -45,6 +46,14 @@ type CourseWithCompleteTimeRanges = CourseWithRelations & {
       end_time: string
     }>
   }>
+  stats?: {
+    totalStudents: number
+    averageAge: number
+    countBoys: number
+    countGirls: number
+    percentageBoys: number
+    percentageGirls: number
+  }
 }
 
 interface EditCourseStudentProps {
@@ -72,9 +81,7 @@ export const EditCourseStudent = ({
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState<string>('saturday_morning')
-  const [selectedCourses, setSelectedCourses] = useState<Map<string, string>>(
-    new Map(Object.entries(enrollmentData.initialSelections)),
-  )
+  const [selectedSessions, setSelectedSessions] = useState<Record<string, string>>({})
 
   const currentSessionIds = new Set(enrollmentData.currentEnrollments)
 
@@ -126,23 +133,6 @@ export const EditCourseStudent = ({
     return counts
   }, [coursesByDayAndSession])
 
-  // Fonction pour gérer la sélection d'un cours (1 seul par session)
-  const handleCourseSelection = (sessionId: string, sessionKey: string) => {
-    setSelectedCourses((prev) => {
-      const newMap = new Map(prev)
-
-      // Si ce cours est déjà sélectionné pour cette session, le désélectionner
-      if (newMap.get(sessionKey) === sessionId) {
-        newMap.delete(sessionKey)
-      } else {
-        // Sinon, sélectionner ce cours (remplace l'ancien si il y en avait un)
-        newMap.set(sessionKey, sessionId)
-      }
-
-      return newMap
-    })
-  }
-
   // Fonction pour appliquer les changements
   const handleApplyChanges = async () => {
     setIsLoading(true)
@@ -163,7 +153,7 @@ export const EditCourseStudent = ({
       }> = []
 
       // Trouver les cours à ajouter (sélectionnés mais pas inscrits)
-      selectedCourses.forEach((sessionId, sessionKey) => {
+      Object.entries(selectedSessions).forEach(([sessionKey, sessionId]) => {
         if (!currentSessionIds.has(sessionId)) {
           // Trouver les données du cours
           let foundCourse: any = null
@@ -187,7 +177,7 @@ export const EditCourseStudent = ({
 
       // Trouver les cours à supprimer (inscrits mais pas sélectionnés)
       currentSessionIds.forEach((sessionId) => {
-        const isStillSelected = Array.from(selectedCourses.values()).includes(sessionId)
+        const isStillSelected = Object.values(selectedSessions).includes(sessionId)
         if (!isStillSelected) {
           // Trouver les données du cours
           let foundCourse: any = null
@@ -252,7 +242,7 @@ export const EditCourseStudent = ({
   // Fonction pour vérifier s'il y a des changements
   const hasChanges = () => {
     // Vérifier si les sélections actuelles sont différentes des inscriptions actuelles
-    const currentSelectedSet = new Set(selectedCourses.values())
+    const currentSelectedSet = new Set(Object.values(selectedSessions))
 
     // Si le nombre est différent, il y a des changements
     if (currentSelectedSet.size !== currentSessionIds.size) {
@@ -278,7 +268,7 @@ export const EditCourseStudent = ({
 
   // Fonction pour obtenir le nombre de changements
   const getChangeCount = () => {
-    const currentSelectedSet = new Set(selectedCourses.values())
+    const currentSelectedSet = new Set(Object.values(selectedSessions))
     const toAdd = Array
       .from(currentSelectedSet)
       .filter((id) => !currentSessionIds.has(id)).length
@@ -359,7 +349,7 @@ export const EditCourseStudent = ({
               <div className="space-y-6">
                 {Object.entries(coursesByDayAndSession[day]).map(([sessionKey, sessionData]) => {
                   const { timeSlot, courses } = sessionData
-                  const selectedSessionId = selectedCourses.get(sessionKey)
+                  const selectedSessionId = selectedSessions[sessionKey]
 
                   return (
                     <div key={sessionKey} className="space-y-4">
@@ -390,116 +380,108 @@ export const EditCourseStudent = ({
                       </div>
 
                       {/* Grille des cours pour cette session */}
-                      <div
-                        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                        {courses.map((course) => {
-                          const session = course.currentSession
-                          const stats = course.stats
-                          const isSelected = selectedSessionId === session.id
-                          const isCurrentlyEnrolled = currentSessionIds.has(session.id)
+                      <div className="space-y-4">
+                        <Select
+                          value={selectedSessions[sessionKey] || ''}
+                          onValueChange={(value) => setSelectedSessions((prev) => ({
+                            ...prev,
+                            [sessionKey]: value,
+                          }))}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choisir un cours">
+                              {selectedSessions[sessionKey] && (() => {
+                                const selectedCourse = courses.find((c) => c.currentSession.id === selectedSessions[sessionKey])
+                                if (!selectedCourse) return null
+                                const teacher = selectedCourse.courses_teacher[0]?.users
+                                const teacherName = teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
+                                return (
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="font-medium">{teacherName}</span>
+                                    <Badge variant="outline" className={`text-xs ${getSubjectColors(selectedCourse.currentSession.subject)}`}>
+                                      {selectedCourse.currentSession.subject}
+                                    </Badge>
+                                  </div>
+                                )
+                              })()}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            {courses
+                              .sort((a, b) => {
+                                const teacherA = a.courses_teacher[0]?.users
+                                const teacherB = b.courses_teacher[0]?.users
+                                const nameA = teacherA ? `${teacherA.firstname} ${teacherA.lastname}` : ''
+                                const nameB = teacherB ? `${teacherB.firstname} ${teacherB.lastname}` : ''
+                                return nameA.localeCompare(nameB, 'fr')
+                              })
+                              .map((course) => {
+                                const session = course.currentSession
+                                const stats = course.stats
+                                const teacher = course.courses_teacher[0]?.users
+                                const teacherName = teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
+                                const isCurrentlyEnrolled = currentSessionIds.has(session.id)
 
-                          return (
-                            <Card
-                              key={course.uniqueKey}
-                              className={`group relative overflow-hidden transition-all duration-300
-                                hover:shadow-lg border-2 cursor-pointer
-                                ${isSelected
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary bg-background'
-                            }
-                                ${isCurrentlyEnrolled ? 'ring-2 ring-green-200' : ''}
-                              `}
-                              onClick={() => handleCourseSelection(session.id, sessionKey)}
-                            >
-                              <CardHeader className="pb-4">
-                                {/* En-tête avec professeur et matière */}
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex-1 min-w-0">
-                                    <CardTitle className="text-lg font-semibold text-foreground mb-1">
-                                      {getTeacherName(course)}
-                                    </CardTitle>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <Badge variant="outline"
-                                        className="text-xs bg-accent border-accent
-                                         text-accent-foreground">
-                                        {session?.subject} - Niveau {session?.level}
-                                      </Badge>
-                                      {isCurrentlyEnrolled && (
-                                        <Badge variant="secondary" className="text-xs">
-                                          Inscrit
+                                return (
+                                  <SelectItem
+                                    key={course.uniqueKey}
+                                    value={session.id}
+                                    className="py-3"
+                                  >
+                                    <div className="flex flex-col space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium text-sm">
+                                          {teacherName}
+                                        </span>
+                                        {isCurrentlyEnrolled && (
+                                          <Badge variant="secondary" className="text-xs ml-2">
+                                            Inscrit
+                                          </Badge>
+                                        )}
+                                      </div>
+
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-xs ${getSubjectColors(session.subject)}`}
+                                        >
+                                          {session.subject} - Niveau {session.level}
                                         </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Indicateur de sélection */}
-                                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
-                                    ${isSelected
-                              ? 'bg-primary border-primary text-white'
-                              : 'border-muted-foreground'
-                            }`}>
-                                    {isSelected && (
-                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                </div>
-                              </CardHeader>
-
-                              <CardContent className="pt-0">
-                                {/* Statistiques des étudiants */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-foreground">
-                                      {stats.totalStudents} Étudiants inscrits
-                                    </span>
-                                  </div>
-
-                                  {/* Répartition par genre */}
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span className="text-muted-foreground">Répartition</span>
-                                      <span className="text-muted-foreground">
-                                        Âge moyen: {stats.averageAge} ans
-                                      </span>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                                        <div
-                                          className="bg-primary h-full"
-                                          style={{ width: `${stats.percentageBoys}%` }}
-                                        ></div>
                                       </div>
-                                      <div className="flex items-center gap-1 text-xs">
-                                        <GenderDisplay gender="masculin" size="w-3 h-3" />
-                                        <span className="font-medium text-foreground">
-                                          {stats.countBoys}
-                                        </span>
+
+                                      <div className="flex flex-col gap-1 text-xs">
+                                        <span className="text-foreground font-medium">{stats.totalStudents} étudiants</span>
+                                        <span className="text-foreground">Âge moyen: {stats.averageAge} ans</span>
+                                      </div>
+
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-3 text-xs">
+                                          <div className="flex items-center gap-1">
+                                            <GenderDisplay gender="masculin" size="w-3 h-3" />
+                                            <span className="text-foreground font-medium">{stats.countBoys}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <GenderDisplay gender="féminin" size="w-3 h-3" />
+                                            <span className="text-foreground font-medium">{stats.countGirls}</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex w-full bg-muted rounded-full h-2 overflow-hidden">
+                                          <div
+                                            className="bg-info-dark h-full transition-all duration-300"
+                                            style={{ width: `${stats.percentageBoys}%` }}
+                                          ></div>
+                                          <div
+                                            className="bg-pink h-full transition-all duration-300"
+                                            style={{ width: `${stats.percentageGirls}%` }}
+                                          ></div>
+                                        </div>
                                       </div>
                                     </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                                        <div
-                                          className="bg-secondary h-full"
-                                          style={{ width: `${stats.percentageGirls}%` }}
-                                        ></div>
-                                      </div>
-                                      <div className="flex items-center gap-1 text-xs">
-                                        <GenderDisplay gender="féminin" size="w-3 h-3" />
-                                        <span className="font-medium text-foreground">
-                                          {stats.countGirls}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )
-                        })}
+                                  </SelectItem>
+                                )
+                              })}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   )
@@ -520,7 +502,7 @@ export const EditCourseStudent = ({
           <h3 className="text-lg font-semibold">Récapitulatif des sélections</h3>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {selectedCourses.size} sessions sélectionnées
+              {Object.keys(selectedSessions).length} sessions sélectionnées
             </span>
             {hasChanges() && (
               <Badge variant="outline">
@@ -541,9 +523,9 @@ export const EditCourseStudent = ({
         </div>
 
         {/* Liste des cours sélectionnés */}
-        {selectedCourses.size > 0 && (
+        {Object.keys(selectedSessions).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from(selectedCourses.entries()).map(([sessionKey, sessionId]) => {
+            {Object.entries(selectedSessions).map(([sessionKey, sessionId]) => {
               // Trouver les données du cours
               let foundCourse: any = null
               Object.values(coursesByDayAndSession).forEach((daySessions) => {
@@ -564,10 +546,10 @@ export const EditCourseStudent = ({
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{getTeacherName(foundCourse)}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <Badge variant="outline" className={`text-xs ${getSubjectColors(session.subject)}`}>
                         {session.subject} - Niveau {session.level}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
                         {timeSlot.start_time.slice(0, 5)} - {timeSlot.end_time.slice(0, 5)}
                       </p>
                     </div>
@@ -582,7 +564,7 @@ export const EditCourseStudent = ({
         )}
 
         {/* Message si aucune sélection */}
-        {selectedCourses.size === 0 && (
+        {Object.keys(selectedSessions).length === 0 && (
           <div className="text-center py-4">
             <p className="text-muted-foreground">Aucune session sélectionnée</p>
             <p className="text-xs text-muted-foreground mt-1">

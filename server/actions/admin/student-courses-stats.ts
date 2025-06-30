@@ -91,10 +91,16 @@ function calculateCourseStats(course: CourseWithRelations) {
   const totalStudents = uniqueStudentIds.size
   const averageAge = validAgeCount > 0 ? Math.round(totalAge / validAgeCount) : 0
 
+  // Calculer les pourcentages
+  const percentageBoys = totalStudents > 0 ? Math.round((countBoys / totalStudents) * 100) : 0
+  const percentageGirls = totalStudents > 0 ? Math.round((countGirls / totalStudents) * 100) : 0
+
   return {
     totalStudents,
     averageAge,
     countBoys,
     countGirls,
+    percentageBoys,
+    percentageGirls,
   }
 }
