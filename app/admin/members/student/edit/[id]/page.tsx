@@ -4,7 +4,7 @@ import { StudentEdit } from '@/client/components/admin/pages/StudentEdit'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getOneStudent } from '@/server/actions/api/students'
-import { StudentEnrollment, TimeSlotEnum } from '@/types/courses'
+import { StudentEnrollment } from '@/types/courses'
 
 export const metadata: Metadata = {
   title: 'Modifier un Elève',
@@ -19,7 +19,6 @@ interface EditStudentPageProps {
 
 export default async function EditStudentPage({ params }: EditStudentPageProps) {
   const { id } = await params
-
   try {
     const oneStudentData = await getOneStudent(id)
 
@@ -30,58 +29,47 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
 
     const studentCoursesData = await getStudentCourses(id)
 
-    if (!studentCoursesData.success || !studentCoursesData.data) {
+    // Gérer le cas où l'étudiant n'a pas de cours
+    let sortedSessions: any[] = []
+
+    if (studentCoursesData.success && studentCoursesData.data) {
+      const enrollments = studentCoursesData.data as StudentEnrollment[]
+
+      // Transformer les enrollments en structure attendue
+      const transformedSessions = enrollments.map((enrollment) => {
+        const session = enrollment.courses_sessions
+        const course = session.courses
+        const teacher = course.courses_teacher?.[0]?.users || {}
+        const timeslot = session.courses_sessions_timeslot?.[0]
+
+        return {
+          session: {
+            id: session.id,
+            subject: session.subject,
+            level: session.level,
+            timeSlot: {
+              day_of_week: timeslot?.day_of_week,
+              startTime: timeslot?.start_time,
+              endTime: timeslot?.end_time,
+              classroom_number: timeslot?.classroom_number || undefined,
+            },
+          },
+          teacher,
+        }
+      })
+
+      // Utiliser la fonction de tri existante
+      sortedSessions = transformedSessions
+    } else if (!studentCoursesData.success &&
+      studentCoursesData.message === 'Aucun cours trouvé pour cet étudiant') {
+      // L'étudiant n'a pas de cours, c'est normal - on continue avec un tableau vide
+      console.log('L\'étudiant n\'a pas encore de cours assignés')
+    } else {
+      // Vraie erreur lors de la récupération des cours
       console.error(studentCoursesData.message ||
         'Erreur lors de la récupération des cours de l\'étudiant')
       return <ErrorContent message="Erreur lors du chargement des cours de l'étudiant" />
     }
-
-    const enrollments = studentCoursesData.data as StudentEnrollment[]
-
-    // Transformer les enrollments en structure attendue
-    const transformedSessions = enrollments.map((enrollment) => {
-      const session = enrollment.courses_sessions
-      const course = session.courses
-      const teacher = course.courses_teacher?.[0]?.users || {}
-      const timeslot = session.courses_sessions_timeslot?.[0]
-
-      return {
-        session: {
-          id: session.id,
-          subject: session.subject,
-          level: session.level,
-          timeSlot: {
-            day_of_week: timeslot?.day_of_week,
-            startTime: timeslot?.start_time,
-            endTime: timeslot?.end_time,
-            classroom_number: timeslot?.classroom_number || undefined,
-          },
-        },
-        teacher,
-      }
-    })
-
-    // Trier les sessions
-    const sortedSessions = transformedSessions.sort((a, b) => {
-      const timeSlotOrder = {
-        [TimeSlotEnum.SATURDAY_MORNING]: 0,
-        [TimeSlotEnum.SATURDAY_AFTERNOON]: 1,
-        [TimeSlotEnum.SUNDAY_MORNING]: 2,
-      }
-
-      const dayDiff =
-            timeSlotOrder[a.session.timeSlot.day_of_week as TimeSlotEnum] -
-            timeSlotOrder[b.session.timeSlot.day_of_week as TimeSlotEnum]
-
-      if (dayDiff !== 0) return dayDiff
-
-      const getMinutes = (time: string) => {
-        const [hours, minutes] = time.split(':').map(Number)
-        return hours * 60 + minutes
-      }
-
-      return getMinutes(a.session.timeSlot.startTime) - getMinutes(b.session.timeSlot.startTime)
-    })
 
     return <StudentEdit
       id={id}
@@ -92,5 +80,4 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
     console.error('Error in EditStudentPage:', error)
     return <ErrorContent message="Erreur lors du chargement des données de l'étudiant" />
   }
-
 }

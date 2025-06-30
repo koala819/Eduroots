@@ -6,7 +6,7 @@ import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getAllTeachers } from '@/server/actions/api/teachers'
-import { TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
+import { StudentEnrollment, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 export const metadata: Metadata = {
   title: 'Modifier info Cours pour l\'Elève',
@@ -30,11 +30,37 @@ export default async function EditStudentCoursesPage({
       getStudentCourses(studentId),
     ])
 
-    if (!teachersResponse.success ||
-      !teachersResponse.data ||
-      !studentCoursesData.success ||
-      !studentCoursesData.data) {
-      throw new Error('Erreur lors de la récupération des données')
+    if (!teachersResponse.success || !teachersResponse.data) {
+      throw new Error('Erreur lors de la récupération des données des enseignants')
+    }
+
+    // Gérer le cas où l'étudiant n'a pas de cours
+    let currentEnrollments = new Set<string>()
+    let initialSelections = new Map<string, string>()
+    let studentCourses: StudentEnrollment[] = []
+
+    if (studentCoursesData.success && studentCoursesData.data) {
+      studentCourses = studentCoursesData.data
+
+      // Préparer les données d'inscription actuelles côté serveur
+      studentCourses.forEach((enrollment) => {
+        const sessionId = enrollment.courses_sessions.id
+        currentEnrollments.add(sessionId)
+
+        // Créer une clé de session basée sur le créneau horaire
+        const timeSlot = enrollment.courses_sessions.courses_sessions_timeslot?.[0]
+        if (timeSlot) {
+          const sessionKey = `${timeSlot.start_time}-${timeSlot.end_time}`
+          initialSelections.set(sessionKey, sessionId)
+        }
+      })
+    } else if (!studentCoursesData.success &&
+      studentCoursesData.message === 'Aucun cours trouvé pour cet étudiant') {
+      // L'étudiant n'a pas de cours, c'est normal - on continue avec des ensembles vides
+      console.log('L\'étudiant n\'a pas encore de cours assignés')
+    } else {
+      // Vraie erreur lors de la récupération des cours
+      throw new Error('Erreur lors de la récupération des cours de l\'étudiant')
     }
 
     // Configuration des créneaux horaires
@@ -46,22 +72,6 @@ export default async function EditStudentCoursesPage({
         { startTime: value.PAUSE, endTime: value.FINISH },
       ],
     }))
-
-    // Préparer les données d'inscription actuelles côté serveur
-    const currentEnrollments = new Set<string>()
-    const initialSelections = new Map<string, string>()
-
-    studentCoursesData.data.forEach((enrollment) => {
-      const sessionId = enrollment.courses_sessions.id
-      currentEnrollments.add(sessionId)
-
-      // Créer une clé de session basée sur le créneau horaire
-      const timeSlot = enrollment.courses_sessions.courses_sessions_timeslot?.[0]
-      if (timeSlot) {
-        const sessionKey = `${timeSlot.start_time}-${timeSlot.end_time}`
-        initialSelections.set(sessionKey, sessionId)
-      }
-    })
 
     const allCoursesData = {
       existingCourses: coursesData,
@@ -77,7 +87,7 @@ export default async function EditStudentCoursesPage({
 
     return <EditCourseStudent
       allCoursesData={allCoursesData}
-      studentCoursesData={studentCoursesData.data}
+      studentCoursesData={studentCourses}
       enrollmentData={enrollmentData}
     />
   } catch (error) {
