@@ -30,13 +30,6 @@ export default function LoadingRoute() {
       }
     }
 
-    const handleStop = () => {
-      // Petit délai pour éviter le flash
-      timeoutId = window.setTimeout(() => {
-        setLoading(false)
-      }, 150)
-    }
-
     // Intercepter les méthodes de navigation du router
     const originalPush = router.push
     const originalReplace = router.replace

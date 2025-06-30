@@ -21,10 +21,6 @@ interface PersonalCardInfoProps {
 export const PersonalCardInfo = ({ id, data }: PersonalCardInfoProps) => {
   const router = useRouter()
 
-  function handleEditAdmin(): void {
-    router.push(`/admin/members/student/edit/${id}/personal`)
-  }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
