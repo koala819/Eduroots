@@ -19,7 +19,7 @@ import {
 } from '@/client/components/ui/select'
 import { useSchedules } from '@/client/context/schedules'
 import { createClient } from '@/client/utils/supabase'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { TimeSlotEnum } from '@/types/courses'
 import { Period, PeriodTypeEnum } from '@/types/schedule'
 

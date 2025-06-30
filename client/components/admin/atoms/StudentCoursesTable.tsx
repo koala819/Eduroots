@@ -10,7 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/client/components/ui/table'
-import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { StudentCourseSession, TimeSlotEnum } from '@/types/courses'
 
 interface CoursesTableProps {

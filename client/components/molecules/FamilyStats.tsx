@@ -3,7 +3,8 @@
 import { Award, Book, Calendar, GraduationCap, Star } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { LevelEnum } from '@/types/courses'
 import { CourseSession, CourseSessionTimeslot } from '@/types/db'
 import { StudentStats as StudentStatsType } from '@/types/stats'

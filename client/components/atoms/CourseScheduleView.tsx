@@ -1,7 +1,8 @@
 import { Clock, Users } from 'lucide-react'
 import React from 'react'
 
-import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 type CourseScheduleViewProps = {

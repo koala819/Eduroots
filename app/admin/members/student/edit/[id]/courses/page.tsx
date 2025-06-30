@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { EditCourseStudent } from '@/client/components/admin/molecules/EditStudentCourse'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getAllTeachers } from '@/server/actions/api/teachers'
-import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 export const metadata: Metadata = {

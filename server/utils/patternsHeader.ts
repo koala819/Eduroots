@@ -1,4 +1,4 @@
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { ClassroomTimeSlot, CourseSessionWithRelations } from '@/types/courses'
 
 export type RoutePattern = {

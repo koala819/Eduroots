@@ -7,7 +7,7 @@ import {
 } from '@/client/components/molecules/GradesStudentList'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { GradeEntry, GradeTypeEnum } from '@/types/grades'
 
 interface GradeSubmissionProps {

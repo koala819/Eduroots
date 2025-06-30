@@ -6,7 +6,7 @@ import * as z from 'zod'
 
 import { useGrades } from '@/client/context/grades'
 import { useToast } from '@/client/hooks/use-toast'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import type { CreateGradePayload } from '@/types/grade-payload'
 import {

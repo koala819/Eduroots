@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
-import { formatDayOfWeek, sortSessionsByDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
+import { sortSessionsByDayOfWeek } from '@/server/utils/helpers'
 import { cn } from '@/server/utils/helpers'
 import { CourseWithRelations } from '@/types/courses'
 

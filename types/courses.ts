@@ -164,5 +164,43 @@ export type StudentCourseSession = {
   teacher: Database['education']['Tables']['users']['Row']
 }
 
+// Type pour un cours avec statistiques complètes et plages horaires
+export type CourseWithCompleteTimeRanges = CourseWithRelations & {
+  courses_sessions: (CourseWithRelations['courses_sessions'][0] & {
+    completeTimeRange?: {
+      min_start_time: string
+      max_end_time: string
+      day_of_week: string
+      subjects: Array<{
+        subject: string
+        level: string
+        start_time: string
+        end_time: string
+      }>
+    } | null
+  })[]
+  timeRanges?: Array<{
+    course_id: string
+    academic_year: string
+    day_of_week: string
+    min_start_time: string
+    max_end_time: string
+    subjects: Array<{
+      subject: string
+      level: string
+      start_time: string
+      end_time: string
+    }>
+  }>
+  stats: {
+    totalStudents: number
+    averageAge: number
+    countBoys: number
+    countGirls: number
+    percentageBoys: number
+    percentageGirls: number
+  }
+}
+
 
 

@@ -29,7 +29,7 @@ import {
 } from '@/client/components/ui/select'
 import { useCourses } from '@/client/context/courses'
 import { toast } from '@/client/hooks/use-toast'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import {
   CourseSessionWithRelations,
   CourseWithRelations,

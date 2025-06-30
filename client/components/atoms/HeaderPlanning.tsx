@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/client/components/ui/dropdown-menu'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 interface HeaderPlanningProps {

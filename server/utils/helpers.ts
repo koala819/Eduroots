@@ -43,15 +43,6 @@ export function formatName(firstname: string, lastname: string) {
   }
 }
 
-export function formatDayOfWeek(dayOfWeek: TimeSlotEnum): string {
-  const dayNames = {
-    [TimeSlotEnum.SATURDAY_MORNING]: 'Samedi matin',
-    [TimeSlotEnum.SATURDAY_AFTERNOON]: 'Samedi après-midi',
-    [TimeSlotEnum.SUNDAY_MORNING]: 'Dimanche matin',
-  }
-  return dayNames[dayOfWeek] || dayOfWeek
-}
-
 export function formatAdminConfigTitle(title: string) {
   const prefixes = ['teacher', 'student', 'bureau']
   for (const prefix of prefixes) {

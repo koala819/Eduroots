@@ -7,7 +7,7 @@ import { Calendar, Clock, GraduationCap, Mail, User2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 import { FormData } from '../../organisms/NewStudentForm'

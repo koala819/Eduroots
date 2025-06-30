@@ -1,7 +1,8 @@
 import { GraduationCap } from 'lucide-react'
 
 import { Card, CardContent } from '@/client/components/ui/card'
-import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { StudentCourseSession, TimeSlotEnum } from '@/types/courses'
 
 interface StudentCourseMobileProps {

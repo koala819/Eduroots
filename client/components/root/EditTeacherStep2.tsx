@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { LevelEnum, SubjectNameEnum, TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
 
 import { TeacherFormData } from './EditTeacherForm'

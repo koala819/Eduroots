@@ -14,46 +14,28 @@ import {
 } from '@/client/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 import { useToast } from '@/client/hooks/use-toast'
-import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
-import { CourseWithRelations, StudentEnrollment, TimeSlotEnum } from '@/types/courses'
+import { DAY_ORDER_ARRAY,formatDayOfWeek } from '@/client/utils/timeSlots'
+import { getSubjectColors } from '@/server/utils/helpers'
+import {
+  CourseWithCompleteTimeRanges,
+  CourseWithRelations,
+  StudentEnrollment,
+  TimeSlot,
+  TimeSlotEnum } from '@/types/courses'
+import { CourseSessionTimeslot } from '@/types/db'
 import { TeacherResponse } from '@/types/teacher-payload'
 
-// Type étendu pour inclure les plages horaires complètes
-type CourseWithCompleteTimeRanges = CourseWithRelations & {
-  courses_sessions: (CourseWithRelations['courses_sessions'][0] & {
-    completeTimeRange?: {
-      min_start_time: string
-      max_end_time: string
-      day_of_week: string
-      subjects: Array<{
-        subject: string
-        level: string
-        start_time: string
-        end_time: string
-      }>
-    } | null
-  })[]
-  timeRanges?: Array<{
-    course_id: string
-    academic_year: string
-    day_of_week: string
-    min_start_time: string
-    max_end_time: string
-    subjects: Array<{
-      subject: string
-      level: string
-      start_time: string
-      end_time: string
-    }>
-  }>
-  stats?: {
-    totalStudents: number
-    averageAge: number
-    countBoys: number
-    countGirls: number
-    percentageBoys: number
-    percentageGirls: number
-  }
+// Type pour un cours avec session et créneau horaire spécifiques
+type CourseWithSessionAndTimeSlot = CourseWithCompleteTimeRanges & {
+  currentSession: CourseWithRelations['courses_sessions'][0]
+  currentTimeSlot: CourseSessionTimeslot
+  uniqueKey: string
+}
+
+// Type pour la structure organisée par jour et session
+type SessionData = {
+  timeSlot: TimeSlot
+  courses: CourseWithSessionAndTimeSlot[]
 }
 
 interface EditCourseStudentProps {
@@ -100,6 +82,7 @@ export const EditCourseStudent = ({
           if (!acc[dayOfWeek][sessionKey]) {
             acc[dayOfWeek][sessionKey] = {
               timeSlot: {
+                day_of_week: timeslot.day_of_week,
                 start_time: timeslot.start_time,
                 end_time: timeslot.end_time,
                 classroom_number: timeslot.classroom_number,
@@ -117,7 +100,7 @@ export const EditCourseStudent = ({
         })
       })
       return acc
-    }, {} as Record<string, Record<string, { timeSlot: any, courses: any[] }>>)
+    }, {} as Record<string, Record<string, SessionData>>)
   }, [allCoursesData.existingCourses])
 
   // Calculer le nombre total de cours par jour
@@ -133,8 +116,19 @@ export const EditCourseStudent = ({
     return counts
   }, [coursesByDayAndSession])
 
-  // Fonction pour appliquer les changements
-  const handleApplyChanges = async () => {
+  // Fonction utilitaire pour trouver un cours par sessionId
+  const findCourseBySessionId = (sessionId: string): CourseWithSessionAndTimeSlot | null => {
+    for (const daySessions of Object.values(coursesByDayAndSession)) {
+      for (const sessionData of Object.values(daySessions)) {
+        const course = sessionData.courses.find((c) => c.currentSession.id === sessionId)
+        if (course) return course
+      }
+    }
+    return null
+  }
+
+  // Fonction pour soumettre les changements
+  const submit = async () => {
     setIsLoading(true)
 
     try {
@@ -142,7 +136,7 @@ export const EditCourseStudent = ({
       const coursesToAdd: Array<{
         courseId: string
         sessionId: string
-        timeSlot: any
+        timeSlot: TimeSlot
         subject: string
       }> = []
 
@@ -153,22 +147,19 @@ export const EditCourseStudent = ({
       }> = []
 
       // Trouver les cours à ajouter (sélectionnés mais pas inscrits)
-      Object.entries(selectedSessions).forEach(([sessionKey, sessionId]) => {
+      Object.entries(selectedSessions).forEach(([_, sessionId]) => {
         if (!currentSessionIds.has(sessionId)) {
-          // Trouver les données du cours
-          let foundCourse: any = null
-          Object.values(coursesByDayAndSession).forEach((daySessions) => {
-            Object.values(daySessions).forEach((sessionData) => {
-              const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
-              if (course) foundCourse = course
-            })
-          })
-
+          const foundCourse = findCourseBySessionId(sessionId)
           if (foundCourse) {
             coursesToAdd.push({
               courseId: foundCourse.id,
               sessionId: sessionId,
-              timeSlot: foundCourse.currentTimeSlot,
+              timeSlot: {
+                day_of_week: foundCourse.currentTimeSlot.day_of_week,
+                start_time: foundCourse.currentTimeSlot.start_time,
+                end_time: foundCourse.currentTimeSlot.end_time,
+                classroom_number: foundCourse.currentTimeSlot.classroom_number,
+              },
               subject: foundCourse.currentSession.subject,
             })
           }
@@ -179,15 +170,7 @@ export const EditCourseStudent = ({
       currentSessionIds.forEach((sessionId) => {
         const isStillSelected = Object.values(selectedSessions).includes(sessionId)
         if (!isStillSelected) {
-          // Trouver les données du cours
-          let foundCourse: any = null
-          Object.values(coursesByDayAndSession).forEach((daySessions) => {
-            Object.values(daySessions).forEach((sessionData) => {
-              const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
-              if (course) foundCourse = course
-            })
-          })
-
+          const foundCourse = findCourseBySessionId(sessionId)
           if (foundCourse) {
             coursesToRemove.push({
               courseId: foundCourse.id,
@@ -207,6 +190,7 @@ export const EditCourseStudent = ({
       // TODO: Implémenter la logique d'ajout/suppression
       toast({
         title: 'Changements préparés',
+        // eslint-disable-next-line max-len
         description: `${coursesToAdd.length} cours à ajouter, ${coursesToRemove.length} cours à supprimer`,
         variant: 'success',
       })
@@ -222,22 +206,6 @@ export const EditCourseStudent = ({
       setIsLoading(false)
     }
   }
-
-  const formatDayLabel = (day: string) => {
-    const dayLabels: Record<string, string> = {
-      'saturday_morning': 'Samedi matin',
-      'saturday_afternoon': 'Samedi après-midi',
-      'sunday_morning': 'Dimanche matin',
-    }
-    return dayLabels[day] || day
-  }
-
-  const getTeacherName = (course: CourseWithCompleteTimeRanges) => {
-    const teacher = course.courses_teacher[0]?.users
-    return teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
-  }
-
-  const dayOrder = ['saturday_morning', 'saturday_afternoon', 'sunday_morning']
 
   // Fonction pour vérifier s'il y a des changements
   const hasChanges = () => {
@@ -264,18 +232,6 @@ export const EditCourseStudent = ({
     }
 
     return false
-  }
-
-  // Fonction pour obtenir le nombre de changements
-  const getChangeCount = () => {
-    const currentSelectedSet = new Set(Object.values(selectedSessions))
-    const toAdd = Array
-      .from(currentSelectedSet)
-      .filter((id) => !currentSessionIds.has(id)).length
-    const toRemove = Array
-      .from(currentSessionIds)
-      .filter((id) => !currentSelectedSet.has(id)).length
-    return { toAdd, toRemove }
   }
 
   return (
@@ -327,14 +283,14 @@ export const EditCourseStudent = ({
       {/* Onglets pour chaque jour */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1">
-          {dayOrder.map((day) => (
+          {DAY_ORDER_ARRAY.map((day) => (
             <TabsTrigger
               key={day}
               value={day}
               className="text-xs sm:text-sm py-2 px-1 sm:px-3
               data-[state=inactive]:hover:cursor-pointer">
               <div className="flex flex-col items-center gap-1">
-                <span>{formatDayLabel(day)}</span>
+                <span>{formatDayOfWeek(day as TimeSlotEnum)}</span>
                 <Badge variant="secondary" className="text-xs">
                   {courseCountsByDay[day] || 0} cours
                 </Badge>
@@ -343,7 +299,7 @@ export const EditCourseStudent = ({
           ))}
         </TabsList>
 
-        {dayOrder.map((day) => (
+        {DAY_ORDER_ARRAY.map((day) => (
           <TabsContent key={day} value={day} className="mt-4 sm:mt-6">
             {coursesByDayAndSession[day] && Object.keys(coursesByDayAndSession[day]).length > 0 ? (
               <div className="space-y-6">
@@ -358,18 +314,11 @@ export const EditCourseStudent = ({
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="text-lg font-semibold text-foreground">
-                              Créneau {timeSlot.start_time.slice(0, 5)} - {timeSlot.end_time.slice(0, 5)}
+                              Créneau {timeSlot.start_time.slice(0, 5)}
+                              - {timeSlot.end_time.slice(0, 5)}
                             </h3>
-                            {timeSlot.classroom_number && (
-                              <p className="text-sm text-muted-foreground">
-                                Salle {timeSlot.classroom_number}
-                              </p>
-                            )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-sm">
-                              {courses.length} cours disponibles
-                            </Badge>
                             {selectedSessionId && (
                               <Badge variant="default" className="text-sm">
                                 1 sélectionné
@@ -391,14 +340,18 @@ export const EditCourseStudent = ({
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Choisir un cours">
                               {selectedSessions[sessionKey] && (() => {
-                                const selectedCourse = courses.find((c) => c.currentSession.id === selectedSessions[sessionKey])
+                                const selectedCourse = courses
+                                  .find((c) => c.currentSession.id === selectedSessions[sessionKey])
                                 if (!selectedCourse) return null
                                 const teacher = selectedCourse.courses_teacher[0]?.users
-                                const teacherName = teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
+                                const teacherName = teacher
+                                  ? `${teacher.firstname} ${teacher.lastname}`
+                                  : 'Professeur non assigné'
                                 return (
                                   <div className="flex items-center justify-between w-full">
                                     <span className="font-medium">{teacherName}</span>
-                                    <Badge variant="outline" className={`text-xs ${getSubjectColors(selectedCourse.currentSession.subject)}`}>
+                                    <Badge variant="outline" className={`text-xs
+                                      ${getSubjectColors(selectedCourse.currentSession.subject)}`}>
                                       {selectedCourse.currentSession.subject}
                                     </Badge>
                                   </div>
@@ -411,15 +364,19 @@ export const EditCourseStudent = ({
                               .sort((a, b) => {
                                 const teacherA = a.courses_teacher[0]?.users
                                 const teacherB = b.courses_teacher[0]?.users
-                                const nameA = teacherA ? `${teacherA.firstname} ${teacherA.lastname}` : ''
-                                const nameB = teacherB ? `${teacherB.firstname} ${teacherB.lastname}` : ''
+                                const nameA = teacherA
+                                  ? `${teacherA.firstname} ${teacherA.lastname}` : ''
+                                const nameB = teacherB
+                                  ? `${teacherB.firstname} ${teacherB.lastname}` : ''
                                 return nameA.localeCompare(nameB, 'fr')
                               })
                               .map((course) => {
                                 const session = course.currentSession
                                 const stats = course.stats
                                 const teacher = course.courses_teacher[0]?.users
-                                const teacherName = teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
+                                const teacherName = teacher
+                                  ? `${teacher.firstname} ${teacher.lastname}`
+                                  : 'Professeur non assigné'
                                 const isCurrentlyEnrolled = currentSessionIds.has(session.id)
 
                                 return (
@@ -440,7 +397,8 @@ export const EditCourseStudent = ({
                                         )}
                                       </div>
 
-                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <div className="flex items-center gap-2 text-xs
+                                      text-muted-foreground">
                                         <Badge
                                           variant="outline"
                                           className={`text-xs ${getSubjectColors(session.subject)}`}
@@ -450,24 +408,34 @@ export const EditCourseStudent = ({
                                       </div>
 
                                       <div className="flex flex-col gap-1 text-xs">
-                                        <span className="text-foreground font-medium">{stats.totalStudents} étudiants</span>
-                                        <span className="text-foreground">Âge moyen: {stats.averageAge} ans</span>
+                                        <span className="text-foreground font-medium">
+                                          {stats.totalStudents} étudiants
+                                        </span>
+                                        <span className="text-foreground">
+                                          Age moyen: {stats.averageAge} ans
+                                        </span>
                                       </div>
 
                                       <div className="space-y-1">
                                         <div className="flex items-center gap-3 text-xs">
                                           <div className="flex items-center gap-1">
                                             <GenderDisplay gender="masculin" size="w-3 h-3" />
-                                            <span className="text-foreground font-medium">{stats.countBoys}</span>
+                                            <span className="text-foreground font-medium">
+                                              {stats.countBoys}
+                                            </span>
                                           </div>
                                           <div className="flex items-center gap-1">
                                             <GenderDisplay gender="féminin" size="w-3 h-3" />
-                                            <span className="text-foreground font-medium">{stats.countGirls}</span>
+                                            <span className="text-foreground font-medium">
+                                              {stats.countGirls}
+                                            </span>
                                           </div>
                                         </div>
-                                        <div className="flex w-full bg-muted rounded-full h-2 overflow-hidden">
+                                        <div className="flex w-full bg-muted rounded-full
+                                        h-2 overflow-hidden">
                                           <div
-                                            className="bg-info-dark h-full transition-all duration-300"
+                                            className="bg-info-dark h-full transition-all
+                                            duration-300"
                                             style={{ width: `${stats.percentageBoys}%` }}
                                           ></div>
                                           <div
@@ -504,36 +472,14 @@ export const EditCourseStudent = ({
             <span className="text-sm text-muted-foreground">
               {Object.keys(selectedSessions).length} sessions sélectionnées
             </span>
-            {hasChanges() && (
-              <Badge variant="outline">
-                {(() => {
-                  const { toAdd, toRemove } = getChangeCount()
-                  if (toAdd > 0 && toRemove > 0) {
-                    return `+${toAdd} -${toRemove}`
-                  } else if (toAdd > 0) {
-                    return `+${toAdd}`
-                  } else if (toRemove > 0) {
-                    return `-${toRemove}`
-                  }
-                  return ''
-                })()}
-              </Badge>
-            )}
           </div>
         </div>
 
         {/* Liste des cours sélectionnés */}
         {Object.keys(selectedSessions).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Object.entries(selectedSessions).map(([sessionKey, sessionId]) => {
-              // Trouver les données du cours
-              let foundCourse: any = null
-              Object.values(coursesByDayAndSession).forEach((daySessions) => {
-                Object.values(daySessions).forEach((sessionData) => {
-                  const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
-                  if (course) foundCourse = course
-                })
-              })
+            {Object.entries(selectedSessions).map(([_, sessionId]) => {
+              const foundCourse = findCourseBySessionId(sessionId)
 
               if (!foundCourse) return null
 
@@ -545,15 +491,22 @@ export const EditCourseStudent = ({
                 <div key={sessionId} className="bg-background border rounded-lg p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{getTeacherName(foundCourse)}</p>
-                      <Badge variant="outline" className={`text-xs ${getSubjectColors(session.subject)}`}>
+                      <p className="font-medium text-sm">
+                        {foundCourse.courses_teacher[0]?.users?.firstname}
+                        {' '}{foundCourse.courses_teacher[0]?.users?.lastname}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${getSubjectColors(session.subject)}`}>
                         {session.subject} - Niveau {session.level}
                       </Badge>
                       <p className="text-xs text-muted-foreground mt-1">
                         {timeSlot.start_time.slice(0, 5)} - {timeSlot.end_time.slice(0, 5)}
                       </p>
                     </div>
-                    <Badge variant={isCurrentlyEnrolled ? 'secondary' : 'default'} className="text-xs">
+                    <Badge
+                      variant={isCurrentlyEnrolled ? 'secondary' : 'default'}
+                      className="text-xs">
                       {isCurrentlyEnrolled ? 'Déjà inscrit' : 'Nouveau'}
                     </Badge>
                   </div>
@@ -576,13 +529,14 @@ export const EditCourseStudent = ({
         {/* Bouton d'action */}
         <div className="flex justify-end">
           <Button
-            onClick={handleApplyChanges}
+            onClick={submit}
             disabled={isLoading || !hasChanges()}
             className="min-w-[120px]"
           >
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-white border-t-transparent
+                rounded-full animate-spin mr-2" />
                 Traitement...
               </>
             ) : (

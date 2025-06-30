@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import { Badge } from '@/client/components/ui/badge'
 import { Card, CardContent } from '@/client/components/ui/card'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { CourseWithRelations, TimeSlotEnum } from '@/types/courses'
 
 interface CourseGridProps {

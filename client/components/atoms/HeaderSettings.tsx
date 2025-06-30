@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/client/components/ui/dropdown-menu'
 import { sortTimeSlots } from '@/client/utils/timeSlots'
-import { formatDayOfWeek } from '@/server/utils/helpers'
+import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { ClassroomTimeSlot } from '@/types/courses'
 import { TimeSlotEnum } from '@/types/courses'
 
