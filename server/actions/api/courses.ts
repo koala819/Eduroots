@@ -1,5 +1,6 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
@@ -1101,39 +1102,51 @@ export async function updateStudentCourses(
     const newEnrollments = []
 
     for (const selection of selections) {
-      // Trouver le cours du professeur
-      const { data: course, error: courseError } = await supabase
+      // Étape 1: Trouver le course_id pour ce professeur
+      const { data: teacherCourse, error: teacherError } = await supabase
         .schema('education')
-        .from('courses')
-        .select(`
-          id,
-          courses_teacher!inner (
-            teacher_id
-          )
-        `)
-        .eq('is_active', true)
-        .eq('courses_teacher.teacher_id', selection.teacherId)
+        .from('courses_teacher')
+        .select('course_id')
+        .eq('teacher_id', selection.teacherId)
         .single()
 
-      if (courseError || !course) {
+      if (teacherError || !teacherCourse) {
         throw new Error(`Cours non trouvé pour le professeur ${selection.teacherId}`)
       }
 
-      // Trouver la session correspondante
-      const { data: session, error: sessionError } = await supabase
+      // Étape 2: Chercher directement la session avec toutes les conditions
+      const { data: sessions, error: sessionError } = await supabase
         .schema('education')
         .from('courses_sessions')
-        .select('id')
-        .eq('course_id', course.id)
+        .select(`
+          id,
+          courses_sessions_timeslot!inner (
+            day_of_week,
+            start_time,
+            end_time
+          )
+        `)
         .eq('subject', selection.subject)
-        .single()
+        .eq('course_id', teacherCourse.course_id)
+        .eq('courses_sessions_timeslot.day_of_week', selection.dayOfWeek)
+        .eq('courses_sessions_timeslot.start_time', selection.startTime)
+        .eq('courses_sessions_timeslot.end_time', selection.endTime)
 
-      if (sessionError || !session) {
-        throw new Error(`Session non trouvée pour ${selection.subject}`)
+      if (sessionError || !sessions || sessions.length === 0) {
+        console.error('Session error:', sessionError)
+        console.error('Selection:', selection)
+        console.error('Teacher course:', teacherCourse)
+        throw new Error(
+          `Session non trouvée pour ${selection.subject} avec le professeur ${selection.teacherId}
+          au créneau ${selection.dayOfWeek} ${selection.startTime}-${selection.endTime}`,
+        )
       }
+
+      const session = sessions[0] // Prendre la première session trouvée
 
       newSessionIds.add(session.id)
       newEnrollments.push({
+        id: randomUUID(),
         course_sessions_id: session.id,
         student_id: studentId,
       })

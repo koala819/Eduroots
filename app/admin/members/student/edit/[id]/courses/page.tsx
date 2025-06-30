@@ -89,6 +89,7 @@ export default async function EditStudentCoursesPage({
       allCoursesData={allCoursesData}
       studentCoursesData={studentCourses}
       enrollmentData={enrollmentData}
+      studentId={studentId}
     />
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useMemo,useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
@@ -15,11 +16,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 import { useToast } from '@/client/hooks/use-toast'
 import { DAY_ORDER_ARRAY,formatDayOfWeek } from '@/client/utils/timeSlots'
+import { updateStudentCourses } from '@/server/actions/api/courses'
 import { getSubjectColors } from '@/server/utils/helpers'
 import {
   CourseWithCompleteTimeRanges,
   CourseWithRelations,
   StudentEnrollment,
+  SubjectNameEnum,
   TimeSlot,
   TimeSlotEnum } from '@/types/courses'
 import { CourseSessionTimeslot } from '@/types/db'
@@ -53,14 +56,17 @@ interface EditCourseStudentProps {
     currentEnrollments: string[]
     initialSelections: Record<string, string>
   }
+  studentId: string
 }
 
 export const EditCourseStudent = ({
   allCoursesData,
   studentCoursesData,
   enrollmentData,
+  studentId,
 }: EditCourseStudentProps) => {
   const { toast } = useToast()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState<string>('saturday_morning')
   const [selectedSessions, setSelectedSessions] = useState<Record<string, string>>({})
@@ -127,73 +133,57 @@ export const EditCourseStudent = ({
     return null
   }
 
-  // Fonction pour soumettre les changements
   const submit = async () => {
     setIsLoading(true)
 
     try {
-      // Calculer les cours à ajouter et à supprimer
-      const coursesToAdd: Array<{
-        courseId: string
-        sessionId: string
-        timeSlot: TimeSlot
-        subject: string
-      }> = []
+      // Transformer les sélections actuelles en format attendu par l'API
+      const selections = Object.entries(selectedSessions).map(([sessionKey, sessionId]) => {
+        const foundCourse = findCourseBySessionId(sessionId)
+        if (!foundCourse) {
+          toast({
+            title: 'Erreur',
+            description: `Cours non trouvé pour la session ${sessionId}`,
+            variant: 'destructive',
+          })
+          throw new Error(`Cours non trouvé pour la session ${sessionId}`)
+        }
 
-      const coursesToRemove: Array<{
-        courseId: string
-        sessionId: string
-        subject: string
-      }> = []
+        const teacher = foundCourse.courses_teacher[0]
+        if (!teacher?.teacher_id) {
+          toast({
+            title: 'Erreur',
+            description: `Professeur non trouvé pour le cours ${foundCourse.id}`,
+            variant: 'destructive',
+          })
+          throw new Error(`Professeur non trouvé pour le cours ${foundCourse.id}`)
+        }
 
-      // Trouver les cours à ajouter (sélectionnés mais pas inscrits)
-      Object.entries(selectedSessions).forEach(([_, sessionId]) => {
-        if (!currentSessionIds.has(sessionId)) {
-          const foundCourse = findCourseBySessionId(sessionId)
-          if (foundCourse) {
-            coursesToAdd.push({
-              courseId: foundCourse.id,
-              sessionId: sessionId,
-              timeSlot: {
-                day_of_week: foundCourse.currentTimeSlot.day_of_week,
-                start_time: foundCourse.currentTimeSlot.start_time,
-                end_time: foundCourse.currentTimeSlot.end_time,
-                classroom_number: foundCourse.currentTimeSlot.classroom_number,
-              },
-              subject: foundCourse.currentSession.subject,
-            })
-          }
+        return {
+          dayOfWeek: foundCourse.currentTimeSlot.day_of_week as TimeSlotEnum,
+          startTime: foundCourse.currentTimeSlot.start_time,
+          endTime: foundCourse.currentTimeSlot.end_time,
+          subject: foundCourse.currentSession.subject as SubjectNameEnum, // Cast en SubjectNameEnum
+          teacherId: teacher.teacher_id,
         }
       })
 
-      // Trouver les cours à supprimer (inscrits mais pas sélectionnés)
-      currentSessionIds.forEach((sessionId) => {
-        const isStillSelected = Object.values(selectedSessions).includes(sessionId)
-        if (!isStillSelected) {
-          const foundCourse = findCourseBySessionId(sessionId)
-          if (foundCourse) {
-            coursesToRemove.push({
-              courseId: foundCourse.id,
-              sessionId: sessionId,
-              subject: foundCourse.currentSession.subject,
-            })
-          }
-        }
-      })
+      const result = await updateStudentCourses(studentId, selections)
 
-      // Console.log des données
-      console.log('=== DONNÉES À AJOUTER ===')
-      console.log(coursesToAdd)
-      console.log('=== DONNÉES À SUPPRIMER ===')
-      console.log(coursesToRemove)
-
-      // TODO: Implémenter la logique d'ajout/suppression
-      toast({
-        title: 'Changements préparés',
-        // eslint-disable-next-line max-len
-        description: `${coursesToAdd.length} cours à ajouter, ${coursesToRemove.length} cours à supprimer`,
-        variant: 'success',
-      })
+      if (result.success) {
+        toast({
+          title: 'Succès',
+          description: 'Cours mis à jour avec succès',
+          variant: 'success',
+        })
+        router.push(`/admin/members/student/edit/${studentId}`)
+      } else {
+        toast({
+          title: 'Erreur',
+          description: result.message,
+          variant: 'destructive',
+        })
+      }
 
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
@@ -237,40 +227,48 @@ export const EditCourseStudent = ({
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Récapitulatif des cours actuels */}
-      <section className="space-y-4">
-        <div className="w-full">
-          <h3 className="text-lg font-semibold mb-3">Cours actuels</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {studentCoursesData.map((enrollment) => {
-              const session = enrollment.courses_sessions
-              const timeSlot = session.courses_sessions_timeslot?.[0]
-              const teacher = session.courses?.courses_teacher?.[0]?.users
+      {studentCoursesData.length > 0 ? (
+        <section className="space-y-4">
+          <div className="w-full">
+            <h3 className="text-lg font-semibold mb-3">Cours actuels</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {studentCoursesData.map((enrollment) => {
+                const session = enrollment.courses_sessions
+                const timeSlot = session.courses_sessions_timeslot?.[0]
+                const teacher = session.courses?.courses_teacher?.[0]?.users
 
-              return (
-                <div key={session.id} className="bg-white border rounded-lg p-2 text-xs">
-                  <span className={`font-medium text-sm ${getSubjectColors(session.subject)}`}>
-                    {session.subject}
-                  </span>
-                  <div className="text-muted-foreground mt-1 space-y-0.5">
-                    <div>
-                      <p>{teacher?.firstname} {teacher?.lastname}</p>
+                return (
+                  <div key={session.id} className="bg-white border rounded-lg p-2 text-xs">
+                    <span className={`font-medium text-sm ${getSubjectColors(session.subject)}`}>
+                      {session.subject}
+                    </span>
+                    <div className="text-muted-foreground mt-1 space-y-0.5">
+                      <div>
+                        <p>{teacher?.firstname} {teacher?.lastname}</p>
+                        <p>
+                          {formatDayOfWeek(timeSlot?.day_of_week as TimeSlotEnum)} •
+                          {timeSlot?.start_time?.slice(0, 5)}-{timeSlot?.end_time?.slice(0, 5)}
+                        </p>
+                      </div>
                       <p>
-                        {formatDayOfWeek(timeSlot?.day_of_week as TimeSlotEnum)} •
-                        {timeSlot?.start_time?.slice(0, 5)}-{timeSlot?.end_time?.slice(0, 5)}
+                        <span>Niv. {session.level}</span>
+                        {timeSlot?.classroom_number &&
+                        <span>{' '}• Salle {timeSlot.classroom_number}</span>}
                       </p>
                     </div>
-                    <p>
-                      <span>Niv. {session.level}</span>
-                      {timeSlot?.classroom_number &&
-                        <span>{' '}• Salle {timeSlot.classroom_number}</span>}
-                    </p>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
+        </section>
+      ):
+        <div className="bg-info-dark p-4 rounded-lg">
+          <h3 className="text-sm md:text-lg font-semibold mb-3 text-center text-info-foreground">
+          Aucun cours actuellement assigné à cet étudiant
+          </h3>
         </div>
-      </section>
+      }
 
       {/* Header */}
       <div className="text-center space-y-2">
