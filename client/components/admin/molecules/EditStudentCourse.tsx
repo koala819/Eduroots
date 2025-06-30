@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo,useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { Badge } from '@/client/components/ui/badge'
@@ -78,47 +78,53 @@ export const EditCourseStudent = ({
 
   const currentSessionIds = new Set(enrollmentData.currentEnrollments)
 
-  // Organiser les cours par jour et par session (créneau horaire)
-  const coursesByDayAndSession = allCoursesData.existingCourses.reduce((acc, course) => {
-    course.courses_sessions.forEach((session) => {
-      session.courses_sessions_timeslot?.forEach((timeslot) => {
-        const dayOfWeek = timeslot.day_of_week
-        if (!acc[dayOfWeek]) {
-          acc[dayOfWeek] = {}
-        }
-
-        const sessionKey = `${timeslot.start_time}-${timeslot.end_time}`
-        if (!acc[dayOfWeek][sessionKey]) {
-          acc[dayOfWeek][sessionKey] = {
-            timeSlot: {
-              start_time: timeslot.start_time,
-              end_time: timeslot.end_time,
-              classroom_number: timeslot.classroom_number,
-            },
-            courses: [],
+  // Sert à organiser les données des cours pour l'interface utilisateur.
+  // Transforme une liste plate de cours en une structure hiérarchique organisée
+  const coursesByDayAndSession = useMemo(() => {
+    return allCoursesData.existingCourses.reduce((acc, course) => {
+      course.courses_sessions.forEach((session) => {
+        session.courses_sessions_timeslot?.forEach((timeslot) => {
+          const dayOfWeek = timeslot.day_of_week
+          if (!acc[dayOfWeek]) {
+            acc[dayOfWeek] = {}
           }
-        }
 
-        acc[dayOfWeek][sessionKey].courses.push({
-          ...course,
-          currentSession: session,
-          currentTimeSlot: timeslot,
-          uniqueKey: `${course.id}-${session.id}-${timeslot.start_time}-${timeslot.end_time}`,
+          const sessionKey = `${timeslot.start_time}-${timeslot.end_time}`
+          if (!acc[dayOfWeek][sessionKey]) {
+            acc[dayOfWeek][sessionKey] = {
+              timeSlot: {
+                start_time: timeslot.start_time,
+                end_time: timeslot.end_time,
+                classroom_number: timeslot.classroom_number,
+              },
+              courses: [],
+            }
+          }
+
+          acc[dayOfWeek][sessionKey].courses.push({
+            ...course,
+            currentSession: session,
+            currentTimeSlot: timeslot,
+            uniqueKey: `${course.id}-${session.id}-${timeslot.start_time}-${timeslot.end_time}`,
+          })
         })
       })
-    })
-    return acc
-  }, {} as Record<string, Record<string, { timeSlot: any, courses: any[] }>>)
+      return acc
+    }, {} as Record<string, Record<string, { timeSlot: any, courses: any[] }>>)
+  }, [allCoursesData.existingCourses])
 
   // Calculer le nombre total de cours par jour
-  const getCourseCount = (day: string) => {
-    const daySessions = coursesByDayAndSession[day]
-    if (!daySessions) return 0
+  const courseCountsByDay = useMemo(() => {
+    const counts: Record<string, number> = {}
 
-    return Object.values(daySessions).reduce((total, sessionData) => {
-      return total + sessionData.courses.length
-    }, 0)
-  }
+    Object.entries(coursesByDayAndSession).forEach(([day, daySessions]) => {
+      counts[day] = Object.values(daySessions).reduce((total, sessionData) => {
+        return total + (sessionData.courses.length / 2)
+      }, 0)
+    })
+
+    return counts
+  }, [coursesByDayAndSession])
 
   // Fonction pour gérer la sélection d'un cours (1 seul par session)
   const handleCourseSelection = (sessionId: string, sessionKey: string) => {
@@ -340,7 +346,7 @@ export const EditCourseStudent = ({
               <div className="flex flex-col items-center gap-1">
                 <span>{formatDayLabel(day)}</span>
                 <Badge variant="secondary" className="text-xs">
-                  {getCourseCount(day)} cours
+                  {courseCountsByDay[day] || 0} cours
                 </Badge>
               </div>
             </TabsTrigger>
