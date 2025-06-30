@@ -28,6 +28,12 @@ export default function LoadingRoute() {
         clearTimeout(timeoutId)
         timeoutId = null
       }
+
+      // Créer un nouveau timeout pour arrêter le loading après 5 secondes
+      timeoutId = window.setTimeout(() => {
+        setLoading(false)
+        timeoutId = null
+      }, 5000)
     }
 
     // Intercepter les méthodes de navigation du router
