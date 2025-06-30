@@ -1,45 +1,41 @@
-import { getAllCoursesWithStats, getCoursesTimeRange } from '@/server/actions/api/courses'
+import { getAllCoursesWithStats } from '@/server/actions/api/courses'
 
 export async function getCoursesWithStudentStats() {
   // Récupérer tous les cours avec leurs relations et statistiques
-  const [coursesResponse, timeRangesResponse] = await Promise.all([
-    getAllCoursesWithStats(),
-    getCoursesTimeRange(),
-  ])
+  const coursesResponse = await getAllCoursesWithStats()
 
   if (!coursesResponse.success || !coursesResponse.data) {
     console.error('Erreur dans getCoursesWithStudentStats:', coursesResponse)
     throw new Error('Erreur lors de la récupération des cours')
   }
 
-  if (!timeRangesResponse.success || !timeRangesResponse.data) {
-    console.error('Erreur dans getCoursesWithStudentStats - timeRanges:', timeRangesResponse)
-    throw new Error('Erreur lors de la récupération des plages horaires')
-  }
-
   const coursesData = coursesResponse.data
-  const timeRangesData = timeRangesResponse.data
 
-  // Enrichir les cours avec leurs plages horaires complètes
+  // Enrichir les cours en préservant chaque créneau horaire individuellement
   const enrichedCourses = coursesData.map((course) => {
-    // Trouver les plages horaires pour ce cours
-    const courseTimeRanges = timeRangesData.filter(
-      (range) => range.course_id === course.id,
-    )
-
-    // Enrichir chaque session avec sa plage horaire complète
+    // Enrichir chaque session avec ses créneaux horaires individuels
     const enrichedSessions = course.courses_sessions.map((session) => {
-      // Trouver la plage horaire pour cette session (même jour)
-      const sessionDay = session.courses_sessions_timeslot[0]?.day_of_week
-      const timeRange = courseTimeRanges.find((range) => range.day_of_week === sessionDay)
+      // Préserver chaque créneau horaire individuellement au lieu de les regrouper
+      const individualTimeSlots = session.courses_sessions_timeslot.map((timeslot) => ({
+        day_of_week: timeslot.day_of_week,
+        start_time: timeslot.start_time,
+        end_time: timeslot.end_time,
+        classroom_number: timeslot.classroom_number,
+        // Ajouter les informations de la session pour ce créneau
+        subject: session.subject,
+        level: session.level,
+        session_id: session.id,
+      }))
 
       return {
         ...session,
-        completeTimeRange: timeRange ? {
-          min_start_time: timeRange.min_start_time,
-          max_end_time: timeRange.max_end_time,
-          day_of_week: timeRange.day_of_week,
-          subjects: timeRange.subjects || [],
+        // Garder les créneaux individuels au lieu d'une plage regroupée
+        individualTimeSlots,
+        // Calculer la plage complète pour ce créneau spécifique
+        timeRange: individualTimeSlots.length > 0 ? {
+          min_start_time: individualTimeSlots[0].start_time,
+          max_end_time: individualTimeSlots[0].end_time,
+          day_of_week: individualTimeSlots[0].day_of_week,
         } : null,
       }
     })
@@ -47,7 +43,6 @@ export async function getCoursesWithStudentStats() {
     return {
       ...course,
       courses_sessions: enrichedSessions,
-      timeRanges: courseTimeRanges,
     }
   })
 

@@ -9,7 +9,7 @@ import { createClient } from '@/server/utils/supabase'
 const navItems = [
   {
     href: '/admin',
-    label: 'Tableau de bord',
+    label: 'Accueil',
     Icon: 'Home',
     pathPattern: '^/admin$',
   },
@@ -21,7 +21,7 @@ const navItems = [
   },
   {
     href: '/admin/schedule',
-    label: 'Emplois du temps',
+    label: 'Planning',
     Icon: 'Calendar',
     pathPattern: '^/admin/schedule$',
   },

@@ -130,25 +130,50 @@ export const EditCourseStudent = ({
     }
   }
 
-  // Organiser les cours par jour
-  const coursesByDay = allCoursesData.existingCourses.reduce((acc, course) => {
-    const dayOfWeek = course.courses_sessions[0]?.courses_sessions_timeslot[0]?.day_of_week ||
-      'unknown'
-    if (!acc[dayOfWeek]) {
-      acc[dayOfWeek] = []
-    }
-    acc[dayOfWeek].push(course)
-    return acc
-  }, {} as Record<string, CourseWithRelations[]>)
+  // Organiser les cours par jour et par session (créneau horaire)
+  const coursesByDayAndSession = allCoursesData.existingCourses.reduce((acc, course) => {
+    course.courses_sessions.forEach((session) => {
+      session.courses_sessions_timeslot?.forEach((timeslot) => {
+        const dayOfWeek = timeslot.day_of_week
+        if (!acc[dayOfWeek]) {
+          acc[dayOfWeek] = {}
+        }
 
-  // Trier les cours par jour et par prénom du professeur
-  Object.keys(coursesByDay).forEach((day) => {
-    coursesByDay[day].sort((a, b) => {
-      const teacherA = a.courses_teacher[0]?.users?.firstname || ''
-      const teacherB = b.courses_teacher[0]?.users?.firstname || ''
-      return teacherA.localeCompare(teacherB)
+        // Créer une clé pour la session basée sur l'heure
+        const sessionKey = `${timeslot.start_time}-${timeslot.end_time}`
+        if (!acc[dayOfWeek][sessionKey]) {
+          acc[dayOfWeek][sessionKey] = {
+            timeSlot: {
+              start_time: timeslot.start_time,
+              end_time: timeslot.end_time,
+              classroom_number: timeslot.classroom_number,
+            },
+            courses: [],
+          }
+        }
+
+        // Ajouter ce cours à cette session
+        acc[dayOfWeek][sessionKey].courses.push({
+          ...course,
+          currentSession: session,
+          currentTimeSlot: timeslot,
+          uniqueKey: `${course.id}-${session.id}-${timeslot.start_time}-${timeslot.end_time}`,
+        })
+      })
     })
-  })
+    return acc
+  }, {} as Record<string, Record<string, { timeSlot: any, courses: any[] }>>)
+
+  // Calculer le nombre total de cours par jour (pas de sessions)
+  const getCourseCount = (day: string) => {
+    const daySessions = coursesByDayAndSession[day]
+    if (!daySessions) return 0
+
+    // Compter tous les cours de toutes les sessions
+    return Object.values(daySessions).reduce((total, sessionData) => {
+      return total + sessionData.courses.length
+    }, 0)
+  }
 
   const handleToggleCourse = async (courseId: string) => {
     setIsLoading(true)
@@ -229,20 +254,16 @@ export const EditCourseStudent = ({
     return teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
   }
 
-  const getCourseTime = (course: CourseWithCompleteTimeRanges) => {
-    const session = course.courses_sessions[0]
-    if (!session?.courses_sessions_timeslot || session.courses_sessions_timeslot.length === 0) {
+  const getCourseTime = (course: any) => {
+    const session = course.currentSession
+    const timeslots = course.currentTimeSlots || session?.courses_sessions_timeslot || []
+
+    if (timeslots.length === 0) {
       return ''
     }
 
-    // Utiliser la plage horaire complète si disponible (depuis getCoursesTimeRange)
-    if (session.completeTimeRange) {
-      const { min_start_time, max_end_time } = session.completeTimeRange
-      return `${min_start_time.slice(0, 5)} - ${max_end_time.slice(0, 5)}`
-    }
-
     // Trier les créneaux par heure de début
-    const sortedTimeslots = session.courses_sessions_timeslot.sort((a, b) =>
+    const sortedTimeslots = timeslots.sort((a: any, b: any) =>
       a.start_time.localeCompare(b.start_time),
     )
 
@@ -258,31 +279,6 @@ export const EditCourseStudent = ({
     }
   }
 
-  const getDetailedCourseTime = (course: CourseWithCompleteTimeRanges) => {
-    const session = course.courses_sessions[0]
-    if (!session?.courses_sessions_timeslot || session.courses_sessions_timeslot.length === 0) {
-      return []
-    }
-
-    // Trier les créneaux par heure de début
-    const sortedTimeslots = session.courses_sessions_timeslot.sort((a, b) =>
-      a.start_time.localeCompare(b.start_time),
-    )
-
-    return sortedTimeslots.map((timeslot) => ({
-      start: timeslot.start_time.slice(0, 5),
-      end: timeslot.end_time.slice(0, 5),
-      classroom: timeslot.classroom_number,
-    }))
-  }
-
-  const getSubjectsInOrder = (course: CourseWithCompleteTimeRanges) => {
-    const session = course.courses_sessions[0]
-    if (session?.completeTimeRange?.subjects) {
-      return session.completeTimeRange.subjects
-    }
-    return []
-  }
 
   const dayOrder = ['saturday_morning', 'saturday_afternoon', 'sunday_morning']
 
@@ -343,7 +339,7 @@ export const EditCourseStudent = ({
               <div className="flex flex-col items-center gap-1">
                 <span>{formatDayLabel(day)}</span>
                 <Badge variant="secondary" className="text-xs">
-                  {coursesByDay[day]?.length || 0}
+                  {getCourseCount(day)/2} cours
                 </Badge>
               </div>
             </TabsTrigger>
@@ -352,146 +348,140 @@ export const EditCourseStudent = ({
 
         {dayOrder.map((day) => (
           <TabsContent key={day} value={day} className="mt-4 sm:mt-6">
-            {coursesByDay[day] && coursesByDay[day].length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                {coursesByDay[day].map((course) => {
-                  const session = course.courses_sessions[0]
-                  const stats = calculateCourseStats(course)
+            {coursesByDayAndSession[day] && Object.keys(coursesByDayAndSession[day]).length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(coursesByDayAndSession[day]).map(([sessionKey, sessionData]) => {
+                  const { timeSlot, courses } = sessionData
 
                   return (
-                    <Card
-                      key={course.id}
-                      className='group relative overflow-hidden transition-all duration-300
-                        hover:shadow-lg border-2 border-border hover:border-primary bg-background'
-                    >
-                      <CardHeader className="pb-4">
-                        {/* En-tête avec professeur et niveau */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg font-semibold text-foreground mb-1">
-                              {getTeacherName(course)}
-                            </CardTitle>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Badge variant="outline"
-                                className="text-xs bg-accent border-accent
-                                 text-accent-foreground">
-                                Niveau {session?.level}
-                              </Badge>
-                              <span className="font-medium text-foreground">
-                                {getCourseTime(course)}
-                              </span>
-                            </div>
+                    <div key={sessionKey} className="space-y-4">
+                      {/* En-tête de la session */}
+                      <div className="bg-muted/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold">
+                              Créneau {timeSlot.start_time.slice(0, 5)}{' '}
+                              - {timeSlot.end_time.slice(0, 5)}
+                            </h3>
+                            {/* {timeSlot.classroom_number && (
+                              <p className="text-sm text-muted-foreground">
+                                Salle {timeSlot.classroom_number}
+                              </p>
+                            )} */}
                           </div>
-
-                          {/* Bouton d'action */}
-                          <Button
-                            size="sm"
-                            variant='default'
-                            onClick={() => handleToggleCourse(course.id)}
-                            disabled={isLoading}
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            <span className="hidden sm:inline">Changer</span>
-                          </Button>
+                          {/* <Badge variant="outline" className="text-sm">
+                            {courses.length} cours disponibles
+                          </Badge> */}
                         </div>
-                      </CardHeader>
+                      </div>
 
-                      <CardContent className="pt-0">
-                        {/* Planning en colonnes */}
-                        {(getSubjectsInOrder(course).length > 1 ||
-                          getDetailedCourseTime(course).length > 1) && (
-                          <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-                            <h4 className="text-xs font-semibold text-foreground
-                            mb-3 uppercase tracking-wide">
-                              Planning
-                            </h4>
-                            <div className="grid grid-cols-2 gap-4">
-                              {getSubjectsInOrder(course).length > 1 ? (
-                                getSubjectsInOrder(course).map((subjectInfo, index) => (
-                                  <div key={index} className="text-center">
-                                    <div className="text-muted-foreground font-mono text-xs mb-1">
-                                      {subjectInfo.start_time.slice(0, 5)} -
-                                      {' '}{subjectInfo.end_time.slice(0, 5)}
-                                    </div>
-                                    <div className="text-foreground font-medium text-sm">
-                                      {subjectInfo.subject}
+                      {/* Grille des cours pour cette session */}
+                      <div
+                        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                        {courses.map((course) => {
+                          const session = course.currentSession
+                          const stats = calculateCourseStats(course)
+
+                          return (
+                            <Card
+                              key={course.uniqueKey}
+                              className='group relative overflow-hidden transition-all duration-300
+                                hover:shadow-lg border-2 border-border hover:border-primary
+                                bg-background'
+                            >
+                              <CardHeader className="pb-4">
+                                {/* En-tête avec professeur et matière */}
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <CardTitle
+                                      className="text-lg font-semibold text-foreground mb-1">
+                                      {getTeacherName(course)}
+                                    </CardTitle>
+                                    <div className="flex items-center gap-2 text-sm
+                                    text-muted-foreground">
+                                      <Badge variant="outline"
+                                        className={`text-xs ${getSubjectColors(session?.subject)}`}>
+                                        {session?.subject} - Niveau {session?.level}
+                                      </Badge>
                                     </div>
                                   </div>
-                                ))
-                              ) : (
-                                getDetailedCourseTime(course).map((timeslot, index) => (
-                                  <div key={index} className="text-center">
-                                    <div className="text-muted-foreground font-mono text-xs mb-1">
-                                      {timeslot.start} - {timeslot.end}
+
+                                  {/* Bouton d'action */}
+                                  <Button
+                                    size="sm"
+                                    variant='default'
+                                    onClick={() => handleToggleCourse(course.id)}
+                                    disabled={isLoading}
+                                  >
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    <span className="hidden sm:inline">Changer</span>
+                                  </Button>
+                                </div>
+                              </CardHeader>
+
+                              <CardContent className="pt-0">
+                                {/* Statistiques des étudiants */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-foreground">
+                                      {stats.totalStudents} Étudiants inscrits
+                                    </span>
+                                  </div>
+
+                                  {/* Répartition par genre */}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="text-muted-foreground">Répartition</span>
+                                      <span className="text-muted-foreground">
+                                        Âge moyen: {stats.averageAge} ans
+                                      </span>
                                     </div>
-                                    <div className="text-foreground text-sm">
-                                      {timeslot.classroom && `Salle ${timeslot.classroom}`}
+
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex-1 bg-muted rounded-full h-2
+                                      overflow-hidden">
+                                        <div
+                                          className="bg-primary h-full"
+                                          style={{ width: `${stats.percentageBoys}%` }}
+                                        ></div>
+                                      </div>
+                                      <div className="flex items-center gap-1 text-xs">
+                                        <GenderDisplay gender="masculin" size="w-3 h-3" />
+                                        <span className="font-medium text-foreground">
+                                          {stats.countBoys}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex-1 bg-muted rounded-full h-2
+                                      overflow-hidden">
+                                        <div
+                                          className="bg-secondary h-full"
+                                          style={{ width: `${stats.percentageGirls}%` }}
+                                        ></div>
+                                      </div>
+                                      <div className="flex items-center gap-1 text-xs">
+                                        <GenderDisplay gender="féminin" size="w-3 h-3" />
+                                        <span className="font-medium text-foreground">
+                                          {stats.countGirls}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Statistiques des étudiants */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-foreground">
-                              {stats.totalStudents} Étudiants inscrits
-                            </span>
-                          </div>
-
-                          {/* Répartition par genre avec graphique simple */}
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Répartition</span>
-                              <span className="text-muted-foreground">
-                                Âge moyen: {stats.averageAge} ans
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {/* Barre de progression pour les garçons */}
-                              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                                <div
-                                  className="bg-primary h-full"
-                                  style={{ width: `${stats.percentageBoys}%` }}
-                                ></div>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs">
-                                <GenderDisplay gender="masculin" size="w-3 h-3" />
-                                <span className="font-medium text-foreground">
-                                  {stats.countBoys}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {/* Barre de progression pour les filles */}
-                              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                                <div
-                                  className="bg-pink h-full"
-                                  style={{ width: `${stats.percentageGirls}%` }}
-                                ></div>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs">
-                                <GenderDisplay gender="feminin" size="w-3 h-3" />
-                                <span className="font-medium text-foreground">
-                                  {stats.countGirls}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )
+                        })}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500">Aucun cours disponible pour ce créneau</p>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Aucun cours disponible pour ce jour</p>
               </div>
             )}
           </TabsContent>
