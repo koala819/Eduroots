@@ -1,4 +1,5 @@
 import { getAllCoursesWithStats } from '@/server/actions/api/courses'
+import { CourseWithRelations } from '@/types/courses'
 
 export async function getCoursesWithStudentStats() {
   // Récupérer tous les cours avec leurs relations et statistiques
@@ -11,8 +12,11 @@ export async function getCoursesWithStudentStats() {
 
   const coursesData = coursesResponse.data
 
-  // Enrichir les cours en préservant chaque créneau horaire individuellement
+  // Enrichir les cours avec les statistiques calculées côté serveur
   const enrichedCourses = coursesData.map((course) => {
+    // Calculer les stats pour ce cours
+    const courseStats = calculateCourseStats(course)
+
     // Enrichir chaque session avec ses créneaux horaires individuels
     const enrichedSessions = course.courses_sessions.map((session) => {
       // Préserver chaque créneau horaire individuellement au lieu de les regrouper
@@ -43,8 +47,54 @@ export async function getCoursesWithStudentStats() {
     return {
       ...course,
       courses_sessions: enrichedSessions,
+      stats: courseStats, // Ajouter les stats pré-calculées
     }
   })
 
   return enrichedCourses
+}
+
+
+function calculateCourseStats(course: CourseWithRelations) {
+  // Set pour dédupliquer rapidement les étudiants
+  const uniqueStudentIds = new Set<string>()
+  let totalAge = 0
+  let validAgeCount = 0
+  let countBoys = 0
+  let countGirls = 0
+
+  // Parcourir toutes les sessions du cours
+  course.courses_sessions.forEach((session) => {
+    session.courses_sessions_students?.forEach((enrollment) => {
+      if (enrollment.users && !uniqueStudentIds.has(enrollment.student_id)) {
+        uniqueStudentIds.add(enrollment.student_id)
+
+        // Compter par genre
+        const gender = enrollment.users.gender?.toLowerCase()
+        if (gender === 'masculin' || gender === 'male' || gender === 'm') {
+          countBoys++
+        } else if (gender === 'féminin' || gender === 'female' || gender === 'f') {
+          countGirls++
+        }
+
+        // Calculer l'âge si disponible
+        if (enrollment.users.date_of_birth) {
+          const birthDate = new Date(enrollment.users.date_of_birth)
+          const age = new Date().getFullYear() - birthDate.getFullYear()
+          totalAge += age
+          validAgeCount++
+        }
+      }
+    })
+  })
+
+  const totalStudents = uniqueStudentIds.size
+  const averageAge = validAgeCount > 0 ? Math.round(totalAge / validAgeCount) : 0
+
+  return {
+    totalStudents,
+    averageAge,
+    countBoys,
+    countGirls,
+  }
 }

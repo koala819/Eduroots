@@ -1,6 +1,5 @@
 'use client'
 
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
@@ -14,7 +13,6 @@ import {
 } from '@/client/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 import { useToast } from '@/client/hooks/use-toast'
-import { addStudentToCourse, removeStudentFromCourse } from '@/server/actions/api/courses'
 import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
 import { CourseWithRelations, StudentEnrollment, TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
@@ -50,7 +48,6 @@ type CourseWithCompleteTimeRanges = CourseWithRelations & {
 }
 
 interface EditCourseStudentProps {
-  studentId: string
   allCoursesData: {
     existingCourses: CourseWithCompleteTimeRanges[]
     availableTeachers: TeacherResponse[]
@@ -61,74 +58,25 @@ interface EditCourseStudentProps {
     }>
   }
   studentCoursesData: StudentEnrollment[]
+  enrollmentData: {
+    currentEnrollments: string[]
+    initialSelections: Record<string, string>
+  }
 }
 
 export const EditCourseStudent = ({
-  studentId,
   allCoursesData,
   studentCoursesData,
+  enrollmentData,
 }: EditCourseStudentProps) => {
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('saturday_morning')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [activeTab, setActiveTab] = useState<string>('saturday_morning')
+  const [selectedCourses, setSelectedCourses] = useState<Map<string, string>>(
+    new Map(Object.entries(enrollmentData.initialSelections)),
+  )
 
-
-  // État des inscriptions actuelles de l'étudiant (à récupérer depuis une API)
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
-
-  // Calculer les statistiques pour chaque cours
-  const calculateCourseStats = (course: CourseWithCompleteTimeRanges) => {
-    // Utiliser un Map pour dédupliquer les étudiants par student_id
-    const uniqueStudents = new Map<string, { date_of_birth: string; gender: string }>()
-
-    course.courses_sessions.forEach((session) => {
-      session.courses_sessions_students?.forEach((enrollment) => {
-        if (enrollment.users && !uniqueStudents.has(enrollment.student_id)) {
-          const dateOfBirth = enrollment.users.date_of_birth ?
-            enrollment.users.date_of_birth.toString() : ''
-          uniqueStudents.set(enrollment.student_id, {
-            date_of_birth: dateOfBirth,
-            gender: enrollment.users.gender || 'undefined',
-          })
-        }
-      })
-    })
-
-    // Convertir le Map en tableau
-    const allStudents = Array.from(uniqueStudents.values())
-
-    // Calculer l'âge moyen
-    const validStudents = allStudents.filter((s) => s.date_of_birth)
-    const totalAge = validStudents.reduce((sum, student) => {
-      const birthDate = new Date(student.date_of_birth)
-      const age = new Date().getFullYear() - birthDate.getFullYear()
-      return sum + age
-    }, 0)
-    const averageAge = validStudents.length > 0 ? Math.round(totalAge / validStudents.length) : 0
-
-    // Calculer la répartition par genre (corriger avec les bonnes valeurs)
-    const totalStudents = allStudents.length
-    const countBoys = allStudents.filter((s) =>
-      s.gender === 'masculin' || s.gender === 'male' || s.gender === 'M',
-    ).length
-    const countGirls = allStudents.filter((s) =>
-      s.gender === 'féminin' || s.gender === 'female' || s.gender === 'F',
-    ).length
-    const countUndefined = totalStudents - countBoys - countGirls
-
-    const percentageBoys = totalStudents > 0 ? Math.round((countBoys / totalStudents) * 100) : 0
-    const percentageGirls = totalStudents > 0 ? Math.round((countGirls / totalStudents) * 100) : 0
-
-    return {
-      totalStudents,
-      averageAge,
-      countBoys,
-      countGirls,
-      countUndefined,
-      percentageBoys,
-      percentageGirls,
-    }
-  }
+  const currentSessionIds = new Set(enrollmentData.currentEnrollments)
 
   // Organiser les cours par jour et par session (créneau horaire)
   const coursesByDayAndSession = allCoursesData.existingCourses.reduce((acc, course) => {
@@ -139,7 +87,6 @@ export const EditCourseStudent = ({
           acc[dayOfWeek] = {}
         }
 
-        // Créer une clé pour la session basée sur l'heure
         const sessionKey = `${timeslot.start_time}-${timeslot.end_time}`
         if (!acc[dayOfWeek][sessionKey]) {
           acc[dayOfWeek][sessionKey] = {
@@ -152,7 +99,6 @@ export const EditCourseStudent = ({
           }
         }
 
-        // Ajouter ce cours à cette session
         acc[dayOfWeek][sessionKey].courses.push({
           ...course,
           currentSession: session,
@@ -164,70 +110,111 @@ export const EditCourseStudent = ({
     return acc
   }, {} as Record<string, Record<string, { timeSlot: any, courses: any[] }>>)
 
-  // Calculer le nombre total de cours par jour (pas de sessions)
+  // Calculer le nombre total de cours par jour
   const getCourseCount = (day: string) => {
     const daySessions = coursesByDayAndSession[day]
     if (!daySessions) return 0
 
-    // Compter tous les cours de toutes les sessions
     return Object.values(daySessions).reduce((total, sessionData) => {
       return total + sessionData.courses.length
     }, 0)
   }
 
-  const handleToggleCourse = async (courseId: string) => {
+  // Fonction pour gérer la sélection d'un cours (1 seul par session)
+  const handleCourseSelection = (sessionId: string, sessionKey: string) => {
+    setSelectedCourses((prev) => {
+      const newMap = new Map(prev)
+
+      // Si ce cours est déjà sélectionné pour cette session, le désélectionner
+      if (newMap.get(sessionKey) === sessionId) {
+        newMap.delete(sessionKey)
+      } else {
+        // Sinon, sélectionner ce cours (remplace l'ancien si il y en avait un)
+        newMap.set(sessionKey, sessionId)
+      }
+
+      return newMap
+    })
+  }
+
+  // Fonction pour appliquer les changements
+  const handleApplyChanges = async () => {
     setIsLoading(true)
 
     try {
-      const course = allCoursesData.existingCourses.find((c) => c.id === courseId)
-      if (!course) return
+      // Calculer les cours à ajouter et à supprimer
+      const coursesToAdd: Array<{
+        courseId: string
+        sessionId: string
+        timeSlot: any
+        subject: string
+      }> = []
 
-      const session = course.courses_sessions[0]
-      const timeslot = session?.courses_sessions_timeslot[0]
+      const coursesToRemove: Array<{
+        courseId: string
+        sessionId: string
+        subject: string
+      }> = []
 
-      if (!session || !timeslot) {
-        throw new Error('Données de session manquantes')
-      }
-
-      const isCurrentlyEnrolled = enrolledCourseIds.has(courseId)
-
-      if (isCurrentlyEnrolled) {
-        // Désinscrire l'étudiant
-        const result = await removeStudentFromCourse(courseId, studentId)
-        if (result.success) {
-          setEnrolledCourseIds((prev) => {
-            const newSet = new Set(prev)
-            newSet.delete(courseId)
-            return newSet
+      // Trouver les cours à ajouter (sélectionnés mais pas inscrits)
+      selectedCourses.forEach((sessionId, sessionKey) => {
+        if (!currentSessionIds.has(sessionId)) {
+          // Trouver les données du cours
+          let foundCourse: any = null
+          Object.values(coursesByDayAndSession).forEach((daySessions) => {
+            Object.values(daySessions).forEach((sessionData) => {
+              const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
+              if (course) foundCourse = course
+            })
           })
-          toast({
-            title: 'Désinscription réussie',
-            description: `Étudiant retiré du cours ${session.subject}`,
-            variant: 'success',
-          })
-        } else {
-          throw new Error(result.message)
+
+          if (foundCourse) {
+            coursesToAdd.push({
+              courseId: foundCourse.id,
+              sessionId: sessionId,
+              timeSlot: foundCourse.currentTimeSlot,
+              subject: foundCourse.currentSession.subject,
+            })
+          }
         }
-      } else {
-        // Inscrire l'étudiant
-        const result = await addStudentToCourse(courseId, studentId, {
-          day_of_week: timeslot.day_of_week as any,
-          start_time: timeslot.start_time,
-          end_time: timeslot.end_time,
-          subject: session.subject,
-        })
+      })
 
-        if (result.success) {
-          setEnrolledCourseIds((prev) => new Set([...prev, courseId]))
-          toast({
-            title: 'Inscription réussie',
-            description: `Étudiant inscrit au cours ${session.subject}`,
-            variant: 'success',
+      // Trouver les cours à supprimer (inscrits mais pas sélectionnés)
+      currentSessionIds.forEach((sessionId) => {
+        const isStillSelected = Array.from(selectedCourses.values()).includes(sessionId)
+        if (!isStillSelected) {
+          // Trouver les données du cours
+          let foundCourse: any = null
+          Object.values(coursesByDayAndSession).forEach((daySessions) => {
+            Object.values(daySessions).forEach((sessionData) => {
+              const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
+              if (course) foundCourse = course
+            })
           })
-        } else {
-          throw new Error(result.message)
+
+          if (foundCourse) {
+            coursesToRemove.push({
+              courseId: foundCourse.id,
+              sessionId: sessionId,
+              subject: foundCourse.currentSession.subject,
+            })
+          }
         }
-      }
+      })
+
+      // Console.log des données
+      console.log('=== DONNÉES À AJOUTER ===')
+      console.log(coursesToAdd)
+      console.log('=== DONNÉES À SUPPRIMER ===')
+      console.log(coursesToRemove)
+
+      // TODO: Implémenter la logique d'ajout/suppression
+      toast({
+        title: 'Changements préparés',
+        description: `${coursesToAdd.length} cours à ajouter, ${coursesToRemove.length} cours à supprimer`,
+        variant: 'success',
+      })
+
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
       toast({
@@ -254,33 +241,46 @@ export const EditCourseStudent = ({
     return teacher ? `${teacher.firstname} ${teacher.lastname}` : 'Professeur non assigné'
   }
 
-  const getCourseTime = (course: any) => {
-    const session = course.currentSession
-    const timeslots = course.currentTimeSlots || session?.courses_sessions_timeslot || []
+  const dayOrder = ['saturday_morning', 'saturday_afternoon', 'sunday_morning']
 
-    if (timeslots.length === 0) {
-      return ''
+  // Fonction pour vérifier s'il y a des changements
+  const hasChanges = () => {
+    // Vérifier si les sélections actuelles sont différentes des inscriptions actuelles
+    const currentSelectedSet = new Set(selectedCourses.values())
+
+    // Si le nombre est différent, il y a des changements
+    if (currentSelectedSet.size !== currentSessionIds.size) {
+      return true
     }
 
-    // Trier les créneaux par heure de début
-    const sortedTimeslots = timeslots.sort((a: any, b: any) =>
-      a.start_time.localeCompare(b.start_time),
-    )
-
-    // Afficher tous les créneaux
-    if (sortedTimeslots.length === 1) {
-      const timeslot = sortedTimeslots[0]
-      return `${timeslot.start_time.slice(0, 5)} - ${timeslot.end_time.slice(0, 5)}`
-    } else {
-      // Plusieurs créneaux : afficher le premier et le dernier
-      const first = sortedTimeslots[0]
-      const last = sortedTimeslots[sortedTimeslots.length - 1]
-      return `${first.start_time.slice(0, 5)} - ${last.end_time.slice(0, 5)}`
+    // Vérifier si tous les cours sélectionnés sont dans les inscriptions actuelles
+    for (const sessionId of currentSelectedSet) {
+      if (!currentSessionIds.has(sessionId)) {
+        return true
+      }
     }
+
+    // Vérifier si tous les cours inscrits sont dans les sélections
+    for (const sessionId of currentSessionIds) {
+      if (!currentSelectedSet.has(sessionId)) {
+        return true
+      }
+    }
+
+    return false
   }
 
-
-  const dayOrder = ['saturday_morning', 'saturday_afternoon', 'sunday_morning']
+  // Fonction pour obtenir le nombre de changements
+  const getChangeCount = () => {
+    const currentSelectedSet = new Set(selectedCourses.values())
+    const toAdd = Array
+      .from(currentSelectedSet)
+      .filter((id) => !currentSessionIds.has(id)).length
+    const toRemove = Array
+      .from(currentSessionIds)
+      .filter((id) => !currentSelectedSet.has(id)).length
+    return { toAdd, toRemove }
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
@@ -319,11 +319,12 @@ export const EditCourseStudent = ({
           </div>
         </div>
       </section>
+
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold">Cours disponibles pour l&apos;étudiant</h1>
         <p className="text-sm sm:text-base text-gray-600">
-          Sélectionnez le cours auquel vous souhaitez inscrire l&apos;étudiant
+          Sélectionnez un cours pour chaque créneau horaire
         </p>
       </div>
 
@@ -339,7 +340,7 @@ export const EditCourseStudent = ({
               <div className="flex flex-col items-center gap-1">
                 <span>{formatDayLabel(day)}</span>
                 <Badge variant="secondary" className="text-xs">
-                  {getCourseCount(day)/2} cours
+                  {getCourseCount(day)} cours
                 </Badge>
               </div>
             </TabsTrigger>
@@ -352,6 +353,7 @@ export const EditCourseStudent = ({
               <div className="space-y-6">
                 {Object.entries(coursesByDayAndSession[day]).map(([sessionKey, sessionData]) => {
                   const { timeSlot, courses } = sessionData
+                  const selectedSessionId = selectedCourses.get(sessionKey)
 
                   return (
                     <div key={sessionKey} className="space-y-4">
@@ -359,19 +361,25 @@ export const EditCourseStudent = ({
                       <div className="bg-muted/50 p-4 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="font-semibold">
-                              Créneau {timeSlot.start_time.slice(0, 5)}{' '}
-                              - {timeSlot.end_time.slice(0, 5)}
+                            <h3 className="text-lg font-semibold text-foreground">
+                              Créneau {timeSlot.start_time.slice(0, 5)} - {timeSlot.end_time.slice(0, 5)}
                             </h3>
-                            {/* {timeSlot.classroom_number && (
+                            {timeSlot.classroom_number && (
                               <p className="text-sm text-muted-foreground">
                                 Salle {timeSlot.classroom_number}
                               </p>
-                            )} */}
+                            )}
                           </div>
-                          {/* <Badge variant="outline" className="text-sm">
-                            {courses.length} cours disponibles
-                          </Badge> */}
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-sm">
+                              {courses.length} cours disponibles
+                            </Badge>
+                            {selectedSessionId && (
+                              <Badge variant="default" className="text-sm">
+                                1 sélectionné
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -380,42 +388,56 @@ export const EditCourseStudent = ({
                         className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                         {courses.map((course) => {
                           const session = course.currentSession
-                          const stats = calculateCourseStats(course)
+                          const stats = course.stats
+                          const isSelected = selectedSessionId === session.id
+                          const isCurrentlyEnrolled = currentSessionIds.has(session.id)
 
                           return (
                             <Card
                               key={course.uniqueKey}
-                              className='group relative overflow-hidden transition-all duration-300
-                                hover:shadow-lg border-2 border-border hover:border-primary
-                                bg-background'
+                              className={`group relative overflow-hidden transition-all duration-300
+                                hover:shadow-lg border-2 cursor-pointer
+                                ${isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary bg-background'
+                            }
+                                ${isCurrentlyEnrolled ? 'ring-2 ring-green-200' : ''}
+                              `}
+                              onClick={() => handleCourseSelection(session.id, sessionKey)}
                             >
                               <CardHeader className="pb-4">
                                 {/* En-tête avec professeur et matière */}
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex-1 min-w-0">
-                                    <CardTitle
-                                      className="text-lg font-semibold text-foreground mb-1">
+                                    <CardTitle className="text-lg font-semibold text-foreground mb-1">
                                       {getTeacherName(course)}
                                     </CardTitle>
-                                    <div className="flex items-center gap-2 text-sm
-                                    text-muted-foreground">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                       <Badge variant="outline"
-                                        className={`text-xs ${getSubjectColors(session?.subject)}`}>
+                                        className="text-xs bg-accent border-accent
+                                         text-accent-foreground">
                                         {session?.subject} - Niveau {session?.level}
                                       </Badge>
+                                      {isCurrentlyEnrolled && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          Inscrit
+                                        </Badge>
+                                      )}
                                     </div>
                                   </div>
 
-                                  {/* Bouton d'action */}
-                                  <Button
-                                    size="sm"
-                                    variant='default'
-                                    onClick={() => handleToggleCourse(course.id)}
-                                    disabled={isLoading}
-                                  >
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    <span className="hidden sm:inline">Changer</span>
-                                  </Button>
+                                  {/* Indicateur de sélection */}
+                                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
+                                    ${isSelected
+                              ? 'bg-primary border-primary text-white'
+                              : 'border-muted-foreground'
+                            }`}>
+                                    {isSelected && (
+                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    )}
+                                  </div>
                                 </div>
                               </CardHeader>
 
@@ -438,8 +460,7 @@ export const EditCourseStudent = ({
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                      <div className="flex-1 bg-muted rounded-full h-2
-                                      overflow-hidden">
+                                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                                         <div
                                           className="bg-primary h-full"
                                           style={{ width: `${stats.percentageBoys}%` }}
@@ -454,8 +475,7 @@ export const EditCourseStudent = ({
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                      <div className="flex-1 bg-muted rounded-full h-2
-                                      overflow-hidden">
+                                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                                         <div
                                           className="bg-secondary h-full"
                                           style={{ width: `${stats.percentageGirls}%` }}
@@ -487,6 +507,102 @@ export const EditCourseStudent = ({
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Récapitulatif des sélections et bouton d'action - TOUJOURS VISIBLE */}
+      <section className="bg-muted p-6 rounded-lg space-y-4 sticky bottom-0 z-10">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Récapitulatif des sélections</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {selectedCourses.size} sessions sélectionnées
+            </span>
+            {hasChanges() && (
+              <Badge variant="outline">
+                {(() => {
+                  const { toAdd, toRemove } = getChangeCount()
+                  if (toAdd > 0 && toRemove > 0) {
+                    return `+${toAdd} -${toRemove}`
+                  } else if (toAdd > 0) {
+                    return `+${toAdd}`
+                  } else if (toRemove > 0) {
+                    return `-${toRemove}`
+                  }
+                  return ''
+                })()}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Liste des cours sélectionnés */}
+        {selectedCourses.size > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from(selectedCourses.entries()).map(([sessionKey, sessionId]) => {
+              // Trouver les données du cours
+              let foundCourse: any = null
+              Object.values(coursesByDayAndSession).forEach((daySessions) => {
+                Object.values(daySessions).forEach((sessionData) => {
+                  const course = sessionData.courses.find((c: any) => c.currentSession.id === sessionId)
+                  if (course) foundCourse = course
+                })
+              })
+
+              if (!foundCourse) return null
+
+              const session = foundCourse.currentSession
+              const timeSlot = foundCourse.currentTimeSlot
+              const isCurrentlyEnrolled = currentSessionIds.has(sessionId)
+
+              return (
+                <div key={sessionId} className="bg-background border rounded-lg p-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{getTeacherName(foundCourse)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {session.subject} - Niveau {session.level}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {timeSlot.start_time.slice(0, 5)} - {timeSlot.end_time.slice(0, 5)}
+                      </p>
+                    </div>
+                    <Badge variant={isCurrentlyEnrolled ? 'secondary' : 'default'} className="text-xs">
+                      {isCurrentlyEnrolled ? 'Déjà inscrit' : 'Nouveau'}
+                    </Badge>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Message si aucune sélection */}
+        {selectedCourses.size === 0 && (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">Aucune session sélectionnée</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sélectionnez un cours pour chaque créneau horaire souhaité
+            </p>
+          </div>
+        )}
+
+        {/* Bouton d'action */}
+        <div className="flex justify-end">
+          <Button
+            onClick={handleApplyChanges}
+            disabled={isLoading || !hasChanges()}
+            className="min-w-[120px]"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Traitement...
+              </>
+            ) : (
+              'Appliquer les changements'
+            )}
+          </Button>
+        </div>
+      </section>
     </div>
   )
 }

@@ -47,16 +47,38 @@ export default async function EditStudentCoursesPage({
       ],
     }))
 
+    // Préparer les données d'inscription actuelles côté serveur
+    const currentEnrollments = new Set<string>()
+    const initialSelections = new Map<string, string>()
+
+    studentCoursesData.data.forEach((enrollment) => {
+      const sessionId = enrollment.courses_sessions.id
+      currentEnrollments.add(sessionId)
+
+      // Créer une clé de session basée sur le créneau horaire
+      const timeSlot = enrollment.courses_sessions.courses_sessions_timeslot?.[0]
+      if (timeSlot) {
+        const sessionKey = `${timeSlot.start_time}-${timeSlot.end_time}`
+        initialSelections.set(sessionKey, sessionId)
+      }
+    })
+
     const allCoursesData = {
       existingCourses: coursesData,
       availableTeachers: teachersResponse.data,
       timeSlotConfigs,
     }
 
+    // Données d'inscription préparées
+    const enrollmentData = {
+      currentEnrollments: Array.from(currentEnrollments),
+      initialSelections: Object.fromEntries(initialSelections),
+    }
+
     return <EditCourseStudent
-      studentId={studentId}
       allCoursesData={allCoursesData}
       studentCoursesData={studentCoursesData.data}
+      enrollmentData={enrollmentData}
     />
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
