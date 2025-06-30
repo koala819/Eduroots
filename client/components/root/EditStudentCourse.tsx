@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
@@ -16,7 +15,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/client/components/ui/tabs'
 import { useToast } from '@/client/hooks/use-toast'
 import { addStudentToCourse, removeStudentFromCourse } from '@/server/actions/api/courses'
-import { CourseWithRelations } from '@/types/courses'
+import { formatDayOfWeek, getSubjectColors } from '@/server/utils/helpers'
+import { CourseWithRelations, StudentEnrollment, TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse } from '@/types/teacher-payload'
 
 // Type étendu pour inclure les plages horaires complètes
@@ -51,7 +51,7 @@ type CourseWithCompleteTimeRanges = CourseWithRelations & {
 
 interface EditCourseStudentProps {
   studentId: string
-  initialData: {
+  allCoursesData: {
     existingCourses: CourseWithCompleteTimeRanges[]
     availableTeachers: TeacherResponse[]
     timeSlotConfigs: Array<{
@@ -60,13 +60,18 @@ interface EditCourseStudentProps {
       sessions: Array<{ startTime: string; endTime: string }>
     }>
   }
+  studentCoursesData: StudentEnrollment[]
 }
 
-export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentProps) => {
-  const router = useRouter()
+export const EditCourseStudent = ({
+  studentId,
+  allCoursesData,
+  studentCoursesData,
+}: EditCourseStudentProps) => {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('saturday_morning')
+
 
   // État des inscriptions actuelles de l'étudiant (à récupérer depuis une API)
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
@@ -126,7 +131,7 @@ export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentP
   }
 
   // Organiser les cours par jour
-  const coursesByDay = initialData.existingCourses.reduce((acc, course) => {
+  const coursesByDay = allCoursesData.existingCourses.reduce((acc, course) => {
     const dayOfWeek = course.courses_sessions[0]?.courses_sessions_timeslot[0]?.day_of_week ||
       'unknown'
     if (!acc[dayOfWeek]) {
@@ -149,7 +154,7 @@ export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentP
     setIsLoading(true)
 
     try {
-      const course = initialData.existingCourses.find((c) => c.id === courseId)
+      const course = allCoursesData.existingCourses.find((c) => c.id === courseId)
       if (!course) return
 
       const session = course.courses_sessions[0]
@@ -283,6 +288,41 @@ export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentP
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      {/* Récapitulatif des cours actuels */}
+      <section className="space-y-4">
+        <div className="w-full">
+          <h3 className="text-lg font-semibold mb-3">Cours actuels</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {studentCoursesData.map((enrollment) => {
+              const session = enrollment.courses_sessions
+              const timeSlot = session.courses_sessions_timeslot?.[0]
+              const teacher = session.courses?.courses_teacher?.[0]?.users
+
+              return (
+                <div key={session.id} className="bg-white border rounded-lg p-2 text-xs">
+                  <span className={`font-medium text-sm ${getSubjectColors(session.subject)}`}>
+                    {session.subject}
+                  </span>
+                  <div className="text-muted-foreground mt-1 space-y-0.5">
+                    <div>
+                      <p>{teacher?.firstname} {teacher?.lastname}</p>
+                      <p>
+                        {formatDayOfWeek(timeSlot?.day_of_week as TimeSlotEnum)} •
+                        {timeSlot?.start_time?.slice(0, 5)}-{timeSlot?.end_time?.slice(0, 5)}
+                      </p>
+                    </div>
+                    <p>
+                      <span>Niv. {session.level}</span>
+                      {timeSlot?.classroom_number &&
+                        <span>{' '}• Salle {timeSlot.classroom_number}</span>}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold">Cours disponibles pour l&apos;étudiant</h1>
@@ -317,25 +357,13 @@ export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentP
                 {coursesByDay[day].map((course) => {
                   const session = course.courses_sessions[0]
                   const stats = calculateCourseStats(course)
-                  const isEnrolled = enrolledCourseIds.has(course.id)
 
                   return (
                     <Card
                       key={course.id}
-                      className={`group relative overflow-hidden transition-all duration-300
-                        hover:shadow-lg border-2 ${isEnrolled
-                      ? 'border-success bg-gradient-to-br from-success/10 to-success/20'
-                      : 'border-border hover:border-primary bg-background'
-                    }`}
+                      className='group relative overflow-hidden transition-all duration-300
+                        hover:shadow-lg border-2 border-border hover:border-primary bg-background'
                     >
-                      {/* Indicateur d'inscription */}
-                      {isEnrolled && (
-                        <div className="absolute top-0 right-0 bg-success
-                        text-success-foreground text-xs px-2 py-1 rounded-bl-lg">
-                          Inscrit
-                        </div>
-                      )}
-
                       <CardHeader className="pb-4">
                         {/* En-tête avec professeur et niveau */}
                         <div className="flex items-start justify-between gap-3">
@@ -358,26 +386,12 @@ export const EditCourseStudent = ({ studentId, initialData }: EditCourseStudentP
                           {/* Bouton d'action */}
                           <Button
                             size="sm"
-                            variant={isEnrolled ? 'destructive' : 'default'}
+                            variant='default'
                             onClick={() => handleToggleCourse(course.id)}
                             disabled={isLoading}
-                            className={`transition-all duration-200 ${
-                              isEnrolled
-                                ? 'hover:bg-error-dark hover:scale-105'
-                                : 'hover:bg-primary-dark hover:scale-105'
-                            }`}
                           >
-                            {isEnrolled ? (
-                              <>
-                                <X className="w-4 h-4 mr-1" />
-                                <span className="hidden sm:inline">Retirer</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="w-4 h-4 mr-1" />
-                                <span className="hidden sm:inline">Ajouter</span>
-                              </>
-                            )}
+                            <Plus className="w-4 h-4 mr-1" />
+                            <span className="hidden sm:inline">Changer</span>
                           </Button>
                         </div>
                       </CardHeader>

@@ -17,10 +17,13 @@ export async function getCoursesWithStudentStats() {
     throw new Error('Erreur lors de la récupération des plages horaires')
   }
 
+  const coursesData = coursesResponse.data
+  const timeRangesData = timeRangesResponse.data
+
   // Enrichir les cours avec leurs plages horaires complètes
-  const enrichedCourses = coursesResponse.data.map((course) => {
+  const enrichedCourses = coursesData.map((course) => {
     // Trouver les plages horaires pour ce cours
-    const courseTimeRanges = timeRangesResponse.data.filter(
+    const courseTimeRanges = timeRangesData.filter(
       (range) => range.course_id === course.id,
     )
 

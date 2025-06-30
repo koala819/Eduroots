@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { EditCourseStudent } from '@/client/components/root/EditStudentCourse'
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
+import { getStudentCourses } from '@/server/actions/api/courses'
 import { getAllTeachers } from '@/server/actions/api/teachers'
 import { formatDayOfWeek } from '@/server/utils/helpers'
 import { TIME_SLOT_SCHEDULE, TimeSlotEnum } from '@/types/courses'
@@ -22,15 +23,17 @@ export default async function EditStudentCoursesPage({
   params,
 }: EditStudentCoursesPageProps) {
   const { id: studentId } = await params
-
   try {
-    // Récupérer les données avec la fonction simplifiée
-    const [coursesData, teachersResponse] = await Promise.all([
+    const [coursesData, teachersResponse, studentCoursesData] = await Promise.all([
       getCoursesWithStudentStats(),
       getAllTeachers(),
+      getStudentCourses(studentId),
     ])
 
-    if (!teachersResponse.success || !teachersResponse.data) {
+    if (!teachersResponse.success ||
+      !teachersResponse.data ||
+      !studentCoursesData.success ||
+      !studentCoursesData.data) {
       throw new Error('Erreur lors de la récupération des données')
     }
 
@@ -44,13 +47,17 @@ export default async function EditStudentCoursesPage({
       ],
     }))
 
-    const initialData = {
+    const allCoursesData = {
       existingCourses: coursesData,
       availableTeachers: teachersResponse.data,
       timeSlotConfigs,
     }
 
-    return <EditCourseStudent studentId={studentId} initialData={initialData} />
+    return <EditCourseStudent
+      studentId={studentId}
+      allCoursesData={allCoursesData}
+      studentCoursesData={studentCoursesData.data}
+    />
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
     notFound()
