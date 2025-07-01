@@ -34,7 +34,7 @@ export const TeacherOption = ({
       <div className="font-medium">
         {teacher.firstname} {teacher.lastname}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-muted-foreground">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
         <div className="flex items-center gap-1">
           <span>{teacher.stats.totalStudents} élèves</span>
           <div className="flex space-x-2 items-center">

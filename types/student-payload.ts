@@ -1,5 +1,5 @@
 import { User } from './db'
-import { UserRoleEnum, UserType } from './user'
+import { UserType } from './user'
 
 export type CreateStudentPayload = Omit<User,
   'id' |
@@ -8,9 +8,9 @@ export type CreateStudentPayload = Omit<User,
   'parent2_auth_id_email' |
   'parent2_auth_id_gmail' |
   'created_at' |
-  'updated_at'> & {
-  password: string
-  role: UserRoleEnum.Student
+  'updated_at' |
+  'role'> & {
+  role: string
   type: UserType
 }
 

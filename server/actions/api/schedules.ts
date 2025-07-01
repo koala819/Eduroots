@@ -35,8 +35,6 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse> {
     const academicYear = new Date().getFullYear().toString()
     const defaultConfig = createDefaultSchedule(academicYear, userId)
 
-    console.log('getCurrentSchedule - Création config par défaut:', defaultConfig)
-
     return {
       success: true,
       data: defaultConfig,

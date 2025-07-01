@@ -37,10 +37,25 @@ export async function createStudent(
         email: studentData.email,
         firstname: studentData.firstname,
         lastname: studentData.lastname,
-        password: studentData.password,
-        role: 'student',
+        role: studentData.role,
         type: studentData.type,
+        gender: studentData.gender,
+        secondary_email: studentData.secondary_email,
+        phone: studentData.phone,
+        school_year: studentData.school_year,
+        subjects: studentData.subjects,
+        has_invalid_email: studentData.has_invalid_email,
+        date_of_birth: studentData.date_of_birth,
         is_active: true,
+        deleted_at: studentData.deleted_at,
+        stats_model: studentData.stats_model,
+        student_stats_id: studentData.student_stats_id,
+        teacher_stats_id: studentData.teacher_stats_id,
+        // Champs d'authentification à NULL pour éviter les contraintes
+        auth_id_email: null,
+        auth_id_gmail: null,
+        parent2_auth_id_email: null,
+        parent2_auth_id_gmail: null,
         created_at: new Date().toISOString(),
       })
       .select()
@@ -396,7 +411,7 @@ export async function updateStudent(
 }
 
 function validateRequiredFields(type: string, data: any): {isValid: boolean; message?: string} {
-  const baseFields = ['email', 'firstname', 'lastname', 'password']
+  const baseFields = ['email', 'firstname', 'lastname']
   const requiredFields = type === 'teacher' ? [...baseFields, 'subjects'] : [...baseFields, 'type']
 
   const missingFields = requiredFields.filter((field) => !data[field])
@@ -431,8 +446,7 @@ export async function createStudentWithCourses(
         email: studentData.email,
         firstname: studentData.firstname,
         lastname: studentData.lastname,
-        password: studentData.password,
-        role: 'student',
+        role: studentData.role,
         type: studentData.type,
         gender: studentData.gender,
         secondary_email: studentData.secondary_email,

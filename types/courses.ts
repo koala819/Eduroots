@@ -202,5 +202,12 @@ export type CourseWithCompleteTimeRanges = CourseWithRelations & {
   }
 }
 
+export interface TimeSlotSelection {
+  dayOfWeek: TimeSlotEnum
+  startTime: string
+  endTime: string
+  subject: SubjectNameEnum
+  teacherId: string
+}
 
 

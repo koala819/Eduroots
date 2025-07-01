@@ -174,48 +174,82 @@ export async function getAllTeachersWithStats(): Promise<
       }
     }
 
+    // Filtrer les enseignants qui ont un ID valide
+    const validTeachers = users?.filter(
+      (teacher) => teacher.id && typeof teacher.id === 'string') || []
+
     // Calculer les stats pour chaque professeur
     const teachersWithStats = await Promise.all(
-      users.map(async (teacher) => {
-        // Récupérer les cours du professeur
-        const coursesResponse = await getTeacherCourses(teacher.id)
-
-        let totalStudents = 0
-        let totalBoys = 0
-        let totalGirls = 0
-
-        if (coursesResponse.success && coursesResponse.data) {
-          const uniqueStudents = new Set<string>()
-          const studentGenders = new Map<string, string>()
-
-          coursesResponse.data.forEach((course) => {
-            course.courses_sessions.forEach((session: any) => {
-              session.courses_sessions_students.forEach((student: any) => {
-                uniqueStudents.add(student.users.id)
-                studentGenders.set(student.users.id, student.users.gender || 'undefined')
-              })
-            })
-          })
-
-          totalStudents = uniqueStudents.size
-
-          // Compter par genre
-          studentGenders.forEach((gender) => {
-            if (gender === 'masculin') {
-              totalBoys++
-            } else if (gender === 'feminin') {
-              totalGirls++
-            }
-          })
+      validTeachers.map(async (teacher) => {
+        // Vérifier que l'ID du professeur est valide avant d'appeler getTeacherCourses
+        if (!teacher.id) {
+          console.warn('[GET_ALL_TEACHERS_WITH_STATS] Professeur sans ID valide:', teacher)
+          return {
+            ...teacher,
+            stats: {
+              totalStudents: 0,
+              totalBoys: 0,
+              totalGirls: 0,
+            },
+          }
         }
 
-        return {
-          ...teacher,
-          stats: {
-            totalStudents,
-            totalBoys,
-            totalGirls,
-          },
+        try {
+          // Récupérer les cours du professeur
+          const coursesResponse = await getTeacherCourses(teacher.id)
+
+          let totalStudents = 0
+          let totalBoys = 0
+          let totalGirls = 0
+
+          if (coursesResponse.success && coursesResponse.data) {
+            const uniqueStudents = new Set<string>()
+            const studentGenders = new Map<string, string>()
+
+            coursesResponse.data.forEach((course) => {
+              course.courses_sessions.forEach((session: any) => {
+                session.courses_sessions_students?.forEach((student: any) => {
+                  // Vérifier que student.users existe avant d'accéder à ses propriétés
+                  if (student.users && student.users.id) {
+                    uniqueStudents.add(student.users.id)
+                    studentGenders.set(student.users.id, student.users.gender || 'undefined')
+                  }
+                })
+              })
+            })
+
+            totalStudents = uniqueStudents.size
+
+            // Compter par genre
+            studentGenders.forEach((gender) => {
+              if (gender === 'masculin') {
+                totalBoys++
+              } else if (gender === 'feminin') {
+                totalGirls++
+              }
+            })
+          }
+
+          return {
+            ...teacher,
+            stats: {
+              totalStudents,
+              totalBoys,
+              totalGirls,
+            },
+          }
+        } catch (teacherError) {
+          console.error(`[GET_ALL_TEACHERS_WITH_STATS] Erreur pour le professeur
+            ${teacher.id}:`, teacherError)
+          // Retourner des stats par défaut en cas d'erreur pour ce professeur
+          return {
+            ...teacher,
+            stats: {
+              totalStudents: 0,
+              totalBoys: 0,
+              totalGirls: 0,
+            },
+          }
         }
       }),
     )
