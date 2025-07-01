@@ -1,8 +1,19 @@
 'use client'
 
-import { BookOpen, GraduationCap, Users } from 'lucide-react'
+import { BookOpen, GraduationCap, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/client/components/ui/alert-dialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -18,8 +29,9 @@ import {
 } from '@/client/components/ui/dialog'
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
+import { useToast } from '@/client/hooks/use-toast'
 import { formatDayOfWeek } from '@/client/utils/timeSlots'
-import { getStudentsByTeacher } from '@/server/actions/api/teachers'
+import { deleteTeacher, getStudentsByTeacher } from '@/server/actions/api/teachers'
 import { cn } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 import { TeacherResponse, TeacherWithStudentsResponse } from '@/types/teacher-payload'
@@ -41,6 +53,7 @@ interface TeacherStats {
 interface TeacherProfileDialogProps {
   teacher: TeacherResponse
   trigger?: React.ReactNode
+  onTeacherDeleted?: () => void
 }
 
 // Fonction utilitaire pour formater les heures sans les secondes
@@ -53,10 +66,17 @@ const formatTime = (time: string): string => {
   return time
 }
 
-export function TeacherProfileDialog({ teacher, trigger }: TeacherProfileDialogProps) {
+export function TeacherProfileDialog({
+  teacher,
+  trigger,
+  onTeacherDeleted,
+}: TeacherProfileDialogProps) {
   const [teacherData, setTeacherData] = useState<TeacherWithStudentsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [stats, setStats] = useState<TeacherStats | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { toast } = useToast()
 
   const loadTeacherData = async () => {
     if (!teacher.id || teacherData) return
@@ -72,6 +92,39 @@ export function TeacherProfileDialog({ teacher, trigger }: TeacherProfileDialogP
       console.error('Erreur lors du chargement des données du professeur:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDeleteTeacher = async () => {
+    if (!teacher.id) return
+
+    setIsDeleting(true)
+    try {
+      const response = await deleteTeacher(teacher.id)
+      if (response.success) {
+        toast({
+          title: 'Succès',
+          description: 'Le professeur a été supprimé avec succès',
+          variant: 'default',
+        })
+        setIsDialogOpen(false)
+        onTeacherDeleted?.()
+      } else {
+        toast({
+          title: 'Erreur',
+          description: response.message || 'Erreur lors de la suppression du professeur',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la suppression',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -129,7 +182,7 @@ export function TeacherProfileDialog({ teacher, trigger }: TeacherProfileDialogP
   }
 
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button size="sm" variant="default">
@@ -334,7 +387,7 @@ export function TeacherProfileDialog({ teacher, trigger }: TeacherProfileDialogP
                               <div key={sessionIndex} className="text-sm">
                                 <div
                                   className="flex flex-col sm:flex-row sm:items-center
-                                   sm:justify-between gap-1"
+                                  sm:justify-between gap-1"
                                 >
                                   <span className="text-foreground">
                                     {session.subject} - Niveau {session.level}
@@ -371,12 +424,56 @@ export function TeacherProfileDialog({ teacher, trigger }: TeacherProfileDialogP
           </div>
         </div>
 
-        <DialogFooter className="mt-8">
-          <DialogClose asChild>
-            <Button variant="destructive" className="w-full sm:w-auto">
-              Fermer
-            </Button>
-          </DialogClose>
+        <DialogFooter className="mt-8 flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {/* Bouton supprimer avec confirmation */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isDeleting ? 'Suppression...' : 'Supprimer'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Êtes-vous sûr de vouloir supprimer le professeur{' '}
+                    <strong>{teacher.firstname} {teacher.lastname}</strong> ?
+                    <br />
+                    <br />
+                    Cette action désactivera le compte du professeur mais conservera
+                    toutes ses données.
+                    Cette action peut être annulée par un administrateur.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  >
+                    Annuler
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteTeacher}
+                    className="bg-error text-error-foreground hover:bg-error/90"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <DialogClose asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                Fermer
+              </Button>
+            </DialogClose>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
