@@ -80,11 +80,12 @@ export type ConnectionLog = {
 
 export type Course = {
   id: string
+  mongo_id: string | null  // Colonne de l'ancienne architecture MongoDB
   is_active: boolean
   deleted_at: Date | null
   created_at: Date
   updated_at: Date
-  academic_year: string
+  academic_year: number
 }
 
 export type CourseSession = {
@@ -352,7 +353,7 @@ export type Database = {
       }
       courses: {
         Row: Course
-        Insert: Omit<Course, 'id' | 'created_at' | 'updated_at'>
+        Insert: Omit<Course, 'id' | 'created_at' | 'updated_at' | 'mongo_id'>
         Update: Partial<Omit<Course, 'id' | 'created_at' | 'updated_at'>>
       }
       courses_sessions: {

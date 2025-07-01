@@ -3,6 +3,8 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
 
+// Import du type unifié depuis TeacherForm
+import type { TeacherFormData } from '@/client/components/admin/pages/TeacherForm'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import {
@@ -20,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/client/components/ui/select'
+import { getTimeSlotOptions } from '@/client/utils/timeSlots'
+import { formatDayOfWeekFull } from '@/client/utils/timeSlots'
 import {
   LevelEnum,
   SubjectNameEnum,
@@ -27,61 +31,8 @@ import {
   TimeSlotEnum,
 } from '@/types/courses'
 
-interface TeacherFormData {
-  firstname: string
-  lastname: string
-  email: string
-  sessions: {
-    dayOfWeek: TimeSlotEnum
-    timeSlot: {
-      startTime: string
-      endTime: string
-      classroomNumber: number | null
-    }
-    subject: SubjectNameEnum | null
-    level: LevelEnum | null
-  }[]
-}
-
 interface StepTwoProps {
   form: UseFormReturn<TeacherFormData>
-}
-
-interface TimeSlotOption {
-  value: string
-  label: string
-  start: string
-  end: string
-}
-
-const getTimeSlotOptions = (dayOfWeek: TimeSlotEnum): TimeSlotOption[] => {
-  const schedule = TIME_SLOT_SCHEDULE[dayOfWeek]
-  return [
-    {
-      value: `${schedule.START}-${schedule.PAUSE}`,
-      label: `${schedule.START} - ${schedule.PAUSE} (1ère heure)`,
-      start: schedule.START,
-      end: schedule.PAUSE,
-    },
-    {
-      value: `${schedule.PAUSE}-${schedule.FINISH}`,
-      label: `${schedule.PAUSE} - ${schedule.FINISH} (2ème heure)`,
-      start: schedule.PAUSE,
-      end: schedule.FINISH,
-    },
-    {
-      value: `${schedule.START}-${schedule.FINISH}`,
-      label: `${schedule.START} - ${schedule.FINISH} (Double heure)`,
-      start: schedule.START,
-      end: schedule.FINISH,
-    },
-  ]
-}
-
-const daysDisplay = {
-  [TimeSlotEnum.SATURDAY_MORNING]: 'Samedi Matin',
-  [TimeSlotEnum.SATURDAY_AFTERNOON]: 'Samedi Après-midi',
-  [TimeSlotEnum.SUNDAY_MORNING]: 'Dimanche Matin',
 }
 
 const StepTwo = ({ form }: StepTwoProps) => {
@@ -95,8 +46,8 @@ const StepTwo = ({ form }: StepTwoProps) => {
         endTime: TIME_SLOT_SCHEDULE[TimeSlotEnum.SATURDAY_MORNING].PAUSE,
         classroomNumber: null,
       },
-      subject: null,
-      level: null,
+      subject: null as SubjectNameEnum | null,
+      level: null as LevelEnum | null,
     }
     form.setValue('sessions', [...sessions, newSession])
   }
@@ -170,7 +121,7 @@ const StepTwo = ({ form }: StepTwoProps) => {
                     <CardTitle className="text-base">
                       Session {sessionIndex + 1}
                     </CardTitle>
-                    {sessions.length > 1 && (
+                    {sessions.length > 0 && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -276,9 +227,9 @@ const StepTwo = ({ form }: StepTwoProps) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Object.entries(daysDisplay).map(([value, label]) => (
+                              {Object.values(TimeSlotEnum).map((value) => (
                                 <SelectItem key={value} value={value}>
-                                  {label}
+                                  {formatDayOfWeekFull(value)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -291,7 +242,7 @@ const StepTwo = ({ form }: StepTwoProps) => {
                     <FormField
                       control={form.control}
                       name={`sessions.${sessionIndex}.timeSlot`}
-                      render={({ field }) => (
+                      render={() => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
                             Créneau horaire *

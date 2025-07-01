@@ -1,6 +1,5 @@
 import { UseFormReturn } from 'react-hook-form'
 
-import { FormData } from '@/client/components/admin/pages/TeacherCreateForm'
 import {
   FormControl,
   FormField,
@@ -9,6 +8,7 @@ import {
   FormMessage,
 } from '@/client/components/ui/form'
 import { Input } from '@/client/components/ui/input'
+import { FormData } from '@/zUnused/@oldEditStudentsTeachers/TeacherCreateForm'
 
 interface StepOneProps {
   form: UseFormReturn<FormData>

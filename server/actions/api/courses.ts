@@ -164,11 +164,16 @@ export async function createCourse(
   const { supabase } = await getSessionServer()
 
   try {
-    // 1. Insérer le cours
+    // 1. Insérer le cours (SANS sessions et teacherIds)
+    const { sessions, teacherIds, ...courseFields } = courseData
+
     const { data: course, error: courseError } = await supabase
       .schema('education')
       .from('courses')
-      .insert(courseData)
+      .insert({
+        ...courseFields,
+        mongo_id: null,  // Explicit null pour l'ancienne colonne MongoDB
+      })
       .select()
       .single()
 
@@ -179,7 +184,7 @@ export async function createCourse(
     }
 
     // 2. Insérer les relations profs-cours
-    const teacherRelations = courseData.teacherIds.map((teacherId) => ({
+    const teacherRelations = teacherIds.map((teacherId) => ({
       course_id: course.id,
       teacher_id: teacherId,
     }))
@@ -198,7 +203,7 @@ export async function createCourse(
     }
 
     // 3. Insérer les sessions et leurs créneaux
-    for (const sessionData of courseData.sessions) {
+    for (const sessionData of sessions) {
       const { data: session, error: sessionError } = await supabase
         .schema('education')
         .from('courses_sessions')

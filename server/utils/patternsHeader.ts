@@ -76,6 +76,13 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Accueil',
     },
   },
+  '/admin/members/teacher/edit/*': {
+    title: 'Gestion de l\'enseignant',
+    subtitle: 'Modifier l\'enseignant',
+    backButton: {
+      name: 'Accueil',
+    },
+  },
   '/admin/root/logs': {
     title: 'Logs',
     subtitle: 'Gestion des logs',

@@ -1,13 +1,22 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 
-import NewTeacherForm from '@/client/components/admin/pages/TeacherCreateForm'
+import TeacherForm from '@/client/components/admin/pages/TeacherForm'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 
 export const metadata: Metadata = {
-  title: 'Création nouvel Enseignant',
+  title: 'Créer un Professeur',
   alternates: {
     canonical: `${process.env.CLIENT_URL}/admin/members/teacher/create`,
   },
 }
-export default function CreatePage() {
-  return <NewTeacherForm />
+
+export default async function CreateTeacherPage() {
+  return (
+    <Suspense fallback={<LoadingScreen title="Préparation du formulaire..." />}>
+      <div className="container mx-auto p-4">
+        <TeacherForm mode="create" />
+      </div>
+    </Suspense>
+  )
 }
