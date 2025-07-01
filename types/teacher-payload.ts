@@ -8,7 +8,6 @@ export type CreateTeacherPayload = Omit<User,
   'parent2_auth_id_email' |
   'parent2_auth_id_gmail' |
   'created_at' | 'updated_at'> & {
-  password: string
   role: UserRoleEnum.Teacher
   subjects: string[]
 }

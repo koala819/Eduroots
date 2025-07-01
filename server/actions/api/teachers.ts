@@ -34,7 +34,15 @@ export async function createTeacher(
     const { data: newUser, error } = await supabase
       .schema('education')
       .from('users')
-      .insert([{ ...teacherData, role: 'teacher' }])
+      .insert([{
+        ...teacherData,
+        role: 'teacher',
+        // Champs d'authentification à NULL pour éviter les contraintes
+        auth_id_email: null,
+        auth_id_gmail: null,
+        parent2_auth_id_email: null,
+        parent2_auth_id_gmail: null,
+      }])
       .select()
       .single()
 

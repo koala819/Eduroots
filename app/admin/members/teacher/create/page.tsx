@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-import NewTeacherForm from '@/client/components/root/NewTeacherForm'
+import NewTeacherForm from '@/client/components/admin/pages/TeacherCreateForm'
 
 export const metadata: Metadata = {
   title: 'Création nouvel Enseignant',
