@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 import { useMemo,useState } from 'react'
 
 import { StudentProfileDialog } from '@/client/components/organisms/SettingsStudentProfileDialog'
+import { TeacherProfileDialog } from '@/client/components/organisms/TeacherProfileDialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -303,6 +304,31 @@ export function MembersView({
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Voir</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
+                    {/* Bouton Voir pour les professeurs */}
+                    {person.type === 'teacher' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <TeacherProfileDialog
+                              teacher={person as TeacherResponse}
+                              trigger={
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="hover:bg-info/10 hover:text-info"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Voir le profil</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

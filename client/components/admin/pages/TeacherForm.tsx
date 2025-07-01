@@ -81,8 +81,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
       // Convertir les cours en sessions pour le formulaire
       const sessions = convertCoursesToSessions(courses)
 
-      console.log('🔄 [TEACHER_FORM] Sessions converties:', sessions)
-
       form.reset({
         firstname: teacher.firstname,
         lastname: teacher.lastname,
@@ -94,19 +92,14 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
 
   // Fonction pour convertir les cours en format sessions du formulaire
   const convertCoursesToSessions = (courses: any[]) => {
-    console.log('🔍 [CONVERT_COURSES] Début de conversion avec:', courses)
-
     const allTimeslots: any[] = []
 
     // 1. Collecter tous les créneaux avec leurs infos de session
     courses.forEach((course) => {
-      console.log('🔍 [CONVERT_COURSES] Course:', course)
 
       course.courses_sessions?.forEach((session: any) => {
-        console.log('🔍 [CONVERT_COURSES] Session:', session)
 
         session.courses_sessions_timeslot?.forEach((timeslot: any) => {
-          console.log('🔍 [CONVERT_COURSES] Timeslot:', timeslot)
 
           allTimeslots.push({
             sessionId: session.id,
@@ -122,8 +115,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
         })
       })
     })
-
-    console.log('🔍 [CONVERT_COURSES] Tous les timeslots collectés:', allTimeslots)
 
     // 2. Grouper par jour/subject/level et détecter les doubles heures
     const groupedSessions = new Map<string, any[]>()
@@ -169,16 +160,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
           normalizeTime(sorted[0].endTime) === schedule.PAUSE &&
           normalizeTime(sorted[1].startTime) === schedule.PAUSE &&
           normalizeTime(sorted[1].endTime) === schedule.FINISH
-
-        console.log('🔍 [CONVERT_COURSES] Vérification double heure:', {
-          sorted,
-          schedule,
-          startCheck: `${normalizeTime(sorted[0].startTime)} === ${schedule.START}`,
-          pauseCheck: `${normalizeTime(sorted[0].endTime)} === ${schedule.PAUSE}`,
-          resumeCheck: `${normalizeTime(sorted[1].startTime)} === ${schedule.PAUSE}`,
-          endCheck: `${normalizeTime(sorted[1].endTime)} === ${schedule.FINISH}`,
-          isDoubleHour,
-        })
 
         if (isDoubleHour) {
           // Reconstruire comme double heure
@@ -274,7 +255,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
   }
 
   const handleCreate = async (values: TeacherFormData) => {
-    console.log('🚀 [CREATE_TEACHER] Début de la création avec les données:', values)
 
     // Valider que toutes les sessions ont subject et level
     const invalidSessions = values.sessions.filter(
@@ -312,9 +292,7 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
       has_invalid_email: false,
     }
 
-    console.log('📝 [CREATE_TEACHER] Création du professeur avec:', teacherData)
     const teacherResult = await createTeacher(teacherData)
-    console.log('✅ [CREATE_TEACHER] Résultat création professeur:', teacherResult)
 
     if (!teacherResult.success || !teacherResult.data?.id) {
       toast({
@@ -327,7 +305,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
       return
     }
 
-    // Créer le cours avec Server Action
     const courseData: CreateCoursePayload = {
       is_active: true,
       academic_year: 2024,
@@ -379,9 +356,7 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
       }),
     }
 
-    console.log('📚 [CREATE_COURSE] Création du cours avec:', courseData)
     const courseResult = await createCourse(courseData)
-    console.log('✅ [CREATE_COURSE] Résultat création cours:', courseResult)
 
     if (!courseResult.success) {
       toast({
@@ -394,8 +369,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
       return
     }
 
-    // Succès
-    console.log('🎉 [CREATE_SUCCESS] Professeur et cours créés avec succès!')
     toast({
       variant: 'default',
       title: 'Succès',
@@ -521,7 +494,6 @@ const TeacherForm = ({ mode, initialData }: TeacherFormProps) => {
                   type="button"
                   variant="destructive"
                   onClick={() => setCurrentStep((prev) => prev - 1)}
-                  className="border-primary text-primary hover:bg-primary/10 transition-colors"
                   disabled={isPending}
                 >
                   Précédent
