@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 
 import { StudentEdit } from '@/client/components/admin/pages/StudentEdit'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { getStudentCourses } from '@/server/actions/api/courses'
 import { getOneStudent } from '@/server/actions/api/students'
@@ -71,11 +73,14 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
       return <ErrorContent message="Erreur lors du chargement des cours de l'étudiant" />
     }
 
-    return <StudentEdit
-      id={id}
-      studentPersonalData={oneStudentData.data}
-      studentCoursesData={sortedSessions}
-    />
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <StudentEdit
+          id={id}
+          studentPersonalData={oneStudentData.data}
+          studentCoursesData={sortedSessions}
+        />
+      </Suspense>)
   } catch (error) {
     console.error('Error in EditStudentPage:', error)
     return <ErrorContent message="Erreur lors du chargement des données de l'étudiant" />

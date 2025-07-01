@@ -33,12 +33,12 @@ const quickActions = [
   {
     icon: <Plus />,
     label: 'Nouvel élève',
-    href: '/admin/root/student/new',
+    href: '/admin/members/student/create',
   },
   {
     icon: <GraduationCap />,
     label: 'Nouveau prof',
-    href: '/admin/root/teacher/new',
+    href: '/admin/members/teacher/create',
   },
 
   {

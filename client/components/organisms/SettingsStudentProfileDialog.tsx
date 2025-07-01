@@ -35,9 +35,10 @@ interface StudentWithDetails extends TeacherStudent {
 
 interface StudentProfileDialogProps {
   student: StudentWithDetails
+  trigger?: React.ReactNode
 }
 
-export function StudentProfileDialog({ student }: StudentProfileDialogProps) {
+export function StudentProfileDialog({ student, trigger }: StudentProfileDialogProps) {
   const attendanceRate = 100 - (student.stats?.absencesRate || 0)
 
   function calculateAge(dateOfBirth: Date | null) {
@@ -49,12 +50,14 @@ export function StudentProfileDialog({ student }: StudentProfileDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="sm"
-          variant="default"
-          // className='hover:cursor-pointer hover:bg-accent'
-        >
-            Voir détails
-        </Button>
+        {trigger || (
+          <Button size="sm"
+            variant="default"
+            // className='hover:cursor-pointer hover:bg-accent'
+          >
+              Voir détails
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>

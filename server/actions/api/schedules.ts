@@ -20,10 +20,10 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse> {
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
-    // Si on trouve une config, on la renvoie
-    if (currentConfig && !error) {
+    // Si on trouve une config ET qu'elle a des day_schedules, on la renvoie
+    if (currentConfig && !error && currentConfig.day_schedules) {
       return {
         success: true,
         data: currentConfig,
@@ -31,10 +31,11 @@ export async function getCurrentSchedule(userId: string): Promise<ApiResponse> {
       }
     }
 
+    // Si pas de config trouvée, pas de day_schedules, ou erreur, créer les valeurs par défaut
     const academicYear = new Date().getFullYear().toString()
-
-    //Sinon création du document avec les valeurs par défaut
     const defaultConfig = createDefaultSchedule(academicYear, userId)
+
+    console.log('getCurrentSchedule - Création config par défaut:', defaultConfig)
 
     return {
       success: true,

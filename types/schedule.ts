@@ -13,3 +13,9 @@ export interface Period {
 export interface DaySchedule {
   periods: Period[]
 }
+
+// Type étendu pour les schedules avec dayType (utilisé dans les props)
+export interface DayScheduleWithType {
+  dayType: string
+  periods: Period[]
+}

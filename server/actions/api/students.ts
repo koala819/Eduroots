@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
+import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import {
   CreateStudentPayload,
   StudentResponse,
@@ -406,4 +407,176 @@ function validateRequiredFields(type: string, data: any): {isValid: boolean; mes
       message: `Champs manquants: ${missingFields.join(', ')}`,
     }
     : { isValid: true }
+}
+
+export async function createStudentWithCourses(
+  studentData: CreateStudentPayload,
+  selections: Array<{
+    dayOfWeek: TimeSlotEnum
+    startTime: string
+    endTime: string
+    subject: SubjectNameEnum
+    teacherId: string
+  }>,
+): Promise<ApiResponse> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    // 1. Créer l'étudiant
+    const { data: newUser, error: userError } = await supabase
+      .schema('education')
+      .from('users')
+      .insert({
+        email: studentData.email,
+        firstname: studentData.firstname,
+        lastname: studentData.lastname,
+        password: studentData.password,
+        role: 'student',
+        type: studentData.type,
+        gender: studentData.gender,
+        secondary_email: studentData.secondary_email,
+        phone: studentData.phone,
+        school_year: studentData.school_year,
+        subjects: studentData.subjects,
+        has_invalid_email: studentData.has_invalid_email,
+        date_of_birth: studentData.date_of_birth,
+        is_active: studentData.is_active,
+        deleted_at: studentData.deleted_at,
+        stats_model: studentData.stats_model,
+        student_stats_id: studentData.student_stats_id,
+        teacher_stats_id: studentData.teacher_stats_id,
+        // Champs d'authentification à NULL pour éviter les contraintes
+        auth_id_email: null,
+        auth_id_gmail: null,
+        parent2_auth_id_email: null,
+        parent2_auth_id_gmail: null,
+      })
+      .select()
+      .single()
+
+    if (userError || !newUser) {
+      console.error('[CREATE_STUDENT_WITH_COURSES] User creation error:', userError)
+      return {
+        success: false,
+        message: 'Étudiant non créé',
+        data: null,
+      }
+    }
+
+    const studentId = newUser.id
+
+    // 2. Inscrire l'étudiant aux cours
+    for (const selection of selections) {
+      try {
+        // Étape 1: Trouver le course_id pour ce professeur
+        const { data: teacherCourse, error: teacherError } = await supabase
+          .schema('education')
+          .from('courses_teacher')
+          .select('course_id')
+          .eq('teacher_id', selection.teacherId)
+          .eq('is_active', true)
+          .single()
+
+        if (teacherError || !teacherCourse) {
+          console.error('[CREATE_STUDENT_WITH_COURSES] Teacher course error:', teacherError)
+          return {
+            success: false,
+            message: `Cours non trouvé pour le professeur ${selection.teacherId}`,
+            data: null,
+          }
+        }
+
+        // Étape 2: Chercher directement la session avec toutes les conditions
+        const { data: sessions, error: sessionError } = await supabase
+          .schema('education')
+          .from('courses_sessions')
+          .select(`
+            id,
+            courses_sessions_timeslot!inner (
+              day_of_week,
+              start_time,
+              end_time
+            )
+          `)
+          .eq('subject', selection.subject)
+          .eq('course_id', teacherCourse.course_id)
+          .eq('courses_sessions_timeslot.day_of_week', selection.dayOfWeek)
+          .eq('courses_sessions_timeslot.start_time', selection.startTime)
+          .eq('courses_sessions_timeslot.end_time', selection.endTime)
+
+        if (sessionError || !sessions || sessions.length === 0) {
+          console.error('[CREATE_STUDENT_WITH_COURSES] Session error:', sessionError)
+          console.error('[CREATE_STUDENT_WITH_COURSES] Selection:', selection)
+          console.error('[CREATE_STUDENT_WITH_COURSES] Teacher course:', teacherCourse)
+          return {
+            success: false,
+            message: `Session non trouvée pour ${selection.subject} avec le professeur
+            ${selection.teacherId} au créneau ${selection.dayOfWeek}
+            ${selection.startTime}-${selection.endTime}`,
+            data: null,
+          }
+        }
+
+        const session = sessions[0] // Prendre la première session trouvée
+
+        // Étape 3: Vérifier si l'étudiant est déjà inscrit
+        const { data: existingEnrollment } = await supabase
+          .schema('education')
+          .from('courses_sessions_students')
+          .select('id')
+          .eq('course_sessions_id', session.id)
+          .eq('student_id', studentId)
+          .single()
+
+        if (existingEnrollment) {
+          console.warn(`[CREATE_STUDENT_WITH_COURSES] Student already enrolled in
+            session ${session.id}`)
+          continue // Passer au cours suivant
+        }
+
+        // Étape 4: Inscrire l'étudiant
+        const { error: enrollError } = await supabase
+          .schema('education')
+          .from('courses_sessions_students')
+          .insert({
+            course_sessions_id: session.id,
+            student_id: studentId,
+          })
+
+        if (enrollError) {
+          console.error(`[CREATE_STUDENT_WITH_COURSES] Enrollment error for
+            ${selection.subject}:`, enrollError)
+          return {
+            success: false,
+            message: `Erreur lors de l'inscription au cours
+            ${selection.subject}: ${enrollError.message}`,
+            data: null,
+          }
+        }
+
+        console.log(`[CREATE_STUDENT_WITH_COURSES] Successfully enrolled in ${selection.subject}`)
+      } catch (error) {
+        console.error(`[CREATE_STUDENT_WITH_COURSES] Error processing selection
+          ${selection.subject}:`, error)
+        return {
+          success: false,
+          message: `Erreur lors du traitement du cours ${selection.subject}`,
+          data: null,
+        }
+      }
+    }
+
+    revalidatePath('/admin/members')
+    revalidatePath('/admin/settings')
+
+    return {
+      success: true,
+      data: { id: studentId },
+      message: 'Étudiant créé et inscrit aux cours avec succès',
+    }
+  } catch (error: any) {
+    console.error('[CREATE_STUDENT_WITH_COURSES]', error)
+    throw new Error('Erreur lors de la création de l\'étudiant avec ses cours')
+  }
 }

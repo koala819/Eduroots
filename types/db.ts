@@ -192,6 +192,7 @@ export type ScheduleConfig = {
   is_active: boolean
   updated_by: string | null
   academic_year: string
+  day_schedules?: Record<string, any>
   created_at: Date
   updated_at: Date
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { sortTimeSlots } from '@/client/utils/timeSlots'
+import { getTeacherCourses } from '@/server/actions/api/courses'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { ApiResponse } from '@/types/api'
@@ -142,6 +143,94 @@ export async function getAllTeachers(): Promise<ApiResponse<TeacherResponse[]>> 
     throw new Error('Erreur lors de la récupération des professeurs')
   }
 }
+
+// Nouvelle fonction pour récupérer les professeurs avec leurs stats
+export async function getAllTeachersWithStats(): Promise<
+  ApiResponse<
+    (TeacherResponse & {
+      stats: { totalStudents: number; totalBoys: number; totalGirls: number }
+    })[]
+  >
+  > {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data: users, error } = await supabase
+      .schema('education')
+      .from('users')
+      .select('*')
+      .eq('is_active', true)
+      .eq('role', 'teacher')
+      .order('firstname', { ascending: true })
+      .order('lastname', { ascending: true })
+
+    if (error) {
+      console.error('[GET_ALL_TEACHERS_WITH_STATS] Supabase error:', error)
+      return {
+        success: false,
+        message: 'Professeurs non trouvés',
+        data: null,
+      }
+    }
+
+    // Calculer les stats pour chaque professeur
+    const teachersWithStats = await Promise.all(
+      users.map(async (teacher) => {
+        // Récupérer les cours du professeur
+        const coursesResponse = await getTeacherCourses(teacher.id)
+
+        let totalStudents = 0
+        let totalBoys = 0
+        let totalGirls = 0
+
+        if (coursesResponse.success && coursesResponse.data) {
+          const uniqueStudents = new Set<string>()
+          const studentGenders = new Map<string, string>()
+
+          coursesResponse.data.forEach((course) => {
+            course.courses_sessions.forEach((session: any) => {
+              session.courses_sessions_students.forEach((student: any) => {
+                uniqueStudents.add(student.users.id)
+                studentGenders.set(student.users.id, student.users.gender || 'undefined')
+              })
+            })
+          })
+
+          totalStudents = uniqueStudents.size
+
+          // Compter par genre
+          studentGenders.forEach((gender) => {
+            if (gender === 'masculin') {
+              totalBoys++
+            } else if (gender === 'feminin') {
+              totalGirls++
+            }
+          })
+        }
+
+        return {
+          ...teacher,
+          stats: {
+            totalStudents,
+            totalBoys,
+            totalGirls,
+          },
+        }
+      }),
+    )
+
+    return {
+      success: true,
+      data: teachersWithStats,
+      message: 'Tous les Professeurs avec statistiques récupérés avec succès',
+    }
+  } catch (error) {
+    console.error('[GET_ALL_TEACHERS_WITH_STATS]', error)
+    throw new Error('Erreur lors de la récupération des professeurs avec statistiques')
+  }
+}
+
 export async function getOneTeacher(teacherId: string): Promise<ApiResponse<TeacherResponse>> {
   await getAuthenticatedUser()
   const { supabase } = await getSessionServer()

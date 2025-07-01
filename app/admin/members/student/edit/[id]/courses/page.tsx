@@ -1,7 +1,9 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 
 import { EditCourseStudent } from '@/client/components/admin/molecules/EditStudentCourse'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { formatDayOfWeek } from '@/client/utils/timeSlots'
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getStudentCourses } from '@/server/actions/api/courses'
@@ -85,12 +87,16 @@ export default async function EditStudentCoursesPage({
       initialSelections: Object.fromEntries(initialSelections),
     }
 
-    return <EditCourseStudent
-      allCoursesData={allCoursesData}
-      studentCoursesData={studentCourses}
-      enrollmentData={enrollmentData}
-      studentId={studentId}
-    />
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <EditCourseStudent
+          allCoursesData={allCoursesData}
+          studentCoursesData={studentCourses}
+          enrollmentData={enrollmentData}
+          studentId={studentId}
+        />
+      </Suspense>
+    )
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
     notFound()

@@ -1,7 +1,9 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
 import { EditPersonalData } from '@/client/components/admin/molecules/StudentEditPersonalData'
+import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { getOneStudent } from '@/server/actions/api/students'
 
 export const metadata: Metadata = {
@@ -28,7 +30,11 @@ export default async function EditPersonalStudentPage({ params }: EditPersonalSt
 
     const student = studentResponse.data
 
-    return <EditPersonalData studentData={student} />
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <EditPersonalData studentData={student} />
+      </Suspense>
+    )
   } catch (error) {
     console.error('Erreur lors du chargement de l\'étudiant:', error)
     redirect('/admin/members')

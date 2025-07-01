@@ -74,21 +74,15 @@ export function createDefaultSchedule(academicYear: string, updatedBy: string) {
         periods: [
           {
             startTime: '09:00',
-            endTime: '10:30',
+            endTime: '10:45',
             type: PeriodTypeEnum.CLASS,
             order: 1,
           },
           {
-            startTime: '10:30',
-            endTime: '10:45',
-            type: PeriodTypeEnum.BREAK,
-            order: 2,
-          },
-          {
             startTime: '10:45',
-            endTime: '12:15',
+            endTime: '12:30',
             type: PeriodTypeEnum.CLASS,
-            order: 3,
+            order: 2,
           },
         ],
       },
@@ -96,21 +90,15 @@ export function createDefaultSchedule(academicYear: string, updatedBy: string) {
         periods: [
           {
             startTime: '14:00',
-            endTime: '15:30',
+            endTime: '15:45',
             type: PeriodTypeEnum.CLASS,
             order: 1,
           },
           {
-            startTime: '15:30',
-            endTime: '15:45',
-            type: PeriodTypeEnum.BREAK,
-            order: 2,
-          },
-          {
             startTime: '15:45',
-            endTime: '17:15',
+            endTime: '17:30',
             type: PeriodTypeEnum.CLASS,
-            order: 3,
+            order: 2,
           },
         ],
       },
@@ -118,21 +106,15 @@ export function createDefaultSchedule(academicYear: string, updatedBy: string) {
         periods: [
           {
             startTime: '09:00',
-            endTime: '10:30',
+            endTime: '10:45',
             type: PeriodTypeEnum.CLASS,
             order: 1,
           },
           {
-            startTime: '10:30',
-            endTime: '10:45',
-            type: PeriodTypeEnum.BREAK,
-            order: 2,
-          },
-          {
             startTime: '10:45',
-            endTime: '12:15',
+            endTime: '12:30',
             type: PeriodTypeEnum.CLASS,
-            order: 3,
+            order: 2,
           },
         ],
       },

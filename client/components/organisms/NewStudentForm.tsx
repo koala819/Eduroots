@@ -2,39 +2,41 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
-import StepOne from '@/client/components/admin/atoms/NewStudentStep1'
+import { StepOne } from '@/client/components/admin/atoms/NewStudentStep1'
 import StepThree from '@/client/components/admin/atoms/NewStudentStep3'
 import StepTwo from '@/client/components/admin/molecules/NewStudentStep2'
 import { Button } from '@/client/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Form } from '@/client/components/ui/form'
-import { useCourses } from '@/client/context/courses'
-import { useStudents } from '@/client/context/students'
-import { useTeachers } from '@/client/context/teachers'
 import { useToast } from '@/client/hooks/use-toast'
-import useCourseStore from '@/client/stores/useCourseStore'
-import { SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
-import { TeacherCourseResponse } from '@/types/db'
+import { createStudentWithCourses } from '@/server/actions/api/students'
+import { CourseWithRelations, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { DayScheduleWithType } from '@/types/schedule'
 import { CreateStudentPayload } from '@/types/student-payload'
+import { TeacherResponse } from '@/types/teacher-payload'
 import { GenderEnum, UserRoleEnum, UserType } from '@/types/user'
+
+interface NewStudentFormProps {
+  teachers: TeacherResponse[]
+  courses?: CourseWithRelations[]
+  schedules?: DayScheduleWithType[] | null
+}
 
 const studentSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastname: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   parentEmail1: z
     .string()
-    .email('Email invalide')
-    .optional()
-    .default('user@mail.fr'),
+    .min(1, 'L\'email du parent 1 est requis')
+    .email('Email invalide'),
   parentEmail2: z
     .string()
     .email('Email invalide')
     .optional()
-    .default('user@mail.fr'),
+    .or(z.literal('')),
   gender: z.nativeEnum(GenderEnum, {
     errorMap: () => ({ message: 'Veuillez sélectionner un genre' }),
   }),
@@ -53,15 +55,10 @@ const studentSchema = z.object({
   ),
   phone: z.string().optional(),
 })
-
 export type FormData = z.infer<typeof studentSchema>;
 
-const NewStudentForm = () => {
-  const { addStudentToCourse } = useCourses()
-  const { courses } = useCourseStore()
+const NewStudentForm = ({ teachers = [], courses, schedules }: NewStudentFormProps) => {
   const router = useRouter()
-  const { createStudent } = useStudents()
-  const { teachers, getAllTeachers } = useTeachers()
   const { toast } = useToast()
 
   const [currentStep, setCurrentStep] = useState<number>(1)
@@ -72,18 +69,14 @@ const NewStudentForm = () => {
     defaultValues: {
       firstname: '',
       lastname: '',
-      parentEmail1: 'user@mail.fr',
-      parentEmail2: 'user@mail.fr',
-      gender: undefined,
+      parentEmail1: '',
+      parentEmail2: '',
+      gender: GenderEnum.Masculin,
       dateOfBirth: '',
       timeSlot: undefined,
       selections: [],
     },
   })
-
-  useEffect(() => {
-    getAllTeachers()
-  }, [getAllTeachers])
 
   const steps = [
     { number: 1, label: 'Informations personnelles' },
@@ -156,15 +149,16 @@ const NewStudentForm = () => {
 
     try {
       setIsLoading(true)
+
       const studentData: CreateStudentPayload = {
         email: values.parentEmail1,
         firstname: values.firstname,
         lastname: values.lastname,
-        password: '', // Vous devrez gérer le mot de passe
+        password: '', // Gérer le mot de passe
         role: UserRoleEnum.Student,
         type: UserType.Both,
         gender: values.gender,
-        secondary_email: values.parentEmail2,
+        secondary_email: values.parentEmail2 || null,
         phone: values.phone ?? null,
         school_year: '2024-2025',
         subjects: values.selections.map((s) => s.subject),
@@ -177,174 +171,116 @@ const NewStudentForm = () => {
         teacher_stats_id: null,
       }
 
-      const student = await createStudent(studentData)
-      if (!student.id) {
+      const response = await createStudentWithCourses(studentData, values.selections)
+
+      if (response.success) {
+        toast({
+          title: 'Succès',
+          variant: 'success',
+          description: 'L\'étudiant a été créé avec succès',
+        })
+
+        setTimeout(() => {
+          router.push('/admin')
+        }, 100)
+      } else {
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de la création de l\'étudiant',
+          description: response.message || 'Une erreur est survenue',
         })
-        throw new Error('Erreur lors de la création de l\'étudiant')
-      }
-
-      for (const selection of values.selections) {
-        try {
-          // 1. D'abord récupérer les cours du professeur
-          const teacherCourse = courses.find(
-            (course: TeacherCourseResponse) =>
-              course.courses?.some(
-                (c) => c.id === selection.teacherId,
-              ),
-          )
-
-          if (!teacherCourse) {
-            toast({
-              variant: 'destructive',
-              title: 'Erreur',
-              description: 'Aucun cours trouvé pour le professeur',
-            })
-            throw new Error('Aucun cours trouvé pour le professeur')
-          }
-
-          // 2. Trouver la bonne session qui correspond à la sélection
-          const targetSession = teacherCourse.courses?.find(
-            (course) => {
-              const session = course.courses_sessions?.find(
-                (s) => {
-                  const timeSlot = s.courses_sessions_timeslot?.find(
-                    (ts) =>
-                      ts.day_of_week === selection.dayOfWeek &&
-                      ts.start_time === selection.startTime &&
-                      ts.end_time === selection.endTime,
-                  )
-                  return timeSlot && s.subject === selection.subject
-                },
-              )
-              return session
-            },
-          )
-
-          if (!targetSession) {
-            toast({
-              variant: 'destructive',
-              title: 'Erreur',
-              description: `Session non trouvée pour ${selection.subject}`,
-            })
-            throw new Error(`Session non trouvée pour ${selection.subject}`)
-          }
-
-          // 3. Ajouter l'étudiant au cours
-          await addStudentToCourse(teacherCourse.course_id, student.id, {
-            day_of_week: selection.dayOfWeek,
-            start_time: selection.startTime,
-            end_time: selection.endTime,
-            subject: selection.subject,
-          })
-
-          toast({
-            title: 'Succès',
-            variant: 'success',
-            description: 'L\'étudiant a été créé avec succès',
-          })
-        } catch (error) {
-          console.error(
-            `Erreur lors de l'ajout au cours ${selection.subject}:`,
-            error,
-          )
-          toast({
-            variant: 'destructive',
-            title: 'Erreur',
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Une erreur est survenue',
-          })
-        }
       }
     } catch (error: any) {
       console.error('Student creation error:', error)
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description:
-          error.message ??
-          'Une erreur est survenue lors de la création de l\'étudiant',
+        description: error.message ?? 'Une erreur est survenue',
       })
     } finally {
       setIsLoading(false)
-      setTimeout(() => {
-        window.location.reload()
-        router.push('/admin/settings')
-      }, 100)
     }
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl md:text-2xl">Nouvel Étudiant</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Stepper */}
-        <div className="flex justify-between mb-8 relative">
-          <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200 -z-10" />
-          {steps.map((step) => (
-            <div key={step.number} className="text-center flex-1">
-              <div
-                className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
-                  ${
-            currentStep === step.number
-              ? 'bg-blue-500 text-white'
-              : currentStep > step.number
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200'
-            }`}
-              >
-                {step.number}
-              </div>
-              <div className="text-sm">{step.label}</div>
+    <div className="w-full max-w-2xl mx-auto p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          Nouvel Étudiant
+        </h1>
+        <p className="text-muted-foreground">
+          Créez un nouvel étudiant en 3 étapes simples
+        </p>
+      </div>
+
+      {/* Stepper */}
+      <div className="flex justify-between mb-8 relative">
+        <div className="absolute top-4 left-0 w-full h-0.5 bg-muted -z-10" />
+        {steps.map((step) => (
+          <div key={step.number} className="text-center flex-1">
+            <div
+              className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center
+                text-sm font-medium
+                ${
+          currentStep === step.number
+            ? 'bg-primary text-primary-foreground'
+            : currentStep > step.number
+              ? 'bg-success text-success-foreground'
+              : 'bg-muted text-muted-foreground'
+          }`}
+            >
+              {step.number}
             </div>
-          ))}
-        </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">{step.label}</div>
+          </div>
+        ))}
+      </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {currentStep === 1 && <StepOne form={form} />}
-            {currentStep === 2 && <StepTwo form={form} teachers={teachers} />}
-            {currentStep === 3 && <StepThree form={form} teachers={teachers} />}
-            {/* {currentStep === 3 && <StepThree form={form} teachers={teachers} />} */}
+      {/* Form */}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {currentStep === 1 && <StepOne form={form} />}
+          {currentStep === 2 && (
+            <StepTwo
+              form={form}
+              teachers={teachers}
+              courses={courses}
+              schedules={schedules}
+            />
+          )}
+          {currentStep === 3 && <StepThree form={form} teachers={teachers} />}
 
-            {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-4 border-t">
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep((prev) => prev - 1)}
-                >
-                  Précédent
-                </Button>
-              )}
+          {/* Navigation */}
+          <div className="flex justify-between pt-6 border-t border-border">
+            {currentStep > 1 && (
               <Button
                 type="button"
-                onClick={handleNext}
-                className={`${currentStep === 1 ? 'ml-auto' : ''} ${
-                  currentStep === 3 ? 'bg-green-500 hover:bg-green-600' : ''
-                }`}
-                disabled={isLoading}
+                variant="destructive"
+                onClick={() => setCurrentStep((prev) => prev - 1)}
+                className="px-6"
               >
-                {isLoading
-                  ? 'Chargement...'
-                  : currentStep === 3
-                    ? 'Valider l\'inscription'
-                    : 'Suivant'}
+                Précédent
               </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            )}
+            <Button
+              type="button"
+              onClick={handleNext}
+              className={`${currentStep === 1 ? 'ml-auto' : ''} px-6 ${
+                currentStep === 3 ? 'bg-success hover:bg-success-dark' : ''
+              }`}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? 'Chargement...'
+                : currentStep === 3
+                  ? 'Valider l\'inscription'
+                  : 'Suivant'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 }
 

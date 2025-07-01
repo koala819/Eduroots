@@ -3,6 +3,7 @@
 import {
   BookOpen,
   Edit,
+  Eye,
   Filter,
   GraduationCap,
   Mail,
@@ -13,6 +14,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useMemo,useState } from 'react'
 
+import { StudentProfileDialog } from '@/client/components/organisms/SettingsStudentProfileDialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -42,6 +44,8 @@ type Person = (StudentResponse | TeacherResponse) & {
   role: string
   status: 'active' | 'inactive'
 }
+
+
 
 export function MembersView({
   students,
@@ -267,6 +271,43 @@ export function MembersView({
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Bouton Voir pour les étudiants */}
+                    {person.type === 'student' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <StudentProfileDialog
+                              student={{
+                                ...person as StudentResponse,
+                                stats: {
+                                  userId: person.id,
+                                  absencesRate: 0,
+                                  absencesCount: 0,
+                                  behaviorAverage: 0,
+                                  absences: [],
+                                  grades: { overallAverage: 0 },
+                                  lastActivity: null,
+                                  lastUpdate: new Date(),
+                                },
+                              } as any}
+                              trigger={
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="hover:bg-info/10 hover:text-info"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Voir</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
