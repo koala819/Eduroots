@@ -45,7 +45,7 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
     title: 'Gestion de l\'étudiant',
     subtitle: 'Modifier l\'élève',
     backButton: {
-      name: 'Accueil',
+      name: 'Membres',
     },
   },
   '/admin/members/student/edit/*/courses': {
@@ -66,21 +66,21 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
     title: 'Nouvel élève',
     subtitle: 'Créer un nouvel élève',
     backButton: {
-      name: 'Accueil',
+      name: 'Membres',
     },
   },
   '/admin/members/teacher/create': {
     title: 'Nouveau prof',
     subtitle: 'Créer un nouveau prof',
     backButton: {
-      name: 'Accueil',
+      name: 'Membres',
     },
   },
   '/admin/members/teacher/edit/*': {
     title: 'Gestion de l\'enseignant',
     subtitle: 'Modifier l\'enseignant',
     backButton: {
-      name: 'Accueil',
+      name: 'Membres',
     },
   },
   '/admin/root/logs': {
