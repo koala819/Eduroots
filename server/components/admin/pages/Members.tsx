@@ -14,9 +14,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { useMemo,useState } from 'react'
 
-import { StudentProfileDialog } from '@/client/components/organisms/SettingsStudentProfileDialog'
-import { TeacherProfileDialog } from '@/client/components/organisms/TeacherProfileDialog'
-import { Badge } from '@/client/components/ui/badge'
+import { StudentProfileDialog } from '@/client/components/admin/organisms/StudentProfileDialog'
+import { TeacherProfileDialog } from '@/client/components/admin/organisms/TeacherProfileDialog'
 import { Button } from '@/client/components/ui/button'
 import { Card, CardContent } from '@/client/components/ui/card'
 import {
@@ -225,24 +224,15 @@ export function MembersView({
                         <h3 className="font-medium text-foreground truncate">
                           {person.displayName}
                         </h3>
-                        <Badge
-                          variant={person.type === 'student' ? 'secondary' : 'default'}
-                          className={
-                            person.type === 'student'
-                              ? 'bg-purple/10 text-purple border-purple/20'
-                              : 'bg-secondary/10 text-secondary border-secondary/20'
-                          }>
+                        <div
+                          className={`px-2 py-1 rounded-md text-xs
+                          ${person.type === 'student'
+                  ? 'bg-purple/10 text-purple border-purple/20'
+                  : 'bg-secondary/10 text-secondary border-secondary/20'}`}
+                        >
                           {person.role}
-                        </Badge>
-                        <Badge
-                          variant={person.status === 'active' ? 'default' : 'outline'}
-                          className={
-                            person.status === 'active'
-                              ? 'bg-success/10 text-success border-success/20'
-                              : 'bg-warning/10 text-warning border-warning/20'
-                          }>
-                          {person.status === 'active' ? 'Actif' : 'Inactif'}
-                        </Badge>
+                        </div>
+
                       </div>
                       <div className="flex items-center gap-4 text-sm
                       text-muted-foreground mt-1 flex-wrap">

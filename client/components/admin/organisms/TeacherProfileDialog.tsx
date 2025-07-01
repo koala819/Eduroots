@@ -453,7 +453,7 @@ export function TeacherProfileDialog({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel
-                    className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
                   >
                     Annuler
                   </AlertDialogCancel>
@@ -469,7 +469,7 @@ export function TeacherProfileDialog({
             </AlertDialog>
 
             <DialogClose asChild>
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90">
                 Fermer
               </Button>
             </DialogClose>

@@ -8,13 +8,13 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo,useState } from 'react'
 
+import { StudentProfileDialog } from '@/client/components/admin/organisms/StudentProfileDialog'
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { AttendanceProgressBar } from '@/client/components/atoms/SettingsAttendanceProgressBar'
 import { AttendanceRateProgress } from '@/client/components/atoms/SettingsAttendanceRateProgress'
 import { BehaviorStarRating } from '@/client/components/atoms/SettingsBehaviorStarRating'
 import { GradeProgressBar } from '@/client/components/atoms/SettingsGradeProgressBar'
 import { EmptyContent, LoadingContent } from '@/client/components/atoms/StatusContent'
-import { StudentProfileDialog } from '@/client/components/organisms/SettingsStudentProfileDialog'
 import {
   Card,
   CardContent,

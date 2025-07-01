@@ -1,9 +1,21 @@
 'use client'
 
 import { differenceInYears } from 'date-fns'
-import { Star, TrendingUp } from 'lucide-react'
+import { Star, Trash2, TrendingUp } from 'lucide-react'
+import { useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/client/components/ui/alert-dialog'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import {
@@ -22,6 +34,8 @@ import {
 } from '@/client/components/ui/dialog'
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
+import { useToast } from '@/client/hooks/use-toast'
+import { deleteStudent } from '@/server/actions/api/students'
 import { cn } from '@/server/utils/helpers'
 import { StudentStats } from '@/types/stats'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
@@ -36,10 +50,50 @@ interface StudentWithDetails extends TeacherStudent {
 interface StudentProfileDialogProps {
   student: StudentWithDetails
   trigger?: React.ReactNode
+  onStudentDeleted?: () => void
 }
 
-export function StudentProfileDialog({ student, trigger }: StudentProfileDialogProps) {
+export function StudentProfileDialog({
+  student,
+  trigger,
+  onStudentDeleted,
+}: StudentProfileDialogProps) {
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
+
   const attendanceRate = 100 - (student.stats?.absencesRate || 0)
+
+  const handleDeleteStudent = async () => {
+    if (!student.id) return
+
+    setIsDeleting(true)
+    try {
+      const response = await deleteStudent(student.id)
+      if (response.success) {
+        toast({
+          title: 'Succès',
+          description: 'L\'étudiant a été supprimé avec succès',
+          variant: 'default',
+        })
+        onStudentDeleted?.()
+      } else {
+        toast({
+          title: 'Erreur',
+          description: response.message || 'Erreur lors de la suppression de l\'étudiant',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la suppression',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   function calculateAge(dateOfBirth: Date | null) {
     if (!dateOfBirth) return 0
@@ -305,13 +359,54 @@ export function StudentProfileDialog({ student, trigger }: StudentProfileDialogP
         </div>
 
         <DialogFooter className="mt-8">
-          <DialogClose asChild>
-            <Button
-              variant="destructive"
-            >
-              Fermer
-            </Button>
-          </DialogClose>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {/* Bouton supprimer avec confirmation */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isDeleting ? 'Suppression...' : 'Supprimer'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Êtes-vous sûr de vouloir supprimer l'étudiant{' '}
+                    <strong>{student.firstname} {student.lastname}</strong> ?
+                    <br />
+                    <br />
+                    Cette action désactivera le compte de l'étudiant mais conservera toutes
+                    ses données. Cette action peut être annulée par un administrateur.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    Annuler
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteStudent}
+                    className="bg-error text-error-foreground hover:bg-error/90"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <DialogClose asChild>
+              <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90">
+                Fermer
+              </Button>
+            </DialogClose>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
