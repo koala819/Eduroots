@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { Suspense } from 'react'
 
-import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
+import { ScheduleDayCaroussel } from '@/client/components/admin/molecules/ScheduleDayCarousel'
 import { HolidaysList } from '@/client/components/atoms/HolidaysList'
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
@@ -11,8 +10,9 @@ import { DAY_ORDER_ARRAY, formatDayOfWeek, getTimeSlotOptions } from '@/client/u
 import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getAllHolidays } from '@/server/actions/api/holidays'
 import { getSubjectColors } from '@/server/utils/helpers'
-import { TimeSlotEnum } from '@/types/courses'
+import { CourseSessionWithRelations, TimeSlotEnum } from '@/types/courses'
 import { Holiday } from '@/types/holidays'
+import { ScheduleCard, ScheduleDay, SessionStats } from '@/types/schedule'
 
 export const metadata: Metadata = {
   title: 'Planning des cours',
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
 
 const formatHour = (time: string) => time ? time.slice(0, 5) : ''
 
-function getSessionStats(session: any) {
+function getSessionStats(session: CourseSessionWithRelations): SessionStats {
   const students = session.courses_sessions_students || []
   const total = students.length
   let male = 0
   let female = 0
 
-  students.forEach((student: any) => {
+  students.forEach((student) => {
     const gender = student.users?.gender?.toLowerCase()
     if (gender === 'masculin' || gender === 'male' || gender === 'm') {
       male++
@@ -44,26 +44,7 @@ function getSessionStats(session: any) {
   return { total, male, female, malePercentage, femalePercentage }
 }
 
-type PlanningCard = {
-  slot: string
-  sessionId: string
-  teacherName: string
-  level: string
-  subject: string
-  stats: ReturnType<typeof getSessionStats>
-  bgColor: string
-  teacherId?: string
-  averageAge: number
-}
 
-type PlanningDay = {
-  day: TimeSlotEnum
-  dayLabel: string
-  slots: {
-    slot: string
-    cards: PlanningCard[]
-  }[]
-}
 
 const SchedulePage = async () => {
   const [coursesData, holidaysResponse] = await Promise.all([
@@ -150,10 +131,10 @@ const SchedulePage = async () => {
     slotOptionsByDay[day] = getTimeSlotOptions(day).slice(0, 2)
   }
 
-  const planningDays: PlanningDay[] = DAY_ORDER_ARRAY.map((day) => {
+  const planningDays: ScheduleDay[] = DAY_ORDER_ARRAY.map((day) => {
     const slots = slotOptionsByDay[day].map((opt) => {
       const slot = `${opt.start}-${opt.end}`
-      const cards: PlanningCard[] = (sessionsByDayAndSlot[day][slot] || [])
+      const cards: ScheduleCard[] = (sessionsByDayAndSlot[day][slot] || [])
         .map((session: any) => {
           const teacher = session.course?.courses_teacher?.[0]?.users
           const teacherName = teacher
@@ -188,7 +169,7 @@ const SchedulePage = async () => {
     <Suspense fallback={<LoadingScreen />}>
       <div className="p-4">
 
-        {/* Légende des couleurs */}
+        {/* Légende des matières */}
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Légende des matières</CardTitle>
@@ -204,58 +185,13 @@ const SchedulePage = async () => {
             </div>
           </CardContent>
         </Card>
+
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-8">
           {/* Vue principale */}
           <aside>
-            {planningDays.map(({ day, dayLabel, slots }) => (
-              <section key={day} className="pt-8">
-                <h2 className="text-lg font-bold mb-4">{dayLabel}</h2>
-                <div className={`grid grid-cols-${slots.length} gap-4`}>
-                  {slots.map(({ slot, cards }) => (
-                    <div key={slot}>
-                      <div className="font-semibold text-center mb-2">{slot}</div>
-                      <div className="space-y-2">
-                        {cards.map((card) => (
-                          <Link
-                            key={card.sessionId}
-                            href={`/admin/members/teacher/edit/${card.teacherId}`}
-                            className={`block p-2 rounded shadow-sm text-center hover:bg-primary/80
-                              transition ${card.bgColor}`}
-                          >
-                            <div className="font-bold text-base mb-1">{card.teacherName}</div>
-                            <div className="text-sm font-semibold mb-1">Niveau {card.level}</div>
-                            <div className="text-md font-medium mb-1">{card.subject}</div>
-
-                            <div className="flex flex-col justify-center gap-4 text-xs mt-1
-                             bg-warning rounded-md p-2">
-                              <div className="text-xs">
-                                {card.stats.total} élève{card.stats.total > 1 ? 's' : ''}
-                                {card.averageAge > 0 && (
-                                  <span> · Âge moyen : {card.averageAge} ans</span>
-                                )}
-                              </div>
-                              <div className="flex justify-center gap-4">
-                                <span className="flex items-center gap-1">
-                                  <GenderDisplay gender="masculin" size="w-8 h-8" />
-                                  {card.stats.male} ({card.stats.malePercentage}%)
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <GenderDisplay gender="féminin" size="w-8 h-8" />
-                                  {card.stats.female} ({card.stats.femalePercentage}%)
-                                </span>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
+            <ScheduleDayCaroussel planningDays={planningDays} />
           </aside>
           <HolidaysList holidays={convertedHolidays} />
-          {/* <ScheduleAdminView courses={coursesResponse} holidays={holidaysResponse} /> */}
         </section>
       </div>
     </Suspense>

@@ -77,10 +77,15 @@ function calculateCourseStats(course: CourseWithRelations) {
           countGirls++
         }
 
-        // Calculer l'âge si disponible
+        // Calculer l'âge précis si disponible
         if (enrollment.users.date_of_birth) {
           const birthDate = new Date(enrollment.users.date_of_birth)
-          const age = new Date().getFullYear() - birthDate.getFullYear()
+          const today = new Date()
+          let age = today.getFullYear() - birthDate.getFullYear()
+          const m = today.getMonth() - birthDate.getMonth()
+          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--
+          }
           totalAge += age
           validAgeCount++
         }
