@@ -1,3 +1,4 @@
+import LoadingRoute from '@/client/components/atoms/LoadingRoute'
 import { CustomLayout } from '@/client/components/pages/CustomLayout'
 import { createClient } from '@/server/utils/supabase'
 
@@ -44,6 +45,7 @@ export default async function TeacherLayout({
   return (
     <CustomLayout navItems={navItems} teacher={teacher}>
       <div className="flex flex-col relative bg-background h-full">
+        <LoadingRoute />
         {children}
       </div>
     </CustomLayout>

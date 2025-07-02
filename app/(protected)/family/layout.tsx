@@ -1,3 +1,4 @@
+import LoadingRoute from '@/client/components/atoms/LoadingRoute'
 import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
 import { CustomLayout } from '@/client/components/pages/CustomLayout'
 import { getFamilyDashboardData } from '@/server/actions/api/family'
@@ -43,6 +44,7 @@ export default async function FamilyLayout({ children }: { children: React.React
         grades={[]}
         familyStudents={familyStudents}
       />
+      <LoadingRoute />
       {children}
     </CustomLayout>
   )
