@@ -13,7 +13,6 @@ import { getAllHolidays } from '@/server/actions/api/holidays'
 import { getSubjectColors } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 import { Holiday } from '@/types/holidays'
-// import { getSubjectColors } from '@/client/utils/subjectColors'
 
 export const metadata: Metadata = {
   title: 'Planning des cours',
@@ -22,10 +21,7 @@ export const metadata: Metadata = {
   },
 }
 
-function formatHour(time: string) {
-  // Prend "09:00:00" et retourne "09:00"
-  return time ? time.slice(0, 5) : ''
-}
+const formatHour = (time: string) => time ? time.slice(0, 5) : ''
 
 function formatSlot(start: string, end: string) {
   return `${formatHour(start)}-${formatHour(end)}`
@@ -61,6 +57,7 @@ type PlanningCard = {
   stats: ReturnType<typeof getSessionStats>
   bgColor: string
   teacherId?: string
+  averageAge: number
 }
 
 type PlanningDay = {
@@ -105,14 +102,16 @@ const SchedulePage = async () => {
       const timeslot = session.courses_sessions_timeslot?.[0]
       if (timeslot && timeslot.day_of_week) {
         const day = timeslot.day_of_week as TimeSlotEnum
-        const slotKey = formatSlot(timeslot.start_time, timeslot.end_time)
+        const slotKey = `${formatHour(timeslot.start_time)}-${formatHour(timeslot.end_time)}`
         const slotOptions = getTimeSlotOptions(day)
-        const isDoubleSlot = slotOptions.length === 3 &&
-          slotOptions[2].start === timeslot.start_time &&
-          slotOptions[2].end === timeslot.end_time
+        const isDoubleSlot =
+          slotOptions.length === 3 &&
+          formatHour(slotOptions[2].start) === formatHour(timeslot.start_time) &&
+          formatHour(slotOptions[2].end) === formatHour(timeslot.end_time)
         if (isDoubleSlot) {
+          // On n'ajoute la session que dans les deux créneaux simples (pas dans la colonne double)
           slotOptions.slice(0, 2).forEach((opt) => {
-            const splitKey = `${opt.start}-${opt.end}`
+            const splitKey = `${formatHour(opt.start)}-${formatHour(opt.end)}`
             if (!sessionsByDayAndSlot[day][splitKey]) {
               sessionsByDayAndSlot[day][splitKey] = []
             }
@@ -153,15 +152,9 @@ const SchedulePage = async () => {
     [TimeSlotEnum.SUNDAY_MORNING]: [],
   }
   for (const day of DAY_ORDER_ARRAY) {
+    // On ne garde que les deux premiers créneaux (simples) pour l'affichage.
+    // Cela cache le créneau double (ex : 09:00-12:30)
     slotOptionsByDay[day] = getTimeSlotOptions(day).slice(0, 2)
-  }
-
-  // On prépare les données à passer au composant client plus tard
-  const planningData = {
-    sessionsByDayAndSlot,
-    slotOptionsByDay,
-    subjects: Array.from(subjectsSet),
-    holidays: convertedHolidays,
   }
 
   const planningDays: PlanningDay[] = DAY_ORDER_ARRAY.map((day) => {
@@ -174,6 +167,7 @@ const SchedulePage = async () => {
         const stats = getSessionStats(session)
         const bgColor = getSubjectColors(session.subject)
         const teacherId = teacher?.id
+        const averageAge = session.course?.stats?.averageAge || 0
         return {
           slot,
           sessionId: session.id,
@@ -183,6 +177,7 @@ const SchedulePage = async () => {
           stats,
           bgColor,
           teacherId,
+          averageAge,
         }
       })
       return { slot, cards }
@@ -237,6 +232,9 @@ const SchedulePage = async () => {
                             <div className="text-md font-medium mb-1">{card.subject}</div>
                             <div className="text-xs">
                               {card.stats.total} élève{card.stats.total > 1 ? 's' : ''}
+                              {card.averageAge > 0 && (
+                                <span> · Âge moyen : {card.averageAge} ans</span>
+                              )}
                             </div>
                             <div className="flex justify-center gap-4 text-xs mt-1 bg-warning
                             rounded-md p-2">
