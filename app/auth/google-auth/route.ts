@@ -94,7 +94,8 @@ export async function GET(request: Request) {
   }
 
   await userUpdate(supabase, data_from_auth, userData)
-  redirect(`/${userData.role}`)
+  const redirectUrl = getRedirectUrl(userData.role)
+  redirect(redirectUrl)
 }
 
 async function findUserInDatabase(
@@ -106,12 +107,22 @@ async function findUserInDatabase(
   const adminRoles = ['admin', 'bureau']
   const isAdminRole = adminRoles.includes(role)
 
+  // Déterminer si on cherche par auth_id ou par email
+  const isEmailSearch = value.includes('@')
+
   let query = supabase
     .schema('education')
     .from('users')
     .select('*')
+
+  if (isEmailSearch) {
+    // Recherche par email
+    query = query.or(`email.eq.${value},secondary_email.eq.${value}`)
+  } else {
+    // Recherche par auth_id
     // eslint-disable-next-line max-len
-    .or(`auth_id_email.eq.${value},auth_id_gmail.eq.${value},parent2_auth_id_email.eq.${value},parent2_auth_id_gmail.eq.${value}`)
+    query = query.or(`auth_id_email.eq.${value},auth_id_gmail.eq.${value},parent2_auth_id_email.eq.${value},parent2_auth_id_gmail.eq.${value}`)
+  }
 
   if (isAdminRole) {
     // Pour les rôles admin, chercher dans tous les rôles admin
@@ -196,5 +207,6 @@ async function userUpdate(
     }
   }
 
-  redirect(`/${user_from_education.role}`)
+  const redirectUrl = getRedirectUrl(user_from_education.role)
+  redirect(redirectUrl)
 }
