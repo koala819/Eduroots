@@ -8,7 +8,7 @@ import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { DAY_ORDER_ARRAY, formatDayOfWeek, getTimeSlotOptions } from '@/client/utils/timeSlots'
-import { getAllCoursesWithStats } from '@/server/actions/api/courses'
+import { getCoursesWithStudentStats } from '@/server/actions/admin/student-courses-stats'
 import { getAllHolidays } from '@/server/actions/api/holidays'
 import { getSubjectColors } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
@@ -22,10 +22,6 @@ export const metadata: Metadata = {
 }
 
 const formatHour = (time: string) => time ? time.slice(0, 5) : ''
-
-function formatSlot(start: string, end: string) {
-  return `${formatHour(start)}-${formatHour(end)}`
-}
 
 function getSessionStats(session: any) {
   const students = session.courses_sessions_students || []
@@ -70,15 +66,12 @@ type PlanningDay = {
 }
 
 const SchedulePage = async () => {
-  const [coursesResponse, holidaysResponse] = await Promise.all([
-    getAllCoursesWithStats(),
+  const [coursesData, holidaysResponse] = await Promise.all([
+    getCoursesWithStudentStats(),
     getAllHolidays(),
   ])
 
-  if (coursesResponse.error ||
-    holidaysResponse.error ||
-    !holidaysResponse.data ||
-    !coursesResponse.data) {
+  if (holidaysResponse.error || !holidaysResponse.data || !coursesData) {
     return <ErrorContent message="Erreur lors de la récupération des cours ou des vacances" />
   }
 
@@ -97,7 +90,7 @@ const SchedulePage = async () => {
     [TimeSlotEnum.SUNDAY_MORNING]: {},
   }
 
-  for (const course of coursesResponse.data) {
+  for (const course of coursesData) {
     for (const session of course.courses_sessions || []) {
       const timeslot = session.courses_sessions_timeslot?.[0]
       if (timeslot && timeslot.day_of_week) {
@@ -160,26 +153,28 @@ const SchedulePage = async () => {
   const planningDays: PlanningDay[] = DAY_ORDER_ARRAY.map((day) => {
     const slots = slotOptionsByDay[day].map((opt) => {
       const slot = `${opt.start}-${opt.end}`
-      const cards: PlanningCard[] = (sessionsByDayAndSlot[day][slot] || []).map((session: any) => {
-        const teacher = session.course?.courses_teacher?.[0]?.users
-        const teacherName = teacher
-          ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
-        const stats = getSessionStats(session)
-        const bgColor = getSubjectColors(session.subject)
-        const teacherId = teacher?.id
-        const averageAge = session.course?.stats?.averageAge || 0
-        return {
-          slot,
-          sessionId: session.id,
-          teacherName,
-          level: session.level,
-          subject: session.subject,
-          stats,
-          bgColor,
-          teacherId,
-          averageAge,
-        }
-      })
+      const cards: PlanningCard[] = (sessionsByDayAndSlot[day][slot] || [])
+        .map((session: any) => {
+          const teacher = session.course?.courses_teacher?.[0]?.users
+          const teacherName = teacher
+            ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
+          const stats = getSessionStats(session)
+          const bgColor = getSubjectColors(session.subject)
+          const teacherId = teacher?.id
+          const averageAge = session.course?.stats?.averageAge || 0
+          return {
+            slot,
+            sessionId: session.id,
+            teacherName,
+            level: session.level,
+            subject: session.subject,
+            stats,
+            bgColor,
+            teacherId,
+            averageAge,
+          }
+        })
+        .sort((a, b) => a.teacherName.localeCompare(b.teacherName, 'fr'))
       return { slot, cards }
     })
     return {
@@ -230,22 +225,25 @@ const SchedulePage = async () => {
                             <div className="font-bold text-base mb-1">{card.teacherName}</div>
                             <div className="text-sm font-semibold mb-1">Niveau {card.level}</div>
                             <div className="text-md font-medium mb-1">{card.subject}</div>
-                            <div className="text-xs">
-                              {card.stats.total} élève{card.stats.total > 1 ? 's' : ''}
-                              {card.averageAge > 0 && (
-                                <span> · Âge moyen : {card.averageAge} ans</span>
-                              )}
-                            </div>
-                            <div className="flex justify-center gap-4 text-xs mt-1 bg-warning
-                            rounded-md p-2">
-                              <span className="flex items-center gap-1">
-                                <GenderDisplay gender="masculin" size="w-8 h-8" />
-                                {card.stats.male} ({card.stats.malePercentage}%)
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <GenderDisplay gender="féminin" size="w-8 h-8" />
-                                {card.stats.female} ({card.stats.femalePercentage}%)
-                              </span>
+
+                            <div className="flex flex-col justify-center gap-4 text-xs mt-1
+                             bg-warning rounded-md p-2">
+                              <div className="text-xs">
+                                {card.stats.total} élève{card.stats.total > 1 ? 's' : ''}
+                                {card.averageAge > 0 && (
+                                  <span> · Âge moyen : {card.averageAge} ans</span>
+                                )}
+                              </div>
+                              <div className="flex justify-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <GenderDisplay gender="masculin" size="w-8 h-8" />
+                                  {card.stats.male} ({card.stats.malePercentage}%)
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <GenderDisplay gender="féminin" size="w-8 h-8" />
+                                  {card.stats.female} ({card.stats.femalePercentage}%)
+                                </span>
+                              </div>
                             </div>
                           </Link>
                         ))}
