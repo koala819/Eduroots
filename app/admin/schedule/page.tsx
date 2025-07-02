@@ -9,8 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui
 import { DAY_ORDER_ARRAY, formatDayOfWeek } from '@/client/utils/timeSlots'
 import { getAllCoursesWithStats } from '@/server/actions/api/courses'
 import { getAllHolidays } from '@/server/actions/api/holidays'
+import { getSubjectColors } from '@/server/utils/helpers'
 import { TimeSlotEnum } from '@/types/courses'
 import { Holiday } from '@/types/holidays'
+// import { getSubjectColors } from '@/client/utils/subjectColors'
 
 export const metadata: Metadata = {
   title: 'Planning des cours',
@@ -50,14 +52,11 @@ function getSessionStats(session: any) {
 }
 
 const SchedulePage = async () => {
-  console.log('=== DÉBUT SchedulePage ===')
 
   const [coursesResponse, holidaysResponse] = await Promise.all([
     getAllCoursesWithStats(),
     getAllHolidays(),
   ])
-
-  // console.log('coursesResponse:', coursesResponse)
 
   if (coursesResponse.error ||
     holidaysResponse.error ||
@@ -97,9 +96,16 @@ const SchedulePage = async () => {
     }
   }
 
-  // Pour l'affichage, on parcourt dans l'ordre défini
-  DAY_ORDER_ARRAY.forEach((day) => {
-    console.log(`Sessions pour ${day}:`, sessionsByDayAndSlot[day])
+  // Extraction des matières présentes dans le planning
+  const subjectsSet = new Set<string>()
+  Object.values(sessionsByDayAndSlot).forEach((slotsByTime) => {
+    Object.values(slotsByTime).forEach((sessions) => {
+      sessions.forEach((session) => {
+        if (session.subject) {
+          subjectsSet.add(session.subject)
+        }
+      })
+    })
   })
 
   return (
@@ -112,15 +118,14 @@ const SchedulePage = async () => {
             <CardTitle className="text-lg">Légende des matières</CardTitle>
           </CardHeader>
           <CardContent>
-          Matières:
-            {/* <div className="flex flex-wrap gap-4">
-            {subjectLegend.map(({ subject, colorClass }) => (
-              <div key={subject} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${colorClass}`} />
-                <span className="text-sm font-medium">{subject}</span>
-              </div>
-            ))}
-          </div> */}
+            <div className="flex flex-wrap gap-4">
+              {Array.from(subjectsSet).map((subject) => (
+                <div key={subject} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${getSubjectColors(subject)}`} />
+                  <span className="text-sm font-medium">{subject}</span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-8">
