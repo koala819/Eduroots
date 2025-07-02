@@ -4,7 +4,7 @@
 
 # Eduroots
 
-Eduroots is an open-source educational platform designed to facilitate course management and communication between teachers and students.
+Eduroots is an open-source educational platform designed to facilitate course management and communication between teachers and students, specifically adapted for mosques.
 
 ## Features
 
@@ -12,19 +12,39 @@ Eduroots is an open-source educational platform designed to facilitate course ma
 - Attendance and behavior tracking
 - Integrated messaging system
 - Responsive interface (mobile and desktop)
-- Dark/light mode
-- PWA (Progressive Web App)
+- PWA (Progressive Web App) with Serwist
+- Google OAuth authentication
+- Dashboard with statistics
+- Grade and evaluation management
 
 ## Technologies
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- NextAuth.js
-- MongoDB
-- React Hook Form
-- Radix UI
-- Framer Motion
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Static typing
+- **Tailwind CSS 4** - Utility-first CSS framework (latest version)
+- **Framer Motion** - Smooth animations
+
+### Backend & Database
+- **Supabase** - Backend-as-a-Service with PostgreSQL
+- **Supabase Auth** - Authentication with Google OAuth
+- **PostgreSQL** - Relational database
+
+### PWA & Performance
+- **Serwist** - Service Worker for PWA
+- **@serwist/next** - Next.js integration
+
+### Development Tools
+- **Vitest** - Testing framework
+- **ESLint** - Code linting
+- **Husky** - Git hooks
+- **pnpm** - Package manager
+
+### Others
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
+- **Recharts** - Charts and visualizations
+- **Cloudinary** - Image management
 
 ## Installation
 
@@ -47,11 +67,67 @@ pnpm install
 cp .env.example .env.local
 ```
 
+Required environment variables:
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Others
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXT_PUBLIC_CLIENT_URL=http://localhost:3000
+```
+
 4. Start the development server:
 
 ```bash
 pnpm dev
 ```
+
+## Available Scripts
+
+```bash
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm test         # Run tests with Vitest
+pnpm lint         # Check code with ESLint
+pnpm lint:fix     # Auto-fix ESLint errors
+```
+
+## Architecture
+
+### Database
+- **Supabase PostgreSQL** with multiple schemas:
+  - `education` - Main data
+  - `logs` - Connection logs and audit
+
+### Authentication
+- **Supabase Auth** with Google OAuth
+- Role management (admin, teacher, student, family)
+- Route protection middleware
+
+## Tests
+
+The project uses Vitest for testing:
+
+```bash
+pnpm test                    # Run all tests
+pnpm test --coverage        # Run tests with coverage
+```
+
+## PWA
+
+The application is configured as PWA with:
+- Service Worker via Serwist
+- Manifest for installation
+- Offline support
+- Push notifications
 
 ## Contributing
 
