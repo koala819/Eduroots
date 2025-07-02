@@ -117,13 +117,20 @@ const SchedulePage = async () => {
                         <div key={slot}>
                           <div className="font-semibold text-center mb-2">{slot}</div>
                           <div className="space-y-2">
-                            {sessionsByDayAndSlot[day][slot].map((session) => (
-                              <div
-                                key={session.id}
-                                className="p-2 bg-gray-50 rounded shadow-sm text-center">
-                                {session.subject} (Niveau {session.level})
-                              </div>
-                            ))}
+                            {sessionsByDayAndSlot[day][slot].map((session) => {
+                              const teacher = session.course.courses_teacher?.[0]?.users
+                              const teacherName = teacher
+                                ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
+                              return (
+                                <div
+                                  key={session.id}
+                                  className="p-2 bg-gray-50 rounded shadow-sm text-center"
+                                >
+                                  {session.subject} (Niveau {session.level})<br />
+                                  <span className="text-sm text-gray-600">{teacherName}</span>
+                                </div>
+                              )
+                            })}
                           </div>
                         </div>
                       ))}
