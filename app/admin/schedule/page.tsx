@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
 
 import { HolidaysList } from '@/client/components/atoms/HolidaysList'
@@ -144,9 +145,12 @@ const SchedulePage = async () => {
                                 ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
                               const stats = getSessionStats(session)
                               return (
-                                <div
+                                <Link
                                   key={session.id}
-                                  className="p-2 bg-gray-50 rounded shadow-sm text-center"
+                                  href={teacher ? `/admin/members/teacher/edit/${teacher.id}` : '#'}
+                                  className="block p-2 bg-gray-50 rounded shadow-sm text-center
+                                   hover:bg-primary/10 transition"
+                                  style={{ cursor: teacher ? 'pointer' : 'default' }}
                                 >
                                   <div className="font-medium">
                                     {session.subject} (Niveau {session.level})
@@ -163,7 +167,7 @@ const SchedulePage = async () => {
                                       ♀ {stats.female} ({stats.femalePercentage}%)
                                     </span>
                                   </div>
-                                </div>
+                                </Link>
                               )
                             })}
                           </div>
