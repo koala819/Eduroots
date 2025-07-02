@@ -57,9 +57,19 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   const { data: { user } } = await supabase.auth.getUser()
   const isAdmin = user?.user_metadata?.role === 'admin'
 
+  // Filtrer les navItems selon le rôle admin
+  const filteredNavItems = navItems.filter((item) => {
+    // Si c'est l'élément "Paramètres", ne l'afficher que pour les admins
+    if (item.href === '/admin/settings') {
+      return isAdmin
+    }
+    // Afficher tous les autres éléments
+    return true
+  })
+
   return (
     <GlobalServerProvider>
-      <CustomLayout navItems={navItems} isAdmin={isAdmin}>
+      <CustomLayout navItems={filteredNavItems} isAdmin={isAdmin}>
         <MenuHeader
           selectedSession={undefined}
           courses={[]}
