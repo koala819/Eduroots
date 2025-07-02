@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
+import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import { HolidaysList } from '@/client/components/atoms/HolidaysList'
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
@@ -145,31 +146,39 @@ const SchedulePage = async () => {
                           <div className="font-semibold text-center mb-2">{slot}</div>
                           <div className="space-y-2">
                             {sessionsByDayAndSlot[day][slot].map((session) => {
-                              const teacher = session.course.courses_teacher?.[0]?.users
+                              const teacher = session.course?.courses_teacher?.[0]?.users
                               const teacherName = teacher
                                 ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
                               const stats = getSessionStats(session)
+                              const bgColor = getSubjectColors(session.subject)
                               return (
                                 <Link
                                   key={session.id}
                                   href={teacher ? `/admin/members/teacher/edit/${teacher.id}` : '#'}
-                                  className="block p-2 bg-gray-50 rounded shadow-sm text-center
-                                   hover:bg-primary/10 transition"
-                                  style={{ cursor: teacher ? 'pointer' : 'default' }}
+                                  className={`block p-2 rounded shadow-sm text-center
+                                    hover:bg-primary/80 transition ${bgColor}`}
                                 >
-                                  <div className="font-medium">
-                                    {session.subject} (Niveau {session.level})
+                                  <div className="font-bold text-base mb-1">
+                                    {teacherName}
                                   </div>
-                                  <div className="text-sm text-gray-600 mb-1">{teacherName}</div>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-sm font-semibold mb-1">
+                                    Niveau {session.level}
+                                  </div>
+                                  <div className="text-md font-medium mb-1">
+                                    {session.subject}
+                                  </div>
+                                  <div className="text-xs">
                                     {stats.total} élève{stats.total > 1 ? 's' : ''}
                                   </div>
-                                  <div className="flex justify-center gap-2 text-xs mt-1">
-                                    <span className="text-blue-700">
-                                      ♂ {stats.male} ({stats.malePercentage}%)
+                                  <div className="flex justify-center gap-4 text-xs mt-1
+                                  bg-warning rounded-md p-2">
+                                    <span className="flex items-center gap-1">
+                                      <GenderDisplay gender="masculin" size="w-8 h-8" />
+                                      {stats.male} ({stats.malePercentage}%)
                                     </span>
-                                    <span className="text-pink-700">
-                                      ♀ {stats.female} ({stats.femalePercentage}%)
+                                    <span className="flex items-center gap-1">
+                                      <GenderDisplay gender="féminin" size="w-8 h-8" />
+                                      {stats.female} ({stats.femalePercentage}%)
                                     </span>
                                   </div>
                                 </Link>
