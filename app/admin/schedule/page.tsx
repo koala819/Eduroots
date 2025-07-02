@@ -27,6 +27,27 @@ function formatSlot(start: string, end: string) {
   return `${formatHour(start)}-${formatHour(end)}`
 }
 
+function getSessionStats(session: any) {
+  const students = session.courses_sessions_students || []
+  const total = students.length
+  let male = 0
+  let female = 0
+
+  students.forEach((student: any) => {
+    const gender = student.users?.gender?.toLowerCase()
+    if (gender === 'masculin' || gender === 'male' || gender === 'm') {
+      male++
+    } else if (gender === 'féminin' || gender === 'female' || gender === 'f') {
+      female++
+    }
+  })
+
+  const malePercentage = total > 0 ? Math.round((male / total) * 100) : 0
+  const femalePercentage = total > 0 ? Math.round((female / total) * 100) : 0
+
+  return { total, male, female, malePercentage, femalePercentage }
+}
+
 const SchedulePage = async () => {
   console.log('=== DÉBUT SchedulePage ===')
 
@@ -121,13 +142,27 @@ const SchedulePage = async () => {
                               const teacher = session.course.courses_teacher?.[0]?.users
                               const teacherName = teacher
                                 ? `${teacher.firstname} ${teacher.lastname}` : 'Prof inconnu'
+                              const stats = getSessionStats(session)
                               return (
                                 <div
                                   key={session.id}
                                   className="p-2 bg-gray-50 rounded shadow-sm text-center"
                                 >
-                                  {session.subject} (Niveau {session.level})<br />
-                                  <span className="text-sm text-gray-600">{teacherName}</span>
+                                  <div className="font-medium">
+                                    {session.subject} (Niveau {session.level})
+                                  </div>
+                                  <div className="text-sm text-gray-600 mb-1">{teacherName}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {stats.total} élève{stats.total > 1 ? 's' : ''}
+                                  </div>
+                                  <div className="flex justify-center gap-2 text-xs mt-1">
+                                    <span className="text-blue-700">
+                                      ♂ {stats.male} ({stats.malePercentage}%)
+                                    </span>
+                                    <span className="text-pink-700">
+                                      ♀ {stats.female} ({stats.femalePercentage}%)
+                                    </span>
+                                  </div>
                                 </div>
                               )
                             })}
