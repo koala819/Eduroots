@@ -9,7 +9,15 @@ const TEACHER_ROLE = 'teacher'
 const STUDENT_ROLE = 'student'
 
 // Routes qui ne nécessitent pas d'authentification
-const PUBLIC_ROUTES = ['/', '/link-account', '/auth/callback']
+const PUBLIC_ROUTES = [
+  '/link-account',
+  '/auth/callback',
+  '/unauthorized',
+  '/forgot-password',
+  '/write-new-password',
+  '/terms',
+  '/license',
+]
 
 const SU_ROUTES = ['/admin/root/logs']
 const ADMIN_ROUTES = ['/admin']
@@ -17,7 +25,13 @@ const TEACHER_ROUTES = ['/teacher']
 const STUDENT_ROUTES = ['/family']
 
 export async function middleware(req: NextRequest) {
-  const response = NextResponse.next()
+  // PARTIE 1: Gestion des sessions Supabase
+  let response = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  })
+
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -39,21 +53,19 @@ export async function middleware(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname
 
-  // Si c'est une route publique, on laisse passer
-  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+  // Si c'est la page d'accueil ou une route publique
+  if (pathname === '/' || PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    await supabase.auth.getSession()
     return response
   }
 
-  // Vérifier l'utilisateur de manière sécurisée
+  // PARTIE 2: Vérification de l'authentification
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser()
 
   if (error || !user) {
-    console.log(
-      'Middleware - Pas d\'utilisateur authentifié, redirection vers /',
-    )
     return NextResponse.redirect(new URL('/', req.url))
   }
 
@@ -67,50 +79,51 @@ export async function middleware(req: NextRequest) {
     )
   }
 
+  // PARTIE 3: Vérification des autorisations par rôle
+
   // Vérification des routes SuperUser (SU)
   if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== SU_ROLE) {
+      console.log('❌ SU Access denied for role:', userRole)
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
     }
+    return response
   }
 
   // Vérification des routes admin
-  else if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!ADMIN_ROLES.includes(userRole)) {
+      console.log('❌ Admin Access denied for role:', userRole)
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
     }
+    return response
   }
 
   // Vérification des routes teacher
-  else if (TEACHER_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (TEACHER_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== TEACHER_ROLE) {
+      console.log('❌ Teacher Access denied for role:', userRole)
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
     }
+    return response
   }
 
   // Vérification des routes family
-  else if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== STUDENT_ROLE) {
-      console.log('❌ Middleware - Accès refusé pour family, redirection vers unauthorized')
+      console.log('❌ Family Access denied for role:', userRole)
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
     }
+    return response
   }
-
-  // Gérer l'IP
-  const ip =
-    req.headers.get('x-forwarded-for') ||
-    req.headers.get('x-real-ip') ||
-    req.nextUrl.hostname
-  req.headers.set('x-real-ip', ip)
-
   return response
 }
 
@@ -122,7 +135,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - images (svg, png, jpg, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
