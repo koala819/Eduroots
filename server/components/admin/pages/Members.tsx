@@ -98,11 +98,11 @@ export function MembersView({
   }), [allPeople, students, teachers])
 
   const statsTotal = {
-    total: stats.total,
-    students: stats.students,
-    teachers: stats.teachers,
-    active: stats.active,
-    inactive: stats.inactive,
+    Utilisateurs: stats.total,
+    Elèves: stats.students,
+    Professeurs: stats.teachers,
+    Actifs: stats.active,
+    Inactifs: stats.inactive,
   }
 
   return (
