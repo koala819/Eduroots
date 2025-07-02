@@ -8,10 +8,10 @@ import {
 import {
   EyeIcon,
   EyeSlashIcon,
-  UserGroupIcon,
 } from '@heroicons/react/24/solid'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -167,11 +167,17 @@ export const LoginClient = () => {
           <div className="space-y-6">
             <div className="inline-flex items-center justify-center lg:justify-start">
               <div
-                className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light
+                className="w-16 h-16 bg-gradient-to-br bg-primary
                 rounded-2xl flex items-center justify-center shadow-2xl
                 transform rotate-3 hover:rotate-0 transition-all duration-500"
               >
-                <UserGroupIcon className="w-8 h-8 text-primary-foreground" />
+                <Image
+                  src="/Logo-blanc.webp"
+                  alt="Logo Eduroots"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
             </div>
 
@@ -218,7 +224,13 @@ export const LoginClient = () => {
                 rounded-xl flex items-center justify-center shadow-xl
                 transform rotate-3 hover:rotate-0 transition-all duration-500"
               >
-                <UserGroupIcon className="w-6 h-6 text-primary-foreground" />
+                <Image
+                  src="/Logo-blanc.webp"
+                  alt="Logo Eduroots"
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
               </div>
               <div className="space-y-1">
                 <h1
