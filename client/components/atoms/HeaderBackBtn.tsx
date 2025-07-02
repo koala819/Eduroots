@@ -138,7 +138,12 @@ export const HeaderBackBtn = () => {
       return '/teacher/settings'
     }
 
-    // CAS 5: Par défaut, supprimer le dernier segment
+    // CAS 5: Pages de vacances
+    if (segments.includes('holidays')) {
+      return '/admin/schedule'
+    }
+
+    // CAS 6: Par défaut, supprimer le dernier segment
     return '/' + segments.slice(0, -1).join('/')
   }
 

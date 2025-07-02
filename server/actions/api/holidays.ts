@@ -157,3 +157,79 @@ export async function saveHolidays(
     throw new Error('Erreur lors de la sauvegarde des vacances')
   }
 }
+
+export async function createHoliday({ name, start_date, end_date, type }: {
+  name: string
+  start_date: string | Date
+  end_date: string | Date
+  type: 'REGULAR' | 'SPECIAL'
+}) {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  // Calculer l'année académique actuelle
+  const currentYear = new Date().getFullYear().toString()
+  const academicYear = `${currentYear}-${parseInt(currentYear) + 1}`
+
+  const { data, error } = await supabase
+    .schema('education')
+    .from('holidays')
+    .insert([
+      {
+        name,
+        start_date: new Date(start_date),
+        end_date: new Date(end_date),
+        academic_year: academicYear,
+        is_active: true,
+        type,
+      },
+    ])
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function updateHoliday(
+  id: string,
+  { name, start_date, end_date, type }: {
+    name: string
+    start_date: string | Date
+    end_date: string | Date
+    type: 'REGULAR' | 'SPECIAL'
+  },
+) {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  const { data, error } = await supabase
+    .schema('education')
+    .from('holidays')
+    .update({
+      name,
+      start_date: new Date(start_date),
+      end_date: new Date(end_date),
+      type,
+      updated_at: new Date(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function deleteHoliday(id: string) {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  const { data, error } = await supabase
+    .schema('education')
+    .from('holidays')
+    .update({
+      is_active: false,
+      updated_at: new Date(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  return { data, error }
+}

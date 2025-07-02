@@ -23,7 +23,7 @@ const navItems = [
     href: '/admin/schedule',
     label: 'Planning',
     Icon: 'Calendar',
-    pathPattern: '^/admin/schedule$',
+    pathPattern: '^/admin/(schedule|holidays)',
   },
   {
     href: '/admin/messages/inbox',

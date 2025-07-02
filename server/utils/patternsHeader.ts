@@ -34,6 +34,13 @@ export const ROUTE_PATTERNS: Record<string, RoutePattern> = {
       name: 'Accueil',
     },
   },
+  '/admin/holidays': {
+    title: 'Vacances',
+    subtitle: 'Gestion des vacances',
+    backButton: {
+      name: 'Planning',
+    },
+  },
   '/admin/members': {
     title: 'Membres',
     subtitle: 'Gestion des membres',

@@ -1,8 +1,10 @@
 'use client'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
+import { Button } from '@/client/components/ui/button'
 import { ScheduleDay } from '@/types/schedule'
 
 export function ScheduleDayCaroussel({ planningDays }: { planningDays: ScheduleDay[] }) {
@@ -12,21 +14,25 @@ export function ScheduleDayCaroussel({ planningDays }: { planningDays: ScheduleD
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setCurrent((prev) => (prev > 0 ? prev - 1 : planningDays.length - 1))}
-          className="p-2 text-xl"
+          className="h-10 w-10 rounded-full border-border hover:bg-accent transition-colors"
           aria-label="Jour précédent"
         >
-          ←
-        </button>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
         <h2 className="text-lg font-bold">{day.dayLabel}</h2>
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setCurrent((prev) => (prev < planningDays.length - 1 ? prev + 1 : 0))}
-          className="p-2 text-xl"
+          className="h-10 w-10 rounded-full border-border hover:bg-accent transition-colors"
           aria-label="Jour suivant"
         >
-          →
-        </button>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <div className={`grid grid-cols-${day.slots.length} gap-4`}>
         {day.slots.map(({ slot, cards }) => (

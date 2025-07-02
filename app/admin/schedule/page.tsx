@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 
+import { HolidaysList } from '@/client/components/admin/atoms/HolidaysList'
 import { ScheduleDayCaroussel } from '@/client/components/admin/molecules/ScheduleDayCarousel'
-import { HolidaysList } from '@/client/components/atoms/HolidaysList'
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'

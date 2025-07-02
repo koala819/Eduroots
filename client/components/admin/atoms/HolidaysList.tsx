@@ -1,7 +1,9 @@
 'use client'
 
 import { Calendar } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
+import { Button } from '@/client/components/ui/button'
 import { Holiday } from '@/types/holidays'
 
 interface HolidaysListProps {
@@ -9,6 +11,8 @@ interface HolidaysListProps {
 }
 
 export const HolidaysList = ({ holidays }: HolidaysListProps) => {
+  const router = useRouter()
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
@@ -31,9 +35,16 @@ export const HolidaysList = ({ holidays }: HolidaysListProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Vacances</h2>
+      <div className="flex items-center gap-2 mb-4 justify-between">
+        <aside className='flex space-x-2 items-center'>
+          <Calendar className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Vacances</h2>
+        </aside>
+        <Button
+          onClick={() => router.push('/admin/holidays')}
+        >
+          Modifier
+        </Button>
       </div>
 
       <div className="space-y-3">

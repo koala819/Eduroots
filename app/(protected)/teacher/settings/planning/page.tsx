@@ -1,4 +1,4 @@
-import { HolidaysList } from '@/client/components/atoms/HolidaysList'
+import { HolidaysList } from '@/client/components/admin/atoms/HolidaysList'
 import { TeacherScheduleSection } from '@/client/components/organisms/TeacherScheduleSection'
 import { getTeacherCourses } from '@/server/actions/api/courses'
 import { getAllHolidays } from '@/server/actions/api/holidays'
