@@ -9,8 +9,6 @@ import { createClient } from '@/server/utils/supabase'
 
 
 export async function GET(request: Request) {
-  console.log('=== ROUTE GOOGLE AUTH APPELÉE ===')
-  console.log('URL complète:', request.url)
 
   const { searchParams } = new URL(request.url)
   const role = searchParams.get('role')
@@ -18,13 +16,13 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
 
-  console.log('Google Auth - Paramètres reçus:', {
-    role,
-    code: code ? 'présent' : 'absent',
-    error,
-    errorDescription,
-    allParams: Object.fromEntries(searchParams.entries()),
-  })
+  // console.log('Google Auth - Paramètres reçus:', {
+  //   role,
+  //   code: code ? 'présent' : 'absent',
+  //   error,
+  //   errorDescription,
+  //   allParams: Object.fromEntries(searchParams.entries()),
+  // })
 
   if (error) {
     console.error('Erreur Supabase:', {

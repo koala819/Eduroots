@@ -11,7 +11,7 @@ const STUDENT_ROLE = 'student'
 // Routes qui ne nécessitent pas d'authentification
 const PUBLIC_ROUTES = [
   '/link-account',
-  '/auth/callback',
+  '/auth',
   '/unauthorized',
   '/forgot-password',
   '/write-new-password',
