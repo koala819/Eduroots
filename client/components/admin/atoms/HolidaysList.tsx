@@ -4,7 +4,9 @@ import { Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/client/components/ui/button'
+import { useAuth } from '@/client/hooks/use-auth'
 import { Holiday } from '@/types/holidays'
+import { UserRoleEnum } from '@/types/user'
 
 interface HolidaysListProps {
   holidays: Holiday[]
@@ -12,6 +14,11 @@ interface HolidaysListProps {
 
 export const HolidaysList = ({ holidays }: HolidaysListProps) => {
   const router = useRouter()
+  const { session } = useAuth()
+
+  // Vérifier si l'utilisateur a les droits de modification (admin ou bureau)
+  const canModifyHolidays = session?.user?.user_metadata?.role === UserRoleEnum.Admin ||
+                            session?.user?.user_metadata?.role === UserRoleEnum.Bureau
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('fr-FR', {
@@ -40,11 +47,14 @@ export const HolidaysList = ({ holidays }: HolidaysListProps) => {
           <Calendar className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Vacances</h2>
         </aside>
-        <Button
-          onClick={() => router.push('/admin/holidays')}
-        >
-          Modifier
-        </Button>
+        {/* Bouton Modifier - visible uniquement pour admin/bureau */}
+        {canModifyHolidays && (
+          <Button
+            onClick={() => router.push('/admin/holidays')}
+          >
+            Modifier
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">

@@ -34,12 +34,13 @@ import {
 } from '@/client/components/ui/dialog'
 import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
+import { useAuth } from '@/client/hooks/use-auth'
 import { useToast } from '@/client/hooks/use-toast'
 import { deleteStudent } from '@/server/actions/api/students'
 import { cn } from '@/server/utils/helpers'
 import { StudentStats } from '@/types/stats'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
-import { GenderEnum } from '@/types/user'
+import { GenderEnum, UserRoleEnum } from '@/types/user'
 
 type TeacherStudent = TeacherWithStudentsResponse['courses'][0]['sessions'][0]['students'][0]
 
@@ -60,8 +61,13 @@ export function StudentProfileDialog({
 }: StudentProfileDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const { toast } = useToast()
+  const { session } = useAuth()
 
   const attendanceRate = 100 - (student.stats?.absencesRate || 0)
+
+  // Vérifier si l'utilisateur a les droits de suppression (admin ou bureau)
+  const canDeleteStudent = session?.user?.user_metadata?.role === UserRoleEnum.Admin ||
+                          session?.user?.user_metadata?.role === UserRoleEnum.Bureau
 
   const handleDeleteStudent = async () => {
     if (!student.id) return
@@ -360,49 +366,51 @@ export function StudentProfileDialog({
 
         <DialogFooter className="mt-8">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            {/* Bouton supprimer avec confirmation */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="w-full sm:w-auto"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {isDeleting ? 'Suppression...' : 'Supprimer'}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Êtes-vous sûr de vouloir supprimer l'étudiant{' '}
-                    <strong>{student.firstname} {student.lastname}</strong> ?
-                    <br />
-                    <br />
-                    Cette action désactivera le compte de l'étudiant mais conservera toutes
-                    ses données. Cette action peut être annulée par un administrateur.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                  >
-                    Annuler
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteStudent}
-                    className="bg-error text-error-foreground hover:bg-error/90"
+            {/* Bouton supprimer avec confirmation - visible uniquement pour admin/bureau */}
+            {canDeleteStudent && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full sm:w-auto"
                     disabled={isDeleting}
                   >
-                    {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {isDeleting ? 'Suppression...' : 'Supprimer'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Êtes-vous sûr de vouloir supprimer l'étudiant{' '}
+                      <strong>{student.firstname} {student.lastname}</strong> ?
+                      <br />
+                      <br />
+                      Cette action désactivera le compte de l'étudiant mais conservera toutes
+                      ses données. Cette action peut être annulée par un administrateur.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    >
+                      Annuler
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteStudent}
+                      className="bg-error text-error-foreground hover:bg-error/90"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
             <DialogClose asChild>
-              <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90">
+              <Button>
                 Fermer
               </Button>
             </DialogClose>
