@@ -65,6 +65,9 @@ export const LoginClient = () => {
       form.setError('role', { message: 'Veuillez sélectionner votre profil' })
       return
     }
+
+    console.log('URL de redirection:', `${process.env.NEXT_PUBLIC_CLIENT_URL}/auth/google-auth?role=${role}`)
+
     setLoading(true)
     try {
       const supabase = createClient()
