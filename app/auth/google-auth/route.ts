@@ -15,13 +15,13 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
 
-  // console.log('Google Auth - Paramètres reçus:', {
-  //   role,
-  //   code: code ? 'présent' : 'absent',
-  //   error,
-  //   errorDescription,
-  //   allParams: Object.fromEntries(searchParams.entries()),
-  // })
+  console.log('Google Auth - Paramètres reçus:', {
+    role,
+    code: code ? 'présent' : 'absent',
+    error,
+    errorDescription,
+    allParams: Object.fromEntries(searchParams.entries()),
+  })
 
   if (error) {
     console.error('Erreur Supabase:', {
