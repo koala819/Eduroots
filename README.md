@@ -2,202 +2,90 @@
 
 <br>
 
-# Eduroots
+# 🕌 Eduroots - Template Repository
 
-Eduroots is an open-source educational platform designed to facilitate course management and communication between teachers and students, specifically adapted for mosques.
+> **Template Repository** to easily create your own Eduroots instance for your mosque
 
-## Features
+## 🚀 Using the Template
 
-- Course and schedule management
-- Attendance and behavior tracking
-- Integrated messaging system
-- Responsive interface (mobile and desktop)
-- PWA (Progressive Web App) with Serwist
-- Google OAuth authentication
-- Dashboard with statistics
-- Grade and evaluation management
+### To create your Eduroots instance:
 
-## Technologies
+1. **Click "Use this template" at the top of this page**
+2. **Name your repository**: `eduroots-mosque-[name]`
+3. **Clone your new repository**
+4. **Follow the deployment guide**: [README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
 
-### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Static typing
-- **Tailwind CSS 4** - Utility-first CSS framework (latest version)
-- **Framer Motion** - Smooth animations
+## 📖 About Eduroots
 
-### Backend & Database
-- **Supabase** - Backend-as-a-Service with PostgreSQL
-- **Supabase Auth** - Authentication with Google OAuth
-- **PostgreSQL** - Relational database
+Eduroots is an educational management platform designed specifically for mosques and Islamic educational institutions. It enables:
 
-### PWA & Performance
-- **Serwist** - Service Worker for PWA
-- **@serwist/next** - Next.js integration
+- **Student Management**: Registration, profiles, courses
+- **Attendance Tracking**: Automated attendance system
+- **Behavior Assessment**: Educational notes and comments
+- **Grade Management**: Tests and report cards
+- **Family Communication**: Parent/teacher interface
+- **Dashboard**: Statistics and analytics
 
-### Development Tools
-- **Vitest** - Testing framework
-- **ESLint** - Code linting
-- **Husky** - Git hooks
-- **pnpm** - Package manager
+## 🛠 Architecture
 
-### Others
-- **React Hook Form** - Form management
-- **Zod** - Schema validation
-- **Recharts** - Charts and visualizations
-- **Cloudinary** - Image management
+- **Frontend**: Next.js 15 with TypeScript
+- **Backend**: Supabase (PostgreSQL + Auth + API)
+- **Deployment**: Docker with Traefik (automatic SSL)
+- **Authentication**: Google OAuth + internal system
 
-## Installation
+## 🏗 Deployment
 
-1. Clone the repository:
-
+### Option 1: Local Development
 ```bash
-git clone https://github.com/koala819/Eduroots.git
-cd Eduroots
-```
-
-2. Install dependencies:
-
-```bash
-pnpm install
-```
-
-3. **Configure Husky (Git hooks):**
-
-```bash
-# Install Git hooks
-pnpm run prepare
-
-# Set execution permissions for hooks
-chmod +x .husky/*
-chmod +x .husky/.gitignore
-```
-
-> **⚠️ Important:** This step is required for Git hooks (commitlint, pre-push) to work properly. Without this, commit format checks and branch protection won't be active.
-
-4. Set up environment variables:
-
-```bash
+git clone https://github.com/your-org/eduroots-mosque-name.git
+cd eduroots-mosque-name
 cp .env.example .env.local
+# Edit .env.local with your values
+docker compose up -d
 ```
 
-Required environment variables:
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+### Option 2: Production VPS
+Follow the complete guide: [README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+## 📋 Prerequisites
 
-# Others
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXT_PUBLIC_CLIENT_URL=http://localhost:3000
-```
+- **Docker** and **Docker Compose**
+- **Google OAuth** account for authentication
+- **Domain** (for production)
+- **VPS** or server (for production)
 
-5. Start the development server:
+## 📞 Support
 
-```bash
-pnpm dev
-```
+- **Documentation**: [README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
+- **Issues**: Use the Issues tab on GitHub
+- **Email**: [your-email@domain.com]
 
-## Available Scripts
+## 🔒 Security
 
-```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm test         # Run tests with Vitest
-pnpm lint         # Check code with ESLint
-pnpm lint:fix     # Auto-fix ESLint errors
-```
+- Multi-factor authentication
+- Data encryption
+- RLS (Row Level Security) policies
+- Automatic SSL/TLS
 
-## Architecture
+## 🌍 Multi-tenant
 
-### Database
-- **Supabase PostgreSQL** with multiple schemas:
-  - `education` - Main data
-  - `logs` - Connection logs and audit
+Each mosque has its own completely independent instance:
+- Separate database
+- Isolated authentication
+- Private and secure data
 
-### Authentication
-- **Supabase Auth** with Google OAuth
-- Role management (admin, teacher, student, family)
-- Route protection middleware
+## 📄 License
 
-## Tests
+This project is licensed under [MIT](./LICENSE).
 
-The project uses Vitest for testing:
+---
 
-```bash
-pnpm test                    # Run all tests
-pnpm test --coverage        # Run tests with coverage
-```
+## 🏁 Quick Start
 
-## PWA
+1. **Use this template** → Create your repository
+2. **Clone** your repository
+3. **Configure** `.env.local`
+4. **Run** `docker compose up -d`
+5. **Access** https://localhost/
 
-The application is configured as PWA with:
-- Service Worker via Serwist
-- Manifest for installation
-- Offline support
-- Push notifications
-
-## Contributing
-
-Contributions are welcome! Please check our [contribution guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE). This license ensures that any modified version of this software must also be distributed under the AGPL-3.0 license and that the source code must remain freely accessible.
-
-## Contact
-
-For any questions or suggestions, feel free to:
-
-- Open an issue on GitHub
-- Contact me on LinkedIn: [Your LinkedIn profile]
-
-## Git Hooks
-
-The project uses Husky to automate certain checks:
-
-### Commit Message Format
-Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
-
-```bash
-# ✅ Valid messages
-git commit -m "feat: add new feature"
-git commit -m "fix: fix authentication bug"
-git commit -m "docs: update documentation"
-
-# ❌ Invalid messages
-git commit -m "add stuff"    # No type
-git commit -m "feat:"        # No description
-```
-
-### Allowed Types
-- `feat` : New feature
-- `fix` : Bug fix
-- `docs` : Documentation
-- `style` : Formatting
-- `refactor` : Refactoring
-- `test` : Tests
-- `chore` : Maintenance tasks
-
-### Branch Protection
-- Direct push to `master` forbidden (use Pull Requests)
-- Automatic checks before push
-
-### Troubleshooting
-If hooks don't work:
-
-```bash
-# Reinstall Husky
-pnpm run prepare
-
-# Check permissions
-ls -la .husky/
-
-# Test a commit
-git commit --allow-empty -m "test: verify hooks"
-```
+🎉 **Your Eduroots instance is ready!**

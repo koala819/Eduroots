@@ -1,0 +1,136 @@
+services:
+  # Application Next.js
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - .env.local
+    networks:
+      - eduroots
+    depends_on:
+      - postgres
+      - auth
+      - rest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.tls=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${INSTANCE_NAME:-eduroots}.loadbalancer.server.port=3000"
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eduroots}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/supabase/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - eduroots
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Supabase Auth
+  auth:
+    image: supabase/gotrue:v2.100.0
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}?sslmode=disable
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_API_EXTERNAL_URL: http://localhost:3000
+      API_EXTERNAL_URL: http://localhost:3000
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      GOTRUE_LOG_LEVEL: debug
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: true
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${SITE_URL:-http://localhost:3000}/auth/google-auth
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/auth`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.tls=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.priority=200"
+      - "traefik.http.services.${INSTANCE_NAME:-eduroots}-auth.loadbalancer.server.port=9999"
+
+  # Supabase REST API
+  rest:
+    image: postgrest/postgrest:v12.0.1
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}
+      PGRST_DB_SCHEMAS: public,education,logs,stats,config
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DEFAULT_RLS: "1"
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/rest/v1`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.tls=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.priority=200"
+      - "traefik.http.services.${INSTANCE_NAME:-eduroots}-rest.loadbalancer.server.port=3000"
+
+  # Traefik (Reverse Proxy + SSL)
+  traefik:
+    image: traefik:v3.0
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certificates:/certificates
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - eduroots
+    command:
+      - --api.dashboard=true
+      - --api.insecure=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
+      - --certificatesresolvers.letsencrypt.acme.email=${ADMIN_EMAIL:-admin@eduroots.com}
+
+networks:
+  eduroots:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  traefik_certificates:
