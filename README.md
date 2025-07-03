@@ -61,7 +61,20 @@ cd Eduroots
 pnpm install
 ```
 
-3. Set up environment variables:
+3. **Configure Husky (Git hooks):**
+
+```bash
+# Install Git hooks
+pnpm run prepare
+
+# Set execution permissions for hooks
+chmod +x .husky/*
+chmod +x .husky/.gitignore
+```
+
+> **⚠️ Important:** This step is required for Git hooks (commitlint, pre-push) to work properly. Without this, commit format checks and branch protection won't be active.
+
+4. Set up environment variables:
 
 ```bash
 cp .env.example .env.local
@@ -83,7 +96,7 @@ NEXTAUTH_SECRET=your_nextauth_secret
 NEXT_PUBLIC_CLIENT_URL=http://localhost:3000
 ```
 
-4. Start the development server:
+5. Start the development server:
 
 ```bash
 pnpm dev
@@ -143,3 +156,48 @@ For any questions or suggestions, feel free to:
 
 - Open an issue on GitHub
 - Contact me on LinkedIn: [Your LinkedIn profile]
+
+## Git Hooks
+
+The project uses Husky to automate certain checks:
+
+### Commit Message Format
+Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```bash
+# ✅ Valid messages
+git commit -m "feat: add new feature"
+git commit -m "fix: fix authentication bug"
+git commit -m "docs: update documentation"
+
+# ❌ Invalid messages
+git commit -m "add stuff"    # No type
+git commit -m "feat:"        # No description
+```
+
+### Allowed Types
+- `feat` : New feature
+- `fix` : Bug fix
+- `docs` : Documentation
+- `style` : Formatting
+- `refactor` : Refactoring
+- `test` : Tests
+- `chore` : Maintenance tasks
+
+### Branch Protection
+- Direct push to `master` forbidden (use Pull Requests)
+- Automatic checks before push
+
+### Troubleshooting
+If hooks don't work:
+
+```bash
+# Reinstall Husky
+pnpm run prepare
+
+# Check permissions
+ls -la .husky/
+
+# Test a commit
+git commit --allow-empty -m "test: verify hooks"
+```
