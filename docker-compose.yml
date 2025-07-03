@@ -14,6 +14,7 @@ services:
       - postgres
       - auth
       - rest
+      - studio
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.rule=Host(`${DOMAIN:-localhost}`)"
@@ -86,8 +87,8 @@ services:
       PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}
       PGRST_DB_SCHEMAS: public,education,logs,stats,config
       PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: ${JWT_SECRET}
-      PGRST_DEFAULT_RLS: "1"
+      # PGRST_JWT_SECRET: ${JWT_SECRET}  # Temporairement désactivé pour Studio
+      PGRST_DEFAULT_RLS: "0"  # Désactiver RLS temporairement
     networks:
       - eduroots
     depends_on:
@@ -100,6 +101,49 @@ services:
       - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.tls.certresolver=letsencrypt"
       - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.priority=200"
       - "traefik.http.services.${INSTANCE_NAME:-eduroots}-rest.loadbalancer.server.port=3000"
+
+  # Supabase Meta - Service pour les métadonnées PostgreSQL
+  meta:
+    image: supabase/postgres-meta:v0.89.3
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: postgres
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: ${POSTGRES_DB:-eduroots}
+      PG_META_DB_USER: ${POSTGRES_USER:-postgres}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Supabase Studio (Interface Web d'administration)
+  studio:
+    image: supabase/studio:latest
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      DEFAULT_ORGANIZATION_NAME: ${INSTANCE_NAME:-eduroots}
+      DEFAULT_PROJECT_NAME: ${INSTANCE_NAME:-eduroots}
+      STUDIO_PORT: 3000
+      SUPABASE_PUBLIC_URL: https://${DOMAIN:-localhost}
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    ports:
+      - "8080:3000"
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meta:
+        condition: service_started
 
   # Traefik (Reverse Proxy + SSL)
   traefik:

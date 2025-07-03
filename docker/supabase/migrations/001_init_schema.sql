@@ -5,6 +5,35 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- Rôles Supabase nécessaires
+DO $$
+BEGIN
+    -- Rôle pour les utilisateurs non authentifiés
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        CREATE ROLE anon NOLOGIN NOINHERIT;
+    END IF;
+
+    -- Rôle pour les utilisateurs authentifiés
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        CREATE ROLE authenticated NOLOGIN NOINHERIT;
+    END IF;
+
+    -- Rôle pour les services (comme Studio)
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+        CREATE ROLE service_role NOLOGIN NOINHERIT BYPASSRLS;
+    END IF;
+
+    -- Rôle pour l'administration Supabase
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_admin') THEN
+        CREATE ROLE supabase_admin NOLOGIN NOINHERIT CREATEROLE CREATEDB REPLICATION;
+    END IF;
+END
+$$;
+
+-- Permissions pour le schéma public
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA public TO supabase_admin;
+
 -- Schéma education
 CREATE SCHEMA IF NOT EXISTS education;
 CREATE TABLE education.attendance_records (
@@ -411,3 +440,52 @@ ALTER TABLE config.themes ADD CONSTRAINT themes_config_id_fkey FOREIGN KEY (conf
 -- CREATE POLICY "Teachers_can_access_their_course_sessions" ON education.courses_sessions FOR ALL USING ((EXISTS ( SELECT 1
 --    FROM education.courses_teacher ct
 --   WHERE ((ct.course_id = courses_sessions.course_id) AND (ct.teacher_id = auth.uid())))));
+
+-- Schéma auth pour GoTrue (les tables seront créées par GoTrue)
+CREATE SCHEMA IF NOT EXISTS auth;
+
+-- Permissions pour toutes les tables
+-- Schéma education
+GRANT ALL ON ALL TABLES IN SCHEMA education TO supabase_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA education TO authenticated, service_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA education TO anon;
+
+-- Schéma stats
+GRANT ALL ON ALL TABLES IN SCHEMA stats TO supabase_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA stats TO authenticated, service_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA stats TO anon;
+
+-- Schéma logs
+GRANT ALL ON ALL TABLES IN SCHEMA logs TO supabase_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA logs TO authenticated, service_role;
+
+-- Schéma config
+GRANT ALL ON ALL TABLES IN SCHEMA config TO supabase_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA config TO authenticated, service_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA config TO anon;
+
+-- Permissions pour les séquences
+GRANT ALL ON ALL SEQUENCES IN SCHEMA education TO supabase_admin;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA education TO authenticated, service_role;
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA stats TO supabase_admin;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA stats TO authenticated, service_role;
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA logs TO supabase_admin;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA logs TO authenticated, service_role;
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA config TO supabase_admin;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA config TO authenticated, service_role;
+
+-- Permissions par défaut pour les futures tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA education GRANT ALL ON TABLES TO supabase_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA education GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA stats GRANT ALL ON TABLES TO supabase_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA stats GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA logs GRANT ALL ON TABLES TO supabase_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA logs GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA config GRANT ALL ON TABLES TO supabase_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA config GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
