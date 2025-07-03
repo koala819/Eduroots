@@ -1,4 +1,4 @@
-import {Document, Model, Types} from 'mongoose'
+import { TimeSlotEnum } from '@/types/courses'
 
 export enum PeriodTypeEnum {
   CLASS = 'CLASS',
@@ -16,15 +16,37 @@ export interface DaySchedule {
   periods: Period[]
 }
 
-// Interface de base
-export interface ScheduleConfig {
-  academicYear: string
-  daySchedules: Map<string, DaySchedule> // Changed from Record to Map
-  isActive: boolean
-  updatedBy: Types.ObjectId
-  createdAt?: Date // Ajouté car tu as timestamps: true
-  updatedAt?: Date // Ajouté car tu as timestamps: true
+// Type étendu pour les schedules avec dayType (utilisé dans les props)
+export interface DayScheduleWithType {
+  dayType: string
+  periods: Period[]
 }
 
-// Interface pour le document Mongoose
-export interface ScheduleConfigDocument extends Document, ScheduleConfig {}
+export type SessionStats = {
+  total: number
+  male: number
+  female: number
+  malePercentage: number
+  femalePercentage: number
+}
+
+export type ScheduleCard = {
+  slot: string
+  sessionId: string
+  teacherName: string
+  level: string
+  subject: string
+  stats: SessionStats
+  bgColor: string
+  teacherId?: string
+  averageAge: number
+}
+
+export type ScheduleDay = {
+  day: TimeSlotEnum
+  dayLabel: string
+  slots: {
+    slot: string
+    cards: ScheduleCard[]
+  }[]
+}

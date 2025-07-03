@@ -1,4 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.cursor/
+
+# VS Code
+.vscode/
 
 # Insert data from excel file
 migrations/studentsList.xlsx
@@ -7,6 +11,9 @@ app/admin/compare-students/données_pour_comparaison.json
 
 # Backup before migration
 backup/
+zUnused/
+db_migration/.env
+db_migration/mongo_to_supabase_ids.json
 
 # Report after migration and/or update
 reports/

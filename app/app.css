@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Couleur principale et ses variations */
+  --color-primary: hsl(212.7, 25%, 35%);
+  --color-primary-light: hsl(212.7, 25%, 45%);
+  --color-primary-dark: hsl(212.7, 25%, 25%);
+  --color-primary-accent: hsl(212.7, 35%, 40%);
+
+  /* La couleur de fond principale de l'application */
+  --color-background: hsl(210, 20%, 98%);
+  /* La couleur du texte principal */
+  --color-foreground: hsl(212.7, 25%, 15%);
+  /* La couleur du texte sur la couleur principale */
+  --color-primary-foreground: hsl(210, 20%, 98%);
+
+  /* Couleurs secondaires - teintes complémentaires */
+  /* --color-secondary: hsl(32.7, 25%, 35%);
+  --color-secondary-light: hsl(32.7, 25%, 45%);
+  --color-secondary-dark: hsl(32.7, 25%, 25%);
+  --color-secondary: hsl(14, 25%, 35%);
+  --color-secondary-light: hsl(14, 25%, 45%);
+  --color-secondary-dark: hsl(14, 25%, 25%);*/
+  --color-secondary: hsl(85, 20%, 35%);
+  --color-secondary-light: hsl(85, 20%, 45%);
+  --color-secondary-dark: hsl(85, 20%, 25%);
+  --color-secondary-foreground: hsl(210, 20%, 98%);
+
+  /* Couleurs d'accent */
+  --color-accent: hsl(180, 30%, 45%);
+  --color-accent-light: hsl(180, 35%, 55%);
+  --color-accent-dark: hsl(180, 25%, 35%);
+  --color-accent-foreground: hsl(210, 20%, 98%);
+
+  /* Couleurs neutres */
+  /* --color-muted: hsl(212.7, 15%, 92%);
+  --color-muted-foreground: hsl(212.7, 15%, 45%); */
+  --color-muted: hsl(212.7, 10%, 85%);
+  --color-muted-foreground: hsl(212.7, 10%, 40%);
+  --color-border: hsl(212.7, 15%, 85%);
+  --color-input: hsl(212.7, 15%, 92%);
+  --color-ring: hsl(212.7, 25%, 35%);
+
+  /* Couleurs de feedback */
+  --color-success: hsl(150, 40%, 40%);
+  --color-success-light: hsl(150, 45%, 50%);
+  --color-success-dark: hsl(150, 35%, 30%);
+
+  --color-warning: hsl(32.7, 25%, 35%);
+  --color-warning-light: hsl(32.7, 25%, 45%);
+  --color-warning-dark: hsl(32.7, 25%, 25%);
+  --color-warning-foreground: hsl(210, 20%, 98%);
+
+  /* --color-error: hsl(0, 25%, 35%);
+  --color-error-light: hsl(0, 25%, 45%);
+  --color-error-dark: hsl(0, 25%, 25%); */
+  --color-error: hsl(0, 70%, 45%);
+  --color-error-light: hsl(0, 80%, 55%);
+  --color-error-dark: hsl(0, 60%, 35%);
+  --color-error-foreground: hsl(210, 20%, 98%);
+
+  --color-info: hsl(200, 40%, 55%);
+  --color-info-light: hsl(200, 45%, 65%);
+  --color-info-dark: hsl(200, 40%, 45%);
+  --color-info-foreground: hsl(210, 20%, 98%);
+
+
+  /* Couleurs supplémentaires pour plus de variété */
+  --color-purple: hsl(280, 25%, 35%);
+  --color-purple-light: hsl(280, 25%, 45%);
+  --color-purple-dark: hsl(280, 25%, 25%);
+  --color-purple-foreground: hsl(210, 20%, 98%);
+
+  --color-teal: hsl(180, 25%, 35%);
+  --color-teal-light: hsl(180, 25%, 45%);
+  --color-teal-dark: hsl(180, 25%, 25%);
+  --color-teal-foreground: hsl(210, 20%, 98%);
+
+  --color-pink: hsl(330.9091, 78%, 59%);
+  --color-pink-light: hsl(330.9091, 78%, 69%);
+  --color-pink-dark: hsl(330.9091, 78%, 49%);
+  --color-pink-foreground: hsl(210, 20%, 98%);
+
+  --color-star: hsl(42.333336, 94%, 62%);
+
+  /* Layout */
+  --radius: 0.5rem;
+  --header-height: 64px;
+  --header-height-scrolled: 65px;
+  --container-padding: 2rem;
+  --spacing-unit: 0.25rem;
+}
+
+/* Layout de base */
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    line-height: 1.6;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  header {
+    position: fixed;
+    width: 100%;
+    z-index: 50;
+    height: var(--header-height);
+    transition: all 0.3s ease;
+    background-color: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  header.scrolled {
+    height: var(--header-height-scrolled);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .content {
+    margin-top: var(--header-height);
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--container-padding);
+  }
+}
+
+/* Composants */
+@layer components {
+  .card {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: calc(var(--spacing-unit) * 4);
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .button {
+    padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .button-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+
+  .button-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  .button-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-foreground);
+  }
+
+  .button-secondary:hover {
+    background-color: var(--color-secondary-dark);
+  }
+
+  .input {
+    background-color: var(--color-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: calc(var(--spacing-unit) * 2);
+    transition: all 0.2s ease;
+  }
+
+  .input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-ring);
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

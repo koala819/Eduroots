@@ -1,11 +1,20 @@
 'use client'
 
-import React, { ChangeEvent, useState } from 'react'
 import ExcelJS from 'exceljs'
-import { ProcessedData as ProcessedDataType, CourseSessionDataType, ExcelRow as ExcelRowType, formatCoursesFromExcel, processExcelData, formatStudentsFromExcelWithWarnings, formatTeachersFromExcelWithWarnings } from '@/lib/import'
-import { fetchWithAuth } from '@/lib/fetchWithAuth'
-import type { Student, Teacher } from '@/types/user'
-import { SubjectNameEnum, TimeSlotEnum, LevelEnum } from '@/types/course'
+import React, { ChangeEvent, useState } from 'react'
+
+import { createClient } from '@/client/utils/supabase'
+import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
+import { User } from '@/types/db'
+import {
+  CourseSessionDataType,
+  ExcelRow as ExcelRowType,
+  formatCoursesFromExcel,
+  formatStudentsFromExcelWithWarnings,
+  formatTeachersFromExcelWithWarnings,
+  ProcessedData as ProcessedDataType,
+  processExcelData,
+} from '@/types/import'
 
 const ACADEMIC_YEAR = '2024'
 
@@ -21,16 +30,21 @@ const ExcelConverter: React.FC = () => {
   const [result, setResult] = useState<ResultData | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [teacherStepMessage, setTeacherStepMessage] = useState<string>('')
-  const [teachersFormatted, setTeachersFormatted] = useState<Teacher[] | null>(null)
+  const [teachersFormatted, setTeachersFormatted] = useState<User[] | null>(null)
   const [coursesFormatted, setCoursesFormatted] = useState<CourseSessionDataType[] | null>(null)
   const [courseStepMessage, setCourseStepMessage] = useState<string | null>(null)
   const [teacherWarnings, setTeacherWarnings] = useState<string[]>([])
-  const [studentsFormatted, setStudentsFormatted] = useState<Student[] | null>(null)
+  const [studentsFormatted, setStudentsFormatted] = useState<User[] | null>(null)
   const [studentStepMessage, setStudentStepMessage] = useState<string | null>(null)
   const [studentWarningsRed, setStudentWarningsRed] = useState<string[]>([])
   const [studentWarningsYellow, setStudentWarningsYellow] = useState<string[]>([])
   const [isImporting, setIsImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{ success: boolean, message: string, logs?: string[], error?: string } | null>(null)
+  const [importResult, setImportResult] = useState<{
+    success: boolean
+    message: string
+    logs?: string[]
+    error?: string
+  } | null>(null)
   const [courseWarnings, setCourseWarnings] = useState<string[]>([])
   const [mergedTeachers, setMergedTeachers] = useState<Array<{
     originalId: string
@@ -45,6 +59,8 @@ const ExcelConverter: React.FC = () => {
     dayOfWeek: TimeSlotEnum
     level: LevelEnum
   }>>([])
+
+  const supabase = createClient()
 
   async function processExcelFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -67,7 +83,8 @@ const ExcelConverter: React.FC = () => {
 
         const rowData: ExcelRowType = {}
         row.eachCell((cell, colNumber) => {
-          const columnLetter = String.fromCharCode(64 + colNumber) // Convertir le numéro de colonne en lettre (A, B, C, etc.)
+          // Convertir le numéro de colonne en lettre (A, B, C, etc.)
+          const columnLetter = String.fromCharCode(64 + colNumber)
           rowData[columnLetter] = cell.value
         })
         jsonData.push(rowData)
@@ -76,7 +93,7 @@ const ExcelConverter: React.FC = () => {
       // console.log('Données brutes Excel:', jsonData)
 
       // Étape 1 : formatage des enseignants
-      let teachers: Teacher[] = []
+      let teachers: User[] = []
       let warnings: string[] = []
       let mergedTeachersLocal: Array<{
         originalId: string
@@ -93,10 +110,11 @@ const ExcelConverter: React.FC = () => {
         setTeacherWarnings(warnings)
         setMergedTeachers(mergedTeachersLocal)
         setTeacherStepMessage(
-          `Étape 1 : Intégration des enseignants avec succès (${teachers.length} enseignants formatés).`
+          `Étape 1 : Intégration des enseignants avec succès (${teachers.length}
+           enseignants formatés).`,
         )
       } catch (err: any) {
-        setTeacherStepMessage("Erreur lors de l'intégration des enseignants : " + err.message)
+        setTeacherStepMessage('Erreur lors de l\'intégration des enseignants : ' + err.message)
         setTeachersFormatted(null)
         setTeacherWarnings([])
       }
@@ -110,29 +128,33 @@ const ExcelConverter: React.FC = () => {
         courseWarningsLocal = result.warnings || []
         setCoursesFormatted(courses)
         setCourseWarnings(courseWarningsLocal)
-        setCourseStepMessage(`Étape 2 : Intégration des cours avec succès (${courses.length} cours formatés).`)
+        setCourseStepMessage(
+          `Étape 2 : Intégration des cours avec succès (${courses.length} cours formatés).`,
+        )
       } catch (err: any) {
-        setCourseStepMessage("Erreur lors de l'intégration des cours : " + err.message)
+        setCourseStepMessage('Erreur lors de l\'intégration des cours : ' + err.message)
         setCoursesFormatted(null)
         setCourseWarnings([])
       }
 
       // Étape 3 : formatage des étudiants
-      let students: Student[] = []
+      let students: User[] = []
       let warningsRed: string[] = []
       let warningsYellow: string[] = []
       try {
         const result = formatStudentsFromExcelWithWarnings(jsonData)
-        students = result.students as Student[]
+        students = result.students
         warningsRed = result.missingTeacherIdWarnings
         warningsYellow = result.missingContactWarnings
-        setStudentsFormatted(students as Student[])
+        setStudentsFormatted(students)
         setStudentWarningsRed(warningsRed)
         setStudentWarningsYellow(warningsYellow)
         setStudentCourses(result.studentCourses)
-        setStudentStepMessage(`Étape 3 : Intégration des étudiants avec succès (${students.length} étudiants formatés)`)
+        setStudentStepMessage(
+          `Étape 3 : Intégration des étudiants avec succès (${students.length} étudiants formatés)`,
+        )
       } catch (err: any) {
-        setStudentStepMessage("Erreur lors de l'intégration des étudiants : " + err.message)
+        setStudentStepMessage('Erreur lors de l\'intégration des étudiants : ' + err.message)
         setStudentsFormatted(null)
         setStudentWarningsRed([])
         setStudentWarningsYellow([])
@@ -166,19 +188,30 @@ const ExcelConverter: React.FC = () => {
     setImportResult(null)
     console.log('mergedTeachers', mergedTeachers)
     try {
-      const response = await fetchWithAuth('/api/newDb', {
-        method: 'POST',
-        body: {
+      const { data, error } = await supabase
+        .from('newDb')
+        .insert({
           teachers: teachersFormatted,
           courses: coursesFormatted,
           students: studentsFormatted,
           mergedTeachers: mergedTeachers,
-          year: ACADEMIC_YEAR
-        }
+          year: ACADEMIC_YEAR,
+        })
+        .select()
+
+      if (error) throw error
+
+      setImportResult({
+        success: true,
+        message: 'Import réussi',
+        logs: data as unknown as string[],
       })
-      setImportResult(response)
     } catch (err: any) {
-      setImportResult({ success: false, message: 'Erreur inconnue', error: err?.message })
+      setImportResult({
+        success: false,
+        message: 'Erreur lors de l\'import',
+        error: err?.message,
+      })
     }
     setIsImporting(false)
   }
@@ -190,7 +223,9 @@ const ExcelConverter: React.FC = () => {
       </h1>
 
       <div className="mb-4 space-y-2">
-        <label className="block text-gray-700 mb-2">Sélectionnez votre fichier Excel:</label>
+        <label className="block text-gray-700 mb-2">
+          Sélectionnez votre fichier Excel:
+        </label>
         <input
           type="file"
           accept=".xlsx,.xls"
@@ -242,7 +277,9 @@ const ExcelConverter: React.FC = () => {
       )}
 
       {teacherStepMessage && (
-        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{teacherStepMessage}</div>
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">
+          {teacherStepMessage}
+        </div>
       )}
 
       {teacherWarnings.length > 0 && (
@@ -278,11 +315,8 @@ const ExcelConverter: React.FC = () => {
       )}
 
       {courseStepMessage && (
-        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{courseStepMessage}</div>
-      )}
-      {courseStepMessage && coursesFormatted && coursesFormatted.length > 0 && (
-        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
-          <pre className="text-sm">{JSON.stringify(coursesFormatted, null, 2)}</pre>
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">
+          {courseStepMessage}
         </div>
       )}
 
@@ -330,17 +364,17 @@ const ExcelConverter: React.FC = () => {
       )}
 
       {studentStepMessage && (
-        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">{studentStepMessage}</div>
-      )}
-      {studentStepMessage && studentsFormatted && studentsFormatted.length > 0 && (
-        <div className="overflow-auto max-h-96 p-4 bg-gray-50 rounded border mt-2">
-          <pre className="text-sm">{JSON.stringify(studentsFormatted, null, 2)}</pre>
+        <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-md">
+          {studentStepMessage}
         </div>
       )}
 
       {studentWarningsRed.length > 0 && (
         <div className="mt-2 p-4 bg-red-50 text-red-800 rounded-md border border-red-300">
-          <b>Attention : Les étudiants suivants n&apos;ont pas d&apos;ID Professeur (ligne ignorée à l&apos;import) :</b>
+          <b>
+            Attention : Les étudiants suivants n&apos;ont pas d&apos;ID Professeur (ligne ignorée à
+            l&apos;import) :
+          </b>
           <ul className="list-disc ml-6 mt-1">
             {studentWarningsRed.map((w, i) => (
               <li key={i}>{w}</li>
@@ -397,7 +431,8 @@ const ExcelConverter: React.FC = () => {
       {studentsFormatted && studentsFormatted.length > 0 && (
         <div className="mt-6 flex flex-col items-center">
           <button
-            className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700
+                     disabled:opacity-50"
             onClick={launchDatabaseImport}
             disabled={isImporting}
           >
@@ -407,11 +442,19 @@ const ExcelConverter: React.FC = () => {
             <div className="mt-2 text-blue-600">Veuillez patienter, import en cours...</div>
           )}
           {importResult && (
-            <div className={`mt-4 p-4 rounded-md ${importResult.success ? 'bg-green-50 text-green-700 border border-green-300' : 'bg-red-50 text-red-700 border border-red-300'}`}>
+            <div
+              className={`mt-4 p-4 rounded-md ${
+                importResult.success
+                  ? 'bg-green-50 text-green-700 border border-green-300'
+                  : 'bg-red-50 text-red-700 border border-red-300'
+              }`}
+            >
               <b>{importResult.success ? 'Import réussi !' : 'Erreur lors de l\'import'}</b>
               <div className="mt-2">{importResult.message}</div>
               {importResult.logs && (
-                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">{importResult.logs.join('\n')}</pre>
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
+                  {importResult.logs.join('\n')}
+                </pre>
               )}
               {importResult.error && (
                 <pre className="mt-2 text-xs bg-red-100 p-2 rounded">{importResult.error}</pre>

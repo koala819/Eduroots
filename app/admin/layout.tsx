@@ -1,13 +1,49 @@
-import type {Metadata, Viewport} from 'next'
+import type { Metadata, Viewport } from 'next'
 
-import AdminLayout from '@/components/admin/templates/AdminLayout'
-import GlobalServerProvider from '@/components/providers/server/GlobalServerProvider'
+import LoadingRoute from '@/client/components/atoms/LoadingRoute'
+import { MenuHeader } from '@/client/components/organisms/HeaderMenu'
+import { CustomLayout } from '@/client/components/pages/CustomLayout'
+import GlobalServerProvider from '@/server/components/providers/GlobalServerProvider'
+import { createClient } from '@/server/utils/supabase'
+
+const navItems = [
+  {
+    href: '/admin',
+    label: 'Accueil',
+    Icon: 'Home',
+    pathPattern: '^/admin$',
+  },
+  {
+    href: '/admin/members',
+    label: 'Membres',
+    Icon: 'Users',
+    pathPattern: '^/admin/members',
+  },
+  {
+    href: '/admin/schedule',
+    label: 'Planning',
+    Icon: 'Calendar',
+    pathPattern: '^/admin/(schedule|holidays)',
+  },
+  {
+    href: '/admin/messages/inbox',
+    label: 'Messages',
+    Icon: 'MessageSquare',
+    pathPattern: '^/admin/messages/inbox$',
+  },
+  {
+    href: '/admin/settings',
+    label: 'Paramètres',
+    Icon: 'Settings',
+    pathPattern: '^/admin/settings$',
+  },
+]
 
 const currentYear = new Date().getFullYear()
 
 export const metadata: Metadata = {
   title: `Administration des cours ${currentYear}`,
-  description: "Plateforme d'administration des cours pour l'école coranique",
+  description: 'Plateforme d\'administration des cours pour l\'école coranique',
 }
 
 export const viewport: Viewport = {
@@ -16,10 +52,34 @@ export const viewport: Viewport = {
   themeColor: 'white',
 }
 
-export default function Layout({children}: {children: React.ReactNode}) {
+export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isAdmin = user?.user_metadata?.role === 'admin'
+
+  // Filtrer les navItems selon le rôle admin
+  const filteredNavItems = navItems.filter((item) => {
+    // Si c'est l'élément "Paramètres", ne l'afficher que pour les admins
+    if (item.href === '/admin/settings') {
+      return isAdmin
+    }
+    // Afficher tous les autres éléments
+    return true
+  })
+
   return (
     <GlobalServerProvider>
-      <AdminLayout>{children}</AdminLayout>
+      <CustomLayout navItems={filteredNavItems} isAdmin={isAdmin}>
+        <MenuHeader
+          selectedSession={undefined}
+          courses={[]}
+          grades={[]}
+          familyStudents={[]}
+          isAdmin={isAdmin}
+        />
+        <LoadingRoute />
+        {children}
+      </CustomLayout>
     </GlobalServerProvider>
   )
 }

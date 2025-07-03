@@ -1,80 +1,45 @@
-import {Course} from './course'
-import {RootEntity} from './root'
-import {Student} from './user'
+import { Attendance, AttendanceRecord } from '@/types/db'
 
+// À ajouter si tu veux tout dans ce fichier :
 export interface AttendanceStats {
-  presenceRate: number
   totalStudents: number
-  lastUpdate: Date
-}
-
-export interface AttendanceRecord extends RootEntity {
-  id: string
-  student: string | Student // peut être l'ID ou l'objet Student complet
-  isPresent: boolean
-  comment?: string
-}
-
-export interface Attendance extends RootEntity {
-  course: string | Course // peut être l'ID ou l'objet Course complet
-  date: Date | string
-  records: AttendanceRecord[]
-  stats?: AttendanceStats
-}
-
-// Type pour les données peuplées depuis MongoDB
-export interface PopulatedAttendance extends Omit<Attendance, 'records' | 'course'> {
-  course: Course
-  records: (Omit<AttendanceRecord, 'student'> & {
-    student: Student
-  })[]
-}
-
-// Type pour les doublons d'attendance
-export interface DuplicateAttendanceRecord {
-  _id: string
-  course: string
-  date: string
-  teacher: string
-  session: string
-  weekPeriod: string
-}
-
-export interface DuplicateRecords {
-  teacher: string
-  session: string
-  weekPeriod: string
-  attendances: {_id: string}[]
-}
-
-export interface AbsenceLevelGroup {
-  id: string
-  absences: number
-  color: string
+  presentCount: number
+  absentCount: number
+  presenceRate: number
+  absenceRate: number
+  byDate?: {
+    [date: string]: {
+      present: number
+      absent: number
+      rate: number
+    }
+  }
 }
 
 export interface GroupedAbsences {
-  [color: string]: AbsenceLevelGroup[]
+  critical: string[] // étudiants avec > 30% d'absences
+  warning: string[] // étudiants avec > 20% d'absences
+  normal: string[] // étudiants avec < 20% d'absences
 }
 
-export type OmitRootFields = 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'deletedAt'
-
-export interface CreateAttendancePayload {
+export interface DuplicateRecords {
+  date: string
   courseId: string
-  sessionId: string
-  date: Date | string
-  records: {
-    student: string
-    isPresent: boolean
-    comment?: string
-  }[]
+  records: AttendanceRecord[]
 }
-export interface UpdateAttendancePayload {
-  attendanceId: string
-  date: Date | string
-  records: {
-    student: string
-    isPresent: boolean
-    comment?: string
-  }[]
+
+// L'état du contexte
+export interface AttendanceState {
+  attendanceRecords: AttendanceRecord[]
+  duplicateAttendanceEntries: DuplicateRecords[]
+  error: string | null
+  isLoading: boolean
+  isLoadingAttendance: boolean
+  registeredStudentIds: string[]
+  studentsByAbsenceLevel: GroupedAbsences
+  stats: AttendanceStats | null
+  deletedRecords: AttendanceRecord[]
+  allAttendance: Attendance[] | null
+  checkOneAttendance: Attendance | null
+  todayAttendance: Attendance | null
 }

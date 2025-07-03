@@ -1,122 +1,142 @@
-import {getToken} from 'next-auth/jwt'
-import type {NextRequest} from 'next/server'
-import {NextResponse} from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const SU_ROLE = 'admin'
 const ADMIN_ROLES = ['admin', 'bureau']
 const TEACHER_ROLE = 'teacher'
 const STUDENT_ROLE = 'student'
 
-const SU_ROUTES = ['/admin/root/logs']
-const ADMIN_ROUTES = ['/admin', '/admin/register', '/admin/student', '/admin/teacher']
-const TEACHER_ROUTES = ['/teacher', '/teacher/attendance']
-const STUDENT_ROUTES = ['/student']
+// Routes qui ne nécessitent pas d'authentification
+const PUBLIC_ROUTES = [
+  '/link-account',
+  '/auth/callback',
+  '/unauthorized',
+  '/forgot-password',
+  '/write-new-password',
+  '/terms',
+  '/license',
+]
 
-// Définir des routes de messages spécifiques à chaque rôle
-const ADMIN_MESSAGE_ROUTES = [
-  '/admin/messages',
-  '/admin/messages/inbox',
-  '/admin/messages/sent',
-  '/admin/messages/write',
-]
-const TEACHER_MESSAGE_ROUTES = [
-  '/teacher/messages',
-  '/teacher/messages/inbox',
-  '/teacher/messages/sent',
-  '/teacher/messages/write',
-]
-const STUDENT_MESSAGE_ROUTES = [
-  '/student/messages',
-  '/student/messages/inbox',
-  '/student/messages/sent',
-  '/student/messages/write',
-]
+const SU_ROUTES = ['/admin/root/logs']
+const ADMIN_ROUTES = ['/admin']
+const TEACHER_ROUTES = ['/teacher']
+const STUDENT_ROUTES = ['/family']
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
-  if (!token) {
+  // PARTIE 1: Gestion des sessions Supabase
+  let response = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  })
+
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    },
+  )
+
+  const pathname = req.nextUrl.pathname
+
+  // Si c'est la page d'accueil ou une route publique
+  if (pathname === '/' || PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    await supabase.auth.getSession()
+    return response
+  }
+
+  // PARTIE 2: Vérification de l'authentification
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
     return NextResponse.redirect(new URL('/', req.url))
   }
 
-  const userRole = (token.user as {role?: string})?.role ?? ''
-  const pathname = req.nextUrl.pathname
+  // Récupérer le rôle depuis les métadonnées utilisateur
+  const userRole = user.user_metadata?.role
 
-  // Redirection pour les routes racines de messages selon le rôle
-  if (pathname === '/messages') {
-    // Rediriger vers la boîte de réception appropriée selon le rôle
-    if (ADMIN_ROLES.includes(userRole)) {
-      return NextResponse.redirect(new URL('/admin/messages/inbox', req.url))
-    } else if (userRole === TEACHER_ROLE) {
-      return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
-    } else if (userRole === STUDENT_ROLE) {
-      return NextResponse.redirect(new URL('/student/messages/inbox', req.url))
-    } else {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
-    }
+  if (!userRole) {
+    console.log('❌ Middleware - Pas de rôle dans les métadonnées')
+    return NextResponse.redirect(
+      new URL('/unauthorized?error=AccessDenied', req.url),
+    )
   }
 
-  // Redirections pour les pages de messages racines de chaque rôle
-  if (pathname === '/admin/messages') {
-    return NextResponse.redirect(new URL('/admin/messages/inbox', req.url))
-  }
-  if (pathname === '/teacher/messages') {
-    return NextResponse.redirect(new URL('/teacher/messages/inbox', req.url))
-  }
-  if (pathname === '/student/messages') {
-    return NextResponse.redirect(new URL('/student/messages/inbox', req.url))
-  }
+  // PARTIE 3: Vérification des autorisations par rôle
 
   // Vérification des routes SuperUser (SU)
   if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== SU_ROLE) {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
+      console.log('❌ SU Access denied for role:', userRole)
+      return NextResponse.redirect(
+        new URL('/unauthorized?error=AccessDenied', req.url),
+      )
     }
+    return response
   }
 
   // Vérification des routes admin
-  else if (
-    ADMIN_ROUTES.some((route) => pathname.startsWith(route)) ||
-    ADMIN_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
-  ) {
+  if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!ADMIN_ROLES.includes(userRole)) {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
+      console.log('❌ Admin Access denied for role:', userRole)
+      return NextResponse.redirect(
+        new URL('/unauthorized?error=AccessDenied', req.url),
+      )
     }
+    return response
   }
 
   // Vérification des routes teacher
-  else if (
-    TEACHER_ROUTES.some((route) => pathname.startsWith(route)) ||
-    TEACHER_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
-  ) {
+  if (TEACHER_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== TEACHER_ROLE) {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
+      console.log('❌ Teacher Access denied for role:', userRole)
+      return NextResponse.redirect(
+        new URL('/unauthorized?error=AccessDenied', req.url),
+      )
     }
+    return response
   }
 
-  // Vérification des routes student
-  else if (
-    STUDENT_ROUTES.some((route) => pathname.startsWith(route)) ||
-    STUDENT_MESSAGE_ROUTES.some((route) => pathname.startsWith(route))
-  ) {
+  // Vérification des routes family
+  if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
     if (userRole !== STUDENT_ROLE) {
-      return NextResponse.redirect(new URL('/unauthorized?error=AccessDenied', req.url))
+      console.log('❌ Family Access denied for role:', userRole)
+      return NextResponse.redirect(
+        new URL('/unauthorized?error=AccessDenied', req.url),
+      )
     }
+    return response
   }
-
-  // Pour obtenir l'adresse IP et les autres informations requises
-  const ip =
-    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.nextUrl.hostname
-  req.headers.set('x-real-ip', ip)
-
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/teacher/:path*',
-    '/student/:path*',
-    '/messages/:path*',
-    '/admin/logs',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     * - images (svg, png, jpg, etc.)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
