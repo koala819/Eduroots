@@ -45,10 +45,10 @@ Eduroots is an educational management platform designed specifically for mosques
 
 2. **Configure environment variables**
    ```bash
-   cp .env.example .env.local
+   cp .env.example .env
    ```
 
-3. **Edit `.env.local`** with your values:
+3. **Edit `.env`** with your values:
    ```env
    # Database
    POSTGRES_DB=eduroots
@@ -174,7 +174,7 @@ docker compose restart
 ### Missing environment variables
 
 If you see warnings like `variable is not set`:
-1. Check that `.env.local` exists
+1. Check that `.env` exists
 2. Verify all required variables are defined
 3. Restart: `docker compose down && docker compose up -d`
 
@@ -224,7 +224,7 @@ This project is licensed under [MIT](./LICENSE).
 
 1. **Use this template** → Create your repository
 2. **Clone** your repository: `git clone https://github.com/your-org/eduroots-mosque-name.git`
-3. **Configure** `.env.local` with your values
+3. **Configure** `.env` with your values
 4. **Run** `docker compose up -d`
 5. **Wait 2-3 minutes** for all services to start
 
@@ -232,7 +232,7 @@ This project is licensed under [MIT](./LICENSE).
 
 Once deployment is complete:
 
-- **🏠 Main Application**: `https://localhost/`
+- **🏠 Main Application**: `http://localhost/`
 - **🗄️ Database Admin**: `http://localhost:8080`
 - **🔐 Auth API**: `https://localhost/auth/`
 - **📊 REST API**: `https://localhost/rest/v1/`
