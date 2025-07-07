@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 
-import { useToast } from '@/hooks/use-toast'
-
-import { Button } from '@/components/ui/button'
-
-import { calculateStats } from '@/app/actions/stats/calculate'
-import { useStats } from '@/context/Stats/client'
+import { Button } from '@/client/components/ui/button'
+import { useStats } from '@/client/context/stats'
+import { useToast } from '@/client/hooks/use-toast'
+import { calculateStats } from '@/server/utils/stats/calculate'
 
 export default function StatsPage() {
   const [isCalculating, setIsCalculating] = useState(false)
@@ -34,7 +32,7 @@ export default function StatsPage() {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error.message || 'Erreur lors du calcul des statistiques',
+        description: error.message ?? 'Erreur lors du calcul des statistiques',
       })
     } finally {
       setIsCalculating(false)

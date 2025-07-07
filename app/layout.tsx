@@ -15,19 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import './app.css'
 
 import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
+import { ToastContainer } from 'react-toastify'
 
-import RootProvider from '@/components/utils/RootProvider'
-
-import { ClearServiceWorkerCache } from '@/components/atoms/client/ClearServiceWorkerCache'
-import { Toaster } from '@/components/ui/toaster'
-
-import { cn } from '@/lib/utils'
-import '@/styles/globals.css'
+import { ClearServiceWorkerCache } from '@/client/components/atoms/ClearServiceWorkerCache'
+import { SuppressReact19Warning } from '@/client/components/atoms/SuppressReact19Warning'
+import { Toaster } from '@/client/components/ui/toaster'
+import { cn } from '@/server/utils/helpers'
 
 export const dynamic = 'force-dynamic'
 const fontSans = FontSans({
@@ -126,9 +124,9 @@ export const viewport: Viewport = {
 
 export default async function DashboardLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="fr" dir="ltr" suppressHydrationWarning>
       <head>
@@ -139,48 +137,56 @@ export default async function DashboardLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"
+          media="(device-width: 320px) and (device-height: 568px)
+          and (-webkit-device-pixel-ratio: 2)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+          media="(device-width: 375px) and (device-height: 667px)
+          and (-webkit-device-pixel-ratio: 2)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)"
+          media="(device-width: 414px) and (device-height: 736px)
+          and (-webkit-device-pixel-ratio: 3)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+          media="(device-width: 375px) and (device-height: 812px)
+          and (-webkit-device-pixel-ratio: 3)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+          media="(device-width: 414px) and (device-height: 896px)
+          and (-webkit-device-pixel-ratio: 3)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+          media="(device-width: 390px) and (device-height: 844px)
+          and (-webkit-device-pixel-ratio: 3)"
           href="/splash.png"
         />
         <link
           rel="apple-touch-startup-image"
-          media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)"
+          media="(device-width: 428px) and (device-height: 926px)
+          and (-webkit-device-pixel-ratio: 3)"
           href="/splash.png"
         />
       </head>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'min-h-screen font-sans antialiased layout',
           fontSans.variable,
         )}
       >
         <ClearServiceWorkerCache />
-        <RootProvider>{children}</RootProvider>
+        <SuppressReact19Warning />
+        {children}
 
         <Toaster />
         <ToastContainer />

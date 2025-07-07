@@ -1,17 +1,12 @@
-import {Types} from 'mongoose'
-
 export interface Holiday {
+  id: string
+  updated_by: string | null
+  created_at: Date
+  updated_at: Date
+  start_date: Date
+  end_date: Date
+  is_active: boolean
+  academic_year: string
   name: string
-  start: Date
-  end: Date
   type: 'REGULAR' | 'SPECIAL'
-}
-
-export interface HolidayScheduleDocument extends Document {
-  academicYear: string
-  holidays: Holiday[]
-  isActive: boolean
-  updatedBy: Types.ObjectId
-  createdAt: Date
-  updatedAt: Date
 }

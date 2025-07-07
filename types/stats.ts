@@ -1,15 +1,16 @@
-import {SubjectNameEnum} from '@/types/course'
-import {GenderEnum} from '@/types/user'
+import { SubjectNameEnum } from '@/types/courses'
+import { StudentResponse } from '@/types/student-payload'
+import { GenderEnum } from '@/types/user'
 
-export interface AbsenceLevelGroup {
-  id: string
-  absences: number
-  color: string
-}
+// export interface AbsenceLevelGroup {
+//   id: string
+//   absences: number
+//   color: string
+// }
 
-export interface GroupedAbsences {
-  [color: string]: AbsenceLevelGroup[]
-}
+// export interface GroupedAbsences {
+//   [color: string]: AbsenceLevelGroup[]
+// }
 
 export interface CourseStats {
   [SubjectNameEnum.Arabe]?: {
@@ -30,12 +31,12 @@ export interface CourseStats {
   }
 }
 
-// Représentation d'une date soit comme un objet Date natif, soit comme une date sérialisée
-export type SerializableDate =
-  | Date
-  | {$date: string}
-  | string // Pour les dates sous forme de chaîne ISO
-  | number // Pour les timestamps Unix
+// // Représentation d'une date soit comme un objet Date natif, soit comme une date sérialisée
+// export type SerializableDate =
+//   | Date
+//   | {$date: string}
+//   | string // Pour les dates sous forme de chaîne ISO
+//   | number // Pour les timestamps Unix
 
 export interface StudentStats {
   userId: string
@@ -43,13 +44,14 @@ export interface StudentStats {
   absencesCount: number
   behaviorAverage: number
   absences: {
-    date: SerializableDate
+    id: string
+    date: Date
     course: string
     reason?: string
   }[]
   grades: CourseStats
-  lastActivity: SerializableDate | null
-  lastUpdate?: SerializableDate
+  lastActivity: Date | null
+  lastUpdate?: Date
 }
 
 // Types pour les statistiques des professeurs
@@ -89,8 +91,17 @@ export function isTeacherStats(stats: EntityStats): stats is TeacherStats {
 export interface GlobalStats {
   totalStudents: number
   totalTeachers: number
-  lastUpdate: SerializableDate
+  lastUpdate: Date
   presenceRate: number
 }
 
-export type EntityType = 'students' | 'teachers'
+// export type EntityType = 'students' | 'teachers'
+
+// Type pour les étudiants à risque d'absence
+export interface HighRiskStudentData {
+  student: StudentResponse
+  stats: StudentStats
+  riskLevel: 'low' | 'medium' | 'high'
+  lastAbsenceDate: Date | null
+  daysSinceLastAbsence: number
+}
