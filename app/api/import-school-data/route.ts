@@ -7,17 +7,21 @@ import { GenderEnum,UserRoleEnum } from '@/types/user'
 
 // Fonction utilitaire pour échapper les logs de manière sécurisée
 function sanitizeForLog(value: string | number): string {
-  return String(value)
-    .replace(/[\n\r\t]/g, ' ') // Remplacer les caractères de contrôle
+  const sanitizedValue = String(value)
+    .replace(/[\n\r]/g, ' ') // Supprimer les sauts de ligne
     .replace(/[^\x20-\x7E]/g, '') // Garder seulement les caractères ASCII imprimables
+    .replace(/["'`]/g, '') // Supprimer les caractères de citation pour éviter l'injection
+    .replace(/\\/g, '\\\\') // Échapper les barres obliques inverses
     .substring(0, 100) // Limiter la longueur
+  // Mettre entre guillemets pour le marquer comme contrôlé par l'utilisateur
+  return `"${sanitizedValue}"`
 }
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
   const validatedId = String(id).trim()
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
-    console.warn(`ID invalide ignoré: [${sanitizeForLog(validatedId)}]`)
+    console.warn(`ID invalide ignoré: ${sanitizeForLog(validatedId)}`)
     return null
   }
   return validatedId
@@ -97,7 +101,7 @@ export async function POST(req: NextRequest) {
         if (s.teacherId) {
           const validatedTeacherId = validateId(s.teacherId)
           if (!validatedTeacherId) {
-            console.warn(`ID de professeur invalide ignoré: [${sanitizeForLog(s.teacherId)}]`)
+            console.warn(`ID de professeur invalide ignoré: ${sanitizeForLog(s.teacherId)}`)
             return acc
           }
           if (!acc[validatedTeacherId]) {
