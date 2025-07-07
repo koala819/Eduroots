@@ -10,11 +10,12 @@ function sanitizeForLog(value: string | number): string {
   const sanitizedValue = String(value)
     .replace(/[\n\r]/g, ' ') // Supprimer les sauts de ligne
     .replace(/[^\x20-\x7E]/g, '') // Garder seulement les caractères ASCII imprimables
-    .replace(/["'`]/g, '') // Supprimer les caractères de citation pour éviter l'injection
+    .replace(/["'`<>]/g, '') // Supprimer les caractères de citation et balises HTML
     .replace(/\\/g, '\\\\') // Échapper les barres obliques inverses
+    .replace(/%/g, '%25') // Échapper les pourcentages
     .substring(0, 100) // Limiter la longueur
-  // Mettre entre guillemets pour le marquer comme contrôlé par l'utilisateur
-  return `"${sanitizedValue}"`
+    // Préfixer avec "USER_INPUT:" pour le marquer comme contrôlé par l'utilisateur
+  return `"USER_INPUT:${sanitizedValue}"`
 }
 
 // Fonction utilitaire pour valider les IDs
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
         teachers.map((t: ImportTeacher) => {
           const validatedId = validateId(t.id)
           if (!validatedId) {
-            console.warn(`ID de professeur invalide ignoré: [${sanitizeForLog(t.id)}]`)
+            console.warn(`ID de professeur invalide ignoré: ${sanitizeForLog(t.id)}`)
             return null
           }
           return {
