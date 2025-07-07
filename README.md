@@ -2,202 +2,239 @@
 
 <br>
 
-# Eduroots
+# 🕌 Eduroots - Template Repository
 
-Eduroots is an open-source educational platform designed to facilitate course management and communication between teachers and students, specifically adapted for mosques.
+> **Template Repository** to easily create your own Eduroots instance for your mosque
 
-## Features
+## 🚀 Using the Template
 
-- Course and schedule management
-- Attendance and behavior tracking
-- Integrated messaging system
-- Responsive interface (mobile and desktop)
-- PWA (Progressive Web App) with Serwist
-- Google OAuth authentication
-- Dashboard with statistics
-- Grade and evaluation management
+### To create your Eduroots instance:
 
-## Technologies
+1. **Click "Use this template" at the top of this page**
+2. **Name your repository**: `eduroots-mosque-[name]`
+3. **Clone your new repository**
+4. **Follow the deployment guide**: [README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
 
-### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Static typing
-- **Tailwind CSS 4** - Utility-first CSS framework (latest version)
-- **Framer Motion** - Smooth animations
+## 📖 About Eduroots
 
-### Backend & Database
-- **Supabase** - Backend-as-a-Service with PostgreSQL
-- **Supabase Auth** - Authentication with Google OAuth
-- **PostgreSQL** - Relational database
+Eduroots is an educational management platform designed specifically for mosques and Islamic educational institutions. It enables:
 
-### PWA & Performance
-- **Serwist** - Service Worker for PWA
-- **@serwist/next** - Next.js integration
+- **Student Management**: Registration, profiles, courses
+- **Attendance Tracking**: Automated attendance system
+- **Behavior Assessment**: Educational notes and comments
+- **Grade Management**: Tests and report cards
+- **Family Communication**: Parent/teacher interface
+- **Dashboard**: Statistics and analytics
 
-### Development Tools
-- **Vitest** - Testing framework
-- **ESLint** - Code linting
-- **Husky** - Git hooks
-- **pnpm** - Package manager
+## 🛠 Architecture
 
-### Others
-- **React Hook Form** - Form management
-- **Zod** - Schema validation
-- **Recharts** - Charts and visualizations
-- **Cloudinary** - Image management
+- **Frontend**: Next.js 15 with TypeScript
+- **Backend**: Supabase (PostgreSQL + Auth + API)
+- **Deployment**: Docker with Traefik (automatic SSL)
+- **Authentication**: Google OAuth + internal system
 
-## Installation
+## 🏗 Deployment
 
-1. Clone the repository:
+### Step 1: Initial Setup
 
-```bash
-git clone https://github.com/koala819/Eduroots.git
-cd Eduroots
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/eduroots-mosque-name.git
+   cd eduroots-mosque-name
+   ```
 
-2. Install dependencies:
+2. **Configure environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
 
-```bash
-pnpm install
-```
+3. **Edit `.env.local`** with your values:
+   ```env
+   # Database
+   POSTGRES_DB=eduroots
+   POSTGRES_PASSWORD=your_strong_password
 
-3. **Configure Husky (Git hooks):**
+   # Authentication
+   JWT_SECRET=your_jwt_secret_key
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-```bash
-# Install Git hooks
-pnpm run prepare
+   # Instance
+   INSTANCE_NAME=mosque-name
+   DOMAIN=localhost  # or your domain in production
+   ```
 
-# Set execution permissions for hooks
-chmod +x .husky/*
-chmod +x .husky/.gitignore
-```
-
-> **⚠️ Important:** This step is required for Git hooks (commitlint, pre-push) to work properly. Without this, commit format checks and branch protection won't be active.
-
-4. Set up environment variables:
+### Step 2: Docker Launch
 
 ```bash
-cp .env.example .env.local
+# Build and launch all services
+docker compose up -d
+
+# Verify all services are ready
+docker compose ps
 ```
 
-Required environment variables:
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+### Step 3: Service Access
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+Once deployment is complete (2-3 minutes), you have access to:
 
-# Others
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXT_PUBLIC_CLIENT_URL=http://localhost:3000
-```
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Application** | `https://localhost/` | Main Eduroots interface |
+| **Supabase Studio** | `http://localhost:8080` | Database administration interface |
+| **Auth API** | `https://localhost/auth/` | Authentication endpoints |
+| **REST API** | `https://localhost/rest/v1/` | Data REST API |
 
-5. Start the development server:
+### Step 4: First Access
+
+1. **Access the application**: `https://localhost/`
+2. **Sign in** with your configured Google account
+3. **Access Studio**: `http://localhost:8080` to manage the database
+
+## 🔧 Administration with Supabase Studio
+
+**Supabase Studio** (`http://localhost:8080`) allows you to:
+- 📊 View and modify your data
+- 🔑 Manage authentication and users
+- 📝 Write and execute SQL queries
+- 🔧 Configure RLS (Row Level Security) policies
+- 📈 View usage statistics
+
+## 🐳 Useful Docker Commands
 
 ```bash
-pnpm dev
+# View logs
+docker compose logs -f
+
+# Restart a service
+docker compose restart [service-name]
+
+# Stop all services
+docker compose down
+
+# Remove volumes (⚠️ deletes data)
+docker compose down -v
+
+# Update services
+docker compose pull
+docker compose up -d
 ```
 
-## Available Scripts
+## 🛡️ Production
+
+For production deployment:
+
+1. **Replace `DOMAIN=localhost`** with your domain
+2. **Configure SSL certificates** (Traefik handles this automatically)
+3. **Backup Docker volumes** regularly
+4. **Monitor logs**: `docker compose logs -f`
+
+## 📋 Prerequisites
+
+- **Docker** and **Docker Compose**
+- **Google OAuth** account for authentication
+- **Domain** (for production)
+- **VPS** or server (for production)
+
+## 📞 Support
+
+- **Documentation**: [README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
+- **Issues**: Use the Issues tab on GitHub
+- **Email**: [your-email@domain.com]
+
+## 🔒 Security
+
+- Multi-factor authentication
+- Data encryption
+- RLS (Row Level Security) policies
+- Automatic SSL/TLS
+
+## 🌍 Multi-tenant
+
+Each mosque has its own completely independent instance:
+- Separate database
+- Isolated authentication
+- Private and secure data
+
+## 🔧 Common Issues & Troubleshooting
+
+### Services won't start
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm test         # Run tests with Vitest
-pnpm lint         # Check code with ESLint
-pnpm lint:fix     # Auto-fix ESLint errors
+# Check service status
+docker compose ps
+
+# View logs in real-time
+docker compose logs -f
+
+# Restart all services
+docker compose restart
 ```
 
-## Architecture
+### Missing environment variables
 
-### Database
-- **Supabase PostgreSQL** with multiple schemas:
-  - `education` - Main data
-  - `logs` - Connection logs and audit
+If you see warnings like `variable is not set`:
+1. Check that `.env.local` exists
+2. Verify all required variables are defined
+3. Restart: `docker compose down && docker compose up -d`
 
-### Authentication
-- **Supabase Auth** with Google OAuth
-- Role management (admin, teacher, student, family)
-- Route protection middleware
-
-## Tests
-
-The project uses Vitest for testing:
+### PostgreSQL connection errors
 
 ```bash
-pnpm test                    # Run all tests
-pnpm test --coverage        # Run tests with coverage
+# Remove volumes and restart
+docker compose down -v
+docker compose up -d
 ```
 
-## PWA
-
-The application is configured as PWA with:
-- Service Worker via Serwist
-- Manifest for installation
-- Offline support
-- Push notifications
-
-## Contributing
-
-Contributions are welcome! Please check our [contribution guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE). This license ensures that any modified version of this software must also be distributed under the AGPL-3.0 license and that the source code must remain freely accessible.
-
-## Contact
-
-For any questions or suggestions, feel free to:
-
-- Open an issue on GitHub
-- Contact me on LinkedIn: [Your LinkedIn profile]
-
-## Git Hooks
-
-The project uses Husky to automate certain checks:
-
-### Commit Message Format
-Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+### Port 8080 or 443 already in use
 
 ```bash
-# ✅ Valid messages
-git commit -m "feat: add new feature"
-git commit -m "fix: fix authentication bug"
-git commit -m "docs: update documentation"
+# Check which ports are in use
+sudo netstat -tulpn | grep :8080
+sudo netstat -tulpn | grep :443
 
-# ❌ Invalid messages
-git commit -m "add stuff"    # No type
-git commit -m "feat:"        # No description
+# Stop services using these ports
+sudo systemctl stop nginx  # example
 ```
 
-### Allowed Types
-- `feat` : New feature
-- `fix` : Bug fix
-- `docs` : Documentation
-- `style` : Formatting
-- `refactor` : Refactoring
-- `test` : Tests
-- `chore` : Maintenance tasks
-
-### Branch Protection
-- Direct push to `master` forbidden (use Pull Requests)
-- Automatic checks before push
-
-### Troubleshooting
-If hooks don't work:
+### Studio (port 8080) not responding
 
 ```bash
-# Reinstall Husky
-pnpm run prepare
+# Check that Studio is running
+docker compose logs studio
 
-# Check permissions
-ls -la .husky/
+# Restart Studio
+docker compose restart studio
 
-# Test a commit
-git commit --allow-empty -m "test: verify hooks"
+# Wait 30 seconds then test
+curl -I http://localhost:8080
 ```
+
+### SSL certificate issues
+
+In local development, accept self-signed certificates in your browser.
+
+## 📄 License
+
+This project is licensed under [MIT](./LICENSE).
+
+---
+
+## 🏁 Quick Start
+
+1. **Use this template** → Create your repository
+2. **Clone** your repository: `git clone https://github.com/your-org/eduroots-mosque-name.git`
+3. **Configure** `.env.local` with your values
+4. **Run** `docker compose up -d`
+5. **Wait 2-3 minutes** for all services to start
+
+## 🌐 Access URLs
+
+Once deployment is complete:
+
+- **🏠 Main Application**: `https://localhost/`
+- **🗄️ Database Admin**: `http://localhost:8080`
+- **🔐 Auth API**: `https://localhost/auth/`
+- **📊 REST API**: `https://localhost/rest/v1/`
+
+🎉 **Your Eduroots instance is ready!**
