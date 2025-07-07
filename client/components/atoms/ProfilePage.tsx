@@ -2,17 +2,11 @@
 
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 
-import { useStats } from '@/client/context/stats'
-import { useToast } from '@/client/hooks/use-toast'
 import { createClient } from '@/client/utils/supabase'
 
 const Profile = () => {
   const router = useRouter()
-  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0)
-  const { toast } = useToast()
-  const { refreshTeacherStudentsStats, refreshGlobalStats } = useStats()
 
   async function logoutHandler() {
     const supabase = createClient()

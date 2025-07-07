@@ -10,21 +10,6 @@ interface GradeProgressBarProps {
 export function GradeProgressBar({
   grade = 0,
 }: GradeProgressBarProps) {
-  const getGradeColorClass = (grade: number) => {
-    if (grade >= 16) return 'text-success'
-    if (grade >= 14) return 'text-info'
-    if (grade >= 12) return 'text-accent'
-    if (grade >= 10) return 'text-warning'
-    return 'text-error'
-  }
-
-  const getProgressColorClass = (grade: number) => {
-    if (grade >= 16) return 'bg-success'
-    if (grade >= 14) return 'bg-info'
-    if (grade >= 12) return 'bg-accent'
-    if (grade >= 10) return 'bg-warning'
-    return 'bg-error'
-  }
 
   const progressWidth = (grade / 20) * 100
 

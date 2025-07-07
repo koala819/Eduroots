@@ -55,17 +55,6 @@ export const HeaderGrades = ({ grades }: HeaderGradesProps) => {
     (subject) => (subjectCounts[subject] || 0) > 0,
   )
 
-  const getSubjectBackgroundColor = (subject: string) => {
-    switch (subject) {
-    case SubjectNameEnum.Arabe:
-      return 'bg-blue-100 text-blue-600'
-    case SubjectNameEnum.EducationCulturelle:
-      return 'bg-green-100 text-green-600'
-    default:
-      return 'bg-gray-100 text-gray-600'
-    }
-  }
-
   return (
     <div className="flex-[0.4] flex justify-end">
       <div className="w-full max-w-md">
