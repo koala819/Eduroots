@@ -12,25 +12,16 @@ function sanitizeForLog(value: string | number): string {
     .replace(/[^\x20-\x7E]/g, '') // Garder seulement les caractères ASCII imprimables
     .replace(/["'`<>]/g, '') // Supprimer les caractères de citation et balises HTML
     .replace(/\\/g, '\\\\') // Échapper les barres obliques inverses
-    .replace(/%/g, '%25') // Échapper les pourcentages
     .substring(0, 100) // Limiter la longueur
-  return sanitizedValue
-}
-
-// Fonction pour logger de manière sécurisée
-function logInvalidId(type: string, id: string | number) {
-  console.warn(`ID ${type} invalide ignoré:`, {
-    invalidId: sanitizeForLog(id),
-    timestamp: new Date().toISOString(),
-    type: 'validation_error',
-  })
+    // Préfixer avec "USER_INPUT:" pour le marquer comme contrôlé par l'utilisateur
+  return `"USER_INPUT:${sanitizedValue}"`
 }
 
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
   const validatedId = String(id).trim()
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
-    logInvalidId('invalide', validatedId)
+    console.warn(`ID invalide ignoré: ${sanitizeForLog(validatedId)}`)
     return null
   }
   return validatedId
@@ -110,7 +101,7 @@ export async function POST(req: NextRequest) {
         if (s.teacherId) {
           const validatedTeacherId = validateId(s.teacherId)
           if (!validatedTeacherId) {
-            logInvalidId('de professeur', s.teacherId)
+            console.warn(`ID de professeur invalide ignoré: ${sanitizeForLog(s.teacherId)}`)
             return acc
           }
           if (!acc[validatedTeacherId]) {
@@ -130,7 +121,7 @@ export async function POST(req: NextRequest) {
         teachers.map((t: ImportTeacher) => {
           const validatedId = validateId(t.id)
           if (!validatedId) {
-            logInvalidId('de professeur', t.id)
+            console.warn(`ID de professeur invalide ignoré: ${sanitizeForLog(t.id)}`)
             return null
           }
           return {
@@ -177,7 +168,7 @@ export async function POST(req: NextRequest) {
         students.map((s: ImportStudent) => {
           const validatedId = validateId(s.id)
           if (!validatedId) {
-            logInvalidId('d\'étudiant', s.id)
+            console.warn(`ID d'étudiant invalide ignoré: [${sanitizeForLog(s.id)}]`)
             return null
           }
           return {
@@ -220,7 +211,8 @@ export async function POST(req: NextRequest) {
         courses.reduce((acc: Record<string, GroupedCourse>, c: ImportCourse) => {
           const validatedTeacherId = validateId(c.teacherId)
           if (!validatedTeacherId) {
-            logInvalidId('de professeur pour le cours', c.teacherId)
+            console.warn(`ID de professeur invalide ignoré pour le cours:
+              [${sanitizeForLog(c.teacherId)}]`)
             return acc
           }
 
