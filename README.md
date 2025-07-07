@@ -216,7 +216,7 @@ In local development, accept self-signed certificates in your browser.
 
 ## 📄 License
 
-This project is licensed under [MIT](./LICENSE).
+This project is licensed under [AGPL](./LICENSE).
 
 ---
 
