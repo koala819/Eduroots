@@ -1,108 +1,108 @@
 # 📋 Eduroots Template - Changelog
 
-## [1.0.0] - 2024-01-XX - Première Release Template
+## [1.0.0] - 2024-01-XX - First Template Release
 
-### 🎯 Template Repository Créé
-- **Template GitHub Repository** configuré
-- **Documentation complète** pour l'utilisation
-- **Script d'installation automatique** `setup-mosquee.sh`
+### 🎯 Template Repository Created
+- **GitHub Template Repository** configured
+- **Complete documentation** for usage
+- **Automatic installation script** `setup-mosquee.sh`
 
-### 🛠 Infrastructure Docker Complète
-- ✅ **PostgreSQL** avec migrations automatiques
-- ✅ **Next.js** application avec output standalone
+### 🛠 Complete Docker Infrastructure
+- ✅ **PostgreSQL** with automatic migrations
+- ✅ **Next.js** application with standalone output
 - ✅ **Supabase Auth (GoTrue)** v2.100.0 stable
-- ✅ **PostgREST** API REST automatique
-- ✅ **Traefik** reverse proxy avec SSL automatique
+- ✅ **PostgREST** automatic REST API
+- ✅ **Traefik** reverse proxy with automatic SSL
 
 ### 📖 Documentation
-- **README.md** - Présentation du template
-- **TEMPLATE-SETUP.md** - Guide de configuration post-template
-- **README-DEPLOYMENT.md** - Guide de déploiement complet (FR/EN)
-- **.env.example** - Variables d'environnement documentées
+- **README.md** - Template presentation
+- **TEMPLATE-SETUP.md** - Post-template configuration guide
+- **README-DEPLOYMENT.md** - Complete deployment guide (FR/EN)
+- **.env.example** - Documented environment variables
 
-### 🔒 Sécurité
-- **JWT Secrets** génération automatique
-- **Mots de passe BDD** aléatoires sécurisés
-- **Google OAuth** configuration guidée
-- **Politiques RLS** (Row Level Security)
-- **SSL/TLS** automatique via Traefik
+### 🔒 Security
+- **JWT Secrets** automatic generation
+- **Database passwords** secure random generation
+- **Google OAuth** guided configuration
+- **RLS Policies** (Row Level Security)
+- **SSL/TLS** automatic via Traefik
 
 ### 🌍 Multi-tenant Ready
-- **Instances indépendantes** pour chaque mosquée
-- **Base de données isolée** par instance
-- **Configuration personnalisable** via variables d'environnement
-- **Architecture scalable** pour production
+- **Independent instances** for each mosque
+- **Isolated database** per instance
+- **Customizable configuration** via environment variables
+- **Scalable architecture** for production
 
-### 🚀 Fonctionnalités Eduroots
-- **Gestion des étudiants** et cours
-- **Suivi des présences** automatisé
-- **Évaluation comportementale**
-- **Gestion des notes** et bulletins
-- **Interface famille-enseignants**
-- **Tableau de bord** avec statistiques
+### 🚀 Eduroots Features
+- **Student management** and courses
+- **Automated attendance tracking**
+- **Behavioral assessment**
+- **Grade management** and report cards
+- **Family-teacher interface**
+- **Dashboard** with statistics
 - **PWA** (Progressive Web App)
-- **Interface responsive** mobile/desktop
+- **Responsive interface** mobile/desktop
 
-## Instructions d'utilisation
+## Usage Instructions
 
-### 1. Utiliser le template
+### 1. Use the template
 ```bash
-# Sur GitHub: "Use this template" → nommer "eduroots-mosquee-[nom]"
-git clone https://github.com/votre-org/eduroots-mosquee-nom.git
-cd eduroots-mosquee-nom
+# On GitHub: "Use this template" → name "eduroots-mosque-[name]"
+git clone https://github.com/your-org/eduroots-mosque-name.git
+cd eduroots-mosque-name
 ```
 
-### 2. Configuration automatique
+### 2. Automatic configuration
 ```bash
-# Script d'installation interactif
+# Interactive installation script
 ./setup-mosquee.sh
 ```
 
-### 3. Accès à l'application
+### 3. Access the application
 ```bash
-# Accès local
+# Local access
 open https://localhost/
 ```
 
-## Support et Contribution
+## Support and Contribution
 
-- **Issues**: Utilisez les issues de votre repository instance
-- **Documentation**: Consultez README-DEPLOYMENT.md
-- **Améliorations**: Contribuez au template original
+- **Issues**: Use your instance repository issues
+- **Documentation**: Check README-DEPLOYMENT.md
+- **Improvements**: Contribute to the original template
 
-## Architecture Technique
+## Technical Architecture
 
-### Services Docker
+### Docker Services
 | Service | Version | Port | Description |
 |---------|---------|------|-------------|
-| PostgreSQL | 16-alpine | 5432 | Base de données |
-| Next.js | Node 18-alpine | 3000 | Application web |
-| GoTrue | v2.100.0 | 9999 | Authentification |
-| PostgREST | latest | 3001 | API REST |
+| PostgreSQL | 16-alpine | 5432 | Database |
+| Next.js | Node 18-alpine | 3000 | Web application |
+| GoTrue | v2.100.0 | 9999 | Authentication |
+| PostgREST | latest | 3001 | REST API |
 | Traefik | v3.2 | 80/443 | Reverse proxy |
 
-### Base de données
-- **Schéma `education`**: 26 tables principales
-- **Schéma `auth`**: Gestion authentification Supabase
-- **Politiques RLS**: Sécurité au niveau des lignes
-- **Migrations**: Automatiques au démarrage
+### Database
+- **`education` schema**: 26 main tables
+- **`auth` schema**: Supabase authentication management
+- **RLS Policies**: Row-level security
+- **Migrations**: Automatic on startup
 
-## Prochaines versions
+## Next versions
 
-### v1.1.0 (Planifié)
-- [ ] **Migration wizard** depuis Supabase cloud
-- [ ] **Backup automatique** de la base de données
-- [ ] **Monitoring** avec Prometheus/Grafana
-- [ ] **Tests automatisés** d'installation
+### v1.1.0 (Planned)
+- [ ] **Migration wizard** from Supabase cloud
+- [ ] **Automatic backup** of database
+- [ ] **Monitoring** with Prometheus/Grafana
+- [ ] **Automated tests** for installation
 
-### v1.2.0 (Planifié)
-- [ ] **CI/CD** templates pour déploiement automatique
-- [ ] **Kubernetes** manifests pour déploiement cloud
+### v1.2.0 (Planned)
+- [ ] **CI/CD** templates for automatic deployment
+- [ ] **Kubernetes** manifests for cloud deployment
 - [ ] **Multi-language** support (Arabic, English)
 - [ ] **Advanced analytics** dashboard
 
 ---
 
-## 🎉 Template Repository Prêt !
+## 🎉 Template Repository Ready!
 
-Le template Eduroots est maintenant prêt pour être utilisé par toutes les mosquées souhaitant déployer leur propre instance de gestion éducative.
+The Eduroots template is now ready to be used by all mosques wishing to deploy their own educational management instance.
