@@ -7,7 +7,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
     env_file:
-      - .env.local
+      - .env
     ports:
       - "3000:3000"
     networks:
@@ -23,7 +23,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     env_file:
-      - .env.local
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-eduroots}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -44,7 +44,7 @@ services:
     image: supabase/gotrue:v2.177.0
     restart: unless-stopped
     env_file:
-      - .env.local
+      - .env
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -71,7 +71,7 @@ services:
     image: postgrest/postgrest:v13.0.4
     restart: unless-stopped
     env_file:
-      - .env.local
+      - .env
     environment:
       PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}
       PGRST_DB_SCHEMAS: public,education,logs,stats,config
@@ -89,7 +89,7 @@ services:
     image: supabase/postgres-meta:v0.91.0
     restart: unless-stopped
     env_file:
-      - .env.local
+      - .env
     environment:
       PG_META_PORT: 8080
       PG_META_DB_HOST: postgres
@@ -108,7 +108,7 @@ services:
     image: supabase/studio:latest
     restart: unless-stopped
     env_file:
-      - .env.local
+      - .env
     environment:
       STUDIO_PG_META_URL: http://meta:8080
       DEFAULT_ORGANIZATION_NAME: ${INSTANCE_NAME:-eduroots}
