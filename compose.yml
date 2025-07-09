@@ -8,6 +8,8 @@ services:
       - PORT=3000
     env_file:
       - .env.local
+    ports:
+      - "3000:3000"
     networks:
       - eduroots
     depends_on:
@@ -15,12 +17,6 @@ services:
       - auth
       - rest
       - studio
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.rule=Host(`${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.tls=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.${INSTANCE_NAME:-eduroots}.loadbalancer.server.port=3000"
 
   # Base de données PostgreSQL
   postgres:
@@ -69,13 +65,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/auth`)"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.tls=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-auth.priority=200"
-      - "traefik.http.services.${INSTANCE_NAME:-eduroots}-auth.loadbalancer.server.port=9999"
 
   # Supabase REST API
   rest:
@@ -94,13 +83,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/rest/v1`)"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.tls=true"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.${INSTANCE_NAME:-eduroots}-rest.priority=200"
-      - "traefik.http.services.${INSTANCE_NAME:-eduroots}-rest.loadbalancer.server.port=3000"
 
   # Supabase Meta - Service pour les métadonnées PostgreSQL
   meta:
@@ -145,31 +127,7 @@ services:
       meta:
         condition: service_started
 
-  # Traefik (Reverse Proxy + SSL)
-  traefik:
-    image: traefik:v3.0
-    restart: unless-stopped
-    env_file:
-      - .env.local
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_certificates:/certificates
-      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-    networks:
-      - eduroots
-    command:
-      - --api.dashboard=true
-      - --api.insecure=false
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
-      - --certificatesresolvers.letsencrypt.acme.email=${ADMIN_EMAIL:-admin@eduroots.com}
+
 
 networks:
   eduroots:
@@ -177,4 +135,3 @@ networks:
 
 volumes:
   postgres_data:
-  traefik_certificates:
