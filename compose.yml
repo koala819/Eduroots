@@ -20,7 +20,7 @@ services:
 
   # Base de données PostgreSQL
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     env_file:
       - .env.local
@@ -41,7 +41,7 @@ services:
 
   # Supabase Auth
   auth:
-    image: supabase/gotrue:v2.100.0
+    image: supabase/gotrue:v2.177.0
     restart: unless-stopped
     env_file:
       - .env.local
@@ -68,7 +68,7 @@ services:
 
   # Supabase REST API
   rest:
-    image: postgrest/postgrest:v12.0.1
+    image: postgrest/postgrest:v13.0.4
     restart: unless-stopped
     env_file:
       - .env.local
@@ -86,7 +86,7 @@ services:
 
   # Supabase Meta - Service pour les métadonnées PostgreSQL
   meta:
-    image: supabase/postgres-meta:v0.89.3
+    image: supabase/postgres-meta:v0.91.0
     restart: unless-stopped
     env_file:
       - .env.local

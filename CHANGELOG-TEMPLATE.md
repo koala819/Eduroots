@@ -16,7 +16,7 @@
 
 ### 📖 Documentation
 - **README.md** - Template presentation
-- **TEMPLATE-SETUP.md** - Post-template configuration guide
+
 - **README-DEPLOYMENT.md** - Complete deployment guide (FR/EN)
 - **.env.example** - Documented environment variables
 
