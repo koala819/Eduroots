@@ -26,10 +26,10 @@ const navItems = [
     pathPattern: '^/admin/(schedule|holidays)',
   },
   {
-    href: '/admin/messages/inbox',
+    href: '/admin/messages',
     label: 'Messages',
     Icon: 'MessageSquare',
-    pathPattern: '^/admin/messages/inbox$',
+    pathPattern: '^/admin/messages$',
   },
   {
     href: '/admin/settings',
