@@ -12,9 +12,10 @@ import {
   Plus,
   TrendingUp,
 } from 'lucide-react'
-import Link from 'next/link'
 
+import { Button } from '@/client/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { useNavigation } from '@/client/hooks/use-navigation'
 import DashboardQuickBtn from '@/server/components/admin/atoms/DashboardQuickBtn'
 import { AdminResume } from '@/server/components/admin/atoms/DashboardResume'
 import { CourseWithRelations } from '@/types/courses'
@@ -60,6 +61,7 @@ export const Dashboard = ({
   teachers,
   courses,
 }: DashboardProps) => {
+  const { handleNavClick } = useNavigation()
 
   const today = new Date()
 
@@ -135,15 +137,13 @@ export const Dashboard = ({
                     }
                   </p>
                   {nbHighRiskStudents > 0 && (
-                    <Link
-                      href="/admin/highRisk"
-                      className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-error
-                      font-medium text-error-foreground rounded-lg hover:bg-error-dark
-                      transition-colors text-sm"
+                    <Button
+                      onClick={() => handleNavClick('/admin/highRisk')}
+                      variant="destructive"
                     >
                       <AlertTriangle className="w-4 h-4" />
                       Voir les détails
-                    </Link>
+                    </Button>
                   )}
                 </div>
               </CardContent>
