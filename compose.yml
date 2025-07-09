@@ -1,0 +1,137 @@
+services:
+  # Application Next.js
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - .env.local
+    ports:
+      - "3000:3000"
+    networks:
+      - eduroots
+    depends_on:
+      - postgres
+      - auth
+      - rest
+      - studio
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eduroots}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/supabase/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - eduroots
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Supabase Auth
+  auth:
+    image: supabase/gotrue:v2.177.0
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}?sslmode=disable
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_API_EXTERNAL_URL: http://localhost:3000
+      API_EXTERNAL_URL: http://localhost:3000
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      GOTRUE_LOG_LEVEL: debug
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: true
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${SITE_URL:-http://localhost:3000}/auth/google-auth
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Supabase REST API
+  rest:
+    image: postgrest/postgrest:v13.0.4
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}
+      PGRST_DB_SCHEMAS: public,education,logs,stats,config
+      PGRST_DB_ANON_ROLE: anon
+      # PGRST_JWT_SECRET: ${JWT_SECRET}  # Temporairement désactivé pour Studio
+      PGRST_DEFAULT_RLS: "0"  # Désactiver RLS temporairement
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Supabase Meta - Service pour les métadonnées PostgreSQL
+  meta:
+    image: supabase/postgres-meta:v0.91.0
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: postgres
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: ${POSTGRES_DB:-eduroots}
+      PG_META_DB_USER: ${POSTGRES_USER:-postgres}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Supabase Studio (Interface Web d'administration)
+  studio:
+    image: supabase/studio:latest
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      DEFAULT_ORGANIZATION_NAME: ${INSTANCE_NAME:-eduroots}
+      DEFAULT_PROJECT_NAME: ${INSTANCE_NAME:-eduroots}
+      STUDIO_PORT: 3000
+      SUPABASE_PUBLIC_URL: https://${DOMAIN:-localhost}
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    ports:
+      - "8080:3000"
+    networks:
+      - eduroots
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meta:
+        condition: service_started
+
+
+
+networks:
+  eduroots:
+    driver: bridge
+
+volumes:
+  postgres_data:
