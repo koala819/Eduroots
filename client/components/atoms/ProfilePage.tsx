@@ -3,9 +3,11 @@
 import { BarChart, Calendar, LogOut, PenSquare, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+import { useNavigation } from '@/client/hooks/use-navigation'
 import { createClient } from '@/client/utils/supabase'
 
 const Profile = () => {
+  const { handleNavClick } = useNavigation()
   const router = useRouter()
 
   async function logoutHandler() {
@@ -44,10 +46,6 @@ const Profile = () => {
       },
     },
   ]
-
-  function handleNavClick(href: string) {
-    router.push(href)
-  }
 
   return (
     <div className="flex flex-col gap-2 h-[77vh] md:grid md:grid-cols-2 w-full
