@@ -1,11 +1,11 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import MobileNav from '@/client/components/pages/MobileNav'
 import SidebarMenu from '@/client/components/pages/Sidebar'
+import { useNavigation } from '@/client/hooks/use-navigation'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -29,18 +29,8 @@ export function CustomLayout({
   isAdmin = false,
   teacher,
 }: Readonly<ClientLayoutProps>) {
-  const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const pathname = usePathname()
-  const router = useRouter()
-
-  useEffect(() => {
-    setIsNavigating(false)
-  }, [pathname])
-
-  function handleNavClick(href: string) {
-    setIsNavigating(true)
-    router.push(href)
-  }
+  const { isNavigating, handleNavClick } = useNavigation()
 
   return (
     <div className="flex min-h-screen bg-background">

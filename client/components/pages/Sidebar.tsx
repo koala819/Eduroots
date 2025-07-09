@@ -63,6 +63,12 @@ export default function SidebarMenu({
               <button
                 key={href}
                 onClick={() => {
+                  console.log('Clic sur Accueil:', {
+                    href,
+                    pathname,
+                    isActive: isActive({ href, pathPattern }),
+                    willNavigate: !isActive({ href, pathPattern }),
+                  })
                   if (!isActive({ href, pathPattern })) {
                     handleNavClick(href)
                   }
