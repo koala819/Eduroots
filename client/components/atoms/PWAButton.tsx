@@ -20,6 +20,8 @@ export const PWAButtonClient: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(false)
   const [platform, setPlatform] = useState<Platform>('unknown')
   const [isStandalone, setIsStandalone] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [canInstall, setCanInstall] = useState(false)
 
   useEffect(() => {
     console.log('🔍 PWA Button - Initialisation du composant')
@@ -64,6 +66,22 @@ export const PWAButtonClient: React.FC = () => {
       }
     }
 
+    // Écouter l'événement beforeinstallprompt pour capturer l'installation
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🎯 PWA Button - Événement beforeinstallprompt capturé')
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setCanInstall(true)
+    }
+
+    // Écouter l'événement appinstalled pour détecter l'installation
+    const handleAppInstalled = () => {
+      console.log('✅ PWA Button - App installée avec succès')
+      setDeferredPrompt(null)
+      setCanInstall(false)
+      setIsStandalone(true)
+    }
+
     const platform = detectPlatform()
     setPlatform(platform)
     checkStandalone()
@@ -77,11 +95,15 @@ export const PWAButtonClient: React.FC = () => {
       hostname: window.location.hostname,
     })
 
-    // Auto-afficher les instructions pour iOS
+    // Auto-afficher les instructions pour iOS (pas d'événement beforeinstallprompt)
     if (platform === 'ios') {
       console.log('📱 PWA Button - Plateforme iOS détectée, affichage des instructions')
       setShowInstructions(true)
     }
+
+    // Ajouter les écouteurs d'événements
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     // Vérifier périodiquement si l'app est en mode standalone
     const checkStandaloneInterval = setInterval(() => {
@@ -90,6 +112,8 @@ export const PWAButtonClient: React.FC = () => {
 
     return () => {
       clearInterval(checkStandaloneInterval)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
@@ -122,9 +146,30 @@ export const PWAButtonClient: React.FC = () => {
     }
   }
 
-  const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     console.log('🔍 PWA Button - Clic sur le bouton d\'installation')
-    setShowInstructions(true)
+
+    if (deferredPrompt && canInstall) {
+      console.log('🚀 PWA Button - Déclenchement de l\'installation automatique')
+      // Déclencher l'installation automatique
+      deferredPrompt.prompt()
+
+      // Attendre la réponse de l'utilisateur
+      const { outcome } = await deferredPrompt.userChoice
+      console.log('🔍 PWA Button - Résultat de l\'installation:', outcome)
+
+      if (outcome === 'accepted') {
+        console.log('✅ PWA Button - Installation acceptée par l\'utilisateur')
+        setDeferredPrompt(null)
+        setCanInstall(false)
+      } else {
+        console.log('❌ PWA Button - Installation refusée par l\'utilisateur')
+        // Garder le prompt pour une prochaine tentative
+      }
+    } else {
+      console.log('📋 PWA Button - Affichage des instructions manuelles')
+      setShowInstructions(true)
+    }
   }
 
   const handleDismissInstructions = () => {
@@ -197,7 +242,9 @@ export const PWAButtonClient: React.FC = () => {
                   text-secondary-foreground"
               >
                 <Download className="h-5 w-5" />
-                <span>Installer l'application</span>
+                <span>
+                  {canInstall ? 'Installer l\'application' : 'Installer l\'application'}
+                </span>
               </Button>
             </motion.div>
           </TooltipTrigger>
@@ -205,11 +252,16 @@ export const PWAButtonClient: React.FC = () => {
             side="bottom"
             className="bg-foreground text-primary-foreground p-2"
           >
-            <p>Accédez plus rapidement à l&apos;application</p>
+            <p>
+              {canInstall
+                ? 'Cliquez pour installer l\'application directement'
+                : 'Accédez plus rapidement à l\'application'
+              }
+            </p>
           </TooltipContent>
         </Tooltip>
 
-        {!showInstructions && (
+        {!showInstructions && !canInstall && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
