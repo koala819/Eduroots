@@ -83,7 +83,7 @@ jobs:
           echo "🔑 Token configured: ${{ secrets.TOKEN != '' }}"
 
           # Run the update script
-          pnpm run update-template-repos
+          node scripts/update-template-repos.js
         env:
           TOKEN: ${{ secrets.TOKEN }}
           TEMPLATE_OWNER: ${{ github.repository_owner }}
