@@ -24,8 +24,6 @@ export const PWAButtonClient: React.FC = () => {
   const [canInstall, setCanInstall] = useState(false)
 
   useEffect(() => {
-    console.log('🔍 PWA Button - Initialisation du composant')
-
     const detectPlatform = (): Platform => {
       const ua = window.navigator.userAgent.toLowerCase()
       if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
@@ -48,27 +46,13 @@ export const PWAButtonClient: React.FC = () => {
       // Vérifier si l'app est déjà installée
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
                               (window.navigator as any).standalone === true ||
-                              document.referrer.includes('android-app://')
-
-      console.log('🔍 PWA Button - Vérification standalone:', {
-        matchMedia: window.matchMedia('(display-mode: standalone)').matches,
-        navigatorStandalone: (window.navigator as any).standalone,
-        referrer: document.referrer,
-        isStandaloneMode,
-      })
+        document.referrer.includes('android-app://')
 
       setIsStandalone(isStandaloneMode)
-
-      if (isStandaloneMode) {
-        console.log('✅ PWA Button - App déjà installée (mode standalone)')
-      } else {
-        console.log('❌ PWA Button - App pas encore installée')
-      }
     }
 
     // Écouter l'événement beforeinstallprompt pour capturer l'installation
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('🎯 PWA Button - Événement beforeinstallprompt capturé')
       e.preventDefault()
       setDeferredPrompt(e)
       setCanInstall(true)
@@ -76,7 +60,6 @@ export const PWAButtonClient: React.FC = () => {
 
     // Écouter l'événement appinstalled pour détecter l'installation
     const handleAppInstalled = () => {
-      console.log('✅ PWA Button - App installée avec succès')
       setDeferredPrompt(null)
       setCanInstall(false)
       setIsStandalone(true)
@@ -86,18 +69,8 @@ export const PWAButtonClient: React.FC = () => {
     setPlatform(platform)
     checkStandalone()
 
-    console.log('🔍 PWA Button - Informations détectées:', {
-      platform,
-      userAgent: window.navigator.userAgent,
-      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
-      hasServiceWorker: 'serviceWorker' in navigator,
-      protocol: window.location.protocol,
-      hostname: window.location.hostname,
-    })
-
     // Auto-afficher les instructions pour iOS (pas d'événement beforeinstallprompt)
     if (platform === 'ios') {
-      console.log('📱 PWA Button - Plateforme iOS détectée, affichage des instructions')
       setShowInstructions(true)
     }
 
@@ -147,27 +120,19 @@ export const PWAButtonClient: React.FC = () => {
   }
 
   const handleInstallClick = async () => {
-    console.log('🔍 PWA Button - Clic sur le bouton d\'installation')
 
     if (deferredPrompt && canInstall) {
-      console.log('🚀 PWA Button - Déclenchement de l\'installation automatique')
       // Déclencher l'installation automatique
       deferredPrompt.prompt()
 
       // Attendre la réponse de l'utilisateur
       const { outcome } = await deferredPrompt.userChoice
-      console.log('🔍 PWA Button - Résultat de l\'installation:', outcome)
 
       if (outcome === 'accepted') {
-        console.log('✅ PWA Button - Installation acceptée par l\'utilisateur')
         setDeferredPrompt(null)
         setCanInstall(false)
-      } else {
-        console.log('❌ PWA Button - Installation refusée par l\'utilisateur')
-        // Garder le prompt pour une prochaine tentative
       }
     } else {
-      console.log('📋 PWA Button - Affichage des instructions manuelles')
       setShowInstructions(true)
     }
   }
