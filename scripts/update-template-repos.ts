@@ -16,7 +16,7 @@ import { Octokit } from '@octokit/rest'
 import { config } from './update-template-repos.config'
 
 // Types for GitHub API - using official Octokit types
-type GitHubRepo = Awaited<ReturnType<Octokit['search']['repos']>>['data']['items'][0]
+type GitHubRepo = Awaited<ReturnType<Octokit['repos']['get']>>['data']
 
 interface UpdateResult {
   repo: string
@@ -48,20 +48,34 @@ class TemplateUpdater {
   }
 
   async findTemplateForks(): Promise<GitHubRepo[]> {
-    console.log('🔍 Searching for repos created from template...')
+    console.log('🔍 Getting repos from manual configuration...')
 
     try {
-      const { data } = await this.octokit.search.repos({
-        q: `template:${this.config.templateOwner}/${this.config.templateRepo}`,
-        sort: 'updated',
-        order: 'desc',
-        per_page: this.config.options.maxRepos,
-      })
+      const repos: GitHubRepo[] = []
 
-      console.log(`✅ Found ${data.items.length} repos created from template`)
-      return data.items
+      for (const repoConfig of this.config.reposToUpdate) {
+        try {
+          const { data: repo } = await this.octokit.repos.get({
+            owner: repoConfig.owner,
+            repo: repoConfig.name,
+          })
+          repos.push(repo)
+        } catch (error: any) {
+          if (error.status === 404) {
+            console.log(`⚠️  Repo ${repoConfig.owner}/${repoConfig.name} not found`)
+          } else {
+            console.error(
+              `❌ Error accessing ${repoConfig.owner}/${repoConfig.name}:`,
+              error.message,
+            )
+          }
+        }
+      }
+
+      console.log(`✅ Found ${repos.length} repos from configuration`)
+      return repos
     } catch (error) {
-      console.error('❌ Error searching for repos:',
+      console.error('❌ Error getting repos:',
         error instanceof Error ? error.message : 'Unknown error')
       return []
     }

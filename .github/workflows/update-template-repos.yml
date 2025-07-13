@@ -10,9 +10,9 @@ on:
         default: false
         type: boolean
 
-  # Automatic trigger on push to main
+  # Automatic trigger on push to master
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'client/components/atoms/PWAButton.tsx'
       - 'middleware.ts'

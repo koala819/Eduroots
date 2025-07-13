@@ -20,6 +20,13 @@ export interface TemplateConfig {
   // Pull Request message
   prBody: string
 
+  // Repos to update (manual list)
+  reposToUpdate: Array<{
+    owner: string
+    name: string
+    defaultBranch?: string
+  }>
+
   // Advanced options
   options: {
     // Maximum number of repos to process
@@ -58,6 +65,13 @@ export const config: TemplateConfig = {
     'public/manifest.json',
     'app/sw.ts',
     'package.json',
+  ],
+
+  // Repos to update (manual list)
+  reposToUpdate: [
+    // Add your repos here
+    // Example:
+    // { owner: 'koala819', name: 'Eduroots-Example-Repo', defaultBranch: 'main' },
   ],
 
   // Pull Request message
