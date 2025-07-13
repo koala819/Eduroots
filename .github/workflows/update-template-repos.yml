@@ -9,6 +9,11 @@ on:
         required: false
         default: false
         type: boolean
+      bypass_protection:
+        description: 'Bypass branch protection rules (auto-merge)'
+        required: false
+        default: true
+        type: boolean
 
   # Automatic trigger on push to dev
   push:
@@ -81,6 +86,7 @@ jobs:
           echo "🚀 Starting automatic update"
           echo "📋 Template: ${{ github.repository }}"
           echo "🔑 Token configured: ${{ secrets.TOKEN != '' }}"
+          echo "🛡️ Bypass protection: ${{ github.event.inputs.bypass_protection == 'true' || 'true' }}"
 
           # Run the update script
           node scripts/update-template-repos.mjs
@@ -89,32 +95,16 @@ jobs:
           TEMPLATE_OWNER: ${{ github.repository_owner }}
           TEMPLATE_REPO: ${{ github.event.repository.name }}
           DEBUG: ${{ github.event.inputs.force_update == 'true' }}
+          BYPASS_PROTECTION: ${{ github.event.inputs.bypass_protection == 'true' || 'true' }}
 
       - name: ✅ Success
-        if: |
-          steps.check-changes.outputs.has_changes == 'true' ||
-          github.event.inputs.force_update == 'true' ||
-          (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+        if: success()
         run: |
           echo "🎉 Template repos update completed successfully!"
-          echo "📅 Date: $(date)"
-          echo "🔗 Commit: ${{ github.sha }}"
+          echo "📊 Check the logs above for detailed results"
 
-      - name: ⏭️ Skip (no changes)
-        if: |
-          steps.check-changes.outputs.has_changes == 'false' &&
-          github.event.inputs.force_update != 'true' &&
-          !(github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+      - name: ❌ Failure
+        if: failure()
         run: |
-          echo "⏭️ No changes detected, update skipped"
-          echo "💡 Use 'force_update: true' to force update"
-
-      - name: 📊 Final report
-        if: always()
-        run: |
-          echo "📊 Execution report:"
-          echo "  - Workflow: ${{ github.workflow }}"
-          echo "  - Trigger: ${{ github.event_name }}"
-          echo "  - Repository: ${{ github.repository }}"
-          echo "  - Commit: ${{ github.sha }}"
-          echo "  - Date: $(date)"
+          echo "❌ Template repos update failed!"
+          echo "🔍 Check the logs above for error details"
