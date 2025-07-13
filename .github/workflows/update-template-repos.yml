@@ -46,10 +46,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: 🔍 Check for changes
         id: check-changes
@@ -71,7 +75,7 @@ jobs:
           echo "🔑 Token configured: ${{ secrets.TOKEN != '' }}"
 
           # Run the update script
-          npm run update-template-repos
+          pnpm run update-template-repos
         env:
           TOKEN: ${{ secrets.TOKEN }}
           TEMPLATE_OWNER: ${{ github.repository_owner }}
