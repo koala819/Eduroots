@@ -12,6 +12,7 @@ declare global {
   }
 }
 
+// eslint-disable-next-line no-undef
 declare const self: ServiceWorkerGlobalScope
 
 // Version 1.0.4 - Ajout des notifications push
