@@ -20,10 +20,10 @@ export const PWAButtonClient: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(false)
   const [platform, setPlatform] = useState<Platform>('unknown')
   const [isStandalone, setIsStandalone] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [canInstall, setCanInstall] = useState(false)
 
   useEffect(() => {
-    console.log('🔍 PWA Button - Initialisation du composant')
-
     const detectPlatform = (): Platform => {
       const ua = window.navigator.userAgent.toLowerCase()
       if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
@@ -46,42 +46,37 @@ export const PWAButtonClient: React.FC = () => {
       // Vérifier si l'app est déjà installée
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
                               (window.navigator as any).standalone === true ||
-                              document.referrer.includes('android-app://')
-
-      console.log('🔍 PWA Button - Vérification standalone:', {
-        matchMedia: window.matchMedia('(display-mode: standalone)').matches,
-        navigatorStandalone: (window.navigator as any).standalone,
-        referrer: document.referrer,
-        isStandaloneMode,
-      })
+        document.referrer.includes('android-app://')
 
       setIsStandalone(isStandaloneMode)
+    }
 
-      if (isStandaloneMode) {
-        console.log('✅ PWA Button - App déjà installée (mode standalone)')
-      } else {
-        console.log('❌ PWA Button - App pas encore installée')
-      }
+    // Écouter l'événement beforeinstallprompt pour capturer l'installation
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setCanInstall(true)
+    }
+
+    // Écouter l'événement appinstalled pour détecter l'installation
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null)
+      setCanInstall(false)
+      setIsStandalone(true)
     }
 
     const platform = detectPlatform()
     setPlatform(platform)
     checkStandalone()
 
-    console.log('🔍 PWA Button - Informations détectées:', {
-      platform,
-      userAgent: window.navigator.userAgent,
-      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
-      hasServiceWorker: 'serviceWorker' in navigator,
-      protocol: window.location.protocol,
-      hostname: window.location.hostname,
-    })
-
-    // Auto-afficher les instructions pour iOS
+    // Auto-afficher les instructions pour iOS (pas d'événement beforeinstallprompt)
     if (platform === 'ios') {
-      console.log('📱 PWA Button - Plateforme iOS détectée, affichage des instructions')
       setShowInstructions(true)
     }
+
+    // Ajouter les écouteurs d'événements
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     // Vérifier périodiquement si l'app est en mode standalone
     const checkStandaloneInterval = setInterval(() => {
@@ -90,6 +85,8 @@ export const PWAButtonClient: React.FC = () => {
 
     return () => {
       clearInterval(checkStandaloneInterval)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
@@ -122,9 +119,22 @@ export const PWAButtonClient: React.FC = () => {
     }
   }
 
-  const handleInstallClick = () => {
-    console.log('🔍 PWA Button - Clic sur le bouton d\'installation')
-    setShowInstructions(true)
+  const handleInstallClick = async () => {
+
+    if (deferredPrompt && canInstall) {
+      // Déclencher l'installation automatique
+      deferredPrompt.prompt()
+
+      // Attendre la réponse de l'utilisateur
+      const { outcome } = await deferredPrompt.userChoice
+
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null)
+        setCanInstall(false)
+      }
+    } else {
+      setShowInstructions(true)
+    }
   }
 
   const handleDismissInstructions = () => {
@@ -197,7 +207,9 @@ export const PWAButtonClient: React.FC = () => {
                   text-secondary-foreground"
               >
                 <Download className="h-5 w-5" />
-                <span>Installer l'application</span>
+                <span>
+                  {canInstall ? 'Installer l\'application' : 'Installer l\'application'}
+                </span>
               </Button>
             </motion.div>
           </TooltipTrigger>
@@ -205,11 +217,16 @@ export const PWAButtonClient: React.FC = () => {
             side="bottom"
             className="bg-foreground text-primary-foreground p-2"
           >
-            <p>Accédez plus rapidement à l&apos;application</p>
+            <p>
+              {canInstall
+                ? 'Cliquez pour installer l\'application directement'
+                : 'Accédez plus rapidement à l\'application'
+              }
+            </p>
           </TooltipContent>
         </Tooltip>
 
-        {!showInstructions && (
+        {!showInstructions && !canInstall && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

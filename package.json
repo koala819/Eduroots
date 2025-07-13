@@ -17,7 +17,9 @@
     "prepush": "rm -rf .next",
     "find-unused": "ts-prune --project tsconfig.json --skip 'node_modules|.next|app/api|tests|__tests__|mocks'",
     "audit": "pnpm audit",
-    "test": "vitest"
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "update-template-repos": "npx ts-node scripts/update-template-repos.ts"
   },
   "dependencies": {
     "@heroicons/react": "2.1.5",
@@ -83,6 +85,7 @@
     "react-toastify": "10.0.5",
     "react-window": "1.8.11",
     "recharts": "2.13.0-alpha.5",
+    "rest": "link:@types/octokit/rest",
     "sharp": "0.33.5",
     "tailwind-merge": "2.3.0",
     "tailwindcss-animate": "1.0.7",
@@ -98,6 +101,7 @@
     "@eslint/config-array": "0.20.1",
     "@eslint/js": "9.29.0",
     "@next/eslint-plugin-next": "15.1.6",
+    "@octokit/rest": "^20.1.2",
     "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "16.3.0",
@@ -127,6 +131,7 @@
     "serwist": "9.0.9",
     "shadcn-ui": "0.9.5",
     "tailwindcss": "4.1.10",
+    "ts-node": "^10.9.2",
     "ts-prune": "0.10.3",
     "tw-animate-css": "^1.3.4",
     "typescript": "5.8.3",
