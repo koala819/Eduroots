@@ -10,9 +10,9 @@ on:
         default: false
         type: boolean
 
-  # Automatic trigger on push to master
+  # Automatic trigger on push to dev
   push:
-    branches: [master]
+    branches: [dev]
     paths:
       - 'client/components/atoms/PWAButton.tsx'
       - 'middleware.ts'
@@ -25,6 +25,11 @@ on:
   # Weekly trigger (Sunday at 9am)
   schedule:
     - cron: '0 9 * * 0'
+
+  # Trigger on merge to master (pull_request closed and merged)
+  pull_request:
+    types: [closed]
+    branches: [master]
 
 jobs:
   update-template-repos:
@@ -68,7 +73,10 @@ jobs:
           fi
 
       - name: 🔄 Update template repos
-        if: steps.check-changes.outputs.has_changes == 'true' || github.event.inputs.force_update == 'true'
+        if: |
+          steps.check-changes.outputs.has_changes == 'true' ||
+          github.event.inputs.force_update == 'true' ||
+          (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
         run: |
           echo "🚀 Starting automatic update"
           echo "📋 Template: ${{ github.repository }}"
@@ -83,14 +91,20 @@ jobs:
           DEBUG: ${{ github.event.inputs.force_update == 'true' }}
 
       - name: ✅ Success
-        if: steps.check-changes.outputs.has_changes == 'true' || github.event.inputs.force_update == 'true'
+        if: |
+          steps.check-changes.outputs.has_changes == 'true' ||
+          github.event.inputs.force_update == 'true' ||
+          (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
         run: |
           echo "🎉 Template repos update completed successfully!"
           echo "📅 Date: $(date)"
           echo "🔗 Commit: ${{ github.sha }}"
 
       - name: ⏭️ Skip (no changes)
-        if: steps.check-changes.outputs.has_changes == 'false' && github.event.inputs.force_update != 'true'
+        if: |
+          steps.check-changes.outputs.has_changes == 'false' &&
+          github.event.inputs.force_update != 'true' &&
+          !(github.event_name == 'pull_request' && github.event.pull_request.merged == true)
         run: |
           echo "⏭️ No changes detected, update skipped"
           echo "💡 Use 'force_update: true' to force update"
