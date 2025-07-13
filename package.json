@@ -19,7 +19,7 @@
     "audit": "pnpm audit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "update-template-repos": "npx ts-node scripts/update-template-repos.ts"
+    "update-template-repos": "node scripts/update-template-repos.mjs"
   },
   "dependencies": {
     "@heroicons/react": "2.1.5",
