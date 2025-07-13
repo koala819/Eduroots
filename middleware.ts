@@ -130,7 +130,7 @@ export const config = {
      * - sw.js (service worker)
      * - public folder assets (images, etc.)
      */
-    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|' +
-    'manifest.json|sw.js|icon-|touch-icon-|splash.png).*)',
+    // eslint-disable-next-line max-len
+    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|manifest.json|sw.js|icon-|touch-icon-|splash.png).*)',
   ],
 }
