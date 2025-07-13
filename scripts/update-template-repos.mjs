@@ -9,7 +9,7 @@
  * 3. Notifies repo owners
  */
 
-const { Octokit } = require('@octokit/rest');
+import { Octokit } from '@octokit/rest';
 
 // Configuration
 const config = {
