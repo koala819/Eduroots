@@ -69,9 +69,7 @@ export const config: TemplateConfig = {
 
   // Repos to update (manual list)
   reposToUpdate: [
-    // Add your repos here
-    // Example:
-    // { owner: 'koala819', name: 'Eduroots-Example-Repo', defaultBranch: 'main' },
+    { owner: 'koala819', name: 'Eduroots_COLOMIERS', defaultBranch: 'master' },
   ],
 
   // Pull Request message
