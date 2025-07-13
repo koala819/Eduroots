@@ -19,6 +19,8 @@ on:
       - 'public/manifest.json'
       - 'app/sw.ts'
       - 'package.json'
+      - 'scripts/update-template-repos.config.ts'
+      - 'scripts/update-template-repos.ts'
 
   # Weekly trigger (Sunday at 9am)
   schedule:
