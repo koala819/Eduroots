@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.instance.name }}-auth
+  namespace: {{ .Values.instance.name }}
+  labels:
+    app: {{ .Values.instance.name }}-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.instance.name }}-auth
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.instance.name }}-auth
+    spec:
+      containers:
+      - name: auth
+        image: {{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets
+        - configMapRef:
+            name: {{ .Values.instance.name }}-config
+        env:
+        - name: GOTRUE_DB_DATABASE_URL
+          value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@{{ .Values.instance.name }}-postgres:5432/$(POSTGRES_DB)?sslmode=disable
+        - name: GOTRUE_API_EXTERNAL_URL
+          value: https://{{ .Values.instance.subdomain }}.{{ .Values.global.domain }}
+        - name: API_EXTERNAL_URL
+          value: https://{{ .Values.instance.subdomain }}.{{ .Values.global.domain }}
+        - name: GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI
+          value: https://{{ .Values.instance.subdomain }}.{{ .Values.global.domain }}/auth/google-auth
+        ports:
+        - containerPort: {{ .Values.auth.port }}
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine
+        command:
+        - sh
+        - -c
+        - until pg_isready -h {{ .Values.instance.name }}-postgres -p 5432 -U $(POSTGRES_USER); do sleep 1; done
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets

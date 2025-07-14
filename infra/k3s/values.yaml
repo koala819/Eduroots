@@ -1,0 +1,67 @@
+global:
+  domain: eduroots.org
+  image:
+    pullPolicy: IfNotPresent
+
+instance:
+  name: ""
+  subdomain: ""
+
+postgres:
+  image:
+    repository: postgres
+    tag: 17-alpine
+  database: eduroots
+  username: postgres
+  password: postgres
+  storage:
+    size: 10Gi
+    className: local-path
+
+auth:
+  image:
+    repository: supabase/gotrue
+    tag: v2.177.0
+  port: 9999
+  jwtSecret: your-super-secret-jwt-token-with-at-least-32-characters-long
+  jwtExp: 3600
+  google:
+    enabled: true
+    clientId: ""
+    clientSecret: ""
+
+rest:
+  image:
+    repository: postgrest/postgrest
+    tag: v13.0.4
+  schemas: public,education,logs,stats,config
+  anonRole: anon
+  defaultRLS: "0"
+
+meta:
+  image:
+    repository: supabase/postgres-meta
+    tag: v0.91.0
+  port: 8080
+
+studio:
+  image:
+    repository: supabase/studio
+    tag: latest
+  port: 3000
+  anonKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+  serviceKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+app:
+  image:
+    repository: eduroots/app
+    tag: latest
+  port: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true

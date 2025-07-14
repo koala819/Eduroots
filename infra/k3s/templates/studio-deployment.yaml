@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.instance.name }}-studio
+  namespace: {{ .Values.instance.name }}
+  labels:
+    app: {{ .Values.instance.name }}-studio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.instance.name }}-studio
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.instance.name }}-studio
+    spec:
+      containers:
+      - name: studio
+        image: {{ .Values.studio.image.repository }}:{{ .Values.studio.image.tag }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets
+        - configMapRef:
+            name: {{ .Values.instance.name }}-config
+        env:
+        - name: STUDIO_PG_META_URL
+          value: "http://{{ .Values.instance.name }}-meta:{{ .Values.meta.port }}"
+        - name: DEFAULT_ORGANIZATION_NAME
+          value: {{ .Values.instance.name }}
+        - name: DEFAULT_PROJECT_NAME
+          value: {{ .Values.instance.name }}
+        - name: SUPABASE_PUBLIC_URL
+          value: "https://{{ .Values.instance.subdomain }}.{{ .Values.global.domain }}"
+        ports:
+        - containerPort: {{ .Values.studio.port }}
+      initContainers:
+      - name: wait-for-meta
+        image: curlimages/curl:8.14.1
+        command:
+        - sh
+        - -c
+        - until curl -f http://{{ .Values.instance.name }}-meta:{{ .Values.meta.port }}/health; do sleep 5; done

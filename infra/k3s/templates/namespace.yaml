@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.instance.name }}
+  labels:
+    app.kubernetes.io/name: {{ include "eduroots.name" . }}
+    app.kubernetes.io/instance: {{ .Values.instance.name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}

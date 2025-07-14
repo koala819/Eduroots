@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.instance.name }}-rest
+  namespace: {{ .Values.instance.name }}
+  labels:
+    app: {{ .Values.instance.name }}-rest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.instance.name }}-rest
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.instance.name }}-rest
+    spec:
+      containers:
+      - name: rest
+        image: {{ .Values.rest.image.repository }}:{{ .Values.rest.image.tag }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets
+        - configMapRef:
+            name: {{ .Values.instance.name }}-config
+        env:
+        - name: PGRST_DB_URI
+          value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@{{ .Values.instance.name }}-postgres:5432/$(POSTGRES_DB)
+        ports:
+        - containerPort: 3000
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine
+        command:
+        - sh
+        - -c
+        - until pg_isready -h {{ .Values.instance.name }}-postgres -p 5432 -U $(POSTGRES_USER); do sleep 1; done
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets

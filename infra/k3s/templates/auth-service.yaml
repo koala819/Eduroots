@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.instance.name }}-auth
+  namespace: {{ .Values.instance.name }}
+spec:
+  selector:
+    app: {{ .Values.instance.name }}-auth
+  ports:
+  - port: {{ .Values.auth.port }}
+    targetPort: {{ .Values.auth.port }}
+

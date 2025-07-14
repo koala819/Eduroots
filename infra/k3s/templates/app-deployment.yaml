@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.instance.name }}-app
+  namespace: {{ .Values.instance.name }}
+  labels:
+    app: {{ .Values.instance.name }}-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.instance.name }}-app
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.instance.name }}-app
+    spec:
+      containers:
+      - name: app
+        image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets
+        - configMapRef:
+            name: {{ .Values.instance.name }}-config
+        ports:
+        - containerPort: {{ .Values.app.port }}
+      initContainers:
+      - name: wait-for-services
+        image: curlimages/curl:8.14.1
+        command:
+        - sh
+        - -c
+        - |
+          until curl -f http://{{ .Values.instance.name }}-auth:{{ .Values.auth.port }}/health; do sleep 5; done
+          until curl -f http://{{ .Values.instance.name }}-rest:3000/; do sleep 5; done

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.instance.name }}-config
+  namespace: {{ .Values.instance.name }}
+data:
+  NODE_ENV: production
+  PORT: "{{ .Values.app.port }}"
+  GOTRUE_API_HOST: "0.0.0.0"
+  GOTRUE_API_PORT: "{{ .Values.auth.port }}"
+  GOTRUE_DB_DRIVER: postgres
+  GOTRUE_LOG_LEVEL: debug
+  GOTRUE_JWT_EXP: "{{ .Values.auth.jwtExp }}"
+  GOTRUE_EXTERNAL_GOOGLE_ENABLED: "{{ .Values.auth.google.enabled }}"
+  PGRST_DB_SCHEMAS: {{ .Values.rest.schemas }}
+  PGRST_DB_ANON_ROLE: {{ .Values.rest.anonRole }}
+  PGRST_DEFAULT_RLS: "{{ .Values.rest.defaultRLS }}"
+  PG_META_PORT: "{{ .Values.meta.port }}"
+  PG_META_DB_HOST: {{ .Values.instance.name }}-postgres
+  PG_META_DB_PORT: "5432"
+  PG_META_DB_NAME: {{ .Values.postgres.database }}
+  PG_META_DB_USER: {{ .Values.postgres.username }}
+  STUDIO_PORT: "{{ .Values.studio.port }}"
+  SUPABASE_ANON_KEY: {{ .Values.studio.anonKey }}
+  SUPABASE_SERVICE_KEY: {{ .Values.studio.serviceKey }}

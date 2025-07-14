@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.instance.name }}-meta
+  namespace: {{ .Values.instance.name }}
+  labels:
+    app: {{ .Values.instance.name }}-meta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.instance.name }}-meta
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.instance.name }}-meta
+    spec:
+      containers:
+      - name: meta
+        image: {{ .Values.meta.image.repository }}:{{ .Values.meta.image.tag }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets
+        - configMapRef:
+            name: {{ .Values.instance.name }}-config
+        env:
+        - name: PG_META_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.instance.name }}-secrets
+              key: POSTGRES_PASSWORD
+        ports:
+        - containerPort: {{ .Values.meta.port }}
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine
+        command:
+        - sh
+        - -c
+        - until pg_isready -h {{ .Values.instance.name }}-postgres -p 5432 -U $(POSTGRES_USER); do sleep 1; done
+        envFrom:
+        - secretRef:
+            name: {{ .Values.instance.name }}-secrets

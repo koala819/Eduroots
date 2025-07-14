@@ -1,0 +1,49 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.instance.name }}-ingress
+  namespace: {{ .Values.instance.name }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.instance.subdomain }}.{{ .Values.global.domain }}
+    secretName: {{ .Values.instance.name }}-tls
+  {{- end }}
+  rules:
+  - host: {{ .Values.instance.subdomain }}.{{ .Values.global.domain }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.instance.name }}-app
+            port:
+              number: {{ .Values.app.port }}
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.instance.name }}-auth
+            port:
+              number: {{ .Values.auth.port }}
+      - path: /rest
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.instance.name }}-rest
+            port:
+              number: 3000
+      - path: /studio
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.instance.name }}-studio
+            port:
+              number: {{ .Values.studio.port }}
+{{- end }}
