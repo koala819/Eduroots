@@ -1,0 +1,20 @@
+---
+# Source: argo-cd/templates/argocd-configs/argocd-rbac-cm.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: default
+  labels:
+    helm.sh/chart: argo-cd-8.1.4
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/instance: argo-cd
+    app.kubernetes.io/component: server
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/version: "v3.0.11"
+data:
+  policy.csv: ""
+  policy.default: ""
+  policy.matchMode: glob
+  scopes: '[groups]'

@@ -1,0 +1,116 @@
+---
+# Source: netdata/templates/parent/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netdata-parent
+  namespace: default
+  labels:
+    app: netdata
+    chart: netdata-3.7.141
+    release: netdata
+    heritage: Helm
+    role: parent
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: netdata
+      release: netdata
+      role: parent
+  template:
+    metadata:
+      labels:
+        app: netdata
+        release: netdata
+        role: parent
+      annotations:
+        checksum/config: b6d39786329f64643247d166944f30c706f82ab26eb3e9a98e2ddaaa53f84726
+    spec:
+      securityContext:
+        fsGroup: 201
+      serviceAccountName: netdata
+      initContainers:
+        []
+      containers:
+        - name: netdata
+          image: "netdata/netdata:v2.6.0"
+          imagePullPolicy: Always
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NETDATA_LISTENER_PORT
+              value: '19999'
+          ports:
+            - name: http
+              containerPort: 19999
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          securityContext:
+            runAsUser: 201
+            runAsGroup: 201
+          volumeMounts:
+            - name: os-release
+              mountPath: /host/etc/os-release
+            - name: configmap
+              mountPath: /etc/netdata/health_alarm_notify.conf
+              subPath: health
+            - name: configmap
+              mountPath: /etc/netdata/netdata.conf
+              subPath: netdata
+            - name: configmap
+              mountPath: /etc/netdata/stream.conf
+              subPath: stream
+            - name: database
+              mountPath: /var/cache/netdata
+            - name: alarms
+              mountPath: /var/lib/netdata
+          resources:
+            {}
+      terminationGracePeriodSeconds: 300
+      volumes:
+        - name: os-release
+          hostPath:
+            path: /etc/os-release
+        - name: configmap
+          configMap:
+            name: netdata-conf-parent
+            optional: true
+        - name: configsecret
+          secret:
+            secretName: netdata-conf-parent
+            optional: true
+        - name: database
+          persistentVolumeClaim:
+            claimName: netdata-parent-database
+        - name: alarms
+          persistentVolumeClaim:
+            claimName: netdata-parent-alarms
+      dnsPolicy: Default

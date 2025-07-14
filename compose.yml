@@ -1,5 +1,4 @@
 services:
-  # Application Next.js
   app:
     build: .
     restart: unless-stopped
@@ -18,7 +17,6 @@ services:
       - rest
       - studio
 
-  # Base de données PostgreSQL
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -39,7 +37,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Supabase Auth
   auth:
     image: supabase/gotrue:v2.177.0
     restart: unless-stopped
@@ -66,7 +63,6 @@ services:
       postgres:
         condition: service_healthy
 
-  # Supabase REST API
   rest:
     image: postgrest/postgrest:v13.0.4
     restart: unless-stopped
@@ -77,14 +73,13 @@ services:
       PGRST_DB_SCHEMAS: public,education,logs,stats,config
       PGRST_DB_ANON_ROLE: anon
       # PGRST_JWT_SECRET: ${JWT_SECRET}  # Temporairement désactivé pour Studio
-      PGRST_DEFAULT_RLS: "0"  # Désactiver RLS temporairement
+      PGRST_DEFAULT_RLS: "0" # Désactiver RLS temporairement
     networks:
       - eduroots
     depends_on:
       postgres:
         condition: service_healthy
 
-  # Supabase Meta - Service pour les métadonnées PostgreSQL
   meta:
     image: supabase/postgres-meta:v0.91.0
     restart: unless-stopped
@@ -103,7 +98,6 @@ services:
       postgres:
         condition: service_healthy
 
-  # Supabase Studio (Interface Web d'administration)
   studio:
     image: supabase/studio:latest
     restart: unless-stopped
@@ -126,8 +120,6 @@ services:
         condition: service_healthy
       meta:
         condition: service_started
-
-
 
 networks:
   eduroots:

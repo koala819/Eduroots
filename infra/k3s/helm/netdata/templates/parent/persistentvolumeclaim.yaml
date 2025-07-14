@@ -1,0 +1,36 @@
+---
+# Source: netdata/templates/parent/persistentvolumeclaim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: netdata-parent-database
+  namespace: default
+  labels:
+    app: netdata
+    chart: netdata-3.7.141
+    release: netdata
+    heritage: Helm
+    role: parent
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Source: netdata/templates/parent/persistentvolumeclaim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: netdata-parent-alarms
+  namespace: default
+  labels:
+    app: netdata
+    chart: netdata-3.7.141
+    release: netdata
+    heritage: Helm
+    role: parent
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 1Gi

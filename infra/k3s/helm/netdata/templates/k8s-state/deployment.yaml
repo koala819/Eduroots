@@ -1,0 +1,103 @@
+---
+# Source: netdata/templates/k8s-state/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netdata-k8s-state
+  namespace: monitoring
+  labels:
+    app: netdata
+    chart: netdata-3.7.141
+    release: netdata
+    heritage: Helm
+    role: k8sState
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: netdata
+      release: netdata
+      role: k8sState
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/netdata: unconfined
+        checksum/config: 513d3c77ad549c8ea0d00039d97cbe301caa49ce692c64981d85d2ff2577840e
+      labels:
+        app: netdata
+        release: netdata
+        role: k8sState
+    spec:
+      securityContext:
+        fsGroup: 201
+      serviceAccountName: netdata
+      restartPolicy: Always
+      initContainers:
+      containers:
+        - name: netdata
+          image: "netdata/netdata:v2.6.0"
+          imagePullPolicy: Always
+          env:
+            - name: NETDATA_LISTENER_PORT
+              value: '19999'
+          ports:
+            - name: http
+              containerPort: 19999
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - name: os-release
+              mountPath: /host/etc/os-release
+            - name: configmap
+              mountPath: /etc/netdata/go.d.conf
+              subPath: go.d
+            - name: configmap
+              mountPath: /etc/netdata/go.d/k8s_state.conf
+              subPath: go.d-k8s_state
+            - name: configmap
+              mountPath: /etc/netdata/netdata.conf
+              subPath: netdata
+            - name: configmap
+              mountPath: /etc/netdata/stream.conf
+              subPath: stream
+            - name: varlib
+              mountPath: /var/lib/netdata
+          resources:
+            {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: os-release
+          hostPath:
+            path: /etc/os-release
+        - name: configmap
+          configMap:
+            name: netdata-conf-k8s-state
+            optional: true
+        - name: configsecret
+          secret:
+            secretName: netdata-conf-k8s-state
+            optional: true
+        - name: varlib
+          persistentVolumeClaim:
+            claimName: netdata-k8s-state-varlib
+      dnsPolicy: ClusterFirstWithHostNet

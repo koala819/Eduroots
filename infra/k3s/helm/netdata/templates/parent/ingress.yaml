@@ -1,0 +1,27 @@
+---
+# Source: netdata/templates/parent/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netdata
+  namespace: default
+  labels:
+    app: netdata
+    chart: netdata-3.7.141
+    release: netdata
+    heritage: Helm
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+    - host: netdata.k8s.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: netdata
+                port:
+                  name: http

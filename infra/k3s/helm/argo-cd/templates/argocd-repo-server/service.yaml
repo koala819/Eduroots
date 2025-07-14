@@ -1,0 +1,24 @@
+---
+# Source: argo-cd/templates/argocd-repo-server/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    helm.sh/chart: argo-cd-8.1.4
+    app.kubernetes.io/name: argocd-repo-server
+    app.kubernetes.io/instance: argo-cd
+    app.kubernetes.io/component: repo-server
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/version: "v3.0.11"
+  name: argo-cd-argocd-repo-server
+  namespace: default
+spec:  
+  ports:
+  - name: tcp-repo-server
+    protocol: TCP
+    port: 8081
+    targetPort: repo-server
+  selector:
+    app.kubernetes.io/name: argocd-repo-server
+    app.kubernetes.io/instance: argo-cd
