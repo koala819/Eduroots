@@ -71,7 +71,7 @@
     "mongodb": "5",
     "mongoose": "8.9.5",
     "multer": "2.0.1",
-    "next": "15.3.3",
+    "next": "15.3.8",
     "next-router-mock": "0.9.13",
     "nodemailer": "6.9.14",
     "nookies": "2.5.2",
