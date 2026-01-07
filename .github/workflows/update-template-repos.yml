@@ -68,13 +68,13 @@ jobs:
       - name: 🔍 Check for changes
         id: check-changes
         run: |
-          # Check if there are changes in PWA files
-          if git diff --name-only HEAD~1 | grep -E "(PWAButton|middleware|manifest|sw\.ts)" > /dev/null; then
+          # Check if there are changes in tracked files (PWA files, package.json, or update scripts)
+          if git diff --name-only HEAD~1 | grep -E "(PWAButton|middleware|manifest|sw\.ts|package\.json|update-template-repos)" > /dev/null; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "✅ Changes detected in PWA files"
+            echo "✅ Changes detected in tracked files"
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ No changes in PWA files"
+            echo "ℹ️ No changes in tracked files"
           fi
 
       - name: 🔄 Update template repos
