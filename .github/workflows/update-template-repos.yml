@@ -24,6 +24,7 @@ on:
       - 'public/manifest.json'
       - 'app/sw.ts'
       - 'package.json'
+      - 'pnpm-lock.yaml'
       - 'scripts/update-template-repos.config.ts'
       - 'scripts/update-template-repos.ts'
 
@@ -68,8 +69,8 @@ jobs:
       - name: 🔍 Check for changes
         id: check-changes
         run: |
-          # Check if there are changes in tracked files (PWA files, package.json, or update scripts)
-          if git diff --name-only HEAD~1 | grep -E "(PWAButton|middleware|manifest|sw\.ts|package\.json|update-template-repos)" > /dev/null; then
+          # Check if there are changes in tracked files (PWA files, package.json, pnpm-lock.yaml, or update scripts)
+          if git diff --name-only HEAD~1 | grep -E "(PWAButton|middleware|manifest|sw\.ts|package\.json|pnpm-lock\.yaml|update-template-repos)" > /dev/null; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "✅ Changes detected in tracked files"
           else
