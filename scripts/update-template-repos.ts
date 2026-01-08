@@ -175,15 +175,18 @@ class TemplateUpdater {
     }
   }
 
-  async createPullRequest(owner: string, repo: string): Promise<string | null> {
+  async createPullRequest(owner: string, repo: string, prBaseBranch?: string): Promise<string | null> {
     try {
+      // Use prBaseBranch if specified, otherwise default to 'dev' (since master has branch protection)
+      const baseBranch = prBaseBranch || 'dev'
+
       const { data: pr } = await this.octokit.pulls.create({
         owner,
         repo,
         title: this.config.prTitle,
         body: this.config.prBody,
         head: this.config.branchName,
-        base: 'master',
+        base: baseBranch,
       })
 
       console.log(`✅ Pull Request created: ${pr.html_url}`)
@@ -198,7 +201,7 @@ class TemplateUpdater {
     }
   }
 
-  async updateRepo(owner: string, repo: string): Promise<UpdateResult> {
+  async updateRepo(owner: string, repo: string, prBaseBranch?: string): Promise<UpdateResult> {
     console.log(`\n🔄 Updating ${owner}/${repo}...`)
 
     try {
@@ -225,7 +228,7 @@ class TemplateUpdater {
       }
 
       // 3. Create Pull Request
-      const prUrl = await this.createPullRequest(owner, repo)
+      const prUrl = await this.createPullRequest(owner, repo, prBaseBranch)
 
       return {
         repo: `${owner}/${repo}`,
@@ -270,7 +273,13 @@ class TemplateUpdater {
         continue
       }
 
-      const result = await this.updateRepo(repo.owner.login, repo.name)
+      // Find the corresponding config to get prBaseBranch
+      const repoConfig = this.config.reposToUpdate.find(
+        (r) => r.owner === repo.owner.login && r.name === repo.name
+      )
+      const prBaseBranch = repoConfig?.prBaseBranch
+
+      const result = await this.updateRepo(repo.owner.login, repo.name, prBaseBranch)
       results.push(result)
 
       // Delay between repos to avoid rate limits
