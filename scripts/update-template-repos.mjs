@@ -36,7 +36,8 @@ const config = {
 
   // Repos to update (manual list)
   reposToUpdate: [
-    { owner: 'koala819', name: 'Eduroots_COLOMIERS', defaultBranch: 'master' },
+    { owner: 'koala819', name: 'Eduroots_COLOMIERS', defaultBranch: 'master', prBaseBranch: 'dev' },
+    { owner: 'koala819', name: 'Eduroots_DEMO', defaultBranch: 'master', prBaseBranch: 'dev' },
   ],
 
   // Pull Request message
@@ -294,13 +295,16 @@ class TemplateUpdater {
 
   async createPullRequest(repo) {
     try {
+      // Use prBaseBranch if specified, otherwise default to 'dev' (since master has branch protection)
+      const baseBranch = repo.prBaseBranch || 'dev';
+
       const { data: pr } = await this.octokit.pulls.create({
         owner: repo.owner,
         repo: repo.name,
         title: this.config.prTitle,
         body: this.config.prBody,
         head: this.config.branchName,
-        base: repo.defaultBranch || 'master',
+        base: baseBranch,
       });
 
       return pr;

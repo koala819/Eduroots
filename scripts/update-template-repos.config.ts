@@ -25,6 +25,7 @@ export interface TemplateConfig {
     owner: string
     name: string
     defaultBranch?: string
+    prBaseBranch?: string
   }>
 
   // Advanced options
@@ -70,7 +71,8 @@ export const config: TemplateConfig = {
 
   // Repos to update (manual list)
   reposToUpdate: [
-    { owner: 'koala819', name: 'Eduroots_COLOMIERS', defaultBranch: 'master' },
+    { owner: 'koala819', name: 'Eduroots_COLOMIERS', defaultBranch: 'master', prBaseBranch: 'dev' },
+    { owner: 'koala819', name: 'Eduroots_DEMO', defaultBranch: 'master', prBaseBranch: 'dev' },
   ],
 
   // Pull Request message
