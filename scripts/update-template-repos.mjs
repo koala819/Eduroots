@@ -32,6 +32,7 @@ const config = {
     'app/sw.ts',
     'package.json',
     'pnpm-lock.yaml',
+    '.github/workflows/main.yml',
   ],
 
   // Repos to update (manual list)
