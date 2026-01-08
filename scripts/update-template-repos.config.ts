@@ -65,6 +65,7 @@ export const config: TemplateConfig = {
     'public/manifest.json',
     'app/sw.ts',
     'package.json',
+    'pnpm-lock.yaml',
   ],
 
   // Repos to update (manual list)

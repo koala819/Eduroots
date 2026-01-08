@@ -31,6 +31,7 @@ const config = {
     'public/manifest.json',
     'app/sw.ts',
     'package.json',
+    'pnpm-lock.yaml',
   ],
 
   // Repos to update (manual list)
