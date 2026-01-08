@@ -81,13 +81,14 @@ class TemplateUpdater {
     }
   }
 
-  async createUpdateBranch(owner: string, repo: string): Promise<boolean> {
+  async createUpdateBranch(owner: string, repo: string, sourceBranch: string = 'dev'): Promise<boolean> {
     try {
-      // Get main branch
-      const { data: mainBranch } = await this.octokit.repos.getBranch({
+      // Use dev branch as source (since PRs go to dev, not master)
+      // This avoids workflow rules that block branches created from master
+      const { data: sourceBranchData } = await this.octokit.repos.getBranch({
         owner,
         repo,
-        branch: 'master',
+        branch: sourceBranch,
       })
 
       // Create new branch
@@ -95,7 +96,7 @@ class TemplateUpdater {
         owner,
         repo,
         ref: `refs/heads/${this.config.branchName}`,
-        sha: mainBranch.commit.sha,
+        sha: sourceBranchData.commit.sha,
       })
 
       console.log(`✅ Branch ${this.config.branchName} created for ${owner}/${repo}`)
@@ -133,12 +134,12 @@ class TemplateUpdater {
 
   async updateFile(owner: string, repo: string, filePath: string): Promise<void> {
     try {
-      // Get file content from template
+      // Get file content from template (use dev branch where changes are made)
       const { data: templateFile } = await this.octokit.repos.getContent({
         owner: this.config.templateOwner,
         repo: this.config.templateRepo,
         path: filePath,
-        ref: 'master',
+        ref: 'dev',
       }) as { data: TemplateFile }
 
       // Get current file content in repo
@@ -205,8 +206,9 @@ class TemplateUpdater {
     console.log(`\n🔄 Updating ${owner}/${repo}...`)
 
     try {
-      // 1. Create update branch
-      const branchCreated = await this.createUpdateBranch(owner, repo)
+      // 1. Create update branch (use dev as source since PRs go to dev)
+      const sourceBranch = prBaseBranch || 'dev'
+      const branchCreated = await this.createUpdateBranch(owner, repo, sourceBranch)
       if (!branchCreated) {
         return {
           repo: `${owner}/${repo}`,

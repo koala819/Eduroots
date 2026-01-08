@@ -184,19 +184,15 @@ class TemplateUpdater {
 
   async createOrUpdateBranch(repo) {
     try {
-      // Get the default branch (master or dev)
-      const { data: repoData } = await this.octokit.repos.get({
-        owner: repo.owner,
-        repo: repo.name,
-      });
+      // Use dev branch as source (since PRs go to dev, not master)
+      // This avoids workflow rules that block branches created from master
+      const sourceBranch = repo.prBaseBranch || 'dev';
 
-      const defaultBranch = repo.defaultBranch || repoData.default_branch;
-
-      // Get the latest commit from default branch
+      // Get the latest commit from source branch (dev)
       const { data: commits } = await this.octokit.repos.listCommits({
         owner: repo.owner,
         repo: repo.name,
-        sha: defaultBranch,
+        sha: sourceBranch,
         per_page: 1,
       });
 
@@ -247,12 +243,12 @@ class TemplateUpdater {
 
   async updateFile(owner, repo, filePath) {
     try {
-      // Get file content from template
+      // Get file content from template (use dev branch where changes are made)
       const { data: templateFile } = await this.octokit.repos.getContent({
         owner: this.config.templateOwner,
         repo: this.config.templateRepo,
         path: filePath,
-        ref: 'master',
+        ref: 'dev',
       });
 
       // Get current file content in repo
