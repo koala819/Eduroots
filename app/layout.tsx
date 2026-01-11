@@ -22,7 +22,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
 import { ToastContainer } from 'react-toastify'
 
-import { ClearServiceWorkerCache } from '@/client/components/atoms/ClearServiceWorkerCache'
+import { ServiceWorkerUpdateManager } from '@/client/components/atoms/ServiceWorkerUpdateManager'
 import { SuppressReact19Warning } from '@/client/components/atoms/SuppressReact19Warning'
 import { Toaster } from '@/client/components/ui/toaster'
 import { cn } from '@/server/utils/helpers'
@@ -184,7 +184,7 @@ export default async function DashboardLayout({
           fontSans.variable,
         )}
       >
-        <ClearServiceWorkerCache />
+        <ServiceWorkerUpdateManager />
         <SuppressReact19Warning />
         {children}
 
