@@ -35,6 +35,9 @@ const config = {
     'utils/**', // Dossiers spécifiques à chaque instance
     'db_migration/**',
     'docker/**',
+    'scripts/**', // Scripts de mise à jour (ne doivent pas être copiés)
+    '.github/workflows/update-template-repos.yml', // Workflow de mise à jour lui-même
+    'public/Logo.jpg', // Assets spécifiques à chaque instance
   ],
 
   // Repos to update (manual list)
