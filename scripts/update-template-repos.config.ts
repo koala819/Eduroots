@@ -14,8 +14,8 @@ export interface TemplateConfig {
   branchName: string
   prTitle: string
 
-  // Files to update from template
-  filesToUpdate: string[]
+  // Files to exclude from automatic sync
+  filesToExclude: string[]
 
   // Pull Request message
   prBody: string
@@ -59,15 +59,17 @@ export const config: TemplateConfig = {
   branchName: 'update-from-template',
   prTitle: '🔄 Update from template',
 
-  // Files to update from template
-  filesToUpdate: [
-    'client/components/atoms/PWAButton.tsx',
-    'middleware.ts',
-    'public/manifest.json',
-    'app/sw.ts',
-    'package.json',
-    'pnpm-lock.yaml',
-    '.github/workflows/main.yml',
+  // Files to exclude from automatic sync (fichiers spécifiques à chaque instance)
+  filesToExclude: [
+    '.env',
+    '.env.local',
+    '.env.production',
+    'node_modules/**',
+    '.next/**',
+    '.git/**',
+    'utils/**', // Dossiers spécifiques à chaque instance
+    'db_migration/**',
+    'docker/**',
   ],
 
   // Repos to update (manual list)
