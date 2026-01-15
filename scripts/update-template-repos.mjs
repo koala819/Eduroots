@@ -24,15 +24,20 @@ const config = {
   branchName: 'update-from-template',
   prTitle: '🔄 Update from template',
 
-  // Files to update from template
-  filesToUpdate: [
-    'client/components/atoms/PWAButton.tsx',
-    'middleware.ts',
-    'public/manifest.json',
-    'app/sw.ts',
-    'package.json',
-    'pnpm-lock.yaml',
-    '.github/workflows/main.yml',
+  // Files to exclude from automatic sync (fichiers spécifiques à chaque instance)
+  filesToExclude: [
+    '.env',
+    '.env.local',
+    '.env.production',
+    'node_modules/**',
+    '.next/**',
+    '.git/**',
+    'utils/**', // Dossiers spécifiques à chaque instance
+    'db_migration/**',
+    'docker/**',
+    'scripts/**', // Scripts de mise à jour (ne doivent pas être copiés)
+    '.github/workflows/update-template-repos.yml', // Workflow de mise à jour lui-même
+    'public/Logo.jpg', // Assets spécifiques à chaque instance
   ],
 
   // Repos to update (manual list)
@@ -135,6 +140,84 @@ class TemplateUpdater {
     this.printSummary(results);
   }
 
+  // Récupérer récursivement tous les fichiers d'un répertoire
+  async getAllFiles(owner, repo, path = '', ref = 'dev') {
+    const files = [];
+
+    try {
+      const { data: contents } = await this.octokit.repos.getContent({
+        owner,
+        repo,
+        path: path || '.',
+        ref,
+      });
+
+      // Si c'est un tableau (répertoire)
+      if (Array.isArray(contents)) {
+        for (const item of contents) {
+          if (item.type === 'file') {
+            // Vérifier si le fichier doit être exclu
+            const shouldExclude = this.config.filesToExclude.some(exclude => {
+              // Convertir le pattern en regex
+              // ** correspond à n'importe quel chemin
+              // * correspond à n'importe quel nom de fichier/répertoire
+              let pattern = exclude
+                .replace(/\./g, '\\.') // Échapper les points
+                .replace(/\*\*/g, '.*') // ** devient .*
+                .replace(/\*/g, '[^/]*'); // * devient [^/]*
+
+              const regex = new RegExp(`^${pattern}$`);
+              return regex.test(item.path);
+            });
+
+            if (!shouldExclude) {
+              files.push(item.path);
+            }
+          } else if (item.type === 'dir') {
+            // Vérifier si le répertoire doit être exclu
+            const shouldExcludeDir = this.config.filesToExclude.some(exclude => {
+              let pattern = exclude
+                .replace(/\./g, '\\.')
+                .replace(/\*\*/g, '.*')
+                .replace(/\*/g, '[^/]*');
+
+              const regex = new RegExp(`^${pattern}$`);
+              return regex.test(item.path) || item.path.startsWith(exclude.replace(/\*\*/g, ''));
+            });
+
+            if (!shouldExcludeDir) {
+              // Récursion pour les sous-répertoires
+              const subFiles = await this.getAllFiles(owner, repo, item.path, ref);
+              files.push(...subFiles);
+            }
+          }
+        }
+      } else if (contents.type === 'file') {
+        // Si c'est un fichier unique
+        const shouldExclude = this.config.filesToExclude.some(exclude => {
+          // Convertir le pattern en regex
+          let pattern = exclude
+            .replace(/\./g, '\\.') // Échapper les points
+            .replace(/\*\*/g, '.*') // ** devient .*
+            .replace(/\*/g, '[^/]*'); // * devient [^/]*
+
+          const regex = new RegExp(`^${pattern}$`);
+          return regex.test(contents.path);
+        });
+
+        if (!shouldExclude) {
+          files.push(contents.path);
+        }
+      }
+    } catch (error) {
+      if (error.status !== 404) {
+        console.error(`  ⚠️  Error getting files from ${path}:`, error.message);
+      }
+    }
+
+    return files;
+  }
+
   async updateRepo(repo) {
     try {
       // Check if repo exists and we have access
@@ -146,14 +229,35 @@ class TemplateUpdater {
       // Create or update branch
       await this.createOrUpdateBranch(repo);
 
+      // Récupérer automatiquement tous les fichiers du template
+      console.log(`  🔍 Scanning template files...`);
+      const templateFiles = await this.getAllFiles(
+        this.config.templateOwner,
+        this.config.templateRepo,
+        '',
+        'dev'
+      );
+      console.log(`  📋 Found ${templateFiles.length} files in template`);
+
       // Update files
-      let filesUpdated = false;
-      for (const filePath of this.config.filesToUpdate) {
-        const updated = await this.updateFile(repo.owner, repo.name, filePath);
-        if (updated) filesUpdated = true;
+      let filesUpdated = 0;
+      let filesSkipped = 0;
+      let filesError = 0;
+
+      for (const filePath of templateFiles) {
+        const result = await this.updateFile(repo.owner, repo.name, filePath);
+        if (result === 'updated') {
+          filesUpdated++;
+        } else if (result === 'skipped') {
+          filesSkipped++;
+        } else {
+          filesError++;
+        }
       }
 
-      if (!filesUpdated) {
+      console.log(`  📊 Summary: ${filesUpdated} updated, ${filesSkipped} skipped, ${filesError} errors`);
+
+      if (filesUpdated === 0) {
         console.log(`  ℹ️  No files to update for ${repo.owner}/${repo.name}`);
         return false;
       }
@@ -252,40 +356,78 @@ class TemplateUpdater {
         ref: 'dev',
       });
 
-      // Get current file content in repo
-      const { data: currentFile } = await this.octokit.repos.getContent({
-        owner,
-        repo,
-        path: filePath,
-        ref: this.config.branchName,
-      });
+      if (templateFile.type !== 'file') {
+        return 'skipped';
+      }
+
+      // Get current file content in repo (try branch first, then default branch)
+      let currentFile = null;
+      let currentSha = null;
+
+      try {
+        const { data } = await this.octokit.repos.getContent({
+          owner,
+          repo,
+          path: filePath,
+          ref: this.config.branchName,
+        });
+        currentFile = data;
+        currentSha = data.sha;
+      } catch (error) {
+        if (error.status === 404) {
+          // File doesn't exist in branch, try default branch
+          try {
+            const { data } = await this.octokit.repos.getContent({
+              owner,
+              repo,
+              path: filePath,
+              ref: 'dev', // ou master selon la config
+            });
+            currentFile = data;
+            currentSha = data.sha;
+          } catch (e) {
+            // File doesn't exist at all, we'll create it
+            currentSha = null;
+          }
+        } else {
+          throw error;
+        }
+      }
 
       // Compare contents
-      if (templateFile.sha !== currentFile.sha) {
-        // Update file
+      if (templateFile.sha !== currentSha) {
+        // Update or create file
         await this.octokit.repos.createOrUpdateFileContents({
           owner,
           repo,
           path: filePath,
           message: `🔄 Update ${filePath} from template`,
           content: templateFile.content,
-          sha: currentFile.sha,
+          sha: currentSha, // null si le fichier n'existe pas
           branch: this.config.branchName,
         });
 
-        console.log(`  📝 ${filePath} updated`);
-        return true;
+        if (currentSha) {
+          console.log(`  📝 ${filePath} updated`);
+        } else {
+          console.log(`  ➕ ${filePath} created`);
+        }
+        return 'updated';
       } else {
-        console.log(`  ✅ ${filePath} already up to date`);
-        return false;
+        if (this.config.options.debug) {
+          console.log(`  ✅ ${filePath} already up to date`);
+        }
+        return 'skipped';
       }
     } catch (error) {
       if (error.status === 404) {
-        console.log(`  ⚠️  ${filePath} doesn't exist in repo`);
-        return false;
+        if (this.config.options.debug) {
+          console.log(`  ⚠️  ${filePath} doesn't exist in template or repo`);
+        }
+        return 'skipped';
       } else {
         console.error(`  ❌ Error updating ${filePath}:`, error.message);
-        return false;
+        return 'error';
       }
     }
   }
