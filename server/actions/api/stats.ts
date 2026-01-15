@@ -164,7 +164,7 @@ export async function updateTeacherStats(
     }
 
     const { data: stats, error } = await supabase
-      .schema('education')
+      .schema('stats')
       .from('teacher_stats')
       .upsert({
         user_id: id,
