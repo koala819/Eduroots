@@ -36,6 +36,8 @@ GRANT ALL ON SCHEMA public TO supabase_admin;
 
 -- Schéma education
 CREATE SCHEMA IF NOT EXISTS education;
+GRANT USAGE ON SCHEMA education TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA education TO supabase_admin;
 CREATE TABLE education.attendance_records (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     attendance_id UUID,
@@ -268,6 +270,8 @@ CREATE UNIQUE INDEX users_mongo_id_key ON education.users USING btree (mongo_id)
 
 -- Schéma logs
 CREATE SCHEMA IF NOT EXISTS logs;
+GRANT USAGE ON SCHEMA logs TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA logs TO supabase_admin;
 CREATE TABLE logs.connection_logs (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     user_id UUID,
@@ -287,6 +291,8 @@ ALTER TABLE logs.connection_logs ADD PRIMARY KEY (id);
 
 -- Schéma stats
 CREATE SCHEMA IF NOT EXISTS stats;
+GRANT USAGE ON SCHEMA stats TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA stats TO supabase_admin;
 CREATE TABLE stats.global_stats (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     total_students INTEGER DEFAULT 0,
@@ -384,6 +390,8 @@ CREATE UNIQUE INDEX teacher_stats_user_id_idx ON stats.teacher_stats USING btree
 
 -- Schéma config
 CREATE SCHEMA IF NOT EXISTS config;
+GRANT USAGE ON SCHEMA config TO anon, authenticated, service_role;
+GRANT ALL ON SCHEMA config TO supabase_admin;
 CREATE TABLE config.app_config (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     academic_year_start DATE NOT NULL,
