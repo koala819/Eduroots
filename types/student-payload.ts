@@ -37,6 +37,8 @@ export type StudentResponse = Pick<User,
   'date_of_birth' |
   'secondary_email' |
   'phone' |
+  'secondary_phone' |
+  'whatsapp_phone' |
   'school_year' |
   'is_active'
 >

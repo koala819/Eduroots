@@ -309,6 +309,8 @@ export type User = {
   teacher_stats_id: string | null //uuid
   role: string
   phone: string | null
+  secondary_phone: string | null
+  whatsapp_phone: string | null
   created_at: Date | null
   updated_at: Date | null
   has_invalid_email: boolean

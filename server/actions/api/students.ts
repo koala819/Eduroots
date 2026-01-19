@@ -42,6 +42,8 @@ export async function createStudent(
         gender: studentData.gender,
         secondary_email: studentData.secondary_email,
         phone: studentData.phone,
+        secondary_phone: studentData.secondary_phone,
+        whatsapp_phone: studentData.whatsapp_phone,
         school_year: studentData.school_year,
         subjects: studentData.subjects,
         has_invalid_email: studentData.has_invalid_email,
@@ -198,6 +200,8 @@ export async function getOneStudent(studentId: string): Promise<ApiResponse<Stud
         date_of_birth,
         secondary_email,
         phone,
+        secondary_phone,
+        whatsapp_phone,
         school_year,
         is_active
       `)
@@ -314,6 +318,8 @@ export async function getTeachersForStudent(
         date_of_birth,
         secondary_email,
         phone,
+        secondary_phone,
+        whatsapp_phone,
         school_year,
         is_active
       `)
@@ -381,6 +387,8 @@ export async function updateStudent(
         date_of_birth,
         secondary_email,
         phone,
+        secondary_phone,
+        whatsapp_phone,
         school_year,
         is_active
       `)
@@ -451,6 +459,8 @@ export async function createStudentWithCourses(
         gender: studentData.gender,
         secondary_email: studentData.secondary_email,
         phone: studentData.phone,
+        secondary_phone: studentData.secondary_phone,
+        whatsapp_phone: studentData.whatsapp_phone,
         school_year: studentData.school_year,
         subjects: studentData.subjects,
         has_invalid_email: studentData.has_invalid_email,

@@ -120,6 +120,8 @@ export async function getStudentDetailedData(
               student_stats_id: null,
               teacher_stats_id: null,
               phone: null,
+              secondary_phone: null,
+              whatsapp_phone: null,
               created_at: null,
               updated_at: null,
               has_invalid_email: false,
@@ -189,6 +191,8 @@ export async function getFamilyDashboardData(
         date_of_birth,
         secondary_email,
         phone,
+        secondary_phone,
+        whatsapp_phone,
         school_year
       `)
       .eq('email', familyEmail)
@@ -282,6 +286,8 @@ export async function getFamilyAllStudentsData(
         date_of_birth,
         secondary_email,
         phone,
+        secondary_phone,
+        whatsapp_phone,
         school_year
       `)
       .eq('email', familyEmail)
