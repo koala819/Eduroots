@@ -12,6 +12,7 @@ declare global {
   }
 }
 
+// eslint-disable-next-line no-undef
 declare const self: ServiceWorkerGlobalScope
 
 // Version 1.0.4 - Ajout des notifications push
@@ -29,11 +30,25 @@ serwist.addEventListeners()
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
-      // Supprimer les anciens caches
+      // Supprimer uniquement les anciens caches qui ne sont plus dans le manifest
       caches.keys().then((cacheNames) => {
+        const currentCachePrefix = 'serwist-precache'
         return Promise.all(
           cacheNames.map((cacheName) => {
-            return caches.delete(cacheName)
+            // Garder les caches Serwist actuels, supprimer les anciens
+            if (cacheName.startsWith(currentCachePrefix)) {
+              // Vérifier si c'est un cache obsolète en comparant avec le scope
+              const currentScope = self.registration.scope
+              if (!cacheName.includes(currentScope)) {
+                return caches.delete(cacheName)
+              }
+              return Promise.resolve()
+            }
+            // Supprimer les autres caches obsolètes (comme 'manifest')
+            if (cacheName === 'manifest') {
+              return caches.delete(cacheName)
+            }
+            return Promise.resolve()
           }),
         )
       }),
@@ -43,20 +58,25 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+// Écouter les messages du client (notamment SKIP_WAITING)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
+// Gestion du manifest.json - Ne pas le mettre en cache pour permettre la vérification de version
 self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/manifest.json')) {
-    const manifestUrl = new URL(event.request.url)
-    manifestUrl.searchParams.set('v', '2')
-
+    // Toujours récupérer depuis le réseau pour avoir la dernière version
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-store' })
         .then((response) => {
-          return caches.open('manifest').then((cache) => {
-            cache.put(event.request, response.clone())
-            return response
-          })
+          // Ne pas mettre en cache pour permettre la détection de nouvelles versions
+          return response
         })
         .catch(() => {
+          // En cas d'erreur réseau, essayer le cache en dernier recours
           return caches.match(event.request).then((response) => {
             if (response) {
               return response

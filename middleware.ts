@@ -1,38 +1,30 @@
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-const SU_ROLE = 'admin'
-const ADMIN_ROLES = ['admin', 'bureau']
-const TEACHER_ROLE = 'teacher'
-const STUDENT_ROLE = 'student'
-
-// Routes qui ne nécessitent pas d'authentification
-const PUBLIC_ROUTES = [
-  '/link-account',
-  '/auth',
-  '/unauthorized',
-  '/forgot-password',
-  '/write-new-password',
-  '/terms',
-  '/license',
-]
-
-const SU_ROUTES = ['/admin/root/logs']
-const ADMIN_ROUTES = ['/admin']
-const TEACHER_ROUTES = ['/teacher']
-const STUDENT_ROUTES = ['/family']
-
 export async function middleware(req: NextRequest) {
-  // PARTIE 1: Gestion des sessions Supabase
+  const pathname = req.nextUrl.pathname
+
+  // Exclure TOUS les fichiers statiques et PWA
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname.startsWith('/icon-') ||
+    pathname.startsWith('/touch-icon-') ||
+    pathname === '/splash.png' ||
+    pathname === '/favicon.ico' ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|woff|woff2|ttf|eot|css|js)$/)
+  ) {
+    return NextResponse.next()
+  }
+
+  // Logique d'authentification simplifiée
   let response = NextResponse.next({
     request: {
       headers: req.headers,
     },
   })
-
-  const cookieStore = await cookies()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +32,7 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return req.cookies.getAll()
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
@@ -51,7 +43,16 @@ export async function middleware(req: NextRequest) {
     },
   )
 
-  const pathname = req.nextUrl.pathname
+  // Routes publiques
+  const PUBLIC_ROUTES = [
+    '/link-account',
+    '/auth',
+    '/unauthorized',
+    '/forgot-password',
+    '/write-new-password',
+    '/terms',
+    '/license',
+  ]
 
   // Si c'est la page d'accueil ou une route publique
   if (pathname === '/' || PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
@@ -59,7 +60,7 @@ export async function middleware(req: NextRequest) {
     return response
   }
 
-  // PARTIE 2: Vérification de l'authentification
+  // Vérification de l'authentification
   const {
     data: { user },
     error,
@@ -73,29 +74,20 @@ export async function middleware(req: NextRequest) {
   const userRole = user.user_metadata?.role
 
   if (!userRole) {
-    console.log('❌ Middleware - Pas de rôle dans les métadonnées')
     return NextResponse.redirect(
       new URL('/unauthorized?error=AccessDenied', req.url),
     )
   }
 
-  // PARTIE 3: Vérification des autorisations par rôle
-
-  // Vérification des routes SuperUser (SU)
-  if (SU_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (userRole !== SU_ROLE) {
-      console.log('❌ SU Access denied for role:', userRole)
-      return NextResponse.redirect(
-        new URL('/unauthorized?error=AccessDenied', req.url),
-      )
-    }
-    return response
-  }
+  // Vérification des autorisations par rôle
+  const ADMIN_ROLES = ['admin', 'bureau']
+  const ADMIN_ROUTES = ['/admin']
+  const TEACHER_ROUTES = ['/teacher']
+  const STUDENT_ROUTES = ['/family']
 
   // Vérification des routes admin
   if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!ADMIN_ROLES.includes(userRole)) {
-      console.log('❌ Admin Access denied for role:', userRole)
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
@@ -105,8 +97,7 @@ export async function middleware(req: NextRequest) {
 
   // Vérification des routes teacher
   if (TEACHER_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (userRole !== TEACHER_ROLE) {
-      console.log('❌ Teacher Access denied for role:', userRole)
+    if (userRole !== 'teacher') {
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
@@ -116,14 +107,14 @@ export async function middleware(req: NextRequest) {
 
   // Vérification des routes family
   if (STUDENT_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (userRole !== STUDENT_ROLE) {
-      console.log('❌ Family Access denied for role:', userRole)
+    if (userRole !== 'student') {
       return NextResponse.redirect(
         new URL('/unauthorized?error=AccessDenied', req.url),
       )
     }
     return response
   }
+
   return response
 }
 
@@ -133,10 +124,13 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
+     * - _next/webpack-hmr (hot module replacement)
      * - favicon.ico (favicon file)
-     * - public folder
-     * - images (svg, png, jpg, etc.)
+     * - manifest.json (PWA manifest)
+     * - sw.js (service worker)
+     * - public folder assets (images, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // eslint-disable-next-line max-len
+    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|manifest.json|sw.js|icon-|touch-icon-|splash.png).*)',
   ],
 }

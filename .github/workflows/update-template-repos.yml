@@ -1,0 +1,115 @@
+name: 🔄 Update Template Repos
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+      bypass_protection:
+        description: 'Bypass branch protection rules (auto-merge)'
+        required: false
+        default: true
+        type: boolean
+
+  # Automatic trigger on push to dev (tous les fichiers sont synchronisés automatiquement)
+  push:
+    branches: [dev]
+    paths-ignore:
+      - 'utils/**'
+      - 'db_migration/**'
+      - 'docker/**'
+      - 'scripts/**'
+      - '.github/workflows/update-template-repos.yml'
+      - 'public/Logo.jpg'
+      - '.env*'
+      - 'node_modules/**'
+      - '.next/**'
+      - 'README.md'
+      - '*.md'
+
+  # Weekly trigger (Sunday at 9am)
+  schedule:
+    - cron: '0 9 * * 0'
+
+  # Trigger on merge to master (pull_request closed and merged)
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+jobs:
+  update-template-repos:
+    name: 🔄 Template repos update
+    runs-on: ubuntu-latest
+
+    # Avoid concurrent executions
+    concurrency:
+      group: update-template-repos
+      cancel-in-progress: false
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Check for changes
+        id: check-changes
+        run: |
+          # Vérifier s'il y a des changements (tous les fichiers sont synchronisés automatiquement)
+          # On ignore les fichiers spécifiques à chaque instance
+          if git diff --name-only HEAD~1 | grep -vE "(utils/|db_migration/|docker/|\.env|node_modules|\.next|README\.md|\.md$)" | grep -q .; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "✅ Changes detected - all files will be synced automatically"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No relevant changes detected"
+          fi
+
+      - name: 🔄 Update template repos
+        if: |
+          steps.check-changes.outputs.has_changes == 'true' ||
+          github.event.inputs.force_update == 'true' ||
+          (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+        run: |
+          echo "🚀 Starting automatic update"
+          echo "📋 Template: ${{ github.repository }}"
+          echo "🔑 Token configured: ${{ secrets.TOKEN != '' }}"
+          echo "🛡️ Bypass protection: ${{ github.event.inputs.bypass_protection == 'true' || 'true' }}"
+
+          # Run the update script
+          node scripts/update-template-repos.mjs
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          TEMPLATE_OWNER: ${{ github.repository_owner }}
+          TEMPLATE_REPO: ${{ github.event.repository.name }}
+          DEBUG: ${{ github.event.inputs.force_update == 'true' }}
+          BYPASS_PROTECTION: ${{ github.event.inputs.bypass_protection == 'true' || 'true' }}
+
+      - name: ✅ Success
+        if: success()
+        run: |
+          echo "🎉 Template repos update completed successfully!"
+          echo "📊 Check the logs above for detailed results"
+
+      - name: ❌ Failure
+        if: failure()
+        run: |
+          echo "❌ Template repos update failed!"
+          echo "🔍 Check the logs above for error details"

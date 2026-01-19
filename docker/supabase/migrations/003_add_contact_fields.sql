@@ -1,5 +1,5 @@
--- docker/supabase/migrations/002_add_contact_fields.sql
--- Migration 002: add contact fields
+-- docker/supabase/migrations/003_add_contact_fields.sql
+-- Migration 003: add contact fields
 -- Date: 2025-07-09
 
 -- add contact fields
