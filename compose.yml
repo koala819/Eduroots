@@ -76,8 +76,12 @@ services:
       PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eduroots}
       PGRST_DB_SCHEMAS: public,education,logs,stats,config
       PGRST_DB_ANON_ROLE: anon
+      PGRST_SERVER_PORT: 3001
+      PGRST_SERVER_HOST: 0.0.0.0
       # PGRST_JWT_SECRET: ${JWT_SECRET}  # Temporairement désactivé pour Studio
       PGRST_DEFAULT_RLS: "0"  # Désactiver RLS temporairement
+    ports:
+      - "3001:3001"
     networks:
       - eduroots
     depends_on:
