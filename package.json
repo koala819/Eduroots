@@ -8,6 +8,10 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf .next node_modules pnpm-lock.yaml",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "predev": "node scripts/ensure-docker-up.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
