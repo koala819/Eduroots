@@ -59,13 +59,13 @@ function startDockerServices() {
  */
 function checkRequiredServices() {
   const missingServices = []
-  
+
   for (const service of REQUIRED_SERVICES) {
     if (!isServiceRunning(service)) {
       missingServices.push(service)
     }
   }
-  
+
   return missingServices
 }
 
@@ -88,17 +88,17 @@ function main() {
 
   // Vérifier les services requis
   const missingServices = checkRequiredServices()
-  
+
   if (missingServices.length > 0) {
     console.log(`📦 Services manquants détectés: ${missingServices.join(', ')}`)
     console.log('   Démarrage automatique des services...')
-    
+
     if (!startDockerServices()) {
       console.error('❌ Impossible de démarrer les services Docker.')
       console.error('   Veuillez démarrer manuellement avec: docker-compose up -d')
       process.exit(1)
     }
-    
+
     // Attendre un peu pour que les services démarrent
     console.log('⏳ Attente du démarrage des services...')
     setTimeout(() => {
