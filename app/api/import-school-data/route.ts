@@ -5,6 +5,27 @@ import { TimeEnum } from '@/types/courses'
 import { Database } from '@/types/db'
 import { GenderEnum,UserRoleEnum } from '@/types/user'
 
+function normalizeFamilyValue(value?: string): string {
+  if (!value) return ''
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+function getFamilyKey(lastname?: string, email?: string, phone?: string): string {
+  const nameKey = normalizeFamilyValue(lastname) || 'inconnu'
+  const contactValue = normalizeFamilyValue(email || phone)
+  const contactKey = contactValue.replace(/[^a-z0-9]/g, '') || 'inconnu'
+  return `${nameKey}:${contactKey}`
+}
+
+function getFamilyLabel(lastname?: string): string {
+  const name = lastname?.trim()
+  return name ? `Famille ${name}` : 'Famille inconnue'
+}
+
 // Fonction utilitaire pour échapper les logs de manière sécurisée
 function sanitizeForLog(value: string | number): string {
   const sanitizedValue = String(value)
@@ -164,14 +185,14 @@ export async function POST(req: NextRequest) {
     // 2. Importation des étudiants
     const studentIdMap: Record<string, string> = {}
     if (students?.length > 0) {
-      const studentData: Database['education']['Tables']['users']['Insert'][] =
-        students.map((s: ImportStudent) => {
-          const validatedId = validateId(s.id)
-          if (!validatedId) {
-            console.warn(`ID d'étudiant invalide ignoré: [${sanitizeForLog(s.id)}]`)
-            return null
-          }
-          return {
+      const studentInsertEntries = students.map((s: ImportStudent, index: number) => {
+        const validatedId = validateId(s.id)
+        const importKey = validatedId ?? `row-${index + 1}`
+        return {
+          importKey,
+          familyKey: getFamilyKey(s.lastname, s.email, s.phone),
+          familyLabel: getFamilyLabel(s.lastname),
+          insert: {
             firstname: s.firstname,
             lastname: s.lastname,
             email: s.email?.toLowerCase() ?? '',
@@ -183,25 +204,73 @@ export async function POST(req: NextRequest) {
             is_active: true,
             date_of_birth: s.dateOfBirth ? new Date(s.dateOfBirth) : null,
             type: 'student',
-          }
-        }).filter(Boolean) as Database['education']['Tables']['users']['Insert'][]
+          } as Database['education']['Tables']['users']['Insert'],
+        }
+      })
 
       const { data: insertedStudents, error: studentError } = await supabase
         .schema('education')
         .from('users')
-        .insert(studentData)
+        .insert(studentInsertEntries.map((entry: { insert: Database['education']['Tables']['users']['Insert'] }) => entry.insert))
         .select()
 
       if (studentError) throw studentError
 
+      const familyGroups = new Map<string, {label: string; studentIds: string[]}>()
+
       insertedStudents?.forEach((student, index) => {
-        const validatedId = validateId(students[index].id)
-        if (validatedId) {
-          studentIdMap[validatedId] = student.id
+        const entry = studentInsertEntries[index]
+        studentIdMap[entry.importKey] = student.id
+
+        const group = familyGroups.get(entry.familyKey)
+        if (group) {
+          group.studentIds.push(student.id)
+        } else {
+          familyGroups.set(entry.familyKey, {
+            label: entry.familyLabel,
+            studentIds: [student.id],
+          })
         }
       })
 
       logs.push(`${insertedStudents?.length} étudiants insérés.`)
+
+      if (familyGroups.size > 0) {
+        const familyEntries = Array.from(familyGroups.entries()).map(([key, group]) => ({
+          familyKey: key,
+          label: group.label,
+          studentIds: group.studentIds,
+        }))
+
+        const { data: insertedFamilies, error: familyError } = await supabase
+          .schema('education')
+          .from('families')
+          .insert(familyEntries.map((entry) => ({
+            label: entry.label,
+            divorced: false,
+            is_active: true,
+          })))
+          .select('id')
+
+        if (familyError) throw familyError
+
+        const updatePromises = insertedFamilies?.map((family, index) => {
+          const entry = familyEntries[index]
+          if (!entry?.studentIds?.length) return null
+          return supabase
+            .schema('education')
+            .from('users')
+            .update({ family_id: family.id })
+            .in('id', entry.studentIds)
+        }).filter(Boolean) ?? []
+
+        if (updatePromises.length > 0) {
+          await Promise.all(updatePromises)
+          logs.push('Family_id affecté aux étudiants.')
+        }
+
+        logs.push(`${insertedFamilies?.length ?? 0} familles créées.`)
+      }
     }
 
     // 3. Importation des cours

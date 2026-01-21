@@ -455,6 +455,26 @@ export type Database = {
         Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
       }
+      families: {
+        Row: Family
+        Insert: Omit<Family, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Family, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fees: {
+        Row: Fee
+        Insert: Omit<Fee, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Fee, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fee_payments: {
+        Row: FeePayment
+        Insert: Omit<FeePayment, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<FeePayment, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fee_notes: {
+        Row: FeeNote
+        Insert: Omit<FeeNote, 'id' | 'created_at'>
+        Update: Partial<Omit<FeeNote, 'id' | 'created_at'>>
+      }
     }
   }
   logs: {

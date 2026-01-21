@@ -1,8 +1,8 @@
 'use client'
 
 import { differenceInYears } from 'date-fns'
-import { Star, Trash2, TrendingUp } from 'lucide-react'
-import { useState } from 'react'
+import { ClipboardList, Contact, CreditCard, Star, Trash2, TrendingUp, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import {
@@ -36,8 +36,10 @@ import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
 import { useAuth } from '@/client/hooks/use-auth'
 import { useToast } from '@/client/hooks/use-toast'
+import { getFamilyProfileSummaryByStudentId } from '@/server/actions/api/family'
 import { deleteStudent } from '@/server/actions/api/students'
 import { cn } from '@/server/utils/helpers'
+import { FamilyProfileSummary } from '@/types/family-payload'
 import { StudentStats } from '@/types/stats'
 import { TeacherWithStudentsResponse } from '@/types/teacher-payload'
 import { GenderEnum, UserRoleEnum } from '@/types/user'
@@ -60,10 +62,22 @@ export function StudentProfileDialog({
   onStudentDeleted,
 }: StudentProfileDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [familySummary, setFamilySummary] = useState<FamilyProfileSummary | null>(null)
+  const [isLoadingFamily, setIsLoadingFamily] = useState(false)
   const { toast } = useToast()
   const { session } = useAuth()
 
   const attendanceRate = 100 - (student.stats?.absencesRate || 0)
+  const siblingsWithoutCurrent = useMemo(() => {
+    const siblings = familySummary?.siblings ?? []
+    return siblings.filter((sibling) => sibling.id !== student.id)
+  }, [familySummary?.siblings, student.id])
+
+  const currencyFormatter = useMemo(() => new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }), [])
 
   // Vérifier si l'utilisateur a les droits de suppression (admin ou bureau)
   const canDeleteStudent = session?.user?.user_metadata?.role === UserRoleEnum.Admin ||
@@ -107,8 +121,31 @@ export function StudentProfileDialog({
     return differenceInYears(currentDate, dateOfBirth)
   }
 
+  useEffect(() => {
+    if (!isOpen) return
+
+    const loadFamilySummary = async () => {
+      setIsLoadingFamily(true)
+      try {
+        const response = await getFamilyProfileSummaryByStudentId(student.id)
+        if (response.success && response.data) {
+          setFamilySummary(response.data)
+        } else {
+          setFamilySummary(null)
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des infos famille:', error)
+        setFamilySummary(null)
+      } finally {
+        setIsLoadingFamily(false)
+      }
+    }
+
+    loadFamilySummary()
+  }, [isOpen, student.id])
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button size="sm"
@@ -362,6 +399,154 @@ export function StudentProfileDialog({
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            Informations famille
+          </h3>
+          <Card className="border-border">
+            <CardContent className="pt-6 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <span className="text-sm text-muted-foreground">Statut de la famille</span>
+                  <p className="font-medium text-foreground">
+                    {familySummary?.family?.label || 'Famille non renseignée'}
+                  </p>
+                </div>
+                <Badge
+                  variant={familySummary?.family?.divorced ? 'secondary' : 'default'}
+                >
+                  {familySummary?.family?.divorced ? 'Parents divorcés' : 'Parents non divorcés'}
+                </Badge>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Contact className="h-4 w-4" />
+                    Coordonnées parents
+                  </div>
+                  <div className="space-y-3">
+                    {familySummary?.parents?.map((parent) => (
+                      <div key={parent.label} className="rounded-md border border-border p-3">
+                        <div className="text-sm font-semibold text-foreground">
+                          {parent.label === 'pere' ? 'Père' : 'Mère'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Email : {parent.email || '-'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Téléphone : {parent.phone || '-'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          WhatsApp : {parent.whatsapp || '-'}
+                        </div>
+                      </div>
+                    ))}
+
+                    {(!familySummary?.parents || familySummary.parents.length === 0) && (
+                      <p className="text-sm text-muted-foreground">Aucun contact renseigné.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <ClipboardList className="h-4 w-4" />
+                    Frères et soeurs
+                  </div>
+                  <div className="space-y-2">
+                    {siblingsWithoutCurrent.length === 0 && (
+                      <p className="text-sm text-muted-foreground">Aucun autre enfant rattaché.</p>
+                    )}
+                    {siblingsWithoutCurrent.map((sibling) => (
+                      <div key={sibling.id} className="rounded-md border border-border p-3">
+                        <div className="font-medium text-foreground">
+                          {sibling.firstname} {sibling.lastname}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Email : {sibling.email || sibling.secondary_email || '-'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Téléphone : {sibling.phone || sibling.secondary_phone || '-'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <CreditCard className="h-4 w-4" />
+                  Cotisations, inscriptions, paiements et notes
+                </div>
+
+                {isLoadingFamily && (
+                  <p className="text-sm text-muted-foreground">Chargement des cotisations...</p>
+                )}
+
+                {!isLoadingFamily && (!familySummary?.fees || familySummary.fees.length === 0) && (
+                  <p className="text-sm text-muted-foreground">Aucune cotisation enregistrée.</p>
+                )}
+
+                {familySummary?.fees?.map((fee) => (
+                  <div key={fee.id} className="border border-border rounded-md p-4 space-y-2">
+                    <div className="flex flex-col md:flex-row md:items-center
+                    md:justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {fee.fee_type === 'membership' ? 'Cotisation' : 'Inscription'} {fee.academic_year}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Montant dû : {currencyFormatter.format(fee.amount_due)}
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Payé : {currencyFormatter.format(fee.paid_total)}
+                      </div>
+                    </div>
+
+                    {fee.payments.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-foreground">Paiements</div>
+                        {fee.payments.map((payment) => (
+                          <div key={payment.id} className="flex items-center justify-between text-sm
+                          bg-muted/20 rounded-md px-3 py-2">
+                            <span className="text-muted-foreground">
+                              {new Date(payment.paid_at).toLocaleDateString('fr-FR')} • {payment.method}
+                            </span>
+                            <span className="font-medium text-foreground">
+                              {currencyFormatter.format(payment.amount_paid)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {fee.notes.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-foreground">Notes</div>
+                        {fee.notes.map((note) => (
+                          <div key={note.id} className="text-sm text-muted-foreground">
+                            - {note.note_text}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <DialogFooter className="mt-8">

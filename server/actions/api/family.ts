@@ -9,8 +9,10 @@ import { ApiResponse } from '@/types/api'
 import { CourseWithRelations } from '@/types/courses'
 import { SubjectNameEnum } from '@/types/courses'
 import { User } from '@/types/db'
+import { FamilyProfileSummary, FamilyStudentContact, ParentContact } from '@/types/family-payload'
 import { StudentAttendanceResponse } from '@/types/stats-payload'
 import { UserRoleEnum } from '@/types/user'
+import { getFeesWithNotesByFamilyId } from '@/server/actions/api/fees'
 
 // Type correct pour les grades basé sur le retour de calculateStudentGrade
 export interface StudentGradesData {
@@ -357,5 +359,123 @@ export async function getFamilyAllStudentsData(
   } catch (error) {
     console.error('[GET_FAMILY_ALL_STUDENTS_DATA]', error)
     throw new Error('Erreur lors de la récupération des données familiales')
+  }
+}
+
+function buildParentContacts(students: FamilyStudentContact[]): ParentContact[] {
+  if (students.length === 0) {
+    return [
+      { label: 'pere', email: null, phone: null, whatsapp: null },
+      { label: 'mere', email: null, phone: null, whatsapp: null },
+    ]
+  }
+
+  const primary = students.find((student) => student.email || student.phone) ?? students[0]
+  const secondary = students.find((student) => student.secondary_email || student.secondary_phone)
+
+  return [
+    {
+      label: 'pere',
+      email: primary?.email ?? null,
+      phone: primary?.phone ?? null,
+      whatsapp: primary?.whatsapp_phone ?? null,
+    },
+    {
+      label: 'mere',
+      email: secondary?.secondary_email ?? null,
+      phone: secondary?.secondary_phone ?? null,
+      whatsapp: secondary?.whatsapp_phone ?? null,
+    },
+  ]
+}
+
+export async function getFamilyProfileSummaryByStudentId(
+  studentId: string,
+): Promise<ApiResponse<FamilyProfileSummary>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    if (!studentId) {
+      return { success: false, message: 'Id étudiant manquant', data: null }
+    }
+
+    const { data: student, error: studentError } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id, family_id')
+      .eq('id', studentId)
+      .eq('role', 'student')
+      .limit(1)
+      .single()
+
+    if (studentError || !student) {
+      return { success: false, message: 'Étudiant non trouvé', data: null }
+    }
+
+    if (!student.family_id) {
+      return {
+        success: true,
+        message: 'Famille non renseignée',
+        data: {
+          family: null,
+          siblings: [],
+          parents: buildParentContacts([]),
+          fees: [],
+        },
+      }
+    }
+
+    const { data: family, error: familyError } = await supabase
+      .schema('education')
+      .from('families')
+      .select('*')
+      .eq('id', student.family_id)
+      .eq('is_active', true)
+      .single()
+
+    if (familyError) {
+      return { success: false, message: 'Famille non trouvée', data: null }
+    }
+
+    const { data: siblings, error: siblingsError } = await supabase
+      .schema('education')
+      .from('users')
+      .select(`
+        id,
+        firstname,
+        lastname,
+        email,
+        secondary_email,
+        phone,
+        secondary_phone,
+        whatsapp_phone
+      `)
+      .eq('family_id', student.family_id)
+      .eq('role', 'student')
+      .eq('is_active', true)
+      .order('firstname', { ascending: true })
+
+    if (siblingsError) {
+      return { success: false, message: 'Erreur lors de la récupération de la fratrie', data: null }
+    }
+
+    const siblingsData = (siblings ?? []) as FamilyStudentContact[]
+    const parents = buildParentContacts(siblingsData)
+    const feesResponse = await getFeesWithNotesByFamilyId(student.family_id)
+
+    return {
+      success: true,
+      message: 'Profil famille récupéré',
+      data: {
+        family,
+        siblings: siblingsData,
+        parents,
+        fees: feesResponse.success && feesResponse.data ? feesResponse.data : [],
+      },
+    }
+  } catch (error) {
+    console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID]', error)
+    throw new Error('Erreur lors de la récupération des données famille')
   }
 }
