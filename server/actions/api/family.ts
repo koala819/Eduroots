@@ -119,6 +119,7 @@ export async function getStudentDetailedData(
               stats_model: null,
               student_stats_id: null,
               teacher_stats_id: null,
+              family_id: null,
               phone: null,
               secondary_phone: null,
               whatsapp_phone: null,
@@ -151,17 +152,16 @@ export async function getFamilyDashboardData(
   const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer l'utilisateur principal pour obtenir son email
+    // Récupérer l'utilisateur principal pour identifier la famille
     const { data: mainUser, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select('email')
+      .select('id, family_id')
       .or(
         `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
         `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
       )
       .eq('is_active', true)
-      .eq('role', 'student')
       .limit(1)
 
     if (userError || !mainUser || mainUser.length === 0) {
@@ -172,9 +172,16 @@ export async function getFamilyDashboardData(
       }
     }
 
-    const familyEmail = mainUser[0].email
+    const familyId = mainUser[0].family_id
 
-    // Récupérer tous les étudiants de la fratrie
+    if (!familyId) {
+      return {
+        success: false,
+        message: 'Famille non renseignée pour cet utilisateur',
+        data: null,
+      }
+    }
+
     const { data: familyStudents, error: studentsError } = await supabase
       .schema('education')
       .from('users')
@@ -195,7 +202,7 @@ export async function getFamilyDashboardData(
         whatsapp_phone,
         school_year
       `)
-      .eq('email', familyEmail)
+      .eq('family_id', familyId)
       .eq('is_active', true)
       .eq('role', 'student')
       .order('firstname', { ascending: true })
@@ -204,6 +211,14 @@ export async function getFamilyDashboardData(
       return {
         success: false,
         message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    if (familyStudents.length === 0) {
+      return {
+        success: false,
+        message: 'Aucun étudiant trouvé dans la fratrie',
         data: null,
       }
     }
@@ -246,17 +261,16 @@ export async function getFamilyAllStudentsData(
   const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer l'utilisateur principal pour obtenir son email
+    // Récupérer l'utilisateur principal pour identifier la famille
     const { data: mainUser, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select('email')
+      .select('id, family_id')
       .or(
         `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
         `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
       )
       .eq('is_active', true)
-      .eq('role', 'student')
       .limit(1)
 
     if (userError || !mainUser || mainUser.length === 0) {
@@ -267,9 +281,16 @@ export async function getFamilyAllStudentsData(
       }
     }
 
-    const familyEmail = mainUser[0].email
+    const familyId = mainUser[0].family_id
 
-    // Récupérer tous les étudiants de la fratrie
+    if (!familyId) {
+      return {
+        success: false,
+        message: 'Famille non renseignée pour cet utilisateur',
+        data: null,
+      }
+    }
+
     const { data: familyStudents, error: studentsError } = await supabase
       .schema('education')
       .from('users')
@@ -290,7 +311,7 @@ export async function getFamilyAllStudentsData(
         whatsapp_phone,
         school_year
       `)
-      .eq('email', familyEmail)
+      .eq('family_id', familyId)
       .eq('is_active', true)
       .eq('role', 'student')
       .order('firstname', { ascending: true })
@@ -299,6 +320,14 @@ export async function getFamilyAllStudentsData(
       return {
         success: false,
         message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    if (familyStudents.length === 0) {
+      return {
+        success: false,
+        message: 'Aucun étudiant trouvé dans la fratrie',
         data: null,
       }
     }
