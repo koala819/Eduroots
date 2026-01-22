@@ -1,10 +1,19 @@
 import { LevelEnum, SubjectNameEnum, TimeEnum,TimeSlotEnum } from '@/types/courses'
 import { User } from '@/types/db'
+import { FeePaymentMethod } from '@/types/fees-payload'
 import { UserRoleEnum, UserType } from '@/types/user'
 
 // Interface spécifique pour l'import
 export interface ImportStudent extends User {
   teacherId: string;
+  divorce?: boolean;
+  registrationFee?: number | null;
+  registrationPayment?: number | null;
+  registrationPaymentMethod?: FeePaymentMethod | null;
+  membershipFee?: number | null;
+  membershipPayment?: number | null;
+  membershipPaymentMethod?: FeePaymentMethod | null;
+  notes?: string | null;
   password?: string;
 }
 
@@ -45,20 +54,27 @@ export interface ProcessedData {
 export interface StudentDataType {
   lastName: string; // Colonne A
   firstName: string; // Colonne B
-  teacherId: string; // Colonne C
+  teacherId: string; // Colonne C (ID_Lien = ID_Prof)
   gender: string; // Colonne D
   dateOfBirth: string; // Colonne E
   email: string; // Colonne F
-  phone: string; // Colonne G
+  fatherPhone: string; // Colonne Q
+  motherPhone: string; // Colonne R
+  divorce: string; // Colonne S
+  registrationFee: string; // Colonne T
+  registrationPayment: string; // Colonne U
+  membershipFee: string; // Colonne V
+  membershipPayment: string; // Colonne W
+  notes: string; // Colonne X
 }
 
 export interface TeacherDataType {
-  id: string; // Colonne I
-  lastName: string; // Colonne J
-  firstName: string; // Colonne K
-  email: string; // Colonne L
-  gender: string; // Colonne M
-  phone: string; // Colonne N
+  id: string; // Colonne G
+  firstName: string; // Colonne H (Prenom_P)
+  lastName: string; // Colonne I (Nom_P)
+  email: string; // Colonne J (Email_P)
+  gender: string; // Colonne K (Sexe_P)
+  phone: string; // Colonne L (Tel_P)
 }
 
 export interface ExcelRowType {
@@ -123,6 +139,92 @@ function parseSubject(value: string): SubjectNameEnum | undefined {
   return undefined
 }
 
+function parseAmount(value: string): number | null {
+  if (!value) return null
+  const normalized = value
+    .replace(/\s/g, '')
+    .replace(',', '.')
+    .replace(/[^0-9.]/g, '')
+  const parsed = Number.parseFloat(normalized)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+function parseBoolean(value: string): boolean {
+  if (!value) return false
+  const normalized = value.trim().toLowerCase()
+  return ['oui', 'o', 'true', '1', 'vrai', 'yes'].includes(normalized)
+}
+
+function parsePaymentMethod(value: string): FeePaymentMethod | null {
+  if (!value) return null
+  const normalized = value.trim().toLowerCase()
+
+  if (normalized.includes('cheque') || normalized.includes('chèque') || normalized.includes('cheq'))
+    return 'cheque'
+  if (normalized.includes('espece') || normalized.includes('espèce'))
+    return 'espece'
+  if (normalized.includes('liquide') || normalized.includes('cash'))
+    return 'liquide'
+  if (normalized.includes('cb') || normalized.includes('carte'))
+    return 'cb'
+  if (normalized.includes('helloasso'))
+    return 'helloasso'
+  if (normalized.includes('exoner'))
+    return 'exoneration'
+
+  return null
+}
+
+function parseDateOfBirth(value: string): Date | null {
+  if (!value) return null
+  
+  // Si c'est déjà un objet Date
+  if (value instanceof Date) {
+    return value
+  }
+  
+  const dateStr = String(value).trim()
+  if (!dateStr) return null
+  
+  // Parser les formats "JJ/MM/AAAA" ou "J/M/AAAA"
+  // eslint-disable-next-line no-useless-escape
+  const dateParts = dateStr.split(/[\/.\-]/)
+  if (dateParts.length === 3) {
+    const day = dateParts[0].padStart(2, '0')
+    const month = dateParts[1].padStart(2, '0')
+    const year = dateParts[2].length === 2 ? `20${dateParts[2]}` : dateParts[2]
+    const isoDate = `${year}-${month}-${day}`
+    const parsedDate = new Date(isoDate)
+    // Vérifier que la date est valide
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate
+    }
+  }
+  
+  // Essayer de parser directement avec Date
+  const directParse = new Date(dateStr)
+  if (!Number.isNaN(directParse.getTime())) {
+    return directParse
+  }
+  
+  return null
+}
+
+function parsePaymentInfo(
+  value: string,
+  amountDueRaw: string,
+): { amount: number | null; method: FeePaymentMethod | null } {
+  const amountDue = parseAmount(amountDueRaw)
+  const amount = parseAmount(value)
+  const method = parsePaymentMethod(value)
+  const resolvedAmount = amount ?? (method ? amountDue : null)
+
+  return {
+    amount: resolvedAmount ?? null,
+    method,
+  }
+}
+
 // Formatage des cours (matières multiples, pas de filtrage strict)
 export function formatCoursesFromExcel(data: ExcelRowType[]): {
   courses: CourseSessionDataType[];
@@ -141,11 +243,11 @@ export function formatCoursesFromExcel(data: ExcelRowType[]): {
   >()
 
   data.forEach((row, idx) => {
-    const teacherId = getCellString(row['I'])
-    const subjectRaw = getCellString(row['O'])
-    const dayOfWeekRaw = getCellString(row['P'])
-    const classroomNumber = getCellString(row['Q'])
-    const levelRaw = getCellString(row['R'])
+    const teacherId = getCellString(row['G']) || getCellString(row['C'])
+    const subjectRaw = getCellString(row['M'])
+    const dayOfWeekRaw = getCellString(row['N'])
+    const classroomNumber = getCellString(row['O'])
+    const levelRaw = getCellString(row['P'])
 
     const subjects = subjectRaw
       .split(',')
@@ -288,11 +390,27 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
   data.forEach((row, idx) => {
     const lastName = getCellString(row['A'])
     const firstName = getCellString(row['B'])
-    const teacherId = getCellString(row['C'])
+    const teacherId = getCellString(row['C']) || getCellString(row['G'])
     const gender = getCellString(row['D'])
     const dateOfBirth = getCellString(row['E'])
     const email = getCellString(row['F'])
-    const phone = getCellString(row['G'])
+    const phone = getCellString(row['Q'])
+    const secondaryPhone = getCellString(row['R'])
+    const divorceRaw = getCellString(row['S'])
+    const registrationFeeRaw = getCellString(row['T'])
+    const registrationPaymentRaw = getCellString(row['U'])
+    const membershipFeeRaw = getCellString(row['V'])
+    const membershipPaymentRaw = getCellString(row['W'])
+    const notesRaw = getCellString(row['X'])
+
+    const registrationPaymentInfo = parsePaymentInfo(
+      registrationPaymentRaw,
+      registrationFeeRaw,
+    )
+    const membershipPaymentInfo = parsePaymentInfo(
+      membershipPaymentRaw,
+      membershipFeeRaw,
+    )
 
     if (!teacherId) {
       const msg = `Ligne ${idx + 2} : Pas d'ID Professeur pour ${firstName} ${lastName}`
@@ -300,7 +418,7 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       return
     }
 
-    if (!email && !phone) {
+    if (!email && !phone && !secondaryPhone) {
       const msg = `Ligne ${idx + 2} : Pas de contact (email/téléphone) pour ` +
         `${firstName} ${lastName}`
       missingContactWarnings.push(msg)
@@ -318,7 +436,7 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       secondary_email: null,
       is_active: true,
       deleted_at: null,
-      date_of_birth: dateOfBirth ? new Date(dateOfBirth) : null,
+      date_of_birth: parseDateOfBirth(dateOfBirth),
       gender: gender || null,
       type: UserType.Student,
       subjects: null,
@@ -328,10 +446,19 @@ export function formatStudentsFromExcelWithWarnings(data: ExcelRowType[]): {
       teacher_stats_id: null,
       role: UserRoleEnum.Student,
       phone: phone || '',
+      secondary_phone: secondaryPhone || '',
       created_at: null,
       updated_at: null,
       has_invalid_email: false,
       teacherId,
+      divorce: parseBoolean(divorceRaw),
+      registrationFee: parseAmount(registrationFeeRaw),
+      registrationPayment: registrationPaymentInfo.amount,
+      registrationPaymentMethod: registrationPaymentInfo.method,
+      membershipFee: parseAmount(membershipFeeRaw),
+      membershipPayment: membershipPaymentInfo.amount,
+      membershipPaymentMethod: membershipPaymentInfo.method,
+      notes: notesRaw || null,
       password: undefined,
     }
 
@@ -365,20 +492,26 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
     name: string
     subjects: string[]
   }> = []
+  const teacherById = new Map<string, Teacher>()
 
   data.forEach((row, idx) => {
-    const id = getCellString(row['I'])
-    const lastName = getCellString(row['J'])
-    const firstName = getCellString(row['K'])
-    const email = getCellString(row['L'])
-    const gender = getCellString(row['M'])
-    const phone = getCellString(row['N'])
-    const subjectsRaw = getCellString(row['O'])
+    const id = getCellString(row['G'])
+    const firstName = getCellString(row['H'])
+    const lastName = getCellString(row['I'])
+    const email = getCellString(row['J'])
+    const gender = getCellString(row['K'])
+    const phone = getCellString(row['L'])
+    const subjectsRaw = getCellString(row['M'])
 
-    if (!id || !lastName || !firstName || !email) {
+    if (!id || !firstName || !email) {
       const msg = `Ligne ${idx + 2} : Champs obligatoires manquants pour l'enseignant`
       warnings.push(msg)
       return
+    }
+
+    const resolvedLastName = lastName || firstName
+    if (!lastName) {
+      warnings.push(`Ligne ${idx + 2} : Nom du professeur manquant, prénom utilisé`)
     }
 
     const subjects = subjectsRaw
@@ -391,14 +524,22 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
       warnings.push(msg)
     }
 
+    const existingTeacher = teacherById.get(id)
+    if (existingTeacher) {
+      existingTeacher.subjects = Array.from(
+        new Set([...(existingTeacher.subjects ?? []), ...subjects]),
+      )
+      return
+    }
+
     const teacher: Teacher = {
-      id: '', // Sera généré par la base de données
+      id, // ID externe pour le mapping
       auth_id_email: '', // Sera généré par la base de données
       auth_id_gmail: null,
       parent2_auth_id_email: null,
       parent2_auth_id_gmail: null,
       firstname: firstName,
-      lastname: lastName,
+      lastname: resolvedLastName,
       email,
       secondary_email: null,
       is_active: true,
@@ -419,8 +560,10 @@ export function formatTeachersFromExcelWithWarnings(data: ExcelRowType[]): {
       password: undefined,
     }
 
-    teachers.push(teacher)
+    teacherById.set(id, teacher)
   })
+
+  teachers.push(...teacherById.values())
 
   return {
     teachers,
@@ -481,27 +624,30 @@ export function processExcelData(data: ExcelRow[]): ProcessedData[] {
     }
 
     // Professeur, niveau, salle
-    const teacher = row['C'] ? String(row['C']).trim() : ''
-    const level = row['D'] ? String(row['D']).trim() : ''
-    const classRoomNumber = row['E'] ? String(row['E']).trim() : ''
+    const teacher = row['C']
+      ? String(row['C']).trim()
+      : (row['G'] ? String(row['G']).trim() : '')
+    const level = row['P'] ? String(row['P']).trim() : ''
+    const classRoomNumber = row['O'] ? String(row['O']).trim() : ''
 
     // Jour de créneau (TimeSlotEnum)
     const dayOfWeek =
-      row['F'] &&
+      row['N'] &&
       Object.values(TimeSlotEnum).includes(
-        String(row['F']).trim() as TimeSlotEnum,
+        String(row['N']).trim() as TimeSlotEnum,
       )
-        ? (String(row['F']).trim() as TimeSlotEnum)
+        ? (String(row['N']).trim() as TimeSlotEnum)
         : undefined
 
     // Heure de début et de fin
-    const startTime = row['G'] ? String(row['G']).trim() : ''
-    const endTime = row['H'] ? String(row['H']).trim() : ''
+    const timeSlot = dayOfWeek ? extractTimeSlot(dayOfWeek) : null
+    const startTime = timeSlot?.start ?? ''
+    const endTime = timeSlot?.end ?? ''
 
     // Genre
     let gender = ''
-    if (row['I']) {
-      const genderValue = String(row['I']).trim().toUpperCase()
+    if (row['D']) {
+      const genderValue = String(row['D']).trim().toUpperCase()
       if (
         genderValue === 'F' ||
         genderValue === 'FEMININ' ||
@@ -515,10 +661,10 @@ export function processExcelData(data: ExcelRow[]): ProcessedData[] {
       }
     }
 
-    // Date de naissance (colonne J)
+    // Date de naissance (colonne E)
     let dateOfBirth = ''
-    if (row['J']) {
-      const dateValue = row['J']
+    if (row['E']) {
+      const dateValue = row['E']
       if (dateValue instanceof Date) {
         dateOfBirth = dateValue.toISOString().split('T')[0]
       } else if (typeof dateValue === 'string') {
@@ -534,12 +680,12 @@ export function processExcelData(data: ExcelRow[]): ProcessedData[] {
       }
     }
 
-    // Email (colonne K)
-    const email = row['K'] ? String(row['K']).trim() : ''
-    // Téléphone (colonne L)
+    // Email (colonne F)
+    const email = row['F'] ? String(row['F']).trim() : ''
+    // Téléphone (colonne Q)
     let phone = ''
-    if (row['L']) {
-      const phoneStr = String(row['L'])
+    if (row['Q']) {
+      const phoneStr = String(row['Q'])
       const phoneNumber = phoneStr.split(/[\\/;,]/)[0].trim()
       phone = phoneNumber.replace(/[^\d]/g, '')
     }

@@ -307,11 +307,11 @@ export type User = {
   stats_model: string | null
   student_stats_id: string | null //uuid
   teacher_stats_id: string | null //uuid
-  family_id: string | null
+  family_id?: string | null
   role: string
   phone: string | null
-  secondary_phone: string | null
-  whatsapp_phone: string | null
+  secondary_phone?: string | null
+  whatsapp_phone?: string | null
   created_at: Date | null
   updated_at: Date | null
   has_invalid_email: boolean

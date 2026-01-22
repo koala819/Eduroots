@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/server/utils/supabase'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { TimeEnum } from '@/types/courses'
 import { Database } from '@/types/db'
 import { GenderEnum,UserRoleEnum } from '@/types/user'
@@ -41,6 +41,9 @@ function sanitizeForLog(value: string | number): string {
 // Fonction utilitaire pour valider les IDs
 function validateId(id: string | number): string | null {
   const validatedId = String(id).trim()
+  if (!validatedId) {
+    return null
+  }
   if (!/^[a-zA-Z0-9_-]+$/.test(validatedId)) {
     console.warn(`ID invalide ignoré: ${sanitizeForLog(validatedId)}`)
     return null
@@ -65,8 +68,17 @@ type ImportStudent = {
   email?: string
   gender?: string
   phone?: string
+  secondary_phone?: string
   dateOfBirth?: string
   teacherId?: string
+  divorce?: boolean
+  registrationFee?: number | null
+  registrationPayment?: number | null
+  registrationPaymentMethod?: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration' | null
+  membershipFee?: number | null
+  membershipPayment?: number | null
+  membershipPaymentMethod?: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration' | null
+  notes?: string | null
 }
 
 type ImportCourse = {
@@ -114,7 +126,16 @@ export async function POST(req: NextRequest) {
   try {
     const { teachers, courses, students, mergedTeachers, year } = await req.json()
     const logs: string[] = []
-    const supabase = await createClient()
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
 
     // Créer un map pour stocker les étudiants par professeur référent
     const studentsByTeacher = students?.reduce(
@@ -146,6 +167,10 @@ export async function POST(req: NextRequest) {
             return null
           }
           return {
+            auth_id_email: null,
+            auth_id_gmail: null,
+            parent2_auth_id_email: null,
+            parent2_auth_id_gmail: null,
             firstname: t.firstname,
             lastname: t.lastname,
             email: t.email?.toLowerCase() ?? 'user@mail.fr',
@@ -190,9 +215,21 @@ export async function POST(req: NextRequest) {
         const importKey = validatedId ?? `row-${index + 1}`
         return {
           importKey,
-          familyKey: getFamilyKey(s.lastname, s.email, s.phone),
+          familyKey: getFamilyKey(s.lastname, s.email, s.phone ?? s.secondary_phone),
           familyLabel: getFamilyLabel(s.lastname),
+          divorce: s.divorce ?? false,
+          registrationFee: s.registrationFee ?? null,
+          registrationPayment: s.registrationPayment ?? null,
+          registrationPaymentMethod: s.registrationPaymentMethod ?? null,
+          membershipFee: s.membershipFee ?? null,
+          membershipPayment: s.membershipPayment ?? null,
+          membershipPaymentMethod: s.membershipPaymentMethod ?? null,
+          notes: s.notes ?? null,
           insert: {
+            auth_id_email: null,
+            auth_id_gmail: null,
+            parent2_auth_id_email: null,
+            parent2_auth_id_gmail: null,
             firstname: s.firstname,
             lastname: s.lastname,
             email: s.email?.toLowerCase() ?? '',
@@ -201,8 +238,9 @@ export async function POST(req: NextRequest) {
               ? GenderEnum.Feminin
               : GenderEnum.Masculin,
             phone: s.phone ?? '',
+            secondary_phone: s.secondary_phone ?? '',
             is_active: true,
-            date_of_birth: s.dateOfBirth ? new Date(s.dateOfBirth) : null,
+            date_of_birth: s.date_of_birth ?? null,
             type: 'student',
           } as Database['education']['Tables']['users']['Insert'],
         }
@@ -216,7 +254,18 @@ export async function POST(req: NextRequest) {
 
       if (studentError) throw studentError
 
-      const familyGroups = new Map<string, {label: string; studentIds: string[]}>()
+      const familyGroups = new Map<string, {
+        label: string
+        studentIds: string[]
+        divorced: boolean
+        registrationFee: number | null
+        registrationPayment: number | null
+        registrationPaymentMethod: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration' | null
+        membershipFee: number | null
+        membershipPayment: number | null
+        membershipPaymentMethod: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration' | null
+        notes: string[]
+      }>()
 
       insertedStudents?.forEach((student, index) => {
         const entry = studentInsertEntries[index]
@@ -225,10 +274,28 @@ export async function POST(req: NextRequest) {
         const group = familyGroups.get(entry.familyKey)
         if (group) {
           group.studentIds.push(student.id)
+          group.divorced = group.divorced || entry.divorce
+          group.registrationFee = entry.registrationFee ?? group.registrationFee
+          group.registrationPayment = entry.registrationPayment ?? group.registrationPayment
+          group.registrationPaymentMethod = entry.registrationPaymentMethod ?? group.registrationPaymentMethod
+          group.membershipFee = entry.membershipFee ?? group.membershipFee
+          group.membershipPayment = entry.membershipPayment ?? group.membershipPayment
+          group.membershipPaymentMethod = entry.membershipPaymentMethod ?? group.membershipPaymentMethod
+          if (entry.notes && !group.notes.includes(entry.notes)) {
+            group.notes.push(entry.notes)
+          }
         } else {
           familyGroups.set(entry.familyKey, {
             label: entry.familyLabel,
             studentIds: [student.id],
+            divorced: entry.divorce,
+            registrationFee: entry.registrationFee ?? null,
+            registrationPayment: entry.registrationPayment ?? null,
+            registrationPaymentMethod: entry.registrationPaymentMethod ?? null,
+            membershipFee: entry.membershipFee ?? null,
+            membershipPayment: entry.membershipPayment ?? null,
+            membershipPaymentMethod: entry.membershipPaymentMethod ?? null,
+            notes: entry.notes ? [entry.notes] : [],
           })
         }
       })
@@ -240,6 +307,14 @@ export async function POST(req: NextRequest) {
           familyKey: key,
           label: group.label,
           studentIds: group.studentIds,
+          divorced: group.divorced,
+          registrationFee: group.registrationFee,
+          registrationPayment: group.registrationPayment,
+          registrationPaymentMethod: group.registrationPaymentMethod,
+          membershipFee: group.membershipFee,
+          membershipPayment: group.membershipPayment,
+          membershipPaymentMethod: group.membershipPaymentMethod,
+          notes: group.notes,
         }))
 
         const { data: insertedFamilies, error: familyError } = await supabase
@@ -247,7 +322,7 @@ export async function POST(req: NextRequest) {
           .from('families')
           .insert(familyEntries.map((entry) => ({
             label: entry.label,
-            divorced: false,
+            divorced: entry.divorced,
             is_active: true,
           })))
           .select('id')
@@ -270,6 +345,86 @@ export async function POST(req: NextRequest) {
         }
 
         logs.push(`${insertedFamilies?.length ?? 0} familles créées.`)
+
+        if (insertedFamilies && insertedFamilies.length > 0) {
+          for (let index = 0; index < insertedFamilies.length; index += 1) {
+            const family = insertedFamilies[index]
+            const entry = familyEntries[index]
+
+            if (!entry || !family?.id) continue
+
+            const notesText = entry.notes?.filter(Boolean).join(' | ') || null
+            const feePayloads: Array<{
+              feeType: 'registration' | 'membership'
+              amountDue: number | null
+              paymentAmount: number | null
+              paymentMethod: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration' | null
+            }> = [
+              {
+                feeType: 'registration',
+                amountDue: entry.registrationFee,
+                paymentAmount: entry.registrationPayment,
+                paymentMethod: entry.registrationPaymentMethod ?? null,
+              },
+              {
+                feeType: 'membership',
+                amountDue: entry.membershipFee,
+                paymentAmount: entry.membershipPayment,
+                paymentMethod: entry.membershipPaymentMethod ?? null,
+              },
+            ]
+
+            for (const payload of feePayloads) {
+              const amountDue = payload.amountDue ?? null
+              const paymentAmount = payload.paymentAmount ?? null
+              const paymentMethod = payload.paymentMethod ?? 'liquide'
+
+              if (!amountDue && !paymentAmount) continue
+
+              const normalizedAmountDue = amountDue ?? paymentAmount ?? 0
+              const { data: fee, error: feeError } = await supabase
+                .schema('education')
+                .from('fees')
+                .insert({
+                  family_id: family.id,
+                  student_id: null,
+                  academic_year: String(year ?? ''),
+                  fee_type: payload.feeType,
+                  amount_due: normalizedAmountDue,
+                  is_active: true,
+                })
+                .select('id')
+                .single()
+
+              if (feeError || !fee) {
+                console.error('Erreur création fee:', feeError)
+                continue
+              }
+
+              if (paymentAmount && paymentAmount > 0) {
+                await supabase
+                  .schema('education')
+                  .from('fee_payments')
+                  .insert({
+                    fee_id: fee.id,
+                    amount_paid: paymentAmount,
+                    method: paymentMethod,
+                    paid_at: new Date().toISOString(),
+                  })
+              }
+
+              if (notesText) {
+                await supabase
+                  .schema('education')
+                  .from('fee_notes')
+                  .insert({
+                    fee_id: fee.id,
+                    note_text: notesText,
+                  })
+              }
+            }
+          }
+        }
       }
     }
 
@@ -306,7 +461,8 @@ export async function POST(req: NextRequest) {
           const isAfternoon = c.dayOfWeek.includes('afternoon')
 
           // Dans la partie de gestion des cours, ajouter la récupération des étudiants :
-          const teacherStudents = studentsByTeacher[c.teacherId] ?? []
+          // Utiliser validatedTeacherId (ID original validé) pour récupérer les étudiants
+          const teacherStudents = studentsByTeacher[validatedTeacherId] ?? []
           const studentIds = teacherStudents
             .map((s: ImportStudent) => {
               const id = validateId(s.id)
@@ -410,6 +566,19 @@ export async function POST(req: NextRequest) {
               end_time: session.timeslot.end_time,
               classroom_number: session.timeslot.classroom_number,
             })
+
+          // 5. Lier les étudiants à la session
+          if (session.students && session.students.length > 0) {
+            await supabase
+              .schema('education')
+              .from('courses_sessions_students')
+              .insert(
+                session.students.map((studentId: string) => ({
+                  course_sessions_id: courseSession.id,
+                  student_id: studentId,
+                })),
+              )
+          }
         }
       }
 

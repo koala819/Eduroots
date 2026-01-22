@@ -3,7 +3,6 @@
 import ExcelJS from 'exceljs'
 import React, { ChangeEvent, useState } from 'react'
 
-import { createClient } from '@/client/utils/supabase'
 import { LevelEnum, SubjectNameEnum, TimeSlotEnum } from '@/types/courses'
 import { User } from '@/types/db'
 import {
@@ -59,8 +58,6 @@ const ExcelConverter: React.FC = () => {
     dayOfWeek: TimeSlotEnum
     level: LevelEnum
   }>>([])
-
-  const supabase = createClient()
 
   async function processExcelFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -188,23 +185,28 @@ const ExcelConverter: React.FC = () => {
     setImportResult(null)
     console.log('mergedTeachers', mergedTeachers)
     try {
-      const { data, error } = await supabase
-        .from('newDb')
-        .insert({
+      const response = await fetch('/api/import-school-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           teachers: teachersFormatted,
           courses: coursesFormatted,
           students: studentsFormatted,
-          mergedTeachers: mergedTeachers,
+          mergedTeachers,
           year: ACADEMIC_YEAR,
-        })
-        .select()
+        }),
+      })
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Import échoué')
+      }
 
       setImportResult({
         success: true,
         message: 'Import réussi',
-        logs: data as unknown as string[],
+        logs: data.logs || [],
       })
     } catch (err: any) {
       setImportResult({
@@ -242,31 +244,44 @@ const ExcelConverter: React.FC = () => {
         </p>
         <ul className="text-sm text-gray-600 list-disc ml-6">
           <li>
-            <b>Colonne A à G (Élève) :</b>
+            <b>Colonne A à F (Élève) :</b>
           </li>
-          <li>Colonne A : Nom de l&apos;élève</li>
-          <li>Colonne B : Prénom de l&apos;élève</li>
-          <li>Colonne C : ID Professeur référent</li>
-          <li>Colonne D : Genre de l&apos;élève</li>
-          <li>Colonne E : Date de naissance de l&apos;élève (JJ/MM/AAAA)</li>
-          <li>Colonne F : Email de l&apos;élève</li>
-          <li>Colonne G : Téléphone de l&apos;élève</li>
+          <li>Colonne A : Nom</li>
+          <li>Colonne B : Prénom</li>
+          <li>Colonne C : ID_Lien (ID_Prof)</li>
+          <li>Colonne D : Sexe_E</li>
+          <li>Colonne E : Date_Naiss (JJ/MM/AAAA)</li>
+          <li>Colonne F : Email_E</li>
           <li className="mt-2">
-            <b>Colonne I à N (Enseignant) :</b>
+            <b>Colonne G à M (Professeur) :</b>
           </li>
-          <li>Colonne I : ID Professeur</li>
-          <li>Colonne J : Nom du professeur</li>
-          <li>Colonne K : Prénom du professeur</li>
-          <li>Colonne L : Email du professeur</li>
-          <li>Colonne M : Genre du professeur</li>
-          <li>Colonne N : Téléphone du professeur</li>
-          <li>Colonne O : Matière</li>
+          <li>Colonne G : ID_Prof</li>
+          <li>Colonne H : Prenom_P</li>
+          <li>Colonne I : Nom_P</li>
+          <li>Colonne J : Email_P</li>
+          <li>Colonne K : Sexe_P</li>
+          <li>Colonne L : Tel_P</li>
+          <li>Colonne M : Matière</li>
           <li className="mt-2">
-            <b>Colonne P à R (Cours) :</b>
+            <b>Colonne N à P (Cours) :</b>
           </li>
-          <li>Colonne P : Jour de travail</li>
-          <li>Colonne Q : Salle de classe</li>
-          <li>Colonne R : Niveau</li>
+          <li>Colonne N : Créneau</li>
+          <li>Colonne O : Salle</li>
+          <li>Colonne P : Niveau</li>
+          <li className="mt-2">
+            <b>Colonne Q à R (Parents) :</b>
+          </li>
+          <li>Colonne Q : Tel_Pere</li>
+          <li>Colonne R : Tel_Mere</li>
+          <li className="mt-2">
+            <b>Colonne S à X (Famille & frais) :</b>
+          </li>
+          <li>Colonne S : Divorce</li>
+          <li>Colonne T : Frais Inscription</li>
+          <li>Colonne U : Paiement Inscription</li>
+          <li>Colonne V : Frais Cotisation</li>
+          <li>Colonne W : Paiement Cotisation</li>
+          <li>Colonne X : Notes</li>
         </ul>
       </div>
 
