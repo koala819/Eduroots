@@ -115,10 +115,14 @@ export function StudentProfileDialog({
     }
   }
 
-  function calculateAge(dateOfBirth: Date | null) {
+  function calculateAge(dateOfBirth: Date | string | null) {
     if (!dateOfBirth) return 0
+    // Convertir en Date si c'est une string
+    const birthDate = dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth)
+    // Vérifier que la date est valide
+    if (Number.isNaN(birthDate.getTime())) return 0
     const currentDate = new Date()
-    return differenceInYears(currentDate, dateOfBirth)
+    return differenceInYears(currentDate, birthDate)
   }
 
   useEffect(() => {

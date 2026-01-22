@@ -270,6 +270,7 @@ export function MembersView({
                             <StudentProfileDialog
                               student={{
                                 ...person as StudentResponse,
+                                dateOfBirth: (person as StudentResponse).date_of_birth ?? null,
                                 stats: {
                                   userId: person.id,
                                   absencesRate: 0,

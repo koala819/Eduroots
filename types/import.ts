@@ -177,15 +177,15 @@ function parsePaymentMethod(value: string): FeePaymentMethod | null {
 
 function parseDateOfBirth(value: string): Date | null {
   if (!value) return null
-  
+
   // Si c'est déjà un objet Date
   if (value instanceof Date) {
     return value
   }
-  
+
   const dateStr = String(value).trim()
   if (!dateStr) return null
-  
+
   // Parser les formats "JJ/MM/AAAA" ou "J/M/AAAA"
   // eslint-disable-next-line no-useless-escape
   const dateParts = dateStr.split(/[\/.\-]/)
@@ -200,13 +200,13 @@ function parseDateOfBirth(value: string): Date | null {
       return parsedDate
     }
   }
-  
+
   // Essayer de parser directement avec Date
   const directParse = new Date(dateStr)
   if (!Number.isNaN(directParse.getTime())) {
     return directParse
   }
-  
+
   return null
 }
 
