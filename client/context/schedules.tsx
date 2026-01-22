@@ -214,6 +214,13 @@ export const SchedulesProvider = ({
       const authResponse = await getAuthUser(user.id)
 
       if (!authResponse.success || !authResponse.data) {
+        // Si l'utilisateur n'est pas trouvé dans education.users, 
+        // on ne charge simplement pas les schedules (pas d'erreur critique)
+        if (authResponse.message?.includes('non trouvé')) {
+          console.warn('Utilisateur non trouvé dans education.users, schedules non chargés')
+          hasLoadedRef.current = true
+          return
+        }
         throw new Error(authResponse.message || 'Erreur d\'authentification')
       }
 
@@ -261,6 +268,11 @@ export const SchedulesProvider = ({
         const authResponse = await getAuthUser(user.id)
 
         if (!authResponse.success || !authResponse.data) {
+          // Si l'utilisateur n'est pas trouvé dans education.users, 
+          // on ne peut pas sauvegarder les schedules
+          if (authResponse.message?.includes('non trouvé')) {
+            throw new Error('Impossible de sauvegarder : utilisateur non trouvé dans la base de données')
+          }
           throw new Error(authResponse.message || 'Erreur d\'authentification')
         }
 
@@ -324,6 +336,13 @@ export const SchedulesProvider = ({
           const authResponse = await getAuthUser(user.id)
 
           if (!authResponse.success || !authResponse.data) {
+            // Si l'utilisateur n'est pas trouvé dans education.users, 
+            // on ne charge simplement pas les schedules (pas d'erreur critique)
+            if (authResponse.message?.includes('non trouvé')) {
+              console.warn('Utilisateur non trouvé dans education.users, schedules non chargés')
+              hasLoadedRef.current = true
+              return
+            }
             throw new Error(authResponse.message || 'Erreur d\'authentification')
           }
 
