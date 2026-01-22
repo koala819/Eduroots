@@ -291,7 +291,7 @@ export const CoursesProvider = ({
         const authResponse = await getAuthUser(user.id)
 
         if (!authResponse.success || !authResponse.data) {
-          // Si l'utilisateur n'est pas trouvé dans education.users, 
+          // Si l'utilisateur n'est pas trouvé dans education.users,
           // on ne charge simplement pas le cours (pas d'erreur critique)
           if (authResponse.message?.includes('non trouvé')) {
             console.warn('Utilisateur non trouvé dans education.users, cours non chargé')
@@ -327,7 +327,7 @@ export const CoursesProvider = ({
         const authResponse = await getAuthUser(user.id)
 
         if (!authResponse.success || !authResponse.data) {
-          // Si l'utilisateur n'est pas trouvé dans education.users, 
+          // Si l'utilisateur n'est pas trouvé dans education.users,
           // on ne charge simplement pas le cours (pas d'erreur critique)
           if (authResponse.message?.includes('non trouvé')) {
             console.warn('Utilisateur non trouvé dans education.users, cours non chargé')
@@ -461,7 +461,7 @@ export const CoursesProvider = ({
         const authResponse = await getAuthUser(user.id)
 
         if (!authResponse.success || !authResponse.data) {
-          // Si l'utilisateur n'est pas trouvé dans education.users, 
+          // Si l'utilisateur n'est pas trouvé dans education.users,
           // on ne peut pas créer le cours
           if (authResponse.message?.includes('non trouvé')) {
             throw new Error('Impossible de créer le cours : utilisateur non trouvé dans la base de données')
@@ -641,7 +641,7 @@ export const CoursesProvider = ({
       const authResponse = await getAuthUser(user.id)
 
       if (!authResponse.success || !authResponse.data) {
-        // Si l'utilisateur n'est pas trouvé dans education.users, 
+        // Si l'utilisateur n'est pas trouvé dans education.users,
         // on ne peut pas mettre à jour les cours
         if (authResponse.message?.includes('non trouvé')) {
           console.warn('Utilisateur non trouvé dans education.users, cours non mis à jour')
@@ -737,7 +737,7 @@ export const CoursesProvider = ({
       const authResponse = await getAuthUser(user.id)
 
       if (!authResponse.success || !authResponse.data) {
-        // Si l'utilisateur n'est pas trouvé dans education.users, 
+        // Si l'utilisateur n'est pas trouvé dans education.users,
         // on ne charge simplement pas les cours (pas d'erreur critique)
         if (authResponse.message?.includes('non trouvé')) {
           console.warn('Utilisateur non trouvé dans education.users, cours du professeur non chargés')
