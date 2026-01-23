@@ -2,7 +2,7 @@
 -- Ce script peut être exécuté pour vérifier que tout est correctement configuré
 
 -- 1. Vérifier que RLS est activé
-SELECT 
+SELECT
   schemaname,
   tablename,
   rowsecurity as rls_enabled
@@ -11,7 +11,7 @@ WHERE schemaname = 'education'
   AND tablename = 'families';
 
 -- 2. Lister toutes les politiques RLS sur la table families
-SELECT 
+SELECT
   schemaname,
   tablename,
   policyname,
@@ -26,7 +26,7 @@ WHERE schemaname = 'education'
 ORDER BY policyname;
 
 -- 3. Vérifier les permissions sur la table
-SELECT 
+SELECT
   grantee,
   privilege_type
 FROM information_schema.role_table_grants
@@ -35,7 +35,7 @@ WHERE table_schema = 'education'
 ORDER BY grantee, privilege_type;
 
 -- 4. Compter le nombre de politiques (devrait être 4)
-SELECT 
+SELECT
   COUNT(*) as policy_count,
   'Devrait être 4' as expected
 FROM pg_policies
@@ -43,10 +43,10 @@ WHERE schemaname = 'education'
   AND tablename = 'families';
 
 -- 5. Vérifier que les politiques ont les bonnes commandes
-SELECT 
+SELECT
   policyname,
   cmd as command_type,
-  CASE 
+  CASE
     WHEN cmd = 'SELECT' THEN 'Lecture'
     WHEN cmd = 'INSERT' THEN 'Insertion'
     WHEN cmd = 'UPDATE' THEN 'Modification'
@@ -56,7 +56,7 @@ SELECT
 FROM pg_policies
 WHERE schemaname = 'education'
   AND tablename = 'families'
-ORDER BY 
+ORDER BY
   CASE cmd
     WHEN 'ALL' THEN 1
     WHEN 'SELECT' THEN 2

@@ -67,11 +67,11 @@ USING (true)
 WITH CHECK (true);
 
 -- Commentaires
-COMMENT ON POLICY "Admins_and_bureau_can_manage_families" ON education.families IS 
+COMMENT ON POLICY "Admins_and_bureau_can_manage_families" ON education.families IS
   'Permet aux admins et bureau de gérer toutes les familles';
-COMMENT ON POLICY "Users_can_read_their_family" ON education.families IS 
+COMMENT ON POLICY "Users_can_read_their_family" ON education.families IS
   'Permet aux utilisateurs de lire leur propre famille via leurs enfants';
-COMMENT ON POLICY "Authenticated_users_can_create_families" ON education.families IS 
+COMMENT ON POLICY "Authenticated_users_can_create_families" ON education.families IS
   'Permet aux utilisateurs authentifiés de créer des familles (pour import automatique)';
-COMMENT ON POLICY "Service_role_can_manage_families" ON education.families IS 
+COMMENT ON POLICY "Service_role_can_manage_families" ON education.families IS
   'Permet au service_role de gérer toutes les familles pour les opérations backend';

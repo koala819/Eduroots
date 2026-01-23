@@ -6,10 +6,10 @@
 -- ============================================
 
 -- 1. Vérifier que RLS est activé (devrait retourner true)
-SELECT 
+SELECT
   tablename,
   rowsecurity as rls_enabled,
-  CASE 
+  CASE
     WHEN rowsecurity THEN '✅ RLS activé'
     ELSE '❌ RLS désactivé'
   END as status
@@ -18,7 +18,7 @@ WHERE schemaname = 'education'
   AND tablename = 'families';
 
 -- 2. Lister toutes les politiques
-SELECT 
+SELECT
   policyname as "Nom de la politique",
   CASE cmd
     WHEN 'ALL' THEN 'Toutes opérations'
@@ -27,7 +27,7 @@ SELECT
     WHEN 'UPDATE' THEN 'Modification'
     WHEN 'DELETE' THEN 'Suppression'
   END as "Type d'opération",
-  CASE 
+  CASE
     WHEN roles = '{authenticated}' THEN 'Utilisateurs authentifiés'
     WHEN roles = '{service_role}' THEN 'Service role'
     ELSE array_to_string(roles, ', ')
@@ -38,9 +38,9 @@ WHERE schemaname = 'education'
 ORDER BY policyname;
 
 -- 3. Compter les politiques (devrait être 4)
-SELECT 
+SELECT
   COUNT(*) as "Nombre de politiques",
-  CASE 
+  CASE
     WHEN COUNT(*) = 4 THEN '✅ Correct'
     ELSE '❌ Problème: devrait être 4'
   END as status
@@ -68,7 +68,7 @@ WHERE schemaname = 'education'
 -- VÉRIFICATION DES PERMISSIONS
 -- ============================================
 
-SELECT 
+SELECT
   grantee as "Rôle",
   string_agg(privilege_type, ', ' ORDER BY privilege_type) as "Permissions"
 FROM information_schema.role_table_grants

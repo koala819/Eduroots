@@ -7,7 +7,7 @@ Exécutez le script `scripts/test-families-rls.sql` dans le SQL Editor de Supaba
 ### Résultats attendus :
 
 ✅ **RLS activé** : `rls_enabled = true`
-✅ **4 politiques** : 
+✅ **4 politiques** :
    - `Admins_and_bureau_can_manage_families` (ALL)
    - `Users_can_read_their_family` (SELECT)
    - `Authenticated_users_can_create_families` (INSERT)
@@ -47,14 +47,14 @@ new row violates row-level security policy for table "families"
 
 ### Vérifier qu'une famille a été créée
 ```sql
-SELECT * FROM education.families 
+SELECT * FROM education.families
 WHERE id = 'af4f063d-871e-4173-b512-01e81c68e66d';
 ```
 
 ### Vérifier les utilisateurs d'une famille
 ```sql
-SELECT id, firstname, lastname, family_id 
-FROM education.users 
+SELECT id, firstname, lastname, family_id
+FROM education.users
 WHERE family_id = 'af4f063d-871e-4173-b512-01e81c68e66d';
 ```
 
@@ -70,14 +70,14 @@ SELECT COUNT(*) FROM education.families;
 1. Vérifiez que vous êtes bien authentifié (pas en mode anon)
 2. Vérifiez que les politiques existent :
    ```sql
-   SELECT * FROM pg_policies 
+   SELECT * FROM pg_policies
    WHERE tablename = 'families';
    ```
 3. Vérifiez les rôles de l'utilisateur :
    ```sql
-   SELECT id, email, role 
-   FROM education.users 
-   WHERE auth_id_email = auth.uid() 
+   SELECT id, email, role
+   FROM education.users
+   WHERE auth_id_email = auth.uid()
       OR auth_id_gmail = auth.uid();
    ```
 
@@ -85,7 +85,7 @@ SELECT COUNT(*) FROM education.families;
 
 1. Vérifiez que RLS est bien activé :
    ```sql
-   SELECT rowsecurity FROM pg_tables 
+   SELECT rowsecurity FROM pg_tables
    WHERE tablename = 'families';
    ```
 2. Redémarrez Supabase si nécessaire

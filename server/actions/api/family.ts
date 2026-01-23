@@ -455,14 +455,14 @@ export async function getFamilyProfileSummaryByStudentId(
       if (familyUsers && familyUsers.length > 0) {
         // Générer un label de famille basé sur le nom de famille le plus commun
         const lastnames = familyUsers.map(u => u.lastname).filter(Boolean)
-        const mostCommonLastname = lastnames.length > 0 
-          ? lastnames.reduce((a, b, _, arr) => 
+        const mostCommonLastname = lastnames.length > 0
+          ? lastnames.reduce((a, b, _, arr) =>
               arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
             )
           : 'Famille'
-        
+
         const familyLabel = `Famille ${mostCommonLastname}`
-        
+
         // Essayer de créer la famille avec l'ID existant (si possible) ou laisser la base générer un nouvel ID
         const { data: newFamily, error: createFamilyError } = await supabase
           .schema('education')
@@ -497,7 +497,7 @@ export async function getFamilyProfileSummaryByStudentId(
               .from('users')
               .update({ family_id: newFamily2.id })
               .eq('family_id', student.family_id)
-            
+
             // Utiliser directement newFamily2 (pas besoin de requête supplémentaire)
             family = newFamily2
           }
@@ -536,7 +536,7 @@ export async function getFamilyProfileSummaryByStudentId(
       ...s,
       whatsapp_phone: null, // La colonne peut ne pas exister dans la base de données
     })) as FamilyStudentContact[]
-    
+
     const parents = buildParentContacts(siblingsData)
     const feesResponse = await getFeesWithNotesByFamilyId(student.family_id)
 

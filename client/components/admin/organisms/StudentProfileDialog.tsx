@@ -125,6 +125,19 @@ export function StudentProfileDialog({
     return differenceInYears(currentDate, birthDate)
   }
 
+  function formatPhoneNumber(phone: string | null | undefined): string {
+    if (!phone) return '-'
+    // Supprimer tous les espaces et caractères non numériques
+    const digits = phone.replace(/\D/g, '')
+    // Vérifier si c'est un numéro français (10 chiffres)
+    if (digits.length === 10) {
+      // Formater comme 06.63.37.77.27
+      return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}.${digits.slice(8, 10)}`
+    }
+    // Si le format n'est pas standard, retourner tel quel
+    return phone
+  }
+
   useEffect(() => {
     if (!isOpen) return
 
@@ -414,22 +427,6 @@ export function StudentProfileDialog({
           </h3>
           <Card className="border-border">
             <CardContent className="pt-6 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div>
-                  <span className="text-sm text-muted-foreground">Statut de la famille</span>
-                  <p className="font-medium text-foreground">
-                    {familySummary?.family?.label || 'Famille non renseignée'}
-                  </p>
-                </div>
-                <Badge
-                  variant={familySummary?.family?.divorced ? 'secondary' : 'default'}
-                >
-                  {familySummary?.family?.divorced ? 'Parents divorcés' : 'Parents non divorcés'}
-                </Badge>
-              </div>
-
-              <Separator />
-
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -446,10 +443,7 @@ export function StudentProfileDialog({
                           Email : {parent.email || '-'}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          Téléphone : {parent.phone || '-'}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          WhatsApp : {parent.whatsapp || '-'}
+                          Téléphone : {formatPhoneNumber(parent.phone)}
                         </div>
                       </div>
                     ))}
@@ -473,12 +467,6 @@ export function StudentProfileDialog({
                       <div key={sibling.id} className="rounded-md border border-border p-3">
                         <div className="font-medium text-foreground">
                           {sibling.firstname} {sibling.lastname}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Email : {sibling.email || sibling.secondary_email || '-'}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Téléphone : {sibling.phone || sibling.secondary_phone || '-'}
                         </div>
                       </div>
                     ))}
