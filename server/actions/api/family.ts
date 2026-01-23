@@ -400,16 +400,20 @@ export async function getFamilyProfileSummaryByStudentId(
       return { success: false, message: 'Id étudiant manquant', data: null }
     }
 
+    // 1. Récupérer l'étudiant et son family_id
     const { data: student, error: studentError } = await supabase
       .schema('education')
       .from('users')
-      .select('id, family_id')
+      .select('id, family_id, firstname, lastname')
       .eq('id', studentId)
       .eq('role', 'student')
-      .limit(1)
-      .single()
+      .maybeSingle()
 
-    if (studentError || !student) {
+    if (studentError) {
+      return { success: false, message: `Étudiant non trouvé: ${studentError.message}`, data: null }
+    }
+
+    if (!student) {
       return { success: false, message: 'Étudiant non trouvé', data: null }
     }
 
@@ -426,18 +430,85 @@ export async function getFamilyProfileSummaryByStudentId(
       }
     }
 
-    const { data: family, error: familyError } = await supabase
+    // 2. Récupérer TOUS les utilisateurs avec le même family_id pour voir la famille
+    const { data: familyUsers } = await supabase
+      .schema('education')
+      .from('users')
+      .select('id, family_id, role, firstname, lastname, is_active')
+      .eq('family_id', student.family_id)
+
+    // 3. Récupérer la famille depuis la table families (sans condition is_active)
+    let family = null
+    const { data: familyData, error: familyError } = await supabase
       .schema('education')
       .from('families')
       .select('*')
       .eq('id', student.family_id)
-      .eq('is_active', true)
-      .single()
+      .maybeSingle()
 
-    if (familyError) {
-      return { success: false, message: 'Famille non trouvée', data: null }
+    if (!familyError) {
+      family = familyData
     }
 
+    if (!family) {
+      // Créer automatiquement la famille manquante basée sur les utilisateurs
+      if (familyUsers && familyUsers.length > 0) {
+        // Générer un label de famille basé sur le nom de famille le plus commun
+        const lastnames = familyUsers.map(u => u.lastname).filter(Boolean)
+        const mostCommonLastname = lastnames.length > 0 
+          ? lastnames.reduce((a, b, _, arr) => 
+              arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+            )
+          : 'Famille'
+        
+        const familyLabel = `Famille ${mostCommonLastname}`
+        
+        // Essayer de créer la famille avec l'ID existant (si possible) ou laisser la base générer un nouvel ID
+        const { data: newFamily, error: createFamilyError } = await supabase
+          .schema('education')
+          .from('families')
+          .insert({
+            id: student.family_id, // Utiliser l'ID existant du family_id
+            label: familyLabel,
+            divorced: false,
+            is_active: true,
+          })
+          .select()
+          .single()
+
+        if (createFamilyError) {
+          // Si l'insertion avec l'ID existant échoue (peut-être à cause d'une contrainte),
+          // créer une nouvelle famille et mettre à jour les users
+          const { data: newFamily2, error: createFamilyError2 } = await supabase
+            .schema('education')
+            .from('families')
+            .insert({
+              label: familyLabel,
+              divorced: false,
+              is_active: true,
+            })
+            .select()
+            .single()
+
+          if (!createFamilyError2 && newFamily2) {
+            // Mettre à jour tous les users avec le nouveau family_id
+            const { error: updateError } = await supabase
+              .schema('education')
+              .from('users')
+              .update({ family_id: newFamily2.id })
+              .eq('family_id', student.family_id)
+            
+            // Utiliser directement newFamily2 (pas besoin de requête supplémentaire)
+            family = newFamily2
+          }
+        } else if (newFamily) {
+          family = newFamily
+        }
+      }
+    }
+
+    // 4. Récupérer tous les siblings (étudiants actifs avec le même family_id)
+    // Note: whatsapp_phone peut ne pas exister dans certaines bases de données
     const { data: siblings, error: siblingsError } = await supabase
       .schema('education')
       .from('users')
@@ -448,8 +519,7 @@ export async function getFamilyProfileSummaryByStudentId(
         email,
         secondary_email,
         phone,
-        secondary_phone,
-        whatsapp_phone
+        secondary_phone
       `)
       .eq('family_id', student.family_id)
       .eq('role', 'student')
@@ -457,10 +527,16 @@ export async function getFamilyProfileSummaryByStudentId(
       .order('firstname', { ascending: true })
 
     if (siblingsError) {
-      return { success: false, message: 'Erreur lors de la récupération de la fratrie', data: null }
+      console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur siblings:', siblingsError)
+      return { success: false, message: `Erreur lors de la récupération de la fratrie: ${siblingsError.message}`, data: null }
     }
 
-    const siblingsData = (siblings ?? []) as FamilyStudentContact[]
+    // Mapper les siblings en ajoutant whatsapp_phone comme null (colonne peut ne pas exister)
+    const siblingsData = (siblings ?? []).map((s) => ({
+      ...s,
+      whatsapp_phone: null, // La colonne peut ne pas exister dans la base de données
+    })) as FamilyStudentContact[]
+    
     const parents = buildParentContacts(siblingsData)
     const feesResponse = await getFeesWithNotesByFamilyId(student.family_id)
 
@@ -468,14 +544,14 @@ export async function getFamilyProfileSummaryByStudentId(
       success: true,
       message: 'Profil famille récupéré',
       data: {
-        family,
+        family: family || null,
         siblings: siblingsData,
         parents,
         fees: feesResponse.success && feesResponse.data ? feesResponse.data : [],
       },
     }
   } catch (error) {
-    console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID]', error)
+    console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur:', error)
     throw new Error('Erreur lors de la récupération des données famille')
   }
 }
