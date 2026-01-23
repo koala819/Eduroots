@@ -1,5 +1,6 @@
 'use server'
 
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { getStudentAttendance, getStudentGrade } from '@/server/actions/api/stats'
 import { getOneTeacher } from '@/server/actions/api/teachers'
@@ -392,8 +393,36 @@ function buildParentContacts(students: FamilyStudentContact[]): ParentContact[] 
 export async function getFamilyProfileSummaryByStudentId(
   studentId: string,
 ): Promise<ApiResponse<FamilyProfileSummary>> {
-  await getAuthenticatedUser()
+  const authUser = await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
+
+  const isAdminOrBureau = authUser.user_metadata?.role === UserRoleEnum.Admin ||
+    authUser.user_metadata?.role === UserRoleEnum.Bureau
+  const adminSupabase = isAdminOrBureau
+    ? createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
+    : null
+  const db = adminSupabase ?? supabase
+  
+  // Vérifier si l'utilisateur est admin dans la table users
+  const { data: currentUser, error: currentUserError } = await db
+    .schema('education')
+    .from('users')
+    .select('id, role, auth_id_email, auth_id_gmail, firstname, lastname')
+    .or(`auth_id_email.eq.${authUser.id},auth_id_gmail.eq.${authUser.id}`)
+    .maybeSingle()
+  
+  if (currentUserError) {
+    console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération utilisateur courant:`, currentUserError)
+  }
 
   try {
     if (!studentId) {
@@ -401,7 +430,7 @@ export async function getFamilyProfileSummaryByStudentId(
     }
 
     // 1. Récupérer l'étudiant et son family_id
-    const { data: student, error: studentError } = await supabase
+    const { data: student, error: studentError } = await db
       .schema('education')
       .from('users')
       .select('id, family_id, firstname, lastname')
@@ -410,10 +439,12 @@ export async function getFamilyProfileSummaryByStudentId(
       .maybeSingle()
 
     if (studentError) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération étudiant:`, studentError)
       return { success: false, message: `Étudiant non trouvé: ${studentError.message}`, data: null }
     }
 
     if (!student) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Étudiant non trouvé: ${studentId}`)
       return { success: false, message: 'Étudiant non trouvé', data: null }
     }
 
@@ -431,7 +462,7 @@ export async function getFamilyProfileSummaryByStudentId(
     }
 
     // 2. Récupérer TOUS les utilisateurs avec le même family_id pour voir la famille
-    const { data: familyUsers } = await supabase
+    const { data: familyUsers } = await db
       .schema('education')
       .from('users')
       .select('id, family_id, role, firstname, lastname, is_active')
@@ -439,14 +470,17 @@ export async function getFamilyProfileSummaryByStudentId(
 
     // 3. Récupérer la famille depuis la table families (sans condition is_active)
     let family = null
-    const { data: familyData, error: familyError } = await supabase
+    const { data: familyData, error: familyError } = await db
       .schema('education')
       .from('families')
       .select('*')
       .eq('id', student.family_id)
       .maybeSingle()
 
-    if (!familyError) {
+    if (familyError) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération famille:`, familyError)
+      console.error(`  - Code: ${familyError.code}, Message: ${familyError.message}`)
+    } else {
       family = familyData
     }
 
@@ -464,7 +498,7 @@ export async function getFamilyProfileSummaryByStudentId(
         const familyLabel = `Famille ${mostCommonLastname}`
 
         // Essayer de créer la famille avec l'ID existant (si possible) ou laisser la base générer un nouvel ID
-        const { data: newFamily, error: createFamilyError } = await supabase
+        const { data: newFamily, error: createFamilyError } = await db
           .schema('education')
           .from('families')
           .insert({
@@ -479,7 +513,7 @@ export async function getFamilyProfileSummaryByStudentId(
         if (createFamilyError) {
           // Si l'insertion avec l'ID existant échoue (peut-être à cause d'une contrainte),
           // créer une nouvelle famille et mettre à jour les users
-          const { data: newFamily2, error: createFamilyError2 } = await supabase
+          const { data: newFamily2, error: createFamilyError2 } = await db
             .schema('education')
             .from('families')
             .insert({
@@ -492,7 +526,7 @@ export async function getFamilyProfileSummaryByStudentId(
 
           if (!createFamilyError2 && newFamily2) {
             // Mettre à jour tous les users avec le nouveau family_id
-            const { error: updateError } = await supabase
+            const { error: updateError } = await db
               .schema('education')
               .from('users')
               .update({ family_id: newFamily2.id })
@@ -509,7 +543,7 @@ export async function getFamilyProfileSummaryByStudentId(
 
     // 4. Récupérer tous les siblings (étudiants actifs avec le même family_id)
     // Note: whatsapp_phone peut ne pas exister dans certaines bases de données
-    const { data: siblings, error: siblingsError } = await supabase
+    const { data: siblings, error: siblingsError } = await db
       .schema('education')
       .from('users')
       .select(`
@@ -539,6 +573,10 @@ export async function getFamilyProfileSummaryByStudentId(
 
     const parents = buildParentContacts(siblingsData)
     const feesResponse = await getFeesWithNotesByFamilyId(student.family_id)
+
+    if (!feesResponse.success) {
+      console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération fees:', feesResponse.message)
+    }
 
     return {
       success: true,

@@ -379,9 +379,14 @@ export async function POST(req: NextRequest) {
               const paymentAmount = payload.paymentAmount ?? null
               const paymentMethod = payload.paymentMethod ?? 'liquide'
 
-              if (!amountDue && !paymentAmount) continue
+              if (!amountDue && !paymentAmount) {
+                console.log(`[IMPORT] Fee ${payload.feeType} ignoré pour famille ${family.id}: pas de montant (amountDue: ${amountDue}, paymentAmount: ${paymentAmount})`)
+                continue
+              }
 
               const normalizedAmountDue = amountDue ?? paymentAmount ?? 0
+              console.log(`[IMPORT] Création fee ${payload.feeType} pour famille ${family.id}: amountDue=${normalizedAmountDue}, year=${year}`)
+              
               const { data: fee, error: feeError } = await supabase
                 .schema('education')
                 .from('fees')
@@ -397,9 +402,11 @@ export async function POST(req: NextRequest) {
                 .single()
 
               if (feeError || !fee) {
-                console.error('Erreur création fee:', feeError)
+                console.error(`[IMPORT] Erreur création fee ${payload.feeType} pour famille ${family.id}:`, feeError)
                 continue
               }
+              
+              console.log(`[IMPORT] Fee ${payload.feeType} créé avec succès: ${fee.id}`)
 
               if (paymentAmount && paymentAmount > 0) {
                 await supabase

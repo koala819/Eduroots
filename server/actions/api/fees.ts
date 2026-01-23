@@ -1,5 +1,6 @@
 'use server'
 
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { getAuthenticatedUser } from '@/server/utils/auth-helpers'
 import { getSessionServer } from '@/server/utils/server-helpers'
 import { getPaymentStatus } from '@/server/utils/fees'
@@ -13,6 +14,7 @@ import {
   UpdateFeePaymentPayload,
 } from '@/types/fees-payload'
 import { FeeWithPaymentsAndNotes } from '@/types/family-payload'
+import { UserRoleEnum } from '@/types/user'
 
 function toFeeWithPayments(
   fee: Omit<FeeWithPayments, 'payments' | 'paid_total' | 'payment_status'>,
@@ -60,15 +62,30 @@ export async function getFeesByFamilyId(
   familyId: string,
   academicYear?: string,
 ): Promise<ApiResponse<FeeWithPayments[]>> {
-  await getAuthenticatedUser()
+  const authUser = await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
+  const isAdminOrBureau = authUser.user_metadata?.role === UserRoleEnum.Admin ||
+    authUser.user_metadata?.role === UserRoleEnum.Bureau
+  const adminSupabase = isAdminOrBureau
+    ? createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
+    : null
+  const db = adminSupabase ?? supabase
 
   try {
     if (!familyId) {
       return { success: false, message: 'Id famille manquant', data: null }
     }
 
-    let query = supabase
+    let query = db
       .schema('education')
       .from('fees')
       .select('*, fee_payments(*)')
@@ -108,15 +125,30 @@ export async function getFeesWithNotesByFamilyId(
   familyId: string,
   academicYear?: string,
 ): Promise<ApiResponse<FeeWithPaymentsAndNotes[]>> {
-  await getAuthenticatedUser()
+  const authUser = await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
+  const isAdminOrBureau = authUser.user_metadata?.role === UserRoleEnum.Admin ||
+    authUser.user_metadata?.role === UserRoleEnum.Bureau
+  const adminSupabase = isAdminOrBureau
+    ? createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
+    : null
+  const db = adminSupabase ?? supabase
 
   try {
     if (!familyId) {
       return { success: false, message: 'Id famille manquant', data: null }
     }
 
-    let query = supabase
+    let query = db
       .schema('education')
       .from('fees')
       .select('*, fee_payments(*), fee_notes(*)')
@@ -131,7 +163,9 @@ export async function getFeesWithNotesByFamilyId(
     const { data: fees, error } = await query
 
     if (error) {
-      console.error('❌ Erreur Supabase:', error)
+      console.error('❌ Erreur Supabase lors de la récupération des fees:', error)
+      console.error('❌ Code:', error.code, 'Message:', error.message, 'Details:', error.details)
+      console.error('❌ Family ID:', familyId, 'Academic Year:', academicYear)
       return { success: false, message: 'Erreur lors de la récupération des cotisations', data: null }
     }
 
@@ -157,15 +191,30 @@ export async function getFeesByStudentId(
   studentId: string,
   academicYear?: string,
 ): Promise<ApiResponse<FeeWithPayments[]>> {
-  await getAuthenticatedUser()
+  const authUser = await getAuthenticatedUser()
   const { supabase } = await getSessionServer()
+  const isAdminOrBureau = authUser.user_metadata?.role === UserRoleEnum.Admin ||
+    authUser.user_metadata?.role === UserRoleEnum.Bureau
+  const adminSupabase = isAdminOrBureau
+    ? createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
+    : null
+  const db = adminSupabase ?? supabase
 
   try {
     if (!studentId) {
       return { success: false, message: 'Id étudiant manquant', data: null }
     }
 
-    let query = supabase
+    let query = db
       .schema('education')
       .from('fees')
       .select('*, fee_payments(*)')

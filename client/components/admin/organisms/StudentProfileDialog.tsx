@@ -486,8 +486,26 @@ export function StudentProfileDialog({
                   <p className="text-sm text-muted-foreground">Chargement des cotisations...</p>
                 )}
 
-                {!isLoadingFamily && (!familySummary?.fees || familySummary.fees.length === 0) && (
-                  <p className="text-sm text-muted-foreground">Aucune cotisation enregistrée.</p>
+                {!isLoadingFamily && !familySummary?.family && (
+                  <div className="rounded-md border border-warning/50 bg-warning/10 p-3">
+                    <p className="text-sm font-medium text-warning">
+                      ⚠️ Aucune famille assignée
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Cet étudiant n'est pas rattaché à une famille. Les cotisations ne peuvent pas être affichées.
+                    </p>
+                  </div>
+                )}
+
+                {!isLoadingFamily && familySummary?.family && (!familySummary?.fees || familySummary.fees.length === 0) && (
+                  <div className="rounded-md border border-border/50 bg-muted/20 p-3">
+                    <p className="text-sm font-medium text-foreground">
+                      Aucune cotisation enregistrée
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Aucune cotisation ou inscription n'a été enregistrée pour la famille "{familySummary.family.label}".
+                    </p>
+                  </div>
                 )}
 
                 {familySummary?.fees?.map((fee) => (
