@@ -75,12 +75,20 @@ export async function refreshEntityStats(
 
     if (studentError) {
       const errorMsg = 'Erreur lors de la récupération des statistiques étudiants'
-      throw new Error(`${errorMsg}: ${studentError.message}`)
+      return {
+        success: false,
+        data: null,
+        message: `${errorMsg}: ${studentError.message}`,
+      }
     }
 
     if (teacherError) {
       const errorMsg = 'Erreur lors de la récupération des statistiques enseignants'
-      throw new Error(`${errorMsg}: ${teacherError.message}`)
+      return {
+        success: false,
+        data: null,
+        message: `${errorMsg}: ${teacherError.message}`,
+      }
     }
 
     // Combiner les deux tableaux
@@ -211,11 +219,19 @@ export async function refreshGlobalStats(): Promise<ApiResponse> {
       .single()
 
     if (error) {
-      throw new Error(`Erreur lors de la récupération des statistiques globales: ${error.message}`)
+      return {
+        success: false,
+        data: null,
+        message: `Erreur lors de la récupération des statistiques globales: ${error.message}`,
+      }
     }
 
     if (!globalStats) {
-      throw new Error('Aucune statistique globale trouvée')
+      return {
+        success: false,
+        data: null,
+        message: 'Aucune statistique globale trouvée',
+      }
     }
 
     const response: GlobalStatsResponse = {
@@ -231,7 +247,12 @@ export async function refreshGlobalStats(): Promise<ApiResponse> {
       message: 'Statistiques globales récupérées avec succès',
     }
   } catch (error) {
-    throw new Error('Erreur lors de la récupération des statistiques globales' + error)
+    console.error('[GET_GLOBAL_STATS]', error)
+    return {
+      success: false,
+      data: null,
+      message: 'Erreur lors de la récupération des statistiques globales',
+    }
   }
 }
 

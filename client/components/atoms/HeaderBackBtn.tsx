@@ -7,13 +7,14 @@ import { ROUTE_PATTERNS } from '@/server/utils/patternsHeader'
 
 export const HeaderBackBtn = () => {
   const pathname = usePathname()
+  const normalizedPath = pathname !== '/' ? pathname.replace(/\/+$/, '') : pathname
   const router = useRouter()
   const searchParams = useSearchParams()
   const studentId = searchParams.get('student')
 
-  const pathTeacher = pathname === '/teacher'
-  const pathFamily = pathname === '/family'
-  const pathAdmin = pathname === '/admin'
+  const pathTeacher = normalizedPath === '/teacher'
+  const pathFamily = normalizedPath === '/family'
+  const pathAdmin = normalizedPath === '/admin'
 
   // Ne pas afficher le bouton retour
   const hiddenBtn = (pathFamily && !studentId) || pathAdmin
@@ -44,7 +45,7 @@ export const HeaderBackBtn = () => {
     return null
   }
 
-  const pattern = findPattern(pathname)
+  const pattern = findPattern(normalizedPath)
 
   if (!pattern) {
     console.warn(`Route pattern non trouvé pour: ${pathname}`)
@@ -82,18 +83,18 @@ export const HeaderBackBtn = () => {
     const segments = pathname.split('/').filter(Boolean)
 
     // CAS spécial: Routes admin
-    if (pathname === '/admin/root/logs') {
+    if (normalizedPath === '/admin/root/logs') {
       return '/admin'
     }
 
-    if (pathname === '/admin/members/student/create' ||
-      pathname === '/admin/members/teacher/create' ||
-      pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+$/)) {
+    if (normalizedPath === '/admin/members/student/create' ||
+      normalizedPath === '/admin/members/teacher/create' ||
+      normalizedPath.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+$/)) {
       return '/admin/members'
     }
 
-    if (pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+\/personal$/)) {
-      const match = pathname.match(/^\/admin\/members\/(student|teacher)\/edit\/([^/]+)\/personal$/)
+    if (normalizedPath.match(/^\/admin\/members\/(student|teacher)\/edit\/[^/]+\/personal$/)) {
+      const match = normalizedPath.match(/^\/admin\/members\/(student|teacher)\/edit\/([^/]+)\/personal$/)
       if (match) {
         const [, type, id] = match
         return `/admin/members/${type}/edit/${id}`

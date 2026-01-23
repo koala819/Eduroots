@@ -16,6 +16,7 @@ const HeaderInformation = ({
   classroomTimeSlots = [],
 }: HeaderInformationProps) => {
   const pathname = usePathname()
+  const normalizedPath = pathname !== '/' ? pathname.replace(/\/+$/, '') : pathname
 
   // Fonction simple pour trouver le pattern correspondant
   const findPattern = (path: string) => {
@@ -43,7 +44,7 @@ const HeaderInformation = ({
     return null
   }
 
-  const pattern = findPattern(pathname)
+  const pattern = findPattern(normalizedPath)
 
   if (!pattern) {
     console.warn(`Route pattern non trouvé pour: ${pathname}`)

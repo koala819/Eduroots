@@ -31,6 +31,7 @@ export type StudentResponse = Pick<User,
   'lastname' |
   'type' |
   'subjects' |
+  'family_id' |
   'created_at' |
   'updated_at' |
   'gender' |

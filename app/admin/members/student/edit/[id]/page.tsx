@@ -5,6 +5,7 @@ import { StudentEdit } from '@/client/components/admin/pages/StudentEdit'
 import LoadingScreen from '@/client/components/atoms/LoadingScreen'
 import { ErrorContent } from '@/client/components/atoms/StatusContent'
 import { getStudentCourses } from '@/server/actions/api/courses'
+import { getFeesByFamilyId } from '@/server/actions/api/fees'
 import { getOneStudent } from '@/server/actions/api/students'
 import { StudentEnrollment } from '@/types/courses'
 
@@ -28,6 +29,10 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
       console.error(oneStudentData.message || 'Erreur lors de la récupération de l\'étudiant')
       return <ErrorContent message="Erreur lors du chargement des données de l'étudiant" />
     }
+
+    const familyFeesResponse = oneStudentData.data.family_id
+      ? await getFeesByFamilyId(oneStudentData.data.family_id)
+      : { success: true, data: [] }
 
     const studentCoursesData = await getStudentCourses(id)
 
@@ -79,6 +84,7 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
           id={id}
           studentPersonalData={oneStudentData.data}
           studentCoursesData={sortedSessions}
+          familyFees={familyFeesResponse.data ?? []}
         />
       </Suspense>)
   } catch (error) {

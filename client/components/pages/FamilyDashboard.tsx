@@ -4,10 +4,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ErrorContent, LoadingContent } from '@/client/components/atoms/StatusContent'
+import { FamilyFeesSummary } from '@/client/components/molecules/FamilyFeesSummary'
 import { ChildStats } from '@/client/components/molecules/FamilyStats'
+import { getFamilyFeesForUser } from '@/server/actions/api/fees'
 import { getStudentDetailedData } from '@/server/actions/api/family'
 import { FamilyStudentData } from '@/server/actions/api/family'
 import { SubjectNameEnum } from '@/types/courses'
+import { FeeWithPayments } from '@/types/fees-payload'
 import { UserRoleEnum } from '@/types/user'
 
 export function FamilyDashboard() {

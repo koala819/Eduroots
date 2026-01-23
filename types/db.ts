@@ -307,14 +307,56 @@ export type User = {
   stats_model: string | null
   student_stats_id: string | null //uuid
   teacher_stats_id: string | null //uuid
+  family_id?: string | null
   role: string
   phone: string | null
-  secondary_phone: string | null
-  whatsapp_phone: string | null
+  secondary_phone?: string | null
+  whatsapp_phone?: string | null
   created_at: Date | null
   updated_at: Date | null
   has_invalid_email: boolean
 }
+
+export type Family = {
+  id: string
+  label: string | null
+  divorced: boolean
+  created_at: Date
+  updated_at: Date
+  is_active: boolean
+  deleted_at: Date | null
+}
+
+export type Fee = {
+  id: string
+  family_id: string
+  student_id: string | null
+  academic_year: string
+  fee_type: 'registration' | 'membership'
+  amount_due: number
+  created_at: Date
+  updated_at: Date
+  is_active: boolean
+  deleted_at: Date | null
+}
+
+export type FeePayment = {
+  id: string
+  fee_id: string
+  amount_paid: number
+  method: 'cheque' | 'liquide' | 'espece' | 'cb' | 'helloasso' | 'exoneration'
+  paid_at: Date
+  created_at: Date
+  updated_at: Date
+}
+
+export type FeeNote = {
+  id: string
+  fee_id: string
+  note_text: string
+  created_at: Date
+}
+
 
 export type Database = {
   config: {
@@ -412,6 +454,26 @@ export type Database = {
         Row: User
         Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
+      }
+      families: {
+        Row: Family
+        Insert: Omit<Family, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Family, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fees: {
+        Row: Fee
+        Insert: Omit<Fee, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Fee, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fee_payments: {
+        Row: FeePayment
+        Insert: Omit<FeePayment, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<FeePayment, 'id' | 'created_at' | 'updated_at'>>
+      }
+      fee_notes: {
+        Row: FeeNote
+        Insert: Omit<FeeNote, 'id' | 'created_at'>
+        Update: Partial<Omit<FeeNote, 'id' | 'created_at'>>
       }
     }
   }

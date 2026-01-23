@@ -20,6 +20,12 @@ const navItems = [
     pathPattern: '^/admin/members',
   },
   {
+    href: '/admin/payments',
+    label: 'Paiements',
+    Icon: 'CreditCard',
+    pathPattern: '^/admin/payments',
+  },
+  {
     href: '/admin/schedule',
     label: 'Planning',
     Icon: 'Calendar',

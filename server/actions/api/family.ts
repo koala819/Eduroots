@@ -1,5 +1,6 @@
 'use server'
 
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { getCourseSessionById } from '@/server/actions/api/courses'
 import { getStudentAttendance, getStudentGrade } from '@/server/actions/api/stats'
 import { getOneTeacher } from '@/server/actions/api/teachers'
@@ -9,8 +10,10 @@ import { ApiResponse } from '@/types/api'
 import { CourseWithRelations } from '@/types/courses'
 import { SubjectNameEnum } from '@/types/courses'
 import { User } from '@/types/db'
+import { FamilyProfileSummary, FamilyStudentContact, ParentContact } from '@/types/family-payload'
 import { StudentAttendanceResponse } from '@/types/stats-payload'
 import { UserRoleEnum } from '@/types/user'
+import { getFeesWithNotesByFamilyId } from '@/server/actions/api/fees'
 
 // Type correct pour les grades basé sur le retour de calculateStudentGrade
 export interface StudentGradesData {
@@ -119,6 +122,7 @@ export async function getStudentDetailedData(
               stats_model: null,
               student_stats_id: null,
               teacher_stats_id: null,
+              family_id: null,
               phone: null,
               secondary_phone: null,
               whatsapp_phone: null,
@@ -151,17 +155,16 @@ export async function getFamilyDashboardData(
   const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer l'utilisateur principal pour obtenir son email
+    // Récupérer l'utilisateur principal pour identifier la famille
     const { data: mainUser, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select('email')
+      .select('id, family_id')
       .or(
         `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
         `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
       )
       .eq('is_active', true)
-      .eq('role', 'student')
       .limit(1)
 
     if (userError || !mainUser || mainUser.length === 0) {
@@ -172,9 +175,16 @@ export async function getFamilyDashboardData(
       }
     }
 
-    const familyEmail = mainUser[0].email
+    const familyId = mainUser[0].family_id
 
-    // Récupérer tous les étudiants de la fratrie
+    if (!familyId) {
+      return {
+        success: false,
+        message: 'Famille non renseignée pour cet utilisateur',
+        data: null,
+      }
+    }
+
     const { data: familyStudents, error: studentsError } = await supabase
       .schema('education')
       .from('users')
@@ -195,7 +205,7 @@ export async function getFamilyDashboardData(
         whatsapp_phone,
         school_year
       `)
-      .eq('email', familyEmail)
+      .eq('family_id', familyId)
       .eq('is_active', true)
       .eq('role', 'student')
       .order('firstname', { ascending: true })
@@ -204,6 +214,14 @@ export async function getFamilyDashboardData(
       return {
         success: false,
         message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    if (familyStudents.length === 0) {
+      return {
+        success: false,
+        message: 'Aucun étudiant trouvé dans la fratrie',
         data: null,
       }
     }
@@ -246,17 +264,16 @@ export async function getFamilyAllStudentsData(
   const { supabase } = await getSessionServer()
 
   try {
-    // Récupérer l'utilisateur principal pour obtenir son email
+    // Récupérer l'utilisateur principal pour identifier la famille
     const { data: mainUser, error: userError } = await supabase
       .schema('education')
       .from('users')
-      .select('email')
+      .select('id, family_id')
       .or(
         `auth_id_email.eq.${supabaseUserId},auth_id_gmail.eq.${supabaseUserId},` +
         `parent2_auth_id_email.eq.${supabaseUserId},parent2_auth_id_gmail.eq.${supabaseUserId}`,
       )
       .eq('is_active', true)
-      .eq('role', 'student')
       .limit(1)
 
     if (userError || !mainUser || mainUser.length === 0) {
@@ -267,9 +284,16 @@ export async function getFamilyAllStudentsData(
       }
     }
 
-    const familyEmail = mainUser[0].email
+    const familyId = mainUser[0].family_id
 
-    // Récupérer tous les étudiants de la fratrie
+    if (!familyId) {
+      return {
+        success: false,
+        message: 'Famille non renseignée pour cet utilisateur',
+        data: null,
+      }
+    }
+
     const { data: familyStudents, error: studentsError } = await supabase
       .schema('education')
       .from('users')
@@ -290,7 +314,7 @@ export async function getFamilyAllStudentsData(
         whatsapp_phone,
         school_year
       `)
-      .eq('email', familyEmail)
+      .eq('family_id', familyId)
       .eq('is_active', true)
       .eq('role', 'student')
       .order('firstname', { ascending: true })
@@ -299,6 +323,14 @@ export async function getFamilyAllStudentsData(
       return {
         success: false,
         message: 'Erreur lors de la récupération de la fratrie',
+        data: null,
+      }
+    }
+
+    if (familyStudents.length === 0) {
+      return {
+        success: false,
+        message: 'Aucun étudiant trouvé dans la fratrie',
         data: null,
       }
     }
@@ -328,5 +360,236 @@ export async function getFamilyAllStudentsData(
   } catch (error) {
     console.error('[GET_FAMILY_ALL_STUDENTS_DATA]', error)
     throw new Error('Erreur lors de la récupération des données familiales')
+  }
+}
+
+function buildParentContacts(students: FamilyStudentContact[]): ParentContact[] {
+  if (students.length === 0) {
+    return [
+      { label: 'pere', email: null, phone: null, whatsapp: null },
+      { label: 'mere', email: null, phone: null, whatsapp: null },
+    ]
+  }
+
+  const primary = students.find((student) => student.email || student.phone) ?? students[0]
+  const secondary = students.find((student) => student.secondary_email || student.secondary_phone)
+
+  return [
+    {
+      label: 'pere',
+      email: primary?.email ?? null,
+      phone: primary?.phone ?? null,
+      whatsapp: primary?.whatsapp_phone ?? null,
+    },
+    {
+      label: 'mere',
+      email: secondary?.secondary_email ?? null,
+      phone: secondary?.secondary_phone ?? null,
+      whatsapp: secondary?.whatsapp_phone ?? null,
+    },
+  ]
+}
+
+export async function getFamilyProfileSummaryByStudentId(
+  studentId: string,
+): Promise<ApiResponse<FamilyProfileSummary>> {
+  const authUser = await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  const isAdminOrBureau = authUser.user_metadata?.role === UserRoleEnum.Admin ||
+    authUser.user_metadata?.role === UserRoleEnum.Bureau
+  const adminSupabase = isAdminOrBureau
+    ? createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
+    : null
+  const db = adminSupabase ?? supabase
+
+  // Vérifier si l'utilisateur est admin dans la table users
+  const { data: currentUser, error: currentUserError } = await db
+    .schema('education')
+    .from('users')
+    .select('id, role, auth_id_email, auth_id_gmail, firstname, lastname')
+    .or(`auth_id_email.eq.${authUser.id},auth_id_gmail.eq.${authUser.id}`)
+    .maybeSingle()
+
+  if (currentUserError) {
+    console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération utilisateur courant:`, currentUserError)
+  }
+
+  try {
+    if (!studentId) {
+      return { success: false, message: 'Id étudiant manquant', data: null }
+    }
+
+    // 1. Récupérer l'étudiant et son family_id
+    const { data: student, error: studentError } = await db
+      .schema('education')
+      .from('users')
+      .select('id, family_id, firstname, lastname')
+      .eq('id', studentId)
+      .eq('role', 'student')
+      .maybeSingle()
+
+    if (studentError) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération étudiant:`, studentError)
+      return { success: false, message: `Étudiant non trouvé: ${studentError.message}`, data: null }
+    }
+
+    if (!student) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Étudiant non trouvé: ${studentId}`)
+      return { success: false, message: 'Étudiant non trouvé', data: null }
+    }
+
+    if (!student.family_id) {
+      return {
+        success: true,
+        message: 'Famille non renseignée',
+        data: {
+          family: null,
+          siblings: [],
+          parents: buildParentContacts([]),
+          fees: [],
+        },
+      }
+    }
+
+    // 2. Récupérer TOUS les utilisateurs avec le même family_id pour voir la famille
+    const { data: familyUsers } = await db
+      .schema('education')
+      .from('users')
+      .select('id, family_id, role, firstname, lastname, is_active')
+      .eq('family_id', student.family_id)
+
+    // 3. Récupérer la famille depuis la table families (sans condition is_active)
+    let family = null
+    const { data: familyData, error: familyError } = await db
+      .schema('education')
+      .from('families')
+      .select('*')
+      .eq('id', student.family_id)
+      .maybeSingle()
+
+    if (familyError) {
+      console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération famille:`, familyError)
+      console.error(`  - Code: ${familyError.code}, Message: ${familyError.message}`)
+    } else {
+      family = familyData
+    }
+
+    if (!family) {
+      // Créer automatiquement la famille manquante basée sur les utilisateurs
+      if (familyUsers && familyUsers.length > 0) {
+        // Générer un label de famille basé sur le nom de famille le plus commun
+        const lastnames = familyUsers.map(u => u.lastname).filter(Boolean)
+        const mostCommonLastname = lastnames.length > 0
+          ? lastnames.reduce((a, b, _, arr) =>
+              arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+            )
+          : 'Famille'
+
+        const familyLabel = `Famille ${mostCommonLastname}`
+
+        // Essayer de créer la famille avec l'ID existant (si possible) ou laisser la base générer un nouvel ID
+        const { data: newFamily, error: createFamilyError } = await db
+          .schema('education')
+          .from('families')
+          .insert({
+            id: student.family_id, // Utiliser l'ID existant du family_id
+            label: familyLabel,
+            divorced: false,
+            is_active: true,
+          })
+          .select()
+          .single()
+
+        if (createFamilyError) {
+          // Si l'insertion avec l'ID existant échoue (peut-être à cause d'une contrainte),
+          // créer une nouvelle famille et mettre à jour les users
+          const { data: newFamily2, error: createFamilyError2 } = await db
+            .schema('education')
+            .from('families')
+            .insert({
+              label: familyLabel,
+              divorced: false,
+              is_active: true,
+            })
+            .select()
+            .single()
+
+          if (!createFamilyError2 && newFamily2) {
+            // Mettre à jour tous les users avec le nouveau family_id
+            const { error: updateError } = await db
+              .schema('education')
+              .from('users')
+              .update({ family_id: newFamily2.id })
+              .eq('family_id', student.family_id)
+
+            // Utiliser directement newFamily2 (pas besoin de requête supplémentaire)
+            family = newFamily2
+          }
+        } else if (newFamily) {
+          family = newFamily
+        }
+      }
+    }
+
+    // 4. Récupérer tous les siblings (étudiants actifs avec le même family_id)
+    // Note: whatsapp_phone peut ne pas exister dans certaines bases de données
+    const { data: siblings, error: siblingsError } = await db
+      .schema('education')
+      .from('users')
+      .select(`
+        id,
+        firstname,
+        lastname,
+        email,
+        secondary_email,
+        phone,
+        secondary_phone
+      `)
+      .eq('family_id', student.family_id)
+      .eq('role', 'student')
+      .eq('is_active', true)
+      .order('firstname', { ascending: true })
+
+    if (siblingsError) {
+      console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur siblings:', siblingsError)
+      return { success: false, message: `Erreur lors de la récupération de la fratrie: ${siblingsError.message}`, data: null }
+    }
+
+    // Mapper les siblings en ajoutant whatsapp_phone comme null (colonne peut ne pas exister)
+    const siblingsData = (siblings ?? []).map((s) => ({
+      ...s,
+      whatsapp_phone: null, // La colonne peut ne pas exister dans la base de données
+    })) as FamilyStudentContact[]
+
+    const parents = buildParentContacts(siblingsData)
+    const feesResponse = await getFeesWithNotesByFamilyId(student.family_id)
+
+    if (!feesResponse.success) {
+      console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération fees:', feesResponse.message)
+    }
+
+    return {
+      success: true,
+      message: 'Profil famille récupéré',
+      data: {
+        family: family || null,
+        siblings: siblingsData,
+        parents,
+        fees: feesResponse.success && feesResponse.data ? feesResponse.data : [],
+      },
+    }
+  } catch (error) {
+    console.error('[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur:', error)
+    throw new Error('Erreur lors de la récupération des données famille')
   }
 }
