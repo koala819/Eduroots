@@ -411,7 +411,7 @@ export async function getFamilyProfileSummaryByStudentId(
     )
     : null
   const db = adminSupabase ?? supabase
-  
+
   // Vérifier si l'utilisateur est admin dans la table users
   const { data: currentUser, error: currentUserError } = await db
     .schema('education')
@@ -419,7 +419,7 @@ export async function getFamilyProfileSummaryByStudentId(
     .select('id, role, auth_id_email, auth_id_gmail, firstname, lastname')
     .or(`auth_id_email.eq.${authUser.id},auth_id_gmail.eq.${authUser.id}`)
     .maybeSingle()
-  
+
   if (currentUserError) {
     console.error(`[GET_FAMILY_PROFILE_SUMMARY_BY_STUDENT_ID] Erreur récupération utilisateur courant:`, currentUserError)
   }

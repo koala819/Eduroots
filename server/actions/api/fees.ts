@@ -9,7 +9,9 @@ import { FeePayment } from '@/types/db'
 import {
   CreateFeePayload,
   CreateFeePaymentPayload,
+  CreateFeeNotePayload,
   FeeWithPayments,
+  UpdateFeeNotePayload,
   UpdateFeePayload,
   UpdateFeePaymentPayload,
 } from '@/types/fees-payload'
@@ -414,5 +416,66 @@ export async function updateFeePayment(
   } catch (error) {
     console.error('[UPDATE_FEE_PAYMENT]', error)
     throw new Error('Erreur lors de la mise à jour du paiement')
+  }
+}
+
+export async function createFeeNote(
+  payload: CreateFeeNotePayload,
+): Promise<ApiResponse<{ id: string }>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    const { data: note, error } = await supabase
+      .schema('education')
+      .from('fee_notes')
+      .insert({
+        ...payload,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+
+    if (error || !note) {
+      return { success: false, message: 'Note non créée', data: null }
+    }
+
+    return { success: true, message: 'Note créée', data: { id: note.id } }
+  } catch (error) {
+    console.error('[CREATE_FEE_NOTE]', error)
+    throw new Error('Erreur lors de la création de la note')
+  }
+}
+
+export async function updateFeeNote(
+  noteId: string,
+  payload: UpdateFeeNotePayload,
+): Promise<ApiResponse<{ id: string }>> {
+  await getAuthenticatedUser()
+  const { supabase } = await getSessionServer()
+
+  try {
+    if (!noteId) {
+      return { success: false, message: 'Id note manquant', data: null }
+    }
+
+    const { data: note, error } = await supabase
+      .schema('education')
+      .from('fee_notes')
+      .update({
+        ...payload,
+      })
+      .eq('id', noteId)
+      .select('id')
+      .single()
+
+    if (error || !note) {
+      return { success: false, message: 'Note non mise à jour', data: null }
+    }
+
+    return { success: true, message: 'Note mise à jour', data: { id: note.id } }
+  } catch (error) {
+    console.error('[UPDATE_FEE_NOTE]', error)
+    throw new Error('Erreur lors de la mise à jour de la note')
   }
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import { differenceInYears } from 'date-fns'
-import { ClipboardList, Contact, CreditCard, Star, Trash2, TrendingUp, Users } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ClipboardList, Contact, Star, Trash2, TrendingUp, Users } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { GenderDisplay } from '@/client/components/atoms/GenderDisplay'
 import {
@@ -36,6 +36,7 @@ import { Progress } from '@/client/components/ui/progress'
 import { Separator } from '@/client/components/ui/separator'
 import { useAuth } from '@/client/hooks/use-auth'
 import { useToast } from '@/client/hooks/use-toast'
+import { FamilyFeesSection } from '@/client/components/admin/molecules/FamilyFeesSection'
 import { getFamilyProfileSummaryByStudentId } from '@/server/actions/api/family'
 import { deleteStudent } from '@/server/actions/api/students'
 import { cn } from '@/server/utils/helpers'
@@ -74,14 +75,10 @@ export function StudentProfileDialog({
     return siblings.filter((sibling) => sibling.id !== student.id)
   }, [familySummary?.siblings, student.id])
 
-  const currencyFormatter = useMemo(() => new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }), [])
-
   // Vérifier si l'utilisateur a les droits de suppression (admin ou bureau)
   const canDeleteStudent = session?.user?.user_metadata?.role === UserRoleEnum.Admin ||
                           session?.user?.user_metadata?.role === UserRoleEnum.Bureau
+  const canEditFees = canDeleteStudent
 
   const handleDeleteStudent = async () => {
     if (!student.id) return
@@ -138,28 +135,27 @@ export function StudentProfileDialog({
     return phone
   }
 
+  const loadFamilySummary = useCallback(async () => {
+    setIsLoadingFamily(true)
+    try {
+      const response = await getFamilyProfileSummaryByStudentId(student.id)
+      if (response.success && response.data) {
+        setFamilySummary(response.data)
+      } else {
+        setFamilySummary(null)
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des infos famille:', error)
+      setFamilySummary(null)
+    } finally {
+      setIsLoadingFamily(false)
+    }
+  }, [student.id])
+
   useEffect(() => {
     if (!isOpen) return
-
-    const loadFamilySummary = async () => {
-      setIsLoadingFamily(true)
-      try {
-        const response = await getFamilyProfileSummaryByStudentId(student.id)
-        if (response.success && response.data) {
-          setFamilySummary(response.data)
-        } else {
-          setFamilySummary(null)
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des infos famille:', error)
-        setFamilySummary(null)
-      } finally {
-        setIsLoadingFamily(false)
-      }
-    }
-
     loadFamilySummary()
-  }, [isOpen, student.id])
+  }, [isOpen, loadFamilySummary])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -476,85 +472,12 @@ export function StudentProfileDialog({
 
               <Separator />
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Cotisations, inscriptions, paiements et notes
-                </div>
-
-                {isLoadingFamily && (
-                  <p className="text-sm text-muted-foreground">Chargement des cotisations...</p>
-                )}
-
-                {!isLoadingFamily && !familySummary?.family && (
-                  <div className="rounded-md border border-warning/50 bg-warning/10 p-3">
-                    <p className="text-sm font-medium text-warning">
-                      ⚠️ Aucune famille assignée
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Cet étudiant n'est pas rattaché à une famille. Les cotisations ne peuvent pas être affichées.
-                    </p>
-                  </div>
-                )}
-
-                {!isLoadingFamily && familySummary?.family && (!familySummary?.fees || familySummary.fees.length === 0) && (
-                  <div className="rounded-md border border-border/50 bg-muted/20 p-3">
-                    <p className="text-sm font-medium text-foreground">
-                      Aucune cotisation enregistrée
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Aucune cotisation ou inscription n'a été enregistrée pour la famille "{familySummary.family.label}".
-                    </p>
-                  </div>
-                )}
-
-                {familySummary?.fees?.map((fee) => (
-                  <div key={fee.id} className="border border-border rounded-md p-4 space-y-2">
-                    <div className="flex flex-col md:flex-row md:items-center
-                    md:justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {fee.fee_type === 'membership' ? 'Cotisation' : 'Inscription'} {fee.academic_year}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Montant dû : {currencyFormatter.format(fee.amount_due)}
-                        </p>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Payé : {currencyFormatter.format(fee.paid_total)}
-                      </div>
-                    </div>
-
-                    {fee.payments.length > 0 && (
-                      <div className="space-y-1">
-                        <div className="text-xs font-medium text-foreground">Paiements</div>
-                        {fee.payments.map((payment) => (
-                          <div key={payment.id} className="flex items-center justify-between text-sm
-                          bg-muted/20 rounded-md px-3 py-2">
-                            <span className="text-muted-foreground">
-                              {new Date(payment.paid_at).toLocaleDateString('fr-FR')} • {payment.method}
-                            </span>
-                            <span className="font-medium text-foreground">
-                              {currencyFormatter.format(payment.amount_paid)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {fee.notes.length > 0 && (
-                      <div className="space-y-1">
-                        <div className="text-xs font-medium text-foreground">Notes</div>
-                        {fee.notes.map((note) => (
-                          <div key={note.id} className="text-sm text-muted-foreground">
-                            - {note.note_text}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <FamilyFeesSection
+                familySummary={familySummary}
+                isLoading={isLoadingFamily}
+                onReload={loadFamilySummary}
+                canEdit={canEditFees}
+              />
             </CardContent>
           </Card>
         </div>

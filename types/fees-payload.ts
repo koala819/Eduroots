@@ -40,3 +40,10 @@ export type UpdateFeePaymentPayload = Partial<Omit<FeePayment,
   'fee_id' |
   'created_at' |
   'updated_at'>>
+
+export type CreateFeeNotePayload = {
+  fee_id: string
+  note_text: string
+}
+
+export type UpdateFeeNotePayload = Partial<Omit<CreateFeeNotePayload, 'fee_id'>>
