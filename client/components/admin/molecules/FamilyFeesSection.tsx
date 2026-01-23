@@ -1,7 +1,7 @@
 'use client'
 
 import { CreditCard, Receipt, StickyNote } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/client/components/ui/dialog'
 import { Input } from '@/client/components/ui/input'
+import { Textarea } from '@/client/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import { useToast } from '@/client/hooks/use-toast'
 import {
   createFeeNote,
   createFeePayment,
+  updateFeeNote,
 } from '@/server/actions/api/fees'
 import { FamilyProfileSummary } from '@/types/family-payload'
 import { FeePaymentMethod } from '@/types/fees-payload'
@@ -38,12 +40,6 @@ const currencyFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
   currency: 'EUR',
 })
-
-type NoteFormState = {
-  id?: string
-  feeId: string
-  note_text: string
-}
 
 type PaymentFormState = {
   feeId: string
@@ -75,10 +71,18 @@ export function FamilyFeesSection({
   canEdit = false,
 }: FamilyFeesSectionProps) {
   const { toast } = useToast()
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
-  const [noteForm, setNoteForm] = useState<NoteFormState | null>(null)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [paymentForm, setPaymentForm] = useState<PaymentFormState | null>(null)
+  const [notesValue, setNotesValue] = useState('')
+
+  const firstNote = useMemo(() => (
+    familySummary?.fees?.flatMap((fee) => fee.notes)?.[0] ?? null
+  ), [familySummary?.fees])
+  const notesFeeId = firstNote?.fee_id ?? familySummary?.fees?.[0]?.id ?? null
+
+  useEffect(() => {
+    setNotesValue(firstNote?.note_text ?? '')
+  }, [firstNote?.note_text])
 
   const openCreatePayment = (feeId: string) => {
     setPaymentForm({
@@ -90,28 +94,28 @@ export function FamilyFeesSection({
     setPaymentDialogOpen(true)
   }
 
-  const openCreateNote = (feeId: string) => {
-    setNoteForm({
-      feeId,
-      note_text: '',
-    })
-    setNoteDialogOpen(true)
-  }
-
-  const handleSaveNote = async () => {
-    if (!noteForm) return
+  const handleSaveNotesField = async () => {
+    if (!notesFeeId) return
 
     try {
-      const response = await createFeeNote({
-        fee_id: noteForm.feeId,
-        note_text: noteForm.note_text,
-      })
-      if (!response.success) {
-        throw new Error(response.message || 'Impossible d\'ajouter la note')
+      if (firstNote?.id) {
+        const response = await updateFeeNote(firstNote.id, {
+          note_text: notesValue,
+        })
+        if (!response.success) {
+          throw new Error(response.message || 'Impossible de modifier la note')
+        }
+      } else if (notesValue.trim()) {
+        const response = await createFeeNote({
+          fee_id: notesFeeId,
+          note_text: notesValue,
+        })
+        if (!response.success) {
+          throw new Error(response.message || 'Impossible d\'ajouter la note')
+        }
       }
-      toast({ title: 'Note ajoutée' })
-      setNoteDialogOpen(false)
-      setNoteForm(null)
+
+      toast({ title: 'Note enregistrée' })
       await onReload()
     } catch (error) {
       toast({
@@ -311,54 +315,30 @@ export function FamilyFeesSection({
                 <StickyNote className="h-4 w-4" />
                 Notes
               </div>
-              {canEdit && (
-                <Button size="sm" variant="outline" onClick={() => {
-                  const feeId = familySummary.fees[0]?.id
-                  if (feeId) openCreateNote(feeId)
-                }}>
-                  Ajouter une note
-                </Button>
-              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {familySummary.fees.flatMap((fee) => fee.notes).length === 0 && (
-              <p className="text-sm text-muted-foreground">Aucune note enregistrée.</p>
-            )}
-            {familySummary.fees.flatMap((fee) => fee.notes).map((note) => (
-              <div key={note.id} className="text-sm text-muted-foreground">
-                - {note.note_text}
+            <Textarea
+              placeholder="Saisir une note..."
+              value={notesValue}
+              onChange={(event) => setNotesValue(event.target.value)}
+              disabled={!canEdit}
+            />
+            {firstNote?.created_at && (
+              <div className="text-xs text-muted-foreground">
+                Dernière sauvegarde : {new Date(firstNote.created_at).toLocaleString('fr-FR')}
               </div>
-            ))}
+            )}
+            {canEdit && (
+              <div className="flex justify-end">
+                <Button size="sm" onClick={handleSaveNotesField}>
+                  Enregistrer
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
-
-      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Ajouter une note
-            </DialogTitle>
-          </DialogHeader>
-
-          {noteForm && (
-            <Input
-              placeholder="Note"
-              value={noteForm.note_text}
-              onChange={(event) => setNoteForm((prev) => prev
-                ? { ...prev, note_text: event.target.value }
-                : prev)}
-            />
-          )}
-
-          <DialogFooter>
-            <Button onClick={handleSaveNote}>
-              Ajouter
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent>

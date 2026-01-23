@@ -15,7 +15,7 @@ import {
   processExcelData,
 } from '@/types/import'
 
-const ACADEMIC_YEAR = '2025-2026'
+const ACADEMIC_YEAR = '2025'
 
 interface ResultData {
   data?: ProcessedDataType[]
